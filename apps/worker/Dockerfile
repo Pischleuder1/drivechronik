@@ -68,7 +68,7 @@ COPY --from=build /repo/apps/worker/dist ./apps/worker/dist
 # Migrations folder, shipped alongside the worker so the `migrate` compose
 # service (same image, different command) can run drizzle-orm's migrator
 # without drizzle-kit or dev deps in the runtime image.
-COPY packages/db/drizzle ./apps/worker/drizzle
+COPY --chown=tripatlas:tripatlas packages/db/drizzle ./apps/worker/drizzle
 
 WORKDIR /app/apps/worker
 USER tripatlas

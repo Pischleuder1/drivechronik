@@ -53,11 +53,11 @@ RUN groupadd --system --gid 1001 tripatlas \
 # has direct deps — all of them are needed for Node's ESM resolution to find
 # packages like drizzle-orm/postgres from apps/worker/dist/*.js.
 COPY --from=prod-deps /repo/node_modules ./node_modules
-COPY --from=prod-deps /repo/package.json ./package.json
-COPY --from=prod-deps /repo/packages/core/package.json ./packages/core/package.json
-COPY --from=prod-deps /repo/packages/db/package.json ./packages/db/package.json
+COPY --from=prod-deps --chown=tripatlas:tripatlas /repo/package.json ./package.json
+COPY --from=prod-deps --chown=tripatlas:tripatlas /repo/packages/core/package.json ./packages/core/package.json
+COPY --from=prod-deps --chown=tripatlas:tripatlas /repo/packages/db/package.json ./packages/db/package.json
 COPY --from=prod-deps /repo/packages/db/node_modules ./packages/db/node_modules
-COPY --from=prod-deps /repo/apps/worker/package.json ./apps/worker/package.json
+COPY --from=prod-deps --chown=tripatlas:tripatlas /repo/apps/worker/package.json ./apps/worker/package.json
 COPY --from=prod-deps /repo/apps/worker/node_modules ./apps/worker/node_modules
 
 # Compiled output.

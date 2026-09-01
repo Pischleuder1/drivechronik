@@ -80,6 +80,25 @@
     "db": "DriveChronik database",
     "dbReachable": "reachable",
     "dbUnreachableFallback": "not reachable",
+    "backup": {
+      "title": "Database backup",
+      "badges": {
+        "fresh": "current",
+        "stale": "stale",
+        "missing": "missing",
+        "invalid": "invalid",
+        "notConfigured": "not configured"
+      },
+      "lastSuccess": "last backup {time}",
+      "file": "File",
+      "size": "Size",
+      "checksum": "SHA-256",
+      "checksumPresent": "present",
+      "checksumMissing": "missing",
+      "missingDescription": "No successful backup status is available yet.",
+      "invalidDescription": "The backup status file is unreadable or invalid.",
+      "notConfiguredDescription": "Backup status display is not configured for this installation."
+    },
     "workerSync": "Worker / sync",
     "empty": "No sync data available.",
     "lastSuccess": "last success {time}",
@@ -112,7 +131,10 @@
       "neverSynced": "Never synced yet. Is the worker container running? Is TESLAMATE_DATABASE_URL set in the worker?",
       "someNeverSynced": "At least one area has never synced successfully. Check the worker logs: docker compose logs worker.",
       "stale": "The last successful sync was a while ago. Is the worker container still running? Check the docker logs: docker compose logs worker.",
-      "runFailed": "At least one sync run failed — see the error message below the relevant row."
+      "runFailed": "At least one sync run failed — see the error message below the relevant row.",
+      "backupStale": "The last successful database backup is at least 36 hours old.",
+      "backupMissing": "No successful backup status was found yet. Is the backup container running?",
+      "backupInvalid": "The backup status is invalid or unreadable. Check the backup container and status file."
     }
   },
   "errors": {

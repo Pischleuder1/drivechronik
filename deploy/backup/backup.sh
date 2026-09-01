@@ -7,6 +7,7 @@ DB_USER="${DB_USER:-tripatlas}"
 DB_NAME="${DB_NAME:-tripatlas}"
 
 BACKUP_DIR="${BACKUP_DIR_CONTAINER:-/backups}"
+BACKUP_STATUS_DIR="${BACKUP_STATUS_DIR:-$BACKUP_DIR/status}"
 BACKUP_INTERVAL_HOURS="${BACKUP_INTERVAL_HOURS:-24}"
 BACKUP_RETENTION_DAYS="${BACKUP_RETENTION_DAYS:-30}"
 
@@ -31,7 +32,30 @@ if [ "$BACKUP_INTERVAL_HOURS" -lt 1 ]; then
   exit 2
 fi
 
-mkdir -p "$BACKUP_DIR"
+mkdir -p "$BACKUP_DIR" "$BACKUP_STATUS_DIR"
+
+write_success_status() {
+  created_at="$1"
+  backup_name="$2"
+  backup_file="$3"
+
+  size_bytes="$(wc -c < "$backup_file" | tr -d '[:space:]')"
+  status_target="${BACKUP_STATUS_DIR}/backup-status.json"
+  status_temporary="${status_target}.tmp"
+
+  cat > "$status_temporary" <<EOF
+{
+  "version": 1,
+  "status": "ok",
+  "createdAt": "${created_at}",
+  "filename": "${backup_name}",
+  "sizeBytes": ${size_bytes},
+  "checksumPresent": true
+}
+EOF
+
+  mv "$status_temporary" "$status_target"
+}
 
 wait_for_db() {
   attempt=0
@@ -71,6 +95,7 @@ run_backup() {
   fi
 
   timestamp="$(date -u '+%Y%m%dT%H%M%SZ')"
+  created_at="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
   basename="drivechronik-${timestamp}.dump"
 
   target="${BACKUP_DIR}/${basename}"
@@ -107,6 +132,8 @@ run_backup() {
     cd "$BACKUP_DIR"
     sha256sum "$basename" > "${basename}.sha256"
   )
+
+  write_success_status "$created_at" "$basename" "$target"
 
   cleanup_old_backups
 

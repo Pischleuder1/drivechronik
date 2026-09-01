@@ -1,5 +1,6 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import { CheckCircle2, XCircle, AlertTriangle, Info } from "lucide-react";
+import type { BackupHealth } from "../../../lib/backupStatusLogic";
 import { formatRelativeTime } from "../../../lib/day";
 import {
   getDiagnostics,
@@ -11,6 +12,39 @@ import {
 import { TeslamateTestButton } from "./TeslamateTestButton";
 
 type HealthBadgeConfig = Record<SyncHealth, { classes: string }>;
+
+const BACKUP_BADGE: Record<BackupHealth, { classes: string }> = {
+  fresh: {
+    classes: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300",
+  },
+  stale: {
+    classes: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300",
+  },
+  missing: {
+    classes: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300",
+  },
+  invalid: {
+    classes: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300",
+  },
+  notConfigured: {
+    classes: "bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300",
+  },
+};
+
+function formatBytes(bytes: number, locale: string): string {
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  let value = bytes;
+  let unit = 0;
+
+  while (value >= 1024 && unit < units.length - 1) {
+    value /= 1024;
+    unit += 1;
+  }
+
+  return `${new Intl.NumberFormat(locale, {
+    maximumFractionDigits: unit === 0 ? 0 : 1,
+  }).format(value)} ${units[unit]}`;
+}
 
 const HEALTH_BADGE: HealthBadgeConfig = {
   fresh: {
@@ -49,6 +83,17 @@ export async function DiagnosticsCard() {
     never: t("diagnostics.badges.never"),
   };
 
+  const backupBadgeLabels: Record<BackupHealth, string> = {
+    fresh: t("diagnostics.backup.badges.fresh"),
+    stale: t("diagnostics.backup.badges.stale"),
+    missing: t("diagnostics.backup.badges.missing"),
+    invalid: t("diagnostics.backup.badges.invalid"),
+    notConfigured: t("diagnostics.backup.badges.notConfigured"),
+  };
+
+  const backup = summary.backup;
+  const backupBadge = BACKUP_BADGE[backup.health];
+
   return (
     <section
       id="diagnose"
@@ -77,6 +122,95 @@ export async function DiagnosticsCard() {
               ? t("diagnostics.dbReachable")
               : (summary.drivechronikDbError ?? t("diagnostics.dbUnreachableFallback"))}
           </span>
+        </div>
+
+        <div className="border-t border-neutral-100 pt-3 dark:border-neutral-800">
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            {backup.health === "fresh" ? (
+              <CheckCircle2
+                aria-hidden
+                size={16}
+                className="shrink-0 text-emerald-600 dark:text-emerald-400"
+              />
+            ) : backup.health === "invalid" ? (
+              <XCircle
+                aria-hidden
+                size={16}
+                className="shrink-0 text-red-600 dark:text-red-400"
+              />
+            ) : (
+              <AlertTriangle
+                aria-hidden
+                size={16}
+                className="shrink-0 text-amber-600 dark:text-amber-400"
+              />
+            )}
+
+            <span className="font-medium text-neutral-900 dark:text-neutral-100">
+              {t("diagnostics.backup.title")}
+            </span>
+
+            <span
+              className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${backupBadge.classes}`}
+            >
+              {backupBadgeLabels[backup.health]}
+            </span>
+          </div>
+
+          {backup.metadata ? (
+            <dl className="mt-2 grid grid-cols-1 gap-1 text-xs sm:grid-cols-2">
+              <div className="flex justify-between gap-3 sm:col-span-2">
+                <dt className="text-neutral-500 dark:text-neutral-400">
+                  {t("diagnostics.backup.lastSuccess", {
+                    time: formatRelativeTime(
+                      new Date(backup.metadata.createdAt),
+                      locale,
+                    ),
+                  })}
+                </dt>
+              </div>
+
+              <div className="flex justify-between gap-3">
+                <dt className="text-neutral-500 dark:text-neutral-400">
+                  {t("diagnostics.backup.size")}
+                </dt>
+                <dd className="font-medium tabular-nums">
+                  {formatBytes(backup.metadata.sizeBytes, locale)}
+                </dd>
+              </div>
+
+              <div className="flex justify-between gap-3">
+                <dt className="text-neutral-500 dark:text-neutral-400">
+                  {t("diagnostics.backup.checksum")}
+                </dt>
+                <dd className="font-medium">
+                  {backup.metadata.checksumPresent
+                    ? t("diagnostics.backup.checksumPresent")
+                    : t("diagnostics.backup.checksumMissing")}
+                </dd>
+              </div>
+
+              <div className="flex min-w-0 justify-between gap-3 sm:col-span-2">
+                <dt className="shrink-0 text-neutral-500 dark:text-neutral-400">
+                  {t("diagnostics.backup.file")}
+                </dt>
+                <dd
+                  className="truncate font-mono text-neutral-700 dark:text-neutral-300"
+                  title={backup.metadata.filename}
+                >
+                  {backup.metadata.filename}
+                </dd>
+              </div>
+            </dl>
+          ) : (
+            <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
+              {backup.health === "missing"
+                ? t("diagnostics.backup.missingDescription")
+                : backup.health === "invalid"
+                  ? (backup.error ?? t("diagnostics.backup.invalidDescription"))
+                  : t("diagnostics.backup.notConfiguredDescription")}
+            </p>
+          )}
         </div>
 
         <div className="flex flex-col gap-2">

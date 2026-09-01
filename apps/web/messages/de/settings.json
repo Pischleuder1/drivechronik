@@ -80,6 +80,25 @@
     "db": "DriveChronik-Datenbank",
     "dbReachable": "erreichbar",
     "dbUnreachableFallback": "nicht erreichbar",
+    "backup": {
+      "title": "Datenbanksicherung",
+      "badges": {
+        "fresh": "aktuell",
+        "stale": "veraltet",
+        "missing": "fehlt",
+        "invalid": "fehlerhaft",
+        "notConfigured": "nicht konfiguriert"
+      },
+      "lastSuccess": "letztes Backup {time}",
+      "file": "Datei",
+      "size": "Größe",
+      "checksum": "SHA-256",
+      "checksumPresent": "vorhanden",
+      "checksumMissing": "fehlt",
+      "missingDescription": "Noch kein erfolgreicher Backup-Status vorhanden.",
+      "invalidDescription": "Die Backup-Statusdatei ist nicht lesbar oder ungültig.",
+      "notConfiguredDescription": "Die Backup-Statusanzeige ist in dieser Installation nicht konfiguriert."
+    },
     "workerSync": "Worker / Sync",
     "empty": "Noch keine Sync-Daten vorhanden.",
     "lastSuccess": "letzter Erfolg {time}",
@@ -112,7 +131,10 @@
       "neverSynced": "Noch nie synchronisiert. Läuft der Worker-Container? Ist TESLAMATE_DATABASE_URL im Worker gesetzt?",
       "someNeverSynced": "Mindestens ein Bereich wurde noch nie erfolgreich synchronisiert. Worker-Logs prüfen: docker compose logs worker.",
       "stale": "Letzter erfolgreicher Sync liegt länger zurück. Läuft der Worker-Container noch? Docker-Logs prüfen: docker compose logs worker.",
-      "runFailed": "Mindestens ein Sync-Lauf ist fehlgeschlagen — Fehlermeldung unten bei der jeweiligen Zeile."
+      "runFailed": "Mindestens ein Sync-Lauf ist fehlgeschlagen — Fehlermeldung unten bei der jeweiligen Zeile.",
+      "backupStale": "Das letzte erfolgreiche Datenbank-Backup liegt mindestens 36 Stunden zurück.",
+      "backupMissing": "Es wurde noch kein erfolgreicher Backup-Status gefunden. Läuft der backup-Container?",
+      "backupInvalid": "Der Backup-Status ist ungültig oder nicht lesbar. Backup-Container und Statusdatei prüfen."
     }
   },
   "errors": {

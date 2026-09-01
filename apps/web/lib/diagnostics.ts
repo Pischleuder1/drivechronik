@@ -1,5 +1,7 @@
 import "server-only";
 import { sql } from "drizzle-orm";
+import { getBackupStatus } from "./backupStatus";
+import type { BackupStatusSummary } from "./backupStatusLogic";
 import { db } from "./db";
 import { getSyncState, type SyncStateRow } from "./queries";
 
@@ -33,6 +35,7 @@ export interface DiagnosticsSummary {
   /** Trivialer Round-Trip gegen die eigene DriveChronik-DB. */
   drivechronikDbOk: boolean;
   drivechronikDbError: string | null;
+  backup: BackupStatusSummary;
   entities: SyncEntityDiagnosis[];
   /** Schlechtester Zustand über alle entities — bestimmt die Karten-Ampel. */
   overallHealth: SyncHealth;
@@ -70,6 +73,8 @@ export function entityLabel(
  * Diagnose-Card da.
  */
 export async function getDiagnostics(): Promise<DiagnosticsSummary> {
+  const backup = await getBackupStatus();
+
   let drivechronikDbOk = true;
   let drivechronikDbError: string | null = null;
 
@@ -108,6 +113,7 @@ export async function getDiagnostics(): Promise<DiagnosticsSummary> {
   return {
     drivechronikDbOk,
     drivechronikDbError,
+    backup,
     entities,
     overallHealth,
     teslamateEnvSet: Boolean(process.env.TESLAMATE_DATABASE_URL),

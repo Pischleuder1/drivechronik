@@ -103,6 +103,21 @@ export default async function DriveDetailPage({
   const dateStr = toDateParam(drive.startTime);
   const classification = drive.classification as Classification;
 
+  const gpsCoveragePercent =
+    drive.durationSeconds != null &&
+    drive.durationSeconds > 0 &&
+    route.stats.recordingDurationSeconds != null
+      ? Math.max(
+          0,
+          Math.min(
+            100,
+            Math.round(
+              (route.stats.recordingDurationSeconds / drive.durationSeconds) * 100,
+            ),
+          ),
+        )
+      : null;
+
   const kennzahlen: Array<[string, React.ReactNode]> = [
     [t("metrics.distance"), drive.distanceKm != null ? formatKm(drive.distanceKm) : "—"],
     [
@@ -262,8 +277,97 @@ export default async function DriveDetailPage({
         {route.points.length >= 2 ? (
           <>
             <DriveMapLoader points={route.points} />
-            <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
-              {t("page.routePoints", { count: route.totalCount })}
+
+            <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="rounded-lg bg-neutral-50 p-3 dark:bg-neutral-800/60">
+                <dt className="text-xs text-neutral-500 dark:text-neutral-400">
+                  {t("page.gpsDistance")}
+                </dt>
+                <dd className="mt-1 font-medium tabular-nums">
+                  {route.stats.gpsDistanceKm != null
+                    ? formatKm(route.stats.gpsDistanceKm)
+                    : "—"}
+                </dd>
+              </div>
+
+              <div className="rounded-lg bg-neutral-50 p-3 dark:bg-neutral-800/60">
+                <dt className="text-xs text-neutral-500 dark:text-neutral-400">
+                  {t("page.gpsPoints")}
+                </dt>
+                <dd className="mt-1 font-medium tabular-nums">
+                  {route.totalCount}
+                </dd>
+              </div>
+
+              <div className="rounded-lg bg-neutral-50 p-3 dark:bg-neutral-800/60">
+                <dt className="text-xs text-neutral-500 dark:text-neutral-400">
+                  {t("page.gpsRecording")}
+                </dt>
+                <dd className="mt-1 font-medium tabular-nums">
+                  {route.stats.recordingDurationSeconds != null
+                    ? formatDuration(
+                        Math.round(route.stats.recordingDurationSeconds),
+                      )
+                    : "—"}
+                </dd>
+              </div>
+
+              <div className="rounded-lg bg-neutral-50 p-3 dark:bg-neutral-800/60">
+                <dt className="text-xs text-neutral-500 dark:text-neutral-400">
+                  {t("page.gpsInterval")}
+                </dt>
+                <dd className="mt-1 font-medium tabular-nums">
+                  {route.stats.avgIntervalSeconds != null
+                    ? `${route.stats.avgIntervalSeconds.toFixed(1)} s`
+                    : "—"}
+                </dd>
+              </div>
+
+              <div className="rounded-lg bg-neutral-50 p-3 dark:bg-neutral-800/60">
+                <dt className="text-xs text-neutral-500 dark:text-neutral-400">
+                  {t("page.gpsAvgSpeed")}
+                </dt>
+                <dd className="mt-1 font-medium tabular-nums">
+                  {route.stats.avgSpeedKmh != null
+                    ? formatSpeed(route.stats.avgSpeedKmh)
+                    : "—"}
+                </dd>
+              </div>
+
+              <div className="rounded-lg bg-neutral-50 p-3 dark:bg-neutral-800/60">
+                <dt className="text-xs text-neutral-500 dark:text-neutral-400">
+                  {t("page.gpsMaxSpeed")}
+                </dt>
+                <dd className="mt-1 font-medium tabular-nums">
+                  {route.stats.maxSpeedKmh != null
+                    ? formatSpeed(route.stats.maxSpeedKmh)
+                    : "—"}
+                </dd>
+              </div>
+
+              <div className="rounded-lg bg-neutral-50 p-3 dark:bg-neutral-800/60">
+                <dt className="text-xs text-neutral-500 dark:text-neutral-400">
+                  {t("page.gpsSoc")}
+                </dt>
+                <dd className="mt-1 font-medium tabular-nums">
+                  {route.stats.startSoc != null || route.stats.endSoc != null
+                    ? `${route.stats.startSoc != null ? formatSoc(route.stats.startSoc) : "—"} → ${route.stats.endSoc != null ? formatSoc(route.stats.endSoc) : "—"}`
+                    : "—"}
+                </dd>
+              </div>
+
+              <div className="rounded-lg bg-neutral-50 p-3 dark:bg-neutral-800/60">
+                <dt className="text-xs text-neutral-500 dark:text-neutral-400">
+                  {t("page.gpsCoverage")}
+                </dt>
+                <dd className="mt-1 font-medium tabular-nums">
+                  {gpsCoveragePercent != null ? `${gpsCoveragePercent} %` : "—"}
+                </dd>
+              </div>
+            </dl>
+
+            <p className="mt-3 text-xs text-neutral-500 dark:text-neutral-400">
+              {t("page.gpsSource")}
             </p>
           </>
         ) : (

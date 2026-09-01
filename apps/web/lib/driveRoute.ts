@@ -2,6 +2,7 @@ import "server-only";
 import { asc, eq } from "drizzle-orm";
 import { routePoints } from "@drivechronik/db";
 import { db } from "./db";
+import { computeRouteStats, type RouteStats } from "./driveRouteStats";
 
 /** [lat, lon, unix_ts_ms, speedKmh, soc] tuple for a single route point. */
 export type RoutePointTuple = [number, number, number, number | null, number | null];
@@ -31,6 +32,8 @@ export interface DriveRoute {
   elevationCoverage: number;
   /** Alle Messwerte je Punkt (thinned), für das Multi-Kurven-Chart (M18). */
   chartPoints: ChartRoutePoint[];
+  /** Aus allen GPS-Punkten berechnete Fahrtdetails. */
+  stats: RouteStats;
 }
 
 /** Ordered route points for a drive, thinned to at most MAX_POINTS. */
@@ -62,6 +65,7 @@ export async function getRoutePoints(driveId: number): Promise<DriveRoute> {
       soc: r.soc,
       speedKmh: r.speedKmh,
     })),
+    stats: computeRouteStats(rows),
   };
 }
 

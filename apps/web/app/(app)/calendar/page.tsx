@@ -1,4 +1,3 @@
-import { notFound } from "next/navigation";
 import { getCalendarMonthStats } from "../../../lib/calendar";
 import { buildCalendarGrid, isValidMonthParam } from "../../../lib/calendarGrid";
 import { todayInAppTz } from "../../../lib/day";
@@ -6,6 +5,8 @@ import { getVehicles } from "../../../lib/queries";
 import { MonthNav } from "./MonthNav";
 import { CalendarVehicleSwitcher } from "./CalendarVehicleSwitcher";
 import { MonthGrid } from "./MonthGrid";
+
+import { NoVehicleState } from "../../../components/NoVehicleState";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,7 @@ export default async function CalendarPage({
     monthParam && isValidMonthParam(monthParam) ? monthParam : currentMonth;
 
   const vehicles = await getVehicles();
-  if (vehicles.length === 0) notFound();
+  if (vehicles.length === 0) return <NoVehicleState />;
 
   const requested = vehicle ? Number(vehicle) : NaN;
   const current = vehicles.find((v) => v.id === requested) ?? vehicles[0]!;

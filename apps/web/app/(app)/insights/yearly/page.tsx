@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
 
@@ -13,6 +12,8 @@ import { getVehicles } from "../../../../lib/queries";
 import { getYearlyInsights } from "../../../../lib/yearlyInsights";
 import { InsightsVehicleSwitcher } from "../InsightsVehicleSwitcher";
 import { YearlyDestinationMapLoader } from "./YearlyDestinationMapLoader";
+
+import { NoVehicleState } from "../../../../components/NoVehicleState";
 
 export const dynamic = "force-dynamic";
 
@@ -73,7 +74,7 @@ export default async function YearlyInsightsPage({
   const year = parseYear(params.year);
 
   const vehicles = await getVehicles();
-  if (vehicles.length === 0) notFound();
+  if (vehicles.length === 0) return <NoVehicleState />;
 
   const requestedVehicle = params.vehicle
     ? Number(params.vehicle)

@@ -20,5 +20,9 @@
     "loading": "Lädt …",
     "error": "Etwas ist schiefgelaufen",
     "none": "—"
+  },
+  "noVehicleLoaded": {
+    "title": "Noch kein Fahrzeug geladen",
+    "hint": "Sobald ein Fahrzeug aus TeslaMate übernommen wurde, stehen diese Daten hier zur Verfügung."
   }
 }

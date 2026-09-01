@@ -1,9 +1,10 @@
-import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { getVehicles } from "../../../lib/queries";
 import { getPlannerContext, getPlannerPlaces } from "../../../lib/planner";
 import { getCurrentWeather } from "../../../lib/weather";
 import { Planner } from "./Planner";
+
+import { NoVehicleState } from "../../../components/NoVehicleState";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,7 @@ const FALLBACK_TEMP_C = 15;
 export default async function PlannerPage() {
   const t = await getTranslations("planner");
   const vehicles = await getVehicles();
-  if (vehicles.length === 0) notFound();
+  if (vehicles.length === 0) return <NoVehicleState />;
   const vehicleId = vehicles[0]!.id;
 
   const [context, places] = await Promise.all([

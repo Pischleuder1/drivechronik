@@ -20,5 +20,9 @@
     "loading": "Loading …",
     "error": "Something went wrong",
     "none": "—"
+  },
+  "noVehicleLoaded": {
+    "title": "No vehicle loaded yet",
+    "hint": "Once a vehicle has been imported from TeslaMate, this data will be available here."
   }
 }

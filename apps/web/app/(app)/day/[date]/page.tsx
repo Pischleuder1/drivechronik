@@ -21,6 +21,8 @@ import { DateNav } from "./DateNav";
 import { VehicleSwitcher } from "./VehicleSwitcher";
 import { Timeline } from "./Timeline";
 
+import { NoVehicleState } from "../../../../components/NoVehicleState";
+
 export const dynamic = "force-dynamic";
 
 export default async function DayPage({
@@ -39,7 +41,7 @@ export default async function DayPage({
 
   const { vehicle } = await searchParams;
   const vehicles = await getVehicles();
-  if (vehicles.length === 0) notFound();
+  if (vehicles.length === 0) return <NoVehicleState />;
 
   const requested = vehicle ? Number(vehicle) : NaN;
   const current =

@@ -5,6 +5,7 @@ import { ChevronLeft } from "lucide-react";
 import { getAllPlacesWithUsage, getPlaceById } from "../../../../../lib/queries";
 import { PlaceForm } from "../../PlaceForm";
 import { DeletePlaceButton } from "../../DeletePlaceButton";
+import { buttonClasses } from "../../../../../components/ui/Button";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +28,18 @@ export default async function EditPlacePage({
   const usageCount = usage
     ? usage.driveStartCount + usage.driveEndCount + usage.chargeCount + usage.parkCount
     : 0;
+
+  const ruleParams = new URLSearchParams({
+    endPlaceId: String(place.id),
+    name: t("autoClassification.ruleName", { name: place.name }),
+  });
+
+  if (place.type === "customer") {
+    ruleParams.set("classification", "business");
+    ruleParams.set("customer", place.name);
+  }
+
+  const ruleHref = `/rules/new?${ruleParams.toString()}`;
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -56,6 +69,31 @@ export default async function EditPlacePage({
             electricityPriceCurrency: place.electricityPriceCurrency,
           }}
         />
+      </div>
+
+      <div className="mt-6 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+          {t("autoClassification.title")}
+        </h2>
+
+        <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+          {t("autoClassification.description")}
+        </p>
+
+        {place.type === "customer" && (
+          <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
+            {t("autoClassification.customerHint")}
+          </p>
+        )}
+
+        <div className="mt-3">
+          <Link
+            href={ruleHref}
+            className={buttonClasses("secondary", "sm")}
+          >
+            {t("autoClassification.createRule")}
+          </Link>
+        </div>
       </div>
 
       <div className="mt-6 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">

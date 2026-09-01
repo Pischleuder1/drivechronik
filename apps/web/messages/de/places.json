@@ -47,6 +47,13 @@
     "electricityPriceHint": "Für automatische Ladekosten an diesem Ort — z. B. Zuhause 0,32 €/kWh.",
     "submitting": "Speichert…"
   },
+  "autoClassification": {
+    "title": "Automatische Klassifizierung",
+    "description": "Lege eine sichtbare Regel für Fahrten zu diesem Ort an. Manuelle Klassifizierungen werden nicht überschrieben.",
+    "customerHint": "Bei einem Kundenort werden „Geschäftlich“ und der Kundenname bereits vorbelegt.",
+    "createRule": "Regel für diesen Ort erstellen",
+    "ruleName": "{name} automatisch"
+  },
   "dangerZone": {
     "title": "Gefahrenbereich",
     "usage": "Verwendet in {count} Fahrten/Ladevorgängen/Parkvorgängen."

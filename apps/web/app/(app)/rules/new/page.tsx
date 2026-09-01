@@ -3,13 +3,28 @@ import { getTranslations } from "next-intl/server";
 import { ChevronLeft } from "lucide-react";
 import { getAllPlacesLite, getAllTags } from "../../../../lib/queries";
 import { RuleForm } from "../RuleForm";
+import { buildRulePrefill } from "../../../../lib/rulePrefill";
 
 export const dynamic = "force-dynamic";
 
-export default async function NewRulePage() {
+export default async function NewRulePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const t = await getTranslations("rules");
   const tCommon = await getTranslations("common");
-  const [places, tags] = await Promise.all([getAllPlacesLite(), getAllTags()]);
+
+  const [params, places, tags] = await Promise.all([
+    searchParams,
+    getAllPlacesLite(),
+    getAllTags(),
+  ]);
+
+  const initial = buildRulePrefill(
+    params,
+    places.map((place) => place.id),
+  );
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -25,6 +40,7 @@ export default async function NewRulePage() {
 
       <div className="mt-6 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
         <RuleForm
+          initial={initial}
           places={places}
           tags={tags.map((t) => ({ id: t.id, name: t.name }))}
         />

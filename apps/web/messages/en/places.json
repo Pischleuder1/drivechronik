@@ -47,6 +47,13 @@
     "electricityPriceHint": "For automatic charging costs at this place — e.g. Home 0.32 €/kWh.",
     "submitting": "Saving…"
   },
+  "autoClassification": {
+    "title": "Automatic classification",
+    "description": "Create a visible rule for drives to this place. Manual classifications are never overwritten.",
+    "customerHint": "For a customer place, Business and the customer name are already prefilled.",
+    "createRule": "Create rule for this place",
+    "ruleName": "{name} automatically"
+  },
   "dangerZone": {
     "title": "Danger zone",
     "usage": "Used in {count} drives/charging sessions/parks."

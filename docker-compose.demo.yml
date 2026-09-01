@@ -1,4 +1,4 @@
-# Tripatlas — demo stack (docker-compose.demo.yml).
+# DriveChronik — demo stack (docker-compose.demo.yml).
 #
 # Self-contained: NO real Tesla or TeslaMate installation needed. Spins up a
 # fake TeslaMate database, seeds it once with ~6 weeks of synthetic fixture
@@ -80,7 +80,7 @@ services:
     image: tripatlas-web:demo
     restart: unless-stopped
     ports:
-      # Already running a real Tripatlas stack on :3000 on this host? Edit
+      # Already running a real DriveChronik stack on :3000 on this host? Edit
       # this line to e.g. "3100:3000" — no .env indirection here on purpose,
       # this file is meant to just work with a single command.
       - "3000:3000"

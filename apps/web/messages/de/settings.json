@@ -77,7 +77,7 @@
   "loggingOut": "Abmelden…",
   "diagnostics": {
     "title": "Diagnose",
-    "db": "Tripatlas-Datenbank",
+    "db": "DriveChronik-Datenbank",
     "dbReachable": "erreichbar",
     "dbUnreachableFallback": "nicht erreichbar",
     "workerSync": "Worker / Sync",
@@ -108,7 +108,7 @@
       "unknownConnectionError": "Unbekannter Fehler bei der Verbindung."
     },
     "hints": {
-      "dbUnreachable": "Die Tripatlas-Datenbank ist nicht erreichbar. Läuft der db-Container? Ist DATABASE_URL im web-Container korrekt gesetzt?",
+      "dbUnreachable": "Die DriveChronik-Datenbank ist nicht erreichbar. Läuft der db-Container? Ist DATABASE_URL im web-Container korrekt gesetzt?",
       "neverSynced": "Noch nie synchronisiert. Läuft der Worker-Container? Ist TESLAMATE_DATABASE_URL im Worker gesetzt?",
       "someNeverSynced": "Mindestens ein Bereich wurde noch nie erfolgreich synchronisiert. Worker-Logs prüfen: docker compose logs worker.",
       "stale": "Letzter erfolgreicher Sync liegt länger zurück. Läuft der Worker-Container noch? Docker-Logs prüfen: docker compose logs worker.",

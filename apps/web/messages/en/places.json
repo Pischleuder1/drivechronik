@@ -1,6 +1,6 @@
 {
   "title": "Places",
-  "description": "Places make drives readable — instead of coordinates, Tripatlas shows \"Home → Customer Müller\".",
+  "description": "Places make drives readable — instead of coordinates, DriveChronik shows \"Home → Customer Müller\".",
   "newPlace": "New place",
   "editTitle": "Edit {name}",
   "empty": {

@@ -30,7 +30,7 @@ export interface SyncEntityDiagnosis extends SyncStateRow {
 }
 
 export interface DiagnosticsSummary {
-  /** Trivialer Round-Trip gegen die eigene Tripatlas-DB. */
+  /** Trivialer Round-Trip gegen die eigene DriveChronik-DB. */
   tripatlasDbOk: boolean;
   tripatlasDbError: string | null;
   entities: SyncEntityDiagnosis[];

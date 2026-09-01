@@ -339,7 +339,7 @@ export interface AddressSearchResult {
 }
 
 const NOMINATIM_USER_AGENT =
-  "Tripatlas/0.1 (self-hosted, github.com/jsc2304/tripatlas)";
+  "DriveChronik/0.1.1 (self-hosted)";
 
 /**
  * Builds a short, human-friendly address label from Nominatim's structured

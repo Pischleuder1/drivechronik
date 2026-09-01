@@ -1,5 +1,5 @@
 /**
- * Seed script for a fake TeslaMate database, so Tripatlas can be developed
+ * Seed script for a fake TeslaMate database, so DriveChronik can be developed
  * without a real car / real TeslaMate instance.
  *
  * Connects via TESLAMATE_DATABASE_URL (defaults to the docker-compose.dev.yml

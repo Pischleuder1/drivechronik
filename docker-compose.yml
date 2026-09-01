@@ -1,4 +1,4 @@
-# Tripatlas — production deployment (Docker Compose).
+# DriveChronik — production deployment (Docker Compose).
 #
 # Runs the tripatlas app stack (db, one-shot migration, web, sync worker)
 # against an EXISTING TeslaMate installation's Postgres, reached read-only.

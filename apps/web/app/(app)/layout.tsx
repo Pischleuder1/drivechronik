@@ -33,7 +33,7 @@ export default async function AppLayout({
       {/* Sidebar on md+ */}
       <aside className="sticky top-0 hidden h-dvh w-56 shrink-0 flex-col border-r border-neutral-200 md:flex dark:border-neutral-800">
         <div className="shrink-0 px-5 py-5">
-          <Link href="/" aria-label="Tripatlas start">
+          <Link href="/" aria-label="DriveChronik start">
             <BrandWordmark size="md" />
           </Link>
           <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
@@ -52,7 +52,7 @@ export default async function AppLayout({
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Mobile header */}
         <header className="flex items-center justify-between border-b border-neutral-200 px-4 py-3 md:hidden dark:border-neutral-800">
-          <Link href="/" aria-label="Tripatlas start">
+          <Link href="/" aria-label="DriveChronik start">
             <BrandWordmark size="sm" />
           </Link>
           <div className="flex items-center gap-3">

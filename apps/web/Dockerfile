@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-# Tripatlas web — Next.js standalone build. Multi-stage, pnpm workspace-aware.
+# DriveChronik web — Next.js standalone build. Multi-stage, pnpm workspace-aware.
 # linux/arm64-compatible (Raspberry Pi). Uses node:22-bookworm-slim (not
 # -alpine): @node-rs/argon2's prebuilt musl binary did not resolve cleanly
 # through pnpm's workspace hoisting on alpine during verification — glibc

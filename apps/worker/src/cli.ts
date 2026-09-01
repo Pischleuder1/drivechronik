@@ -6,7 +6,7 @@ import { rematchPlaces } from "./sync/rematch.js";
 import { importTessie } from "./import/tessie.js";
 import { requireEnv } from "./env.js";
 
-const USAGE = `Tripatlas Worker CLI
+const USAGE = `DriveChronik Worker CLI
 
   pnpm --filter @tripatlas/worker cli resync [--from YYYY-MM-DD]
       Setzt die Sync-Watermarks zurück (optional auf ein Datum) und läuft

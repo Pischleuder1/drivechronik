@@ -1,17 +1,23 @@
-# Tripatlas
+# DriveChronik
 
-[![CI](https://github.com/jsc2304/tripatlas/actions/workflows/ci.yml/badge.svg)](https://github.com/jsc2304/tripatlas/actions/workflows/ci.yml)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL%203.0-blue.svg)](LICENSE)
+
+> **Herkunft:** DriveChronik basiert auf **Tripatlas v0.1.1** von Jan Schultheiss,
+> veröffentlicht unter der **GNU Affero General Public License v3.0**.
+> DriveChronik ist eine unabhängige Weiterentwicklung und nicht das offizielle
+> Tripatlas-/ODOVI-Projekt.
+> Upstream: https://github.com/jsc2304/odovi/tree/v0.1.1
+
 
 **Self-hosted Fahrtenarchiv & Analytics für Tesla.** Datum wählen, jede Fahrt des Tages sehen, klassifizieren, exportieren — deine Bewegungsdaten bleiben auf deinem Server.
 
-Tripatlas liest die Datenbank einer bestehenden [TeslaMate](https://github.com/teslamate-org/teslamate)-Installation (read-only) und macht daraus ein durchsuchbares Fahrten-, Park- und Ladearchiv mit Tagesansicht, Orten, Tags, Auto-Klassifizierung und Business-Exporten (CSV/PDF/GPX). Kein Abo, keine Cloud, kein Tracking.
+DriveChronik liest die Datenbank einer bestehenden [TeslaMate](https://github.com/teslamate-org/teslamate)-Installation (read-only) und macht daraus ein durchsuchbares Fahrten-, Park- und Ladearchiv mit Tagesansicht, Orten, Tags, Auto-Klassifizierung und Business-Exporten (CSV/PDF/GPX). Kein Abo, keine Cloud, kein Tracking.
 
-> *English: Tripatlas is a self-hosted trip archive and analytics UI on top of your existing TeslaMate database — day timeline, trip classification (logbook-style), tagging, charging analytics, journeys, exports (CSV/PDF/GPX), auto-classification rules, per-place charging costs, insights, dark mode, German/English UI. Read-only against TeslaMate, your data stays on your server.*
+> *English: DriveChronik is a self-hosted trip archive and analytics UI on top of your existing TeslaMate database — day timeline, trip classification (logbook-style), tagging, charging analytics, journeys, exports (CSV/PDF/GPX), auto-classification rules, per-place charging costs, insights, dark mode, German/English UI. Read-only against TeslaMate, your data stays on your server.*
 
 ## Warum?
 
-Tessie & Co. sind gut, aber: Abo-Kosten, Feature-Überschneidung mit der Tesla-App und Bewegungsdaten bei einem Drittanbieter. TeslaMate loggt hervorragend, hat aber keinen Workflow zum **Wiederfinden und Nachweisen** einzelner Fahrten. Tripatlas ist die Produkt-Schicht darüber.
+Tessie & Co. sind gut, aber: Abo-Kosten, Feature-Überschneidung mit der Tesla-App und Bewegungsdaten bei einem Drittanbieter. TeslaMate loggt hervorragend, hat aber keinen Workflow zum **Wiederfinden und Nachweisen** einzelner Fahrten. DriveChronik ist die Produkt-Schicht darüber.
 
 ## Features
 
@@ -89,7 +95,7 @@ Docker Compose auf Home Server/NAS/Raspberry Pi im LAN oder VPN (z. B. Tailscale
 
 ### 0. Noch kein TeslaMate? Mitinstallieren
 
-Ein minimales TeslaMate-Compose (ohne Grafana) liegt unter [deploy/teslamate/](deploy/teslamate/docker-compose.yml) — Anleitung im Datei-Kopf. Danach auf `http://<host>:4000` das Tesla-Konto anmelden. Damit Tripatlas die TeslaMate-DB über den Compose-Service-Namen `database` erreicht, im Tripatlas-Verzeichnis eine `docker-compose.override.yml` anlegen:
+Ein minimales TeslaMate-Compose (ohne Grafana) liegt unter [deploy/teslamate/](deploy/teslamate/docker-compose.yml) — Anleitung im Datei-Kopf. Danach auf `http://<host>:4000` das Tesla-Konto anmelden. Damit DriveChronik die TeslaMate-DB über den Compose-Service-Namen `database` erreicht, im DriveChronik-Verzeichnis eine `docker-compose.override.yml` anlegen:
 
 ```yaml
 services:
@@ -103,7 +109,7 @@ networks:
 
 ### 1. Read-only-Rolle auf der TeslaMate-DB anlegen
 
-Tripatlas liest die TeslaMate-DB nur — nie schreibend. Auf dem TeslaMate-Postgres ausführen:
+DriveChronik liest die TeslaMate-DB nur — nie schreibend. Auf dem TeslaMate-Postgres ausführen:
 
 ```sql
 CREATE ROLE tripatlas_ro WITH LOGIN PASSWORD 'ein-sicheres-passwort';
@@ -156,11 +162,11 @@ Baut Images neu, spielt neue Migrationen über den `migrate`-Service ein, rollt 
 docker compose exec db pg_dump -U tripatlas tripatlas > backup-$(date +%F).sql
 ```
 
-Die TeslaMate-Daten selbst sichert TeslaMate — Tripatlas sichert nur seine eigenen Annotationen, Places, Tags, Regeln und den Sync-State.
+Die TeslaMate-Daten selbst sichert TeslaMate — DriveChronik sichert nur seine eigenen Annotationen, Places, Tags, Regeln und den Sync-State.
 
 ### Historie importieren (Tessie)
 
-Wer vorher Tessie genutzt hat, kann den Rohdaten-Export (CSV-Zeitreihen) importieren — Tripatlas rekonstruiert daraus Fahrten, Park- und Ladesessions:
+Wer vorher Tessie genutzt hat, kann den Rohdaten-Export (CSV-Zeitreihen) importieren — DriveChronik rekonstruiert daraus Fahrten, Park- und Ladesessions:
 
 ```bash
 docker compose run --rm -v /pfad/zum/tessie-export:/import:ro worker \
@@ -171,7 +177,7 @@ Idempotent (mehrfacher Lauf unschädlich), kollidiert nicht mit TeslaMate-Daten.
 
 ## Grenzen (ehrlich)
 
-- **Braucht TeslaMate** als Datenquelle — Tripatlas spricht nicht selbst mit der Tesla-API und weckt dein Auto nie
+- **Braucht TeslaMate** als Datenquelle — DriveChronik spricht nicht selbst mit der Tesla-API und weckt dein Auto nie
 - **Ein Fahrzeug** pro Instanz im Fokus
 - **Zahlenformatierung** aktuell durchgehend de-DE (Dezimalkomma), auch in der englischen UI
 - **Routenplaner** ist ein experimenteller Reichweiten-Check — keine Ladestopp-Planung, Standard-Routing über den öffentlichen OSRM-Demo-Server

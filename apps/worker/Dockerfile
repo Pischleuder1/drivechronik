@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-# Tripatlas worker — sync loop + one-shot migration runner.
+# DriveChronik worker — sync loop + one-shot migration runner.
 # Multi-stage, pnpm workspace-aware build. linux/arm64-compatible (Raspberry Pi).
 
 ARG NODE_IMAGE=node:22-bookworm-slim

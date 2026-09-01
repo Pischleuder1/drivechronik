@@ -28,7 +28,7 @@ const HEALTH_BADGE: HealthBadgeConfig = {
 };
 
 /**
- * Diagnose-Card oben in den Settings: Tripatlas-DB-Erreichbarkeit, Alter des
+ * Diagnose-Card oben in den Settings: DriveChronik-DB-Erreichbarkeit, Alter des
  * letzten erfolgreichen Syncs je sync_state-Entity (Ampel grün/gelb/rot),
  * Klartext-Hinweise bei typischen Fehlerbildern, und ein optionaler
  * TeslaMate-Direkttest (nur falls TESLAMATE_DATABASE_URL im Web-Container

@@ -1,6 +1,6 @@
 # @tripatlas/web
 
-Next.js-Frontend von Tripatlas. Setup, Entwicklung und Deployment sind im
+Next.js-Frontend von DriveChronik. Setup, Entwicklung und Deployment sind im
 [Root-README](../../README.md) beschrieben; Dev-Start:
 
 ```bash

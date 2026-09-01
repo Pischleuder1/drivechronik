@@ -11,13 +11,13 @@ const THEME_DARK = "#0a0a0a";
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("ui");
   return {
-    title: "Tripatlas",
+    title: "DriveChronik",
     description: t("meta.description"),
-    applicationName: "Tripatlas",
+    applicationName: "DriveChronik",
     manifest: "/manifest.webmanifest",
     appleWebApp: {
       capable: true,
-      title: "Tripatlas",
+      title: "DriveChronik",
       statusBarStyle: "default",
     },
     icons: {

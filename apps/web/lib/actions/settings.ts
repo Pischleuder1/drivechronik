@@ -1,6 +1,6 @@
 "use server";
 import { revalidatePath } from "next/cache";
-import { eq, ne, and } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { z } from "zod";
 import { getTranslations } from "next-intl/server";
 import { auditLog, sessions, settings, syncState, users, vehicles } from "@drivechronik/db";
@@ -11,11 +11,8 @@ import {
   MAX_BUSINESS_REIMBURSEMENT_RATE_EUR_PER_KM,
 } from "../appSettingsLogic";
 import { db } from "../db";
-import { validateSession } from "../auth/session";
+import { createSession, validateSession } from "../auth/session";
 import { hashPassword, verifyPassword } from "../auth/password";
-import { SESSION_COOKIE } from "../config";
-import { cookies } from "next/headers";
-import { createHash } from "node:crypto";
 
 export interface ResyncResult {
   ok: boolean;
@@ -46,8 +43,8 @@ export interface PasswordChangeResult {
 
 /**
  * Changes the current user's password: verifies the current password with
- * argon2, hashes and stores the new one, and destroys all OTHER sessions
- * (keeps the current session alive so the user isn't logged out).
+ * argon2, hashes and stores the new one, invalidates every existing session,
+ * then creates a fresh session for the current browser.
  */
 export async function changePassword(
   _prev: PasswordChangeResult,
@@ -90,24 +87,15 @@ export async function changePassword(
 
   const newHash = await hashPassword(parsed.data.newPassword);
 
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE)?.value;
-  const currentSessionId = token
-    ? createHash("sha256").update(token).digest("hex")
-    : null;
-
   await db.transaction(async (tx) => {
     await tx.update(users).set({ passwordHash: newHash }).where(eq(users.id, user.id));
 
-    // Destroy all OTHER sessions for this user; keep the current one alive.
-    if (currentSessionId) {
-      await tx
-        .delete(sessions)
-        .where(and(eq(sessions.userId, user.id), ne(sessions.id, currentSessionId)));
-    } else {
-      await tx.delete(sessions).where(eq(sessions.userId, user.id));
-    }
+    // Invalidate every token issued before the password change.
+    await tx.delete(sessions).where(eq(sessions.userId, user.id));
   });
+
+  // Keep this browser signed in, but with a completely new session token.
+  await createSession(user.id);
 
   return { ok: true };
 }

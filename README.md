@@ -143,6 +143,8 @@ Das baut `apps/web` und `apps/worker`, lässt den `migrate`-Service einmalig die
 
 Beim ersten Start wird ein Admin-Account bootstrapped. Optional vorab ein Passwort über `INITIAL_ADMIN_PASSWORD` in `.env` setzen — sonst wird beim ersten Login-Flow eines gesetzt (mit Passwort-Wiederholung).
 
+`INITIAL_ADMIN_PASSWORD` wird ausschließlich verwendet, solange noch kein Benutzer existiert. Nach erfolgreicher Erstanmeldung sollte der Wert aus `.env` entfernt und der Web-Container neu gestartet werden, damit das Initialpasswort nicht dauerhaft in der Container-Umgebung verbleibt.
+
 ### 5. HTTPS / Fernzugriff
 
 Kein eigener Reverse Proxy im Compose-Stack. Empfehlung: [`tailscale serve`](https://tailscale.com/kb/1242/tailscale-serve) auf dem Zielgerät vor `${WEB_PORT}` schalten — TLS-Zertifikat und Zugriff nur im eigenen Tailnet, ohne offenen Port am Router.

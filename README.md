@@ -93,19 +93,20 @@ Docker Compose auf Home Server/NAS/Raspberry Pi im LAN oder VPN (z. B. Tailscale
 - ≥ 4 GB RAM
 - Eine laufende TeslaMate-Installation mit erreichbarer Postgres (LAN, VPN oder gleicher Docker-Host)
 
-### 0. Noch kein TeslaMate? Mitinstallieren
+### 0. TeslaMate bereitstellen
 
-Ein minimales TeslaMate-Compose (ohne Grafana) liegt unter [deploy/teslamate/](deploy/teslamate/docker-compose.yml) — Anleitung im Datei-Kopf. Danach auf `http://<host>:4000` das Tesla-Konto anmelden. Damit DriveChronik die TeslaMate-DB über den Compose-Service-Namen `database` erreicht, im DriveChronik-Verzeichnis eine `docker-compose.override.yml` anlegen:
+DriveChronik benötigt eine laufende TeslaMate-Installation. Ist TeslaMate bereits vorhanden, kann dieser Schritt übersprungen werden.
 
-```yaml
-services:
-  worker:
-    networks: [default, teslamate]
-networks:
-  teslamate:
-    external: true
-    name: teslamate_default
-```
+Ein minimales TeslaMate-Compose (ohne Grafana) liegt unter [deploy/teslamate/](deploy/teslamate/docker-compose.yml). Danach auf `http://<host>:4000` das Tesla-Konto anmelden.
+
+Für DriveChronik muss die TeslaMate-PostgreSQL-Datenbank erreichbar sein. Die Verbindung wird später ausschließlich über `TESLAMATE_DATABASE_URL` in der `.env` konfiguriert.
+
+Dabei gibt es zwei Möglichkeiten:
+
+- **Standard:** Verbindung über einen erreichbaren Hostnamen oder eine IP-Adresse.
+- **Optional auf demselben Docker-Host:** DriveChronik kann zusätzlich an das bestehende TeslaMate-Docker-Netz angebunden werden. Dadurch muss PostgreSQL nicht nach außen veröffentlicht werden.
+
+Die Docker-Netzwerk-Variante ist optional und keine Voraussetzung für DriveChronik.
 
 ### 1. Read-only-Rolle auf der TeslaMate-DB anlegen
 
@@ -127,9 +128,36 @@ cp .env.example .env
 
 Mindestens setzen:
 
-- `POSTGRES_PASSWORD` — Passwort für die neue tripatlas-eigene Postgres (Pflicht, kein Default)
-- `TESLAMATE_DATABASE_URL` — Connection-String der `tripatlas_ro`-Rolle gegen die TeslaMate-DB (LAN/Tailscale-Host oder Compose-Service-Name, siehe Kommentare in `docker-compose.yml`)
-- optional `WEB_PORT` (Default `3000`), `APP_TIMEZONE`, `SYNC_INTERVAL_SECONDS`, `OSRM_URL` (eigener Routing-Server für den Planer)
+- `POSTGRES_PASSWORD` — Passwort für die neue DriveChronik-eigene PostgreSQL-Datenbank (Pflicht, kein Default)
+- `TESLAMATE_DATABASE_URL` — Connection-String der `tripatlas_ro`-Rolle zur bestehenden TeslaMate-Datenbank
+- optional `WEB_PORT` (Default `3000`), `APP_TIMEZONE`, `SYNC_INTERVAL_SECONDS`, `OSRM_URL`
+
+Beispiel: `TESLAMATE_DATABASE_URL=postgres://tripatlas_ro:read-only-passwort@192.168.1.50:5432/teslamate`
+
+Der TeslaMate-PostgreSQL-Port muss vom DriveChronik-Host erreichbar sein. Auf demselben Docker-Host kann alternativ ein gemeinsames Docker-Netzwerk verwendet werden.
+
+### Optional: TeslaMate auf demselben Docker-Host
+
+Laufen TeslaMate und DriveChronik auf demselben Docker-Host, kann der DriveChronik-Worker zusätzlich an das bestehende TeslaMate-Netzwerk angebunden werden. Dadurch muss der PostgreSQL-Port von TeslaMate nicht nach außen veröffentlicht werden.
+
+Beispiel `docker-compose.override.yml`:
+
+```yaml
+services:
+  worker:
+    networks:
+      - default
+      - teslamate
+
+networks:
+  teslamate:
+    external: true
+    name: teslamate_default
+```
+
+Dann kann in `.env` z. B. verwendet werden:
+
+`TESLAMATE_DATABASE_URL=postgres://tripatlas_ro:read-only-passwort@database:5432/teslamate`
 
 ### 3. Stack starten
 
@@ -151,12 +179,26 @@ Kein eigener Reverse Proxy im Compose-Stack. Empfehlung: [`tailscale serve`](htt
 
 ### Update
 
+Vor einem Update zuerst ein manuelles Backup der DriveChronik-Datenbank erstellen:
+
 ```bash
-git pull
+docker compose exec backup /scripts/backup.sh once
+```
+
+Danach den aktuellen Programmstand laden und die Container neu bauen:
+
+```bash
+git pull --ff-only
 docker compose up -d --build
 ```
 
-Baut Images neu, spielt neue Migrationen über den `migrate`-Service ein, rollt `web`/`worker` neu aus.
+Neue Datenbank-Migrationen werden automatisch über den einmaligen `migrate`-Service ausgeführt. Anschließend den Zustand des Stacks prüfen:
+
+```bash
+docker compose ps -a
+```
+
+`db`, `web` und `worker` sollten laufen bzw. `healthy` sein. Der `migrate`-Service muss nach erfolgreicher Migration mit `Exited (0)` beendet sein.
 
 ### Backup & Restore
 

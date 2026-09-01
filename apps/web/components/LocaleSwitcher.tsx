@@ -8,9 +8,9 @@ export type Locale = "de" | "en";
 const COOKIE = "drivechronik_locale";
 const ONE_YEAR = 60 * 60 * 24 * 365;
 
-const OPTIONS: { value: Locale; label: string }[] = [
-  { value: "de", label: "DE" },
-  { value: "en", label: "EN" },
+const OPTIONS: { value: Locale; label: string; name: string }[] = [
+  { value: "de", label: "🇩🇪", name: "Deutsch" },
+  { value: "en", label: "🇬🇧", name: "English" },
 ];
 
 function persist(locale: Locale) {
@@ -61,7 +61,9 @@ export function LocaleSwitcher({
         title={t("language.currentTitle", { current: locale.toUpperCase() })}
         className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-xs font-semibold text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white dark:focus-visible:ring-white dark:focus-visible:ring-offset-neutral-950"
       >
-        {locale.toUpperCase()}
+        <span aria-hidden="true">
+          {OPTIONS.find((o) => o.value === locale)?.label}
+        </span>
       </button>
     );
   }
@@ -91,7 +93,8 @@ export function LocaleSwitcher({
                     : "text-neutral-400 hover:text-neutral-700 dark:text-neutral-500 dark:hover:text-neutral-300"
                 }`}
               >
-                {o.label}
+                <span aria-hidden="true">{o.label}</span>
+                <span className="sr-only">{o.name}</span>
               </button>
             </Fragment>
           );
@@ -114,14 +117,15 @@ export function LocaleSwitcher({
             type="button"
             onClick={() => select(o.value)}
             aria-pressed={active}
-            title={o.label}
+            title={o.name}
             className={`inline-flex flex-1 items-center justify-center rounded-md px-2 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1 focus-visible:ring-offset-white dark:focus-visible:ring-white dark:focus-visible:ring-offset-neutral-950 ${
               active
                 ? "bg-neutral-100 text-neutral-900 dark:bg-neutral-800 dark:text-white"
                 : "text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
             }`}
           >
-            {o.label}
+            <span aria-hidden="true">{o.label}</span>
+            <span className="sr-only">{o.name}</span>
           </button>
         );
       })}

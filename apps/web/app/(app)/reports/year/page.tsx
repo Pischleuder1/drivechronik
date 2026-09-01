@@ -40,7 +40,37 @@ export default async function BusinessYearReportPage({
       : currentYearInAppTz();
 
   const vehicles = await getVehicles();
-  if (vehicles.length === 0) return <NoVehicleState />;
+
+  if (vehicles.length === 0) {
+    return (
+      <div className="mx-auto max-w-4xl">
+        <Link
+          href={`/reports?month=${year}-01&classification=business`}
+          className={buttonClasses("ghost", "sm")}
+        >
+          <ArrowLeft aria-hidden size={14} />
+          {t("year.backToMonthly")}
+        </Link>
+
+        <div className="mt-4">
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {t("year.title", { year })}
+          </h1>
+          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+            {t("year.subtitle")}
+          </p>
+        </div>
+
+        <div className="mt-6">
+          <YearReportFilters year={year} />
+        </div>
+
+        <div className="mt-6">
+          <NoVehicleState />
+        </div>
+      </div>
+    );
+  }
 
   const [data, reimbursementRate] = await Promise.all([
     loadBusinessYearReportData(year),

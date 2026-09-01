@@ -64,7 +64,34 @@ export default async function ReportsPage({
   const selected = parseSelected(sp.classification);
 
   const vehicles = await getVehicles();
-  if (vehicles.length === 0) return <NoVehicleState />;
+
+  if (vehicles.length === 0) {
+    return (
+      <div className="mx-auto max-w-4xl">
+        <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+        <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+          {t("subtitle")}
+        </p>
+
+        <div className="mt-6">
+          <ReportFilters month={month} selected={selected} />
+        </div>
+
+        <div className="mt-3">
+          <Link
+            href={`/reports/year?year=${month.slice(0, 4)}`}
+            className={buttonClasses("secondary", "sm")}
+          >
+            {t("year.open")}
+          </Link>
+        </div>
+
+        <div className="mt-6">
+          <NoVehicleState />
+        </div>
+      </div>
+    );
+  }
 
   const [data, reimbursementRate] = await Promise.all([
     loadMonthReportData(month, selected),

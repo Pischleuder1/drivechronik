@@ -54,6 +54,7 @@ export async function probeTeslamateSchema(sql: TeslamateSql): Promise<void> {
       "date",
       "speed",
       "odometer",
+      "rated_battery_range_km",
       "tpms_pressure_fl",
       "tpms_pressure_fr",
       "tpms_pressure_rl",
@@ -69,6 +70,7 @@ export async function probeTeslamateSchema(sql: TeslamateSql): Promise<void> {
       "charge_energy_used",
       "start_battery_level",
       "end_battery_level",
+      "duration_min",
       "position_id",
       "address_id",
       "geofence_id",
@@ -85,6 +87,7 @@ export async function probeTeslamateSchema(sql: TeslamateSql): Promise<void> {
       "outside_temp",
     ],
     geofences: ["id", "name", "latitude", "longitude", "radius"],
+    states: ["car_id", "state", "start_date"],
     updates: ["id", "car_id", "start_date", "end_date", "version"],
   };
 

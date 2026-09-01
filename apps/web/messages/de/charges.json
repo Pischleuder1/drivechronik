@@ -100,5 +100,29 @@
     "currencyRequired": "Bitte eine Währung angeben, wenn Kosten erfasst werden.",
     "sessionNotFound": "Ladevorgang nicht gefunden.",
     "tagCreateFailed": "Tag konnte nicht angelegt werden."
+  },
+  "analysis": {
+    "back": "Zurück zu Ladevorgängen",
+    "title": "DC-Ladeanalyse",
+    "subtitle": "Vergleich der letzten abgeschlossenen DC-Ladevorgänge.",
+    "lastFive": "Letzte 5",
+    "lastTen": "Letzte 10",
+    "sessions": "DC-Ladungen",
+    "medianTenToEighty": "Median 10–80 %",
+    "medianPeak": "Median Peak",
+    "slowSessions": "Auffällig langsam",
+    "recentTitle": "Letzte DC-Ladevorgänge",
+    "noData": "Noch keine abgeschlossenen DC-Ladevorgänge mit Analysedaten vorhanden.",
+    "unknownLocation": "Unbekannter Ladeort",
+    "slowBadge": "auffällig langsam",
+    "tenToEighty": "10–80 %",
+    "peak": "Peak",
+    "energy": "Energie",
+    "soc": "SoC",
+    "temperature": "Außentemperatur",
+    "slowDetail": "{percent} % langsamer als der Vergleichsmedian aus {peers} ähnlichen Ladevorgängen.",
+    "locationsTitle": "Ladeorte im Vergleich",
+    "locationSessions": "Ladungen",
+    "note": "10–80 % und 20–60 % werden aus den aufgezeichneten TeslaMate-Ladekurven interpoliert. Auffälligkeiten sind Vergleichswerte und keine Diagnose."
   }
 }

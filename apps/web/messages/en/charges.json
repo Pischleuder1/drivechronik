@@ -100,5 +100,29 @@
     "currencyRequired": "Please provide a currency if a cost is recorded.",
     "sessionNotFound": "Charging session not found.",
     "tagCreateFailed": "Failed to create tag."
+  },
+  "analysis": {
+    "back": "Back to charging",
+    "title": "DC charging analysis",
+    "subtitle": "Comparison of the most recent completed DC charging sessions.",
+    "lastFive": "Last 5",
+    "lastTen": "Last 10",
+    "sessions": "DC sessions",
+    "medianTenToEighty": "Median 10–80%",
+    "medianPeak": "Median peak",
+    "slowSessions": "Unusually slow",
+    "recentTitle": "Recent DC charging sessions",
+    "noData": "No completed DC charging sessions with analysis data are available yet.",
+    "unknownLocation": "Unknown charging location",
+    "slowBadge": "unusually slow",
+    "tenToEighty": "10–80%",
+    "peak": "Peak",
+    "energy": "Energy",
+    "soc": "SoC",
+    "temperature": "Outside temperature",
+    "slowDetail": "{percent}% slower than the comparison median from {peers} similar charging sessions.",
+    "locationsTitle": "Charging locations compared",
+    "locationSessions": "Sessions",
+    "note": "10–80% and 20–60% are interpolated from recorded TeslaMate charging curves. Anomalies are comparative indicators, not diagnostics."
   }
 }

@@ -84,6 +84,15 @@ export default async function ChargesPage({
         {t("page.subtitle")}
       </p>
 
+      <div className="mt-4">
+        <Link
+          href="/charges/analysis"
+          className="inline-flex items-center rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-medium transition hover:border-neutral-300 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700"
+        >
+          {t("analysis.title")}
+        </Link>
+      </div>
+
       <div className="mt-6">
         <ChargeMonthFilters month={month} />
       </div>

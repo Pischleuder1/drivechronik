@@ -137,7 +137,7 @@ Mindestens setzen:
 docker compose up -d --build
 ```
 
-Das baut `apps/web` und `apps/worker`, lässt den `migrate`-Service einmalig die Drizzle-Migrationen einspielen (`restart: "no"`, muss erfolgreich durchlaufen) und startet dann `db`, `web` und `worker` dauerhaft (`restart: unless-stopped`).
+Das baut `apps/web` und `apps/worker`, lässt den `migrate`-Service einmalig die Drizzle-Migrationen einspielen (`restart: "no"`, muss erfolgreich durchlaufen) und startet dann `db`, `web`, `worker` und den automatischen `backup`-Service dauerhaft (`restart: unless-stopped`).
 
 ### 4. Erstanmeldung
 
@@ -156,13 +156,81 @@ docker compose up -d --build
 
 Baut Images neu, spielt neue Migrationen über den `migrate`-Service ein, rollt `web`/`worker` neu aus.
 
-### Backup
+### Backup & Restore
 
-```bash
-docker compose exec db pg_dump -U tripatlas tripatlas > backup-$(date +%F).sql
+DriveChronik sichert seine eigene PostgreSQL-Datenbank automatisch über den
+`backup`-Service. TeslaMate selbst ist nicht Bestandteil dieses Backups.
+
+Standardmäßig gilt:
+
+- Backup alle 24 Stunden
+- Aufbewahrung 30 Tage
+- Backup-Verzeichnis `./backups`
+- PostgreSQL Custom Format (`.dump`)
+- Prüfung jedes Archivs mit `pg_restore --list`
+- SHA-256-Prüfsumme zu jedem Backup
+
+Die Werte können in `.env` angepasst werden:
+
+```env
+BACKUP_DIR=./backups
+BACKUP_INTERVAL_HOURS=24
+BACKUP_RETENTION_DAYS=30
 ```
 
-Die TeslaMate-Daten selbst sichert TeslaMate — DriveChronik sichert nur seine eigenen Annotationen, Places, Tags, Regeln und den Sync-State.
+Beim Start des Backup-Containers wird sofort ein Backup erzeugt. Danach
+läuft die Sicherung im konfigurierten Intervall.
+
+Manuelles Backup:
+
+```bash
+docker compose exec backup /scripts/backup.sh once
+```
+
+Ein erfolgreiches Backup besteht aus zwei Dateien:
+
+```text
+drivechronik-20260901T120000Z.dump
+drivechronik-20260901T120000Z.dump.sha256
+```
+
+Das Backup enthält die komplette DriveChronik-Datenbank. Das
+Backup-Verzeichnis sollte daher vor unbefugtem Zugriff geschützt und
+idealerweise zusätzlich auf ein anderes Speichermedium gesichert werden.
+
+#### Restore
+
+Ein Restore ist bewusst kein automatischer Vorgang.
+
+Zuerst die schreibenden DriveChronik-Dienste und den Backup-Dienst stoppen:
+
+```bash
+docker compose stop backup web worker
+```
+
+Dann das gewünschte Backup ausdrücklich zur Wiederherstellung freigeben:
+
+```bash
+docker compose run --rm --no-deps \
+  -e RESTORE_CONFIRM=RESTORE_DRIVECHRONIK \
+  backup /scripts/restore.sh drivechronik-YYYYMMDDTHHMMSSZ.dump
+```
+
+Vor der eigentlichen Wiederherstellung erzeugt DriveChronik automatisch
+noch ein Sicherheitsbackup des aktuellen Datenbankstands. Anschließend
+wird die DriveChronik-Datenbank neu angelegt und das gewählte Archiv
+eingespielt.
+
+Danach die Migrationen des aktuell installierten DriveChronik-Stands
+anwenden und die Dienste wieder starten:
+
+```bash
+docker compose run --rm migrate
+docker compose up -d backup web worker
+```
+
+Die TeslaMate-Datenbank wird bei Backup und Restore nicht verändert.
+
 
 ### Historie importieren (Tessie)
 

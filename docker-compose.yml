@@ -81,6 +81,27 @@ services:
         condition: service_completed_successfully
     # No published port — sync loop only, no inbound traffic.
 
+  backup:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_USER: tripatlas
+      DB_NAME: tripatlas
+      BACKUP_INTERVAL_HOURS: ${BACKUP_INTERVAL_HOURS:-24}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-30}
+    volumes:
+      - ${BACKUP_DIR:-./backups}:/backups
+      - ./deploy/backup:/scripts:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    command: ["/bin/sh", "/scripts/backup.sh", "daemon"]
+
 volumes:
   tripatlas-db-data:
 

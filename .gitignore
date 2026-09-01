@@ -12,3 +12,6 @@ docs/monetarisierung.md
 docs/dev-log.md
 docs/m24-tessie-import-spec.md
 docs/tff-post-entwurf.md
+
+# Local PostgreSQL backups
+backups/

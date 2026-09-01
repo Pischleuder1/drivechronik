@@ -67,11 +67,11 @@
     "success": "Passwort geändert. Andere angemeldete Sitzungen wurden abgemeldet."
   },
   "links": {
-    "tags": "Tags verwalten",
+    "tags": "Schlagwörter verwalten",
     "journeys": "Reisen",
     "calendar": "Kalender",
-    "reports": "Reports",
-    "insights": "Insights"
+    "reports": "Berichte",
+    "insights": "Auswertungen"
   },
   "logout": "Abmelden",
   "loggingOut": "Abmelden…",
@@ -154,6 +154,6 @@
     "unit": "€/km",
     "saving": "Speichert…",
     "saved": "Gespeichert.",
-    "hint": "Wird für die Abrechnung geschäftlicher Fahrten in Reports, CSV und PDF verwendet. Standardwert: 0,30 €/km."
+    "hint": "Wird für die Abrechnung geschäftlicher Fahrten in Berichten, CSV und PDF verwendet. Standardwert: 0,30 €/km."
   }
 }

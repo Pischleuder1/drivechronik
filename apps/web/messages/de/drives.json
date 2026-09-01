@@ -7,7 +7,7 @@
     "cardRoute": "Route",
     "cardCourse": "Verlauf",
     "cardPostProcessing": "Nachbearbeitung",
-    "cardTags": "Tags",
+    "cardTags": "Schlagwörter",
     "cardCorrectPlaces": "Orte korrigieren",
     "cardExport": "Export",
     "estimatedNote": "~ geschätzt (Rated-Range-Delta × Effizienz)",
@@ -75,7 +75,7 @@
     "errorSaving": "Fehler beim Speichern."
   },
   "tagManager": {
-    "noTags": "Noch keine Tags zugewiesen.",
+    "noTags": "Noch keine Schlagwörter zugewiesen.",
     "addPlaceholder": "Tag hinzufügen…",
     "addAriaLabel": "Tag hinzufügen",
     "removeAriaLabel": "Tag {name} entfernen",

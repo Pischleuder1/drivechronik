@@ -1,10 +1,10 @@
 {
-  "title": "Insights",
+  "title": "Auswertungen",
   "subtitleWithData": "Basiert auf {count, plural, one {# Fahrt} other {# Fahrten}} seit {date}.",
   "subtitleNoData": "Muster und Zusammenhänge aus deinen Fahrten.",
   "notEnoughTitle": "Noch nicht genug Daten",
   "notEnoughHint": "DriveChronik sammelt weiter — sobald mehr Fahrten vorliegen, erscheint hier eine Auswertung.",
-  "notEnoughBannerHint": "Insights zeigt Auswertungen ab {min} auswertbaren Fahrten. Aktuell liegen {count} vor — DriveChronik sammelt weiter.",
+  "notEnoughBannerHint": "Auswertungen stehen ab {min} auswertbaren Fahrten zur Verfügung. Aktuell liegen {count} vor — DriveChronik sammelt weiter.",
   "driveCountLabel": "{count, plural, one {# Fahrt} other {# Fahrten}}",
   "vehicleSwitcherLabel": "Fahrzeug wählen",
   "cards": {
@@ -47,7 +47,7 @@
     "surplusSuffix": "— kalter Antriebsstrang ist ein Verbrauchstreiber."
   },
   "yearly": {
-    "back": "Zurück zu Insights",
+    "back": "Zurück zu Auswertungen",
     "title": "DriveChronik {year}",
     "subtitle": "Dein Fahrjahr auf einen Blick.",
     "kpi": {

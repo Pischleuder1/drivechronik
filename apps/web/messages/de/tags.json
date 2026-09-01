@@ -1,7 +1,7 @@
 {
-  "title": "Tags",
-  "description": "Tags markieren Fahrten und Ladevorgänge frei — z. B. für Kunden, Projekte oder Reisen.",
-  "empty": "Noch keine Tags angelegt.",
+  "title": "Schlagwörter",
+  "description": "Schlagwörter markieren Fahrten und Ladevorgänge frei — z. B. für Kunden, Projekte oder Reisen.",
+  "empty": "Noch keine Schlagwörter angelegt.",
   "form": {
     "name": "Name",
     "namePlaceholder": "z. B. Urlaub Italien 2026",

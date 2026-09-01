@@ -7,7 +7,7 @@
   "selectedCount": "{count, plural, one {# Fahrt} other {# Fahrten}}",
   "applyClassificationLabel": "Klassifizierung anwenden",
   "addTag": "Tag hinzufügen",
-  "noTags": "Keine Tags",
+  "noTags": "Keine Schlagwörter",
   "addTagPlaceholder": "Tag hinzufügen…",
   "more": "Mehr",
   "customer": "Kunde",

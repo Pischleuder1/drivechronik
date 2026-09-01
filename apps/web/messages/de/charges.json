@@ -65,7 +65,7 @@
       "title": "Nachbearbeitung"
     },
     "tags": {
-      "title": "Tags"
+      "title": "Schlagwörter"
     },
     "history": "Verlauf"
   },
@@ -84,7 +84,7 @@
     "saved": "Gespeichert"
   },
   "tagManager": {
-    "none": "Noch keine Tags zugewiesen.",
+    "none": "Noch keine Schlagwörter zugewiesen.",
     "removeTag": "Tag {name} entfernen",
     "addPlaceholder": "Tag hinzufügen…",
     "addLabel": "Tag hinzufügen",

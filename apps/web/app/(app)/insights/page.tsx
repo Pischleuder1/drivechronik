@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Lightbulb } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -212,9 +213,18 @@ export default async function InsightsPage({
               : t("subtitleNoData")}
           </p>
         </div>
-        {vehicles.length > 1 && (
-          <InsightsVehicleSwitcher vehicles={vehicles} current={current.id} />
-        )}
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <Link
+            href={`/insights/yearly?vehicle=${current.id}`}
+            className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-medium transition hover:border-neutral-300 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700"
+          >
+            {t("yearly.open")}
+          </Link>
+
+          {vehicles.length > 1 && (
+            <InsightsVehicleSwitcher vehicles={vehicles} current={current.id} />
+          )}
+        </div>
       </div>
 
       {!enoughForPage && (

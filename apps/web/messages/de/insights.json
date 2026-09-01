@@ -45,5 +45,47 @@
     "avgOverall": "Ø gesamt:",
     "surplusPrefix": "Kurzstrecken verbrauchen im Schnitt",
     "surplusSuffix": "— kalter Antriebsstrang ist ein Verbrauchstreiber."
+  },
+  "yearly": {
+    "back": "Zurück zu Insights",
+    "title": "DriveChronik {year}",
+    "subtitle": "Dein Fahrjahr auf einen Blick.",
+    "kpi": {
+      "distance": "Kilometer",
+      "drives": "Fahrten",
+      "duration": "Fahrzeit",
+      "classified": "Klassifiziert"
+    },
+    "empty": {
+      "title": "Keine Fahrten in diesem Jahr",
+      "hint": "Für {year} liegen noch keine abgeschlossenen Fahrten vor."
+    },
+    "wrapped": {
+      "title": "Dein Jahr",
+      "subtitle": "Die wichtigsten persönlichen Fahr-Highlights.",
+      "longest": "Längste Fahrt",
+      "busiestMonth": "Stärkster Monat",
+      "busiestDay": "Stärkster Tag",
+      "topDestination": "Häufigstes Ziel"
+    },
+    "months": {
+      "title": "Kilometer je Monat"
+    },
+    "classification": {
+      "title": "Nutzung nach Kategorie"
+    },
+    "destinations": {
+      "title": "Häufigste Ziele"
+    },
+    "driveCount": "{count, plural, one {# Fahrt} other {# Fahrten}}",
+    "visits": "{count, plural, one {# Besuch} other {# Besuche}}",
+    "note": "Die Jahresauswertung ordnet Fahrten anhand ihrer Startzeit in der konfigurierten DriveChronik-Zeitzone zu.",
+    "open": "Jahresauswertung",
+    "map": {
+      "title": "Ziel-Heatmap",
+      "subtitle": "Häufig angefahrene Ziele werden größer und stärker hervorgehoben.",
+      "visits": "Besuche",
+      "distance": "Kilometer"
+    }
   }
 }

@@ -45,5 +45,47 @@
     "avgOverall": "Avg overall:",
     "surplusPrefix": "Short trips consume on average",
     "surplusSuffix": "— a cold drivetrain is a consumption driver."
+  },
+  "yearly": {
+    "back": "Back to Insights",
+    "title": "DriveChronik {year}",
+    "subtitle": "Your driving year at a glance.",
+    "kpi": {
+      "distance": "Distance",
+      "drives": "Drives",
+      "duration": "Driving time",
+      "classified": "Classified"
+    },
+    "empty": {
+      "title": "No drives in this year",
+      "hint": "There are no completed drives for {year} yet."
+    },
+    "wrapped": {
+      "title": "Your year",
+      "subtitle": "Your most important driving highlights.",
+      "longest": "Longest drive",
+      "busiestMonth": "Busiest month",
+      "busiestDay": "Busiest day",
+      "topDestination": "Top destination"
+    },
+    "months": {
+      "title": "Distance by month"
+    },
+    "classification": {
+      "title": "Usage by category"
+    },
+    "destinations": {
+      "title": "Top destinations"
+    },
+    "driveCount": "{count, plural, one {# drive} other {# drives}}",
+    "visits": "{count, plural, one {# visit} other {# visits}}",
+    "note": "The yearly analysis assigns drives by their start time in the configured DriveChronik time zone.",
+    "open": "Yearly summary",
+    "map": {
+      "title": "Destination heatmap",
+      "subtitle": "Frequently visited destinations are shown larger and more prominently.",
+      "visits": "Visits",
+      "distance": "Distance"
+    }
   }
 }

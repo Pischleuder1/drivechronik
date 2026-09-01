@@ -68,7 +68,12 @@
       "distanceKm": "Distance (km)",
       "total": "Total",
       "note": "Note",
-      "incompleteNote": "Some drives had incomplete distance data; totals may be incomplete."
+      "incompleteNote": "Some drives had incomplete distance data; totals may be incomplete.",
+      "reimbursementTitle": "Mileage reimbursement",
+      "businessDistanceKm": "Business distance",
+      "rateEurPerKm": "Rate (EUR/km)",
+      "amountEur": "Reimbursement amount (EUR)",
+      "reimbursementIncompleteNote": "At least one business drive is missing distance data; the reimbursement amount may be incomplete."
     },
     "journey": {
       "journey": "Journey",
@@ -143,7 +148,12 @@
       "title": "DriveChronik — Logbook {month}",
       "sumByClassification": "Total by Classification",
       "driveCountKm": "{count, plural, one {# drive} other {# drives}} · {km} km",
-      "total": "Total"
+      "total": "Total",
+      "reimbursementTitle": "Mileage reimbursement",
+      "businessDistance": "Business distance",
+      "rate": "Rate",
+      "amount": "Reimbursement amount",
+      "reimbursementIncomplete": "At least one business drive is missing distance data; the reimbursement amount may be incomplete."
     },
     "journey": {
       "title": "DriveChronik — Journey {name}",

@@ -74,6 +74,11 @@ export interface PdfLabels {
     sumByClassification: string;
     driveCountKm: (count: number, km: string) => string;
     total: string;
+    reimbursementTitle: string;
+    businessDistance: string;
+    rate: string;
+    amount: string;
+    reimbursementIncomplete: string;
   };
   journey: {
     title: (name: string) => string;
@@ -162,6 +167,11 @@ export function buildPdfLabels(t: Translator, tCommon: Translator, locale = "de"
       sumByClassification: t("pdf.month.sumByClassification"),
       driveCountKm: (count: number, km: string) => t("pdf.month.driveCountKm", { count, km }),
       total: t("pdf.month.total"),
+      reimbursementTitle: t("pdf.month.reimbursementTitle"),
+      businessDistance: t("pdf.month.businessDistance"),
+      rate: t("pdf.month.rate"),
+      amount: t("pdf.month.amount"),
+      reimbursementIncomplete: t("pdf.month.reimbursementIncomplete"),
     },
     journey: {
       title: (name: string) => t("pdf.journey.title", { name }),
@@ -578,6 +588,55 @@ export function MonthPdf({ report, labels }: { report: MonthReport; labels: PdfL
             </Text>
           </View>
         </View>
+
+        {report.businessReimbursement.applicable && (
+          <View style={styles.totalsBox}>
+            <Text style={styles.totalsTitle}>
+              {labels.month.reimbursementTitle}
+            </Text>
+
+            <View style={styles.totalsRow}>
+              <Text>{labels.month.businessDistance}</Text>
+              <Text>
+                {formatKmCell(report.businessReimbursement.distanceKm)} km
+              </Text>
+            </View>
+
+            <View style={styles.totalsRow}>
+              <Text>{labels.month.rate}</Text>
+              <Text>
+                {new Intl.NumberFormat(labels.intlLocale, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }).format(report.businessReimbursement.rateEurPerKm)} EUR/km
+              </Text>
+            </View>
+
+            <View style={styles.totalsRow}>
+              <Text style={{ fontWeight: 700 }}>
+                {labels.month.amount}
+              </Text>
+              <Text style={{ fontWeight: 700 }}>
+                {new Intl.NumberFormat(labels.intlLocale, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }).format(report.businessReimbursement.amountEur)} EUR
+              </Text>
+            </View>
+
+            {report.businessReimbursement.incomplete && (
+              <Text
+                style={{
+                  marginTop: 5,
+                  fontSize: 7,
+                  color: "#666666",
+                }}
+              >
+                {labels.month.reimbursementIncomplete}
+              </Text>
+            )}
+          </View>
+        )}
 
         <Footer meta={report.meta} labels={labels} hasEstimated={anyEstimated} />
       </Page>

@@ -67,6 +67,11 @@ export interface CsvLabels {
     driveCount: string;
     distanceKm: string;
     total: string;
+    reimbursementTitle: string;
+    businessDistanceKm: string;
+    rateEurPerKm: string;
+    amountEur: string;
+    reimbursementIncompleteNote: string;
     note: string;
     incompleteNote: string;
   };
@@ -161,6 +166,11 @@ export function buildCsvLabels(t: Translator, tCommon: Translator): CsvLabels {
       driveCount: t("csv.month.driveCount"),
       distanceKm: t("csv.month.distanceKm"),
       total: t("csv.month.total"),
+      reimbursementTitle: t("csv.month.reimbursementTitle"),
+      businessDistanceKm: t("csv.month.businessDistanceKm"),
+      rateEurPerKm: t("csv.month.rateEurPerKm"),
+      amountEur: t("csv.month.amountEur"),
+      reimbursementIncompleteNote: t("csv.month.reimbursementIncompleteNote"),
       note: t("csv.month.note"),
       incompleteNote: t("csv.month.incompleteNote"),
     },
@@ -308,7 +318,38 @@ export function renderMonthCsv(report: MonthReport, labels: CsvLabels): string {
     ]);
   }
   rows.push([]);
-  rows.push([labels.month.total, String(report.totals.driveCount), formatNumber(report.totals.distanceKm, 1)]);
+  rows.push([
+    labels.month.total,
+    String(report.totals.driveCount),
+    formatNumber(report.totals.distanceKm, 1),
+  ]);
+
+  if (report.businessReimbursement.applicable) {
+    rows.push([]);
+    rows.push([labels.month.reimbursementTitle]);
+
+    rows.push([
+      labels.month.businessDistanceKm,
+      formatNumber(report.businessReimbursement.distanceKm, 1),
+    ]);
+
+    rows.push([
+      labels.month.rateEurPerKm,
+      formatNumber(report.businessReimbursement.rateEurPerKm, 2),
+    ]);
+
+    rows.push([
+      labels.month.amountEur,
+      formatNumber(report.businessReimbursement.amountEur, 2),
+    ]);
+
+    if (report.businessReimbursement.incomplete) {
+      rows.push([
+        labels.month.note,
+        labels.month.reimbursementIncompleteNote,
+      ]);
+    }
+  }
   if (report.hasIncompleteData) {
     rows.push([]);
     rows.push([labels.month.note, labels.month.incompleteNote]);

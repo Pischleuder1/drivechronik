@@ -18,5 +18,11 @@
     "prevMonth": "Previous month",
     "nextMonth": "Next month",
     "selectMonth": "Select month"
+  },
+  "reimbursement": {
+    "title": "Mileage reimbursement",
+    "formula": "{km} km × {rate}/km",
+    "amount": "Reimbursement amount",
+    "incomplete": "At least one business drive is missing distance data; the reimbursement amount may be incomplete."
   }
 }

@@ -68,7 +68,12 @@
       "distanceKm": "Distanz (km)",
       "total": "Gesamt",
       "note": "Hinweis",
-      "incompleteNote": "Einzelne Fahrten hatten unvollständige Distanzdaten; Summen ggf. unvollständig."
+      "incompleteNote": "Einzelne Fahrten hatten unvollständige Distanzdaten; Summen ggf. unvollständig.",
+      "reimbursementTitle": "Kilometererstattung",
+      "businessDistanceKm": "Geschäftliche Kilometer",
+      "rateEurPerKm": "Satz (EUR/km)",
+      "amountEur": "Erstattungsbetrag (EUR)",
+      "reimbursementIncompleteNote": "Mindestens einer geschäftlichen Fahrt fehlt die Distanz; der Erstattungsbetrag kann unvollständig sein."
     },
     "journey": {
       "journey": "Reise",
@@ -143,7 +148,12 @@
       "title": "DriveChronik — Fahrtenbuch {month}",
       "sumByClassification": "Summe je Klassifizierung",
       "driveCountKm": "{count, plural, one {# Fahrt} other {# Fahrten}} · {km} km",
-      "total": "Gesamt"
+      "total": "Gesamt",
+      "reimbursementTitle": "Kilometererstattung",
+      "businessDistance": "Geschäftliche Kilometer",
+      "rate": "Satz",
+      "amount": "Erstattungsbetrag",
+      "reimbursementIncomplete": "Mindestens einer geschäftlichen Fahrt fehlt die Distanz; der Erstattungsbetrag kann unvollständig sein."
     },
     "journey": {
       "title": "DriveChronik — Reise {name}",

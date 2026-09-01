@@ -18,5 +18,11 @@
     "prevMonth": "Vorheriger Monat",
     "nextMonth": "Nächster Monat",
     "selectMonth": "Monat wählen"
+  },
+  "reimbursement": {
+    "title": "Kilometererstattung",
+    "formula": "{km} km × {rate}/km",
+    "amount": "Erstattungsbetrag",
+    "incomplete": "Mindestens einer geschäftlichen Fahrt fehlt die Distanz; der Erstattungsbetrag kann unvollständig sein."
   }
 }

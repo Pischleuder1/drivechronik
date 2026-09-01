@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Download } from "lucide-react";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import {
   buildMonthReport,
   formatKm,
@@ -50,8 +50,11 @@ export default async function ReportsPage({
 }: {
   searchParams: Promise<{ month?: string; classification?: string }>;
 }) {
-  const t = await getTranslations("reports");
-  const tc = await getTranslations("common");
+  const [t, tc, locale] = await Promise.all([
+    getTranslations("reports"),
+    getTranslations("common"),
+    getLocale(),
+  ]);
   const sp = await searchParams;
   const month = sp.month && isValidMonthParam(sp.month) ? sp.month : currentMonthInAppTz();
   const selected = parseSelected(sp.classification);
@@ -121,6 +124,52 @@ export default async function ReportsPage({
           </p>
         </div>
       </div>
+
+      {report.businessReimbursement.applicable && (
+        <div className="mt-4 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                {t("reimbursement.title")}
+              </p>
+              <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                {t("reimbursement.formula", {
+                  km: new Intl.NumberFormat(locale, {
+                    minimumFractionDigits: 1,
+                    maximumFractionDigits: 1,
+                  }).format(report.businessReimbursement.distanceKm),
+                  rate: new Intl.NumberFormat(locale, {
+                    style: "currency",
+                    currency: "EUR",
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  }).format(report.businessReimbursement.rateEurPerKm),
+                })}
+              </p>
+            </div>
+
+            <div className="text-right">
+              <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                {t("reimbursement.amount")}
+              </p>
+              <p className="text-xl font-semibold tabular-nums">
+                {new Intl.NumberFormat(locale, {
+                  style: "currency",
+                  currency: "EUR",
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }).format(report.businessReimbursement.amountEur)}
+              </p>
+            </div>
+          </div>
+
+          {report.businessReimbursement.incomplete && (
+            <p className="mt-3 text-xs text-amber-700 dark:text-amber-300">
+              {t("reimbursement.incomplete")}
+            </p>
+          )}
+        </div>
+      )}
 
       {report.hasIncompleteData && (
         <p className="mt-3 text-xs text-neutral-500 dark:text-neutral-400">

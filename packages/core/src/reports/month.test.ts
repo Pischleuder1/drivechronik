@@ -121,6 +121,106 @@ describe("buildMonthReport", () => {
     }
   });
 
+  it("berechnet 0,30 EUR pro geschäftlichem Kilometer", () => {
+    const drives = [
+      makeDrive({
+        id: 1,
+        classification: "business",
+        distanceKm: 50,
+      }),
+      makeDrive({
+        id: 2,
+        classification: "business",
+        distanceKm: 75,
+      }),
+    ];
+
+    const report = buildMonthReport(
+      drives,
+      "2026-02",
+      meta,
+      ["business"],
+    );
+
+    expect(report.businessReimbursement).toEqual({
+      applicable: true,
+      distanceKm: 125,
+      rateEurPerKm: 0.3,
+      amountEur: 37.5,
+      incomplete: false,
+    });
+  });
+
+  it("markiert die Geschäftskilometer-Erstattung bei fehlender Distanz als unvollständig", () => {
+    const drives = [
+      makeDrive({
+        id: 1,
+        classification: "business",
+        distanceKm: 10,
+      }),
+      makeDrive({
+        id: 2,
+        classification: "business",
+        distanceKm: null,
+      }),
+    ];
+
+    const report = buildMonthReport(
+      drives,
+      "2026-02",
+      meta,
+      ["business"],
+    );
+
+    expect(report.businessReimbursement).toEqual({
+      applicable: true,
+      distanceKm: 10,
+      rateEurPerKm: 0.3,
+      amountEur: 3,
+      incomplete: true,
+    });
+  });
+
+  it("unterstützt einen abweichenden Erstattungssatz", () => {
+    const report = buildMonthReport(
+      [
+        makeDrive({
+          classification: "business",
+          distanceKm: 125,
+        }),
+      ],
+      "2026-02",
+      meta,
+      ["business"],
+      0.35,
+    );
+
+    expect(report.businessReimbursement.rateEurPerKm).toBe(0.35);
+    expect(report.businessReimbursement.amountEur).toBe(43.75);
+  });
+
+  it("kennzeichnet die Erstattung bei einem Report ohne Business-Filter als nicht anwendbar", () => {
+    const report = buildMonthReport(
+      [
+        makeDrive({
+          classification: "private",
+          distanceKm: 25,
+        }),
+      ],
+      "2026-02",
+      meta,
+      ["private"],
+    );
+
+    expect(report.businessReimbursement).toEqual({
+      applicable: false,
+      distanceKm: 0,
+      rateEurPerKm: 0.3,
+      amountEur: 0,
+      incomplete: false,
+    });
+  });
+
   it("sortiert Zeilen chronologisch, auch bei unsortierter Eingabe", () => {
     const late = makeDrive({ id: 1, startTime: new Date("2026-02-20T08:00:00Z") });
     const early = makeDrive({ id: 2, startTime: new Date("2026-02-01T08:00:00Z") });

@@ -117,14 +117,15 @@
     },
     "teslamateTest": {
       "title": "TeslaMate direct test",
-      "description": "Read-only test against TESLAMATE_DATABASE_URL from the web container (only counts drives, writes nothing).",
+      "description": "Read-only test against the TeslaMate database: checks connectivity, schema compatibility, and the number of vehicles and drives.",
       "envNotSet": "TESLAMATE_DATABASE_URL is not set in the web container — this test is for diagnostics only and not needed in normal operation, since only the worker reads the TeslaMate database.",
       "trigger": "Test connection",
       "testing": "Testing…",
       "unknownError": "Unknown error while testing.",
       "envNotSetMessage": "TESLAMATE_DATABASE_URL is not set in the web container. That's fine in normal operation — only the worker needs it.",
-      "successMessage": "Connection successful — {count} drives found in the TeslaMate database.",
-      "unknownConnectionError": "Unknown error connecting."
+      "successMessage": "Connection successful — schema compatible, {vehicles} vehicles and {drives} drives found.",
+      "unknownConnectionError": "Unknown error connecting.",
+      "schemaError": "Connection successful, but the TeslaMate schema is not compatible. Missing fields: {missing}"
     },
     "hints": {
       "dbUnreachable": "The DriveChronik database is not reachable. Is the db container running? Is DATABASE_URL correctly set in the web container?",

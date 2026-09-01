@@ -117,14 +117,15 @@
     },
     "teslamateTest": {
       "title": "TeslaMate-Direkttest",
-      "description": "Read-only-Test gegen TESLAMATE_DATABASE_URL aus dem Web-Container (zählt nur die Fahrten, schreibt nichts).",
+      "description": "Read-only-Test gegen die TeslaMate-Datenbank: prüft Verbindung, Schema-Kompatibilität sowie Anzahl der Fahrzeuge und Fahrten.",
       "envNotSet": "TESLAMATE_DATABASE_URL ist im Web-Container nicht gesetzt — der Test ist nur zur Diagnose gedacht und im Normalbetrieb nicht nötig, da ausschließlich der Worker die TeslaMate-Datenbank liest.",
       "trigger": "Verbindung testen",
       "testing": "Teste…",
       "unknownError": "Unbekannter Fehler beim Testen.",
       "envNotSetMessage": "TESLAMATE_DATABASE_URL ist im Web-Container nicht gesetzt. Das ist im Normalbetrieb in Ordnung — nur der Worker braucht sie.",
-      "successMessage": "Verbindung erfolgreich — {count} Fahrten in der TeslaMate-DB gefunden.",
-      "unknownConnectionError": "Unbekannter Fehler bei der Verbindung."
+      "successMessage": "Verbindung erfolgreich — Schema kompatibel, {vehicles} Fahrzeuge und {drives} Fahrten gefunden.",
+      "unknownConnectionError": "Unbekannter Fehler bei der Verbindung.",
+      "schemaError": "Verbindung erfolgreich, aber das TeslaMate-Schema ist nicht kompatibel. Fehlende Felder: {missing}"
     },
     "hints": {
       "dbUnreachable": "Die DriveChronik-Datenbank ist nicht erreichbar. Läuft der db-Container? Ist DATABASE_URL im web-Container korrekt gesetzt?",

@@ -1,6 +1,7 @@
-type BrandWordmarkSize = "sm" | "md" | "lg";
+type BrandWordmarkSize = "xs" | "sm" | "md" | "lg";
 
 const sizeClasses: Record<BrandWordmarkSize, string> = {
+  xs: "text-[1.35rem]",
   sm: "text-[1.7rem]",
   md: "text-[1.9rem]",
   lg: "text-[2.8rem]",

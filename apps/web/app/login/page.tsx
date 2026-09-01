@@ -40,7 +40,7 @@ export default async function LoginPage() {
               priority
             />
             <h1>
-              <BrandWordmark size="lg" />
+              <BrandWordmark size="md" />
             </h1>
           </div>
           <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">

@@ -48,7 +48,7 @@ export default async function AppLayout({
                 className="h-9 w-9 shrink-0 object-contain"
                 priority
               />
-              <BrandWordmark size="md" />
+              <BrandWordmark size="xs" />
             </Link>
           <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
             {vehicleName}

@@ -5,6 +5,7 @@ import {
   driveFilename,
   journeyFilename,
   monthFilename,
+  yearFilename,
 } from "./filenames";
 
 describe("export filenames", () => {
@@ -31,6 +32,15 @@ describe("export filenames", () => {
   it("uses the simple filename for an unfiltered month export", () => {
     expect(monthFilename("2026-09", "csv")).toBe(
       "drivechronik-monat-2026-09.csv",
+    );
+  });
+
+  it("creates the business year report filename", () => {
+    expect(yearFilename("2026", "pdf")).toBe(
+      "drivechronik-jahr-2026-geschaeftlich.pdf",
+    );
+    expect(yearFilename("2026", "csv")).toBe(
+      "drivechronik-jahr-2026-geschaeftlich.csv",
     );
   });
 

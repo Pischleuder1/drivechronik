@@ -24,5 +24,26 @@
     "formula": "{km} km × {rate}/km",
     "amount": "Erstattungsbetrag",
     "incomplete": "Mindestens einer geschäftlichen Fahrt fehlt die Distanz; der Erstattungsbetrag kann unvollständig sein."
+  },
+  "year": {
+    "open": "Jahresabrechnung",
+    "title": "Dienstfahrten {year}",
+    "subtitle": "Jahresübersicht der geschäftlichen Fahrten und Kilometererstattung.",
+    "backToMonthly": "Zur Monatsabrechnung",
+    "prevYear": "Vorheriges Jahr",
+    "nextYear": "Nächstes Jahr",
+    "selectYear": "Jahr wählen",
+    "totalDistance": "Geschäftliche Kilometer",
+    "rate": "Erstattungssatz",
+    "totalAmount": "Jahreserstattung",
+    "incomplete": "Mindestens einer geschäftlichen Fahrt fehlen Distanzdaten. Kilometer und Erstattungsbetrag können daher unvollständig sein.",
+    "monthIncomplete": "Unvollständige Distanzdaten in diesem Monat",
+    "roundingNote": "Die Jahreserstattung entspricht der Summe der auf Cent gerundeten Monatserstattungen.",
+    "table": {
+      "month": "Monat",
+      "drives": "Fahrten",
+      "distance": "Geschäftliche km",
+      "amount": "Erstattung"
+    }
   }
 }

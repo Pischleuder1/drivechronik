@@ -12,7 +12,8 @@
     "journeyNotFound": "Journey not found",
     "noTrackDataDrive": "No track data available for this drive",
     "noTrackDataJourney": "No track data available for this journey",
-    "noVehicle": "No vehicle available"
+    "noVehicle": "No vehicle available",
+    "invalidYear": "Invalid year (expected: YYYY)"
   },
   "journeyTypes": {
     "vacation": "Vacation",
@@ -172,5 +173,17 @@
       "drivesSection": "Drives",
       "chargeStopsSection": "Charging Stops"
     }
+  },
+  "year": {
+    "title": "DriveChronik — Business drives {year}",
+    "vehicle": "Vehicle",
+    "month": "Month",
+    "drives": "Drives",
+    "distance": "Business mileage",
+    "rate": "Reimbursement rate",
+    "amount": "Reimbursement amount",
+    "total": "Total",
+    "incomplete": "At least one business drive is missing distance data; mileage and reimbursement may be incomplete.",
+    "roundingNote": "The annual reimbursement is the sum of the monthly amounts rounded to cents."
   }
 }

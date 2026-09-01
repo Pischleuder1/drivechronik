@@ -12,7 +12,8 @@
     "journeyNotFound": "Reise nicht gefunden",
     "noTrackDataDrive": "Keine Trackdaten für diese Fahrt vorhanden",
     "noTrackDataJourney": "Keine Trackdaten für diese Reise vorhanden",
-    "noVehicle": "Kein Fahrzeug vorhanden"
+    "noVehicle": "Kein Fahrzeug vorhanden",
+    "invalidYear": "Ungültiges Jahr (erwartet: YYYY)"
   },
   "journeyTypes": {
     "vacation": "Urlaub",
@@ -172,5 +173,17 @@
       "drivesSection": "Fahrten",
       "chargeStopsSection": "Ladestopps"
     }
+  },
+  "year": {
+    "title": "DriveChronik — Dienstfahrten {year}",
+    "vehicle": "Fahrzeug",
+    "month": "Monat",
+    "drives": "Fahrten",
+    "distance": "Geschäftliche Kilometer",
+    "rate": "Erstattungssatz",
+    "amount": "Erstattungsbetrag",
+    "total": "Gesamt",
+    "incomplete": "Mindestens einer geschäftlichen Fahrt fehlen Distanzdaten; Kilometer und Erstattung können unvollständig sein.",
+    "roundingNote": "Die Jahreserstattung entspricht der Summe der auf Cent gerundeten Monatserstattungen."
   }
 }

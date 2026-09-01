@@ -86,6 +86,15 @@ export default async function ReportsPage({
         <ReportFilters month={month} selected={selected} />
       </div>
 
+      <div className="mt-3">
+        <Link
+          href={`/reports/year?year=${month.slice(0, 4)}`}
+          className={buttonClasses("secondary", "sm")}
+        >
+          {t("year.open")}
+        </Link>
+      </div>
+
       <div className="mt-4 flex gap-1.5">
         <a
           href={`/api/export/month/${month}${exportQuery}&format=csv`}

@@ -24,6 +24,14 @@ export function driveFilename(
   return `drivechronik-fahrt-${date}-${driveId}.${format}`;
 }
 
+/** `drivechronik-jahr-2026-geschaeftlich.pdf` */
+export function yearFilename(
+  year: string,
+  format: "csv" | "pdf",
+): string {
+  return `drivechronik-jahr-${year}-geschaeftlich.${format}`;
+}
+
 /** `drivechronik-tag-2026-07-02.csv` */
 export function dayFilename(date: string, format: "csv" | "pdf"): string {
   return `drivechronik-tag-${date}.${format}`;

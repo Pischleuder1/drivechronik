@@ -7,6 +7,7 @@ const VALID_CLASSIFICATIONS: Classification[] = [
   "commute",
 ];
 
+const YEAR_RE = /^\d{4}$/;
 const MONTH_RE = /^\d{4}-\d{2}$/;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -21,6 +22,12 @@ export function isValidFormat(format: string | null): format is "csv" | "pdf" {
  */
 export function isValidFormatWithGpx(format: string | null): format is "csv" | "pdf" | "gpx" {
   return format === "csv" || format === "pdf" || format === "gpx";
+}
+
+export function isValidYearParam(year: string): boolean {
+  if (!YEAR_RE.test(year)) return false;
+  const value = Number(year);
+  return value >= 2000 && value <= 2100;
 }
 
 export function isValidMonthParam(month: string): boolean {

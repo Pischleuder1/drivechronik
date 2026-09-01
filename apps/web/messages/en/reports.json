@@ -24,5 +24,26 @@
     "formula": "{km} km × {rate}/km",
     "amount": "Reimbursement amount",
     "incomplete": "At least one business drive is missing distance data; the reimbursement amount may be incomplete."
+  },
+  "year": {
+    "open": "Annual reimbursement",
+    "title": "Business drives {year}",
+    "subtitle": "Annual overview of business mileage and reimbursement.",
+    "backToMonthly": "Back to monthly report",
+    "prevYear": "Previous year",
+    "nextYear": "Next year",
+    "selectYear": "Select year",
+    "totalDistance": "Business mileage",
+    "rate": "Reimbursement rate",
+    "totalAmount": "Annual reimbursement",
+    "incomplete": "At least one business drive is missing distance data. Mileage and reimbursement may therefore be incomplete.",
+    "monthIncomplete": "Incomplete distance data in this month",
+    "roundingNote": "The annual reimbursement is the sum of the monthly amounts rounded to cents.",
+    "table": {
+      "month": "Month",
+      "drives": "Drives",
+      "distance": "Business km",
+      "amount": "Reimbursement"
+    }
   }
 }

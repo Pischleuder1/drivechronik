@@ -206,6 +206,54 @@ export function monthBounds(month: string): { start: Date; end: Date } {
   return { start, end };
 }
 
+export interface BusinessYearExportData {
+  drives: ReportDrive[];
+  meta: ReportMeta;
+}
+
+/** [start, end) UTC instants for a YYYY calendar year in APP_TIMEZONE. */
+export function yearBounds(year: string): { start: Date; end: Date } {
+  if (!/^\d{4}$/.test(year)) {
+    throw new Error("Year must use YYYY format.");
+  }
+
+  const { start } = dayBounds(`${year}-01-01`);
+  const { start: end } = dayBounds(`${Number(year) + 1}-01-01`);
+
+  return { start, end };
+}
+
+/**
+ * Loads all business drives of one calendar year in APP_TIMEZONE.
+ *
+ * Only business drives are loaded because the yearly reimbursement report
+ * intentionally ignores private, commute and unclassified drives.
+ */
+export async function loadBusinessYearReportData(
+  year: string,
+): Promise<BusinessYearExportData> {
+  const { start, end } = yearBounds(year);
+  const meta = await loadMeta();
+
+  const rows = await db
+    .select()
+    .from(drives)
+    .where(
+      and(
+        eq(drives.vehicleId, meta.vehicleId),
+        eq(drives.classification, "business"),
+        gte(drives.startTime, start),
+        lt(drives.startTime, end),
+      ),
+    )
+    .orderBy(asc(drives.startTime));
+
+  return {
+    drives: await toReportDrives(rows),
+    meta,
+  };
+}
+
 export interface MonthExportData {
   drives: ReportDrive[];
   meta: ReportMeta;

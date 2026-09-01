@@ -1,7 +1,7 @@
 import "server-only";
 import { eq } from "drizzle-orm";
-import { places, vehicleStatus, vehicles } from "@tripatlas/db";
-import { DEFAULT_REFERENCE_SPEED_KMH, binByNumeric } from "@tripatlas/core";
+import { places, vehicleStatus, vehicles } from "@drivechronik/db";
+import { DEFAULT_REFERENCE_SPEED_KMH, binByNumeric } from "@drivechronik/core";
 import { db } from "./db";
 import { getInsightsData } from "./insights";
 
@@ -10,7 +10,7 @@ import { getInsightsData } from "./insights";
  * den persönlichen Basisverbrauch aus der Fahrten-Historie (Muster wie
  * lib/insights.ts), schätzt die nutzbare Batteriekapazität aus dem
  * vehicle_status und bündelt den Vorbelegungs-Kontext für die Formularseite.
- * Die reine Rechenlogik liegt in @tripatlas/core (planner/*), hier passiert nur
+ * Die reine Rechenlogik liegt in @drivechronik/core (planner/*), hier passiert nur
  * das Laden/Aufbereiten der DB-Daten.
  */
 

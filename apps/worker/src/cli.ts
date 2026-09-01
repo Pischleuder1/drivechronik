@@ -1,5 +1,5 @@
 import { gt } from "drizzle-orm";
-import { createDb, syncState } from "@tripatlas/db";
+import { createDb, syncState } from "@drivechronik/db";
 import { createTeslamateClient, probeTeslamateSchema } from "./teslamate/client.js";
 import { runSyncCycle } from "./sync/cycle.js";
 import { rematchPlaces } from "./sync/rematch.js";
@@ -8,15 +8,15 @@ import { requireEnv } from "./env.js";
 
 const USAGE = `DriveChronik Worker CLI
 
-  pnpm --filter @tripatlas/worker cli resync [--from YYYY-MM-DD]
+  pnpm --filter @drivechronik/worker cli resync [--from YYYY-MM-DD]
       Setzt die Sync-Watermarks zurück (optional auf ein Datum) und läuft
       einen kompletten Zyklus. Annotationen bleiben erhalten (Upsert).
 
-  pnpm --filter @tripatlas/worker cli rematch-places
+  pnpm --filter @drivechronik/worker cli rematch-places
       Rechnet alle Place-Zuordnungen neu (nach Place-Änderungen).
       Gelockte Zuordnungen bleiben unangetastet.
 
-  pnpm --filter @tripatlas/worker cli import-tessie <dir> [--vehicle-id N]
+  pnpm --filter @drivechronik/worker cli import-tessie <dir> [--vehicle-id N]
       Importiert Tessie-Roh-Telemetrie (CSV-Export) und rekonstruiert daraus
       Fahrten und Ladevorgänge (source='tessie'). Idempotent per Upsert.
 `;

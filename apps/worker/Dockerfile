@@ -19,7 +19,7 @@ COPY apps/worker/package.json apps/worker/package.json
 # dev/fixtures is a workspace member per pnpm-workspace.yaml; pnpm needs its
 # manifest present to resolve the lockfile even though nothing here installs it.
 COPY dev/fixtures/package.json dev/fixtures/package.json
-RUN pnpm install --frozen-lockfile --filter @tripatlas/worker... --filter @tripatlas/core --filter @tripatlas/db
+RUN pnpm install --frozen-lockfile --filter @drivechronik/worker... --filter @drivechronik/core --filter @drivechronik/db
 
 # ---- build: compile core, db, worker (tsc) -----------------------------
 FROM deps AS build
@@ -27,9 +27,9 @@ COPY packages/core packages/core
 COPY packages/db packages/db
 COPY apps/worker apps/worker
 COPY tsconfig.base.json tsconfig.base.json
-RUN pnpm --filter @tripatlas/core build \
- && pnpm --filter @tripatlas/db build \
- && pnpm --filter @tripatlas/worker build
+RUN pnpm --filter @drivechronik/core build \
+ && pnpm --filter @drivechronik/db build \
+ && pnpm --filter @drivechronik/worker build
 
 # ---- prod-deps: pruned, production-only node_modules -------------------
 FROM base AS prod-deps
@@ -38,7 +38,7 @@ COPY packages/core/package.json packages/core/package.json
 COPY packages/db/package.json packages/db/package.json
 COPY apps/worker/package.json apps/worker/package.json
 COPY dev/fixtures/package.json dev/fixtures/package.json
-RUN pnpm install --frozen-lockfile --prod --filter @tripatlas/worker... --filter @tripatlas/core --filter @tripatlas/db
+RUN pnpm install --frozen-lockfile --prod --filter @drivechronik/worker... --filter @drivechronik/core --filter @drivechronik/db
 
 # ---- runtime -------------------------------------------------------------
 FROM ${NODE_IMAGE} AS runtime

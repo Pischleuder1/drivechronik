@@ -9,7 +9,7 @@ import {
   formatKm,
   formatKwh,
   formatTime,
-} from "@tripatlas/core";
+} from "@drivechronik/core";
 import { APP_TIMEZONE } from "../../../../lib/config";
 import {
   getJourneyCandidates,

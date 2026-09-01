@@ -6,7 +6,7 @@ import {
   formatPlaceLabel,
   formatSoc,
   formatTimeRange,
-} from "@tripatlas/core";
+} from "@drivechronik/core";
 import type {
   ChargeRow,
   DayTimeline,

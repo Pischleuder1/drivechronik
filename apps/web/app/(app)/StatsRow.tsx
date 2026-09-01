@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { CalendarDays, CalendarRange, Zap, HelpCircle, ArrowRight } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
-import { formatKm, formatKwh, formatPlaceLabel } from "@tripatlas/core";
+import { formatKm, formatKwh, formatPlaceLabel } from "@drivechronik/core";
 import { formatRelativeTime } from "../../lib/day";
 import type {
   LastChargeStats,

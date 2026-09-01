@@ -1,6 +1,6 @@
 import "server-only";
 import { and, eq, gte, lt, sql } from "drizzle-orm";
-import { chargeSessions, drives } from "@tripatlas/db";
+import { chargeSessions, drives } from "@drivechronik/db";
 import { db } from "./db";
 import { APP_TIMEZONE } from "./config";
 import { dayBounds } from "./day";

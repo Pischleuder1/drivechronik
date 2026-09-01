@@ -1,5 +1,5 @@
-import { places, type Db } from "@tripatlas/db";
-import type { MatchablePlace } from "@tripatlas/core";
+import { places, type Db } from "@drivechronik/db";
+import type { MatchablePlace } from "@drivechronik/core";
 
 /** Lädt alle Places einmal pro Sync-Zyklus (In-Memory-Matching, kein PostGIS). */
 export async function loadMatchablePlaces(db: Db): Promise<MatchablePlace[]> {

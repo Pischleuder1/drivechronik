@@ -7,7 +7,7 @@ export type Locale = (typeof LOCALES)[number];
 export const DEFAULT_LOCALE: Locale = "de";
 
 /** Cookie, in das der LocaleSwitcher die aktive Sprache schreibt. */
-export const LOCALE_COOKIE = "tripatlas_locale";
+export const LOCALE_COOKIE = "drivechronik_locale";
 
 /**
  * Feste Reihenfolge der Namespaces. Jede Sprache hat pro Namespace eine

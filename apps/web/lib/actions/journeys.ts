@@ -11,7 +11,7 @@ import {
   journeyItems,
   journeys,
   parkSessions,
-} from "@tripatlas/db";
+} from "@drivechronik/db";
 import { db } from "../db";
 import { validateSession } from "../auth/session";
 import { parseDateTimeLocal } from "../day";

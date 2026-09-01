@@ -1,4 +1,4 @@
-import type { Classification } from "@tripatlas/core";
+import type { Classification } from "@drivechronik/core";
 
 const VALID_CLASSIFICATIONS: Classification[] = [
   "unclassified",

@@ -7,7 +7,7 @@ import {
   formatSpeed,
   haversineDistanceM,
   smoothElevations,
-} from "@tripatlas/core";
+} from "@drivechronik/core";
 import type { ChartRoutePoint } from "../../../../lib/driveRoute";
 
 export interface DriveChartProps {

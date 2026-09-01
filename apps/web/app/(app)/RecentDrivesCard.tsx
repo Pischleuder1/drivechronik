@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Route } from "lucide-react";
 import { getTranslations } from "next-intl/server";
-import { formatKm, formatPlaceLabel } from "@tripatlas/core";
+import { formatKm, formatPlaceLabel } from "@drivechronik/core";
 import { APP_TIMEZONE } from "../../lib/config";
 import type { DriveTrack, RecentDriveRow } from "../../lib/dashboard";
 import { EmptyState } from "../../components/ui/EmptyState";

@@ -1,4 +1,4 @@
-import type { Classification } from "@tripatlas/core";
+import type { Classification } from "@drivechronik/core";
 
 /** Slugs used in filenames — German, ASCII-safe (ä/ö/ü/ß spelled out). */
 const CLASSIFICATION_SLUGS: Record<Classification, string> = {

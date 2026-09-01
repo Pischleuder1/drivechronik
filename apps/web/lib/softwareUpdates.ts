@@ -1,6 +1,6 @@
 import "server-only";
 import { desc, eq } from "drizzle-orm";
-import { softwareUpdates } from "@tripatlas/db";
+import { softwareUpdates } from "@drivechronik/db";
 import { db } from "./db";
 
 export interface SoftwareUpdateRow {

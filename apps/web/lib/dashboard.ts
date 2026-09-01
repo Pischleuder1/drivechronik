@@ -8,8 +8,8 @@ import {
   routePoints,
   vehicleStatus,
   vehicles,
-} from "@tripatlas/db";
-import { matchPlace, type MatchablePlace } from "@tripatlas/core";
+} from "@drivechronik/db";
+import { matchPlace, type MatchablePlace } from "@drivechronik/core";
 import { db } from "./db";
 import { dayBounds, shiftDate, todayInAppTz } from "./day";
 

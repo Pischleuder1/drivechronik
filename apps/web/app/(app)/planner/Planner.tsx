@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { MapPin, Navigation, TriangleAlert } from "lucide-react";
-import { formatDuration } from "@tripatlas/core";
+import { formatDuration } from "@drivechronik/core";
 import type { PlannerPlace, PlannerStatus } from "../../../lib/planner";
 import {
   planRoute,

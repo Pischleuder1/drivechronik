@@ -77,8 +77,8 @@ pnpm install
 pnpm dev:db                                # tripatlas-db :5432 + fixture teslamate-db :5433
 pnpm db:seed:teslamate                     # ~140 Fahrten, Laden, Geofences (Raum Zürich)
 DATABASE_URL=postgres://tripatlas:tripatlas@localhost:5432/tripatlas pnpm db:migrate
-pnpm --filter @tripatlas/worker dev        # Sync-Loop (braucht DATABASE_URL + TESLAMATE_DATABASE_URL, siehe .env.example)
-pnpm --filter @tripatlas/web dev           # http://localhost:3000
+pnpm --filter @drivechronik/worker dev        # Sync-Loop (braucht DATABASE_URL + TESLAMATE_DATABASE_URL, siehe .env.example)
+pnpm --filter @drivechronik/web dev           # http://localhost:3000
 ```
 
 Tests: `pnpm test` · Typecheck: `pnpm lint` · Mehr: [CONTRIBUTING.md](CONTRIBUTING.md)

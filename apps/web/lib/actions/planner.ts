@@ -6,7 +6,7 @@ import {
   predictConsumption,
   summarizeElevation,
   type ConsumptionBreakdown,
-} from "@tripatlas/core";
+} from "@drivechronik/core";
 import { validateSession } from "../auth/session";
 import {
   resolveBaseConsumption,
@@ -16,7 +16,7 @@ import {
 /**
  * Server Action des Routenplaner-MVP („Reichweiten-Check"). Orchestriert
  * server-seitig (nie im Browser): OSRM-Routing → Höhenprofil via Open-Meteo →
- * reines Verbrauchsmodell (@tripatlas/core) → Ankunfts-SoC. Alle externen
+ * reines Verbrauchsmodell (@drivechronik/core) → Ankunfts-SoC. Alle externen
  * Aufrufe mit Timeout und Failure-soft-Verhalten; das Höhenprofil ist optional
  * (fällt es aus, rechnet das Modell ohne Höhenterm und die UI weist es aus).
  */

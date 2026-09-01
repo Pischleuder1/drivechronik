@@ -6,8 +6,8 @@ import {
   drives,
   tags,
   type Db,
-} from "@tripatlas/db";
-import { findMatchingRule, isoWeekday } from "@tripatlas/core";
+} from "@drivechronik/db";
+import { findMatchingRule, isoWeekday } from "@drivechronik/core";
 
 export interface ClassifyRulesResult {
   applied: number;

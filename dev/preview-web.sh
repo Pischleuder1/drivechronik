@@ -6,4 +6,4 @@ export DATABASE_URL="${DATABASE_URL:-postgres://tripatlas:tripatlas@localhost:54
 export APP_TIMEZONE="${APP_TIMEZONE:-Europe/Zurich}"
 export INITIAL_ADMIN_PASSWORD="${INITIAL_ADMIN_PASSWORD:-test1234}"
 cd "$(dirname "$0")/.."
-exec pnpm --filter @tripatlas/web dev
+exec pnpm --filter @drivechronik/web dev

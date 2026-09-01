@@ -7,7 +7,7 @@ import {
   formatPlaceLabel,
   formatSoc,
   formatTimeRange,
-} from "@tripatlas/core";
+} from "@drivechronik/core";
 import { APP_TIMEZONE } from "../../../lib/config";
 import { todayInAppTz } from "../../../lib/day";
 import { monthBounds } from "../../../lib/exports/data";

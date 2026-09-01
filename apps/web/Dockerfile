@@ -14,7 +14,7 @@ FROM ${NODE_IMAGE} AS base
 RUN corepack enable && corepack prepare pnpm@9.15.9 --activate
 WORKDIR /repo
 
-# ---- deps: install full deps needed to build @tripatlas/web -----------
+# ---- deps: install full deps needed to build @drivechronik/web -----------
 FROM base AS deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/core/package.json packages/core/package.json
@@ -23,7 +23,7 @@ COPY apps/web/package.json apps/web/package.json
 # dev/fixtures is a workspace member per pnpm-workspace.yaml; pnpm needs its
 # manifest present to resolve the lockfile even though nothing here installs it.
 COPY dev/fixtures/package.json dev/fixtures/package.json
-RUN pnpm install --frozen-lockfile --filter @tripatlas/web... --filter @tripatlas/core --filter @tripatlas/db
+RUN pnpm install --frozen-lockfile --filter @drivechronik/web... --filter @drivechronik/core --filter @drivechronik/db
 
 # ---- build: compile core+db, then build web ----------------------------
 FROM deps AS build
@@ -31,9 +31,9 @@ COPY packages/core packages/core
 COPY packages/db packages/db
 COPY apps/web apps/web
 COPY tsconfig.base.json tsconfig.base.json
-RUN pnpm --filter @tripatlas/core build \
- && pnpm --filter @tripatlas/db build \
- && pnpm --filter @tripatlas/web build
+RUN pnpm --filter @drivechronik/core build \
+ && pnpm --filter @drivechronik/db build \
+ && pnpm --filter @drivechronik/web build
 
 # ---- runtime -------------------------------------------------------------
 FROM ${NODE_IMAGE} AS runtime

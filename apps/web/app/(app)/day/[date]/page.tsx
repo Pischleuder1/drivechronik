@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { CalendarDays, Download } from "lucide-react";
-import { formatDuration, formatKm, formatKwh } from "@tripatlas/core";
+import { formatDuration, formatKm, formatKwh } from "@drivechronik/core";
 import { APP_TIMEZONE } from "../../../../lib/config";
 import {
   formatLongDate,

@@ -1,6 +1,6 @@
 import "server-only";
 import { and, asc, eq, gte, isNotNull } from "drizzle-orm";
-import { drives } from "@tripatlas/db";
+import { drives } from "@drivechronik/db";
 import { db } from "./db";
 import { APP_TIMEZONE } from "./config";
 

@@ -31,8 +31,8 @@ export interface SyncEntityDiagnosis extends SyncStateRow {
 
 export interface DiagnosticsSummary {
   /** Trivialer Round-Trip gegen die eigene DriveChronik-DB. */
-  tripatlasDbOk: boolean;
-  tripatlasDbError: string | null;
+  drivechronikDbOk: boolean;
+  drivechronikDbError: string | null;
   entities: SyncEntityDiagnosis[];
   /** Schlechtester Zustand über alle entities — bestimmt die Karten-Ampel. */
   overallHealth: SyncHealth;
@@ -70,24 +70,24 @@ export function entityLabel(
  * Diagnose-Card da.
  */
 export async function getDiagnostics(): Promise<DiagnosticsSummary> {
-  let tripatlasDbOk = true;
-  let tripatlasDbError: string | null = null;
+  let drivechronikDbOk = true;
+  let drivechronikDbError: string | null = null;
 
   try {
     await db.execute(sql`select 1`);
   } catch (err) {
-    tripatlasDbOk = false;
-    tripatlasDbError =
+    drivechronikDbOk = false;
+    drivechronikDbError =
       err instanceof Error ? err.message : "Unbekannter Datenbankfehler.";
   }
 
   let rows: SyncStateRow[] = [];
-  if (tripatlasDbOk) {
+  if (drivechronikDbOk) {
     try {
       rows = await getSyncState();
     } catch (err) {
-      tripatlasDbOk = false;
-      tripatlasDbError =
+      drivechronikDbOk = false;
+      drivechronikDbError =
         err instanceof Error ? err.message : "Unbekannter Datenbankfehler.";
     }
   }
@@ -106,8 +106,8 @@ export async function getDiagnostics(): Promise<DiagnosticsSummary> {
         );
 
   return {
-    tripatlasDbOk,
-    tripatlasDbError,
+    drivechronikDbOk,
+    drivechronikDbError,
     entities,
     overallHealth,
     teslamateEnvSet: Boolean(process.env.TESLAMATE_DATABASE_URL),
@@ -125,7 +125,7 @@ export function diagnosticsHints(
 ): string[] {
   const hints: string[] = [];
 
-  if (!summary.tripatlasDbOk) {
+  if (!summary.drivechronikDbOk) {
     hints.push(t("diagnostics.hints.dbUnreachable"));
   }
 

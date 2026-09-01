@@ -8,7 +8,7 @@ import {
   shortTripShare,
   weeklyPattern,
   type Bin,
-} from "@tripatlas/core";
+} from "@drivechronik/core";
 import { APP_TIMEZONE } from "../../../lib/config";
 import { toIntlLocale } from "../../../lib/i18nLocale";
 import { getInsightsData, type InsightDrive } from "../../../lib/insights";

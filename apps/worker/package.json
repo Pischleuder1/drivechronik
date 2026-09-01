@@ -1,5 +1,5 @@
 {
-  "name": "@tripatlas/worker",
+  "name": "@drivechronik/worker",
   "version": "0.1.1",
   "private": true,
   "type": "module",
@@ -12,8 +12,8 @@
     "cli": "tsx src/cli.ts"
   },
   "dependencies": {
-    "@tripatlas/core": "workspace:*",
-    "@tripatlas/db": "workspace:*",
+    "@drivechronik/core": "workspace:*",
+    "@drivechronik/db": "workspace:*",
     "drizzle-orm": "^0.38.4",
     "postgres": "^3.4.5"
   },

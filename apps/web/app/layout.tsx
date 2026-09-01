@@ -47,7 +47,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const theme = (await cookies()).get("tripatlas_theme")?.value;
+  const theme = (await cookies()).get("drivechronik_theme")?.value;
   const explicitDark = theme === "dark";
   // 'system' oder kein Cookie: die Klasse setzt vor dem Paint das Inline-Script.
   const isSystem = theme !== "dark" && theme !== "light";

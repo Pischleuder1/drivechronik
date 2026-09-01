@@ -3,7 +3,7 @@ import { cache } from "react";
 import { cookies, headers } from "next/headers";
 import { createHash, randomBytes } from "node:crypto";
 import { eq } from "drizzle-orm";
-import { sessions, users } from "@tripatlas/db";
+import { sessions, users } from "@drivechronik/db";
 import { db } from "../db";
 import { SESSION_COOKIE } from "../config";
 

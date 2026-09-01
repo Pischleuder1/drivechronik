@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Plus, Route, ChevronRight } from "lucide-react";
 import { getTranslations } from "next-intl/server";
-import { formatKm } from "@tripatlas/core";
+import { formatKm } from "@drivechronik/core";
 import { APP_TIMEZONE } from "../../../lib/config";
 import { getJourneys } from "../../../lib/journeys";
 import { Button } from "../../../components/ui/Button";

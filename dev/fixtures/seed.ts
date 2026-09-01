@@ -10,7 +10,7 @@
  * Switzerland, for ~6 weeks, plus one weekend road trip to Chur.
  *
  * Run with: pnpm db:seed:teslamate  (from repo root)
- *        or: pnpm --filter @tripatlas/fixtures seed
+ *        or: pnpm --filter @drivechronik/fixtures seed
  */
 import postgres from "postgres";
 

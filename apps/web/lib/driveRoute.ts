@@ -1,6 +1,6 @@
 import "server-only";
 import { asc, eq } from "drizzle-orm";
-import { routePoints } from "@tripatlas/db";
+import { routePoints } from "@drivechronik/db";
 import { db } from "./db";
 
 /** [lat, lon, unix_ts_ms, speedKmh, soc] tuple for a single route point. */

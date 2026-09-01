@@ -15,8 +15,8 @@ pnpm install
 pnpm dev:db
 pnpm db:seed:teslamate
 DATABASE_URL=postgres://tripatlas:tripatlas@localhost:5432/tripatlas pnpm db:migrate
-pnpm --filter @tripatlas/worker dev
-pnpm --filter @tripatlas/web dev
+pnpm --filter @drivechronik/worker dev
+pnpm --filter @drivechronik/web dev
 ```
 
 The worker needs `DATABASE_URL` and `TESLAMATE_DATABASE_URL`; see `.env.example` for the expected local values. The web app runs at `http://localhost:3000` by default.
@@ -33,7 +33,7 @@ pnpm lint
 `pnpm lint` is the repository typecheck/lint entry point. It first builds the shared package types, then runs all package checks. For the web app TypeScript compiler specifically, run:
 
 ```bash
-pnpm --filter @tripatlas/web exec tsc --noEmit
+pnpm --filter @drivechronik/web exec tsc --noEmit
 ```
 
 ## Pull Requests

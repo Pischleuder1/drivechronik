@@ -21,7 +21,7 @@ export default async function LoginPage() {
   const bootstrap = await usersTableIsEmpty();
   const t = await getTranslations("auth");
 
-  const cookieLocale = (await cookies()).get("tripatlas_locale")?.value;
+  const cookieLocale = (await cookies()).get("drivechronik_locale")?.value;
   const locale: Locale = cookieLocale === "en" ? "en" : "de";
 
   return (

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
-import { chargeSessions, places } from "@tripatlas/db";
+import { chargeSessions, places } from "@drivechronik/db";
 import {
   formatDuration,
   formatKwh,
@@ -11,7 +11,7 @@ import {
   formatSoc,
   formatTemp,
   formatTimeRange,
-} from "@tripatlas/core";
+} from "@drivechronik/core";
 import { db } from "../../../../lib/db";
 import { APP_TIMEZONE } from "../../../../lib/config";
 import { formatLongDate } from "../../../../lib/day";

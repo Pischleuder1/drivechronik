@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { Zap } from "lucide-react";
-import { formatKm } from "@tripatlas/core";
+import { formatKm } from "@drivechronik/core";
 import type { CalendarCell } from "../../../lib/calendarGrid";
 
 const WEEKDAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;

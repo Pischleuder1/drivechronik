@@ -22,10 +22,10 @@ export default async function AppLayout({
   const vehicleName = vehicles[0]?.displayName ?? "—";
 
   const cookieStore = await cookies();
-  const cookieTheme = cookieStore.get("tripatlas_theme")?.value;
+  const cookieTheme = cookieStore.get("drivechronik_theme")?.value;
   const theme: ThemeChoice =
     cookieTheme === "light" || cookieTheme === "dark" ? cookieTheme : "system";
-  const cookieLocale = cookieStore.get("tripatlas_locale")?.value;
+  const cookieLocale = cookieStore.get("drivechronik_locale")?.value;
   const locale: Locale = cookieLocale === "en" ? "en" : "de";
 
   return (

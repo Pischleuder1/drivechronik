@@ -8,8 +8,8 @@ import {
   journeys,
   places,
   routePoints,
-} from "@tripatlas/db";
-import type { KpiCharge, KpiDrive } from "@tripatlas/core";
+} from "@drivechronik/db";
+import type { KpiCharge, KpiDrive } from "@drivechronik/core";
 import { db } from "./db";
 import type { JourneyType } from "./journeyTypes";
 

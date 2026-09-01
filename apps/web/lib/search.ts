@@ -9,9 +9,9 @@ import {
   places,
   tags,
   vehicles,
-} from "@tripatlas/db";
+} from "@drivechronik/db";
 import { db } from "./db";
-import type { Classification } from "@tripatlas/core";
+import type { Classification } from "@drivechronik/core";
 import type { TagLite } from "./queries";
 
 /** Result-set cap (vision.md §8.3 use case is "find the drive", not "browse everything"). */

@@ -1,6 +1,6 @@
 import "server-only";
 import { sql } from "drizzle-orm";
-import { computeVampireLoss } from "@tripatlas/core";
+import { computeVampireLoss } from "@drivechronik/core";
 import { db } from "./db";
 
 // Zeittoleranz beim Matchen von Park-Nachbar-Fahrten über start/end_time

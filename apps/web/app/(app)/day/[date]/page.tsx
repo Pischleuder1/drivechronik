@@ -40,8 +40,26 @@ export default async function DayPage({
   if (!isValidDateParam(date)) notFound();
 
   const { vehicle } = await searchParams;
+  const today = todayInAppTz();
   const vehicles = await getVehicles();
-  if (vehicles.length === 0) return <NoVehicleState />;
+
+  if (vehicles.length === 0) {
+    return (
+      <div className="mx-auto max-w-2xl">
+        <DateNav
+          date={date}
+          longLabel={formatLongDate(date, locale)}
+          prevDate={shiftDate(date, -1)}
+          nextDate={shiftDate(date, 1)}
+          today={today}
+          vehicleQuery=""
+        />
+        <div className="mt-6">
+          <NoVehicleState />
+        </div>
+      </div>
+    );
+  }
 
   const requested = vehicle ? Number(vehicle) : NaN;
   const current =
@@ -83,8 +101,6 @@ export default async function DayPage({
     timeline.drives.length === 0 &&
     timeline.parks.length === 0 &&
     timeline.charges.length === 0;
-
-  const today = todayInAppTz();
 
   return (
     <div className="mx-auto max-w-2xl">

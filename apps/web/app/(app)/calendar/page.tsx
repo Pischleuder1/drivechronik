@@ -25,7 +25,21 @@ export default async function CalendarPage({
     monthParam && isValidMonthParam(monthParam) ? monthParam : currentMonth;
 
   const vehicles = await getVehicles();
-  if (vehicles.length === 0) return <NoVehicleState />;
+
+  if (vehicles.length === 0) {
+    return (
+      <div className="mx-auto max-w-3xl">
+        <MonthNav
+          month={month}
+          currentMonth={currentMonth}
+          vehicleQuery=""
+        />
+        <div className="mt-6">
+          <NoVehicleState />
+        </div>
+      </div>
+    );
+  }
 
   const requested = vehicle ? Number(vehicle) : NaN;
   const current = vehicles.find((v) => v.id === requested) ?? vehicles[0]!;

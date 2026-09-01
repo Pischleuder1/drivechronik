@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { getVehicles } from "../../../lib/queries";
 import { getPlannerContext, getPlannerPlaces } from "../../../lib/planner";
 import { getCurrentWeather } from "../../../lib/weather";
+import { getOsrmUrl } from "../../../lib/config";
 import { Planner } from "./Planner";
 
 import { NoVehicleState } from "../../../components/NoVehicleState";
@@ -89,7 +90,7 @@ export default async function PlannerPage() {
           defaultCapacityKwh={Math.round(context.suggestedCapacityKwh)}
           capacityIsDerived={context.capacityIsDerived}
           historyDriveCount={context.historyDriveCount}
-          osrmIsDefault={process.env.OSRM_URL == null}
+          osrmIsDefault={getOsrmUrl() == null}
         />
       </div>
     </div>

@@ -8,6 +8,7 @@ import {
   type ConsumptionBreakdown,
 } from "@drivechronik/core";
 import { validateSession } from "../auth/session";
+import { getOsrmUrl } from "../config";
 import {
   resolveBaseConsumption,
   type BaseConsumptionSource,
@@ -24,8 +25,6 @@ import {
 // Basis-URL des OSRM-Routing-Servers. Default ist der öffentliche Demo-Server;
 // eine eigene Instanz wird über OSRM_URL gesetzt (in der UI klein ausgewiesen).
 const OSRM_DEFAULT_URL = "https://router.project-osrm.org";
-const OSRM_URL = process.env.OSRM_URL ?? OSRM_DEFAULT_URL;
-const OSRM_IS_DEFAULT = process.env.OSRM_URL == null;
 
 const OPEN_METEO_ELEVATION_URL = "https://api.open-meteo.com/v1/elevation";
 
@@ -127,11 +126,16 @@ export async function planRoute(
   } = parsed.data;
 
   // 1) Routing (OSRM) — server-seitig, mit Timeout und freundlicher Fehlermeldung.
+  const configuredOsrmUrl = getOsrmUrl();
+  const osrmBaseUrl = configuredOsrmUrl ?? OSRM_DEFAULT_URL;
+  const osrmIsDefault = configuredOsrmUrl == null;
+
   const routeResult = await fetchOsrmRoute(
     startLat,
     startLon,
     destLat,
     destLon,
+    osrmBaseUrl,
     t,
   );
   if (!routeResult.ok) return { ok: false, error: routeResult.error };
@@ -197,7 +201,7 @@ export async function planRoute(
       startSoc,
       capacityKwh,
       arrivalSoc,
-      osrmIsDefault: OSRM_IS_DEFAULT,
+      osrmIsDefault,
       geometry,
     },
   };
@@ -213,9 +217,10 @@ async function fetchOsrmRoute(
   startLon: number,
   destLat: number,
   destLon: number,
+  osrmBaseUrl: string,
   t: Awaited<ReturnType<typeof getTranslations>>,
 ): Promise<OsrmResult> {
-  const base = OSRM_URL.replace(/\/+$/, "");
+  const base = osrmBaseUrl.replace(/\/+$/, "");
   const coords = `${startLon},${startLat};${destLon},${destLat}`;
   const url = new URL(`${base}/route/v1/driving/${coords}`);
   url.searchParams.set("overview", "full");

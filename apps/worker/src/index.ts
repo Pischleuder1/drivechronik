@@ -1,12 +1,22 @@
 import { createDb } from "@drivechronik/db";
 import { createTeslamateClient, probeTeslamateSchema } from "./teslamate/client.js";
 import { runSyncCycle } from "./sync/cycle.js";
-import { requireEnv } from "./env.js";
+import { loadWorkerEnv } from "./env.js";
 
-const SYNC_INTERVAL_SECONDS = Number(process.env.SYNC_INTERVAL_SECONDS ?? "60");
+function loadEnvOrExit() {
+  try {
+    return loadWorkerEnv();
+  } catch (err) {
+    console.error(err instanceof Error ? err.message : err);
+    process.exit(1);
+  }
+}
 
-const db = createDb(requireEnv("DATABASE_URL"));
-const tm = createTeslamateClient(requireEnv("TESLAMATE_DATABASE_URL"));
+const env = loadEnvOrExit();
+const SYNC_INTERVAL_SECONDS = env.syncIntervalSeconds;
+
+const db = createDb(env.databaseUrl);
+const tm = createTeslamateClient(env.teslamateDatabaseUrl);
 
 let timer: ReturnType<typeof setTimeout> | undefined;
 let running = false;

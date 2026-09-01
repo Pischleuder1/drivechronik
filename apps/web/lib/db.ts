@@ -1,5 +1,6 @@
 import "server-only";
 import { createDb, type Db } from "@drivechronik/db";
+import { getDatabaseUrl } from "./config";
 
 /**
  * Server-only singleton database handle.
@@ -11,7 +12,12 @@ import { createDb, type Db } from "@drivechronik/db";
 const globalForDb = globalThis as unknown as { __drivechronikDb?: Db };
 
 export const db: Db =
-  globalForDb.__drivechronikDb ?? createDb(process.env.DATABASE_URL!);
+  globalForDb.__drivechronikDb ??
+  createDb(
+    process.env.NEXT_PHASE === "phase-production-build"
+      ? "postgres://build:build@localhost:5432/build"
+      : getDatabaseUrl(),
+  );
 
 if (process.env.NODE_ENV !== "production") {
   globalForDb.__drivechronikDb = db;

@@ -61,7 +61,7 @@ export function LocaleSwitcher({
         title={t("language.currentTitle", { current: locale.toUpperCase() })}
         className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-xs font-semibold text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white dark:focus-visible:ring-white dark:focus-visible:ring-offset-neutral-950"
       >
-        <span aria-hidden="true">
+        <span aria-hidden="true" className="text-lg leading-none">
           {OPTIONS.find((o) => o.value === locale)?.label}
         </span>
       </button>
@@ -93,7 +93,7 @@ export function LocaleSwitcher({
                     : "text-neutral-400 hover:text-neutral-700 dark:text-neutral-500 dark:hover:text-neutral-300"
                 }`}
               >
-                <span aria-hidden="true">{o.label}</span>
+                <span aria-hidden="true" className="text-base leading-none">{o.label}</span>
                 <span className="sr-only">{o.name}</span>
               </button>
             </Fragment>
@@ -124,7 +124,7 @@ export function LocaleSwitcher({
                 : "text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
             }`}
           >
-            <span aria-hidden="true">{o.label}</span>
+            <span aria-hidden="true" className="text-lg leading-none">{o.label}</span>
             <span className="sr-only">{o.name}</span>
           </button>
         );

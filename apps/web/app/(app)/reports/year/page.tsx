@@ -14,6 +14,9 @@ import { isValidYearParam } from "../../../../lib/exports/params";
 import { buttonClasses } from "../../../../components/ui/Button";
 import { YearReportFilters } from "./YearReportFilters";
 
+import { NoVehicleState } from "../../../../components/NoVehicleState";
+import { getVehicles } from "../../../../lib/queries";
+
 export const dynamic = "force-dynamic";
 
 function currentYearInAppTz(): string {
@@ -35,6 +38,9 @@ export default async function BusinessYearReportPage({
     sp.year != null && isValidYearParam(sp.year)
       ? sp.year
       : currentYearInAppTz();
+
+  const vehicles = await getVehicles();
+  if (vehicles.length === 0) return <NoVehicleState />;
 
   const [data, reimbursementRate] = await Promise.all([
     loadBusinessYearReportData(year),

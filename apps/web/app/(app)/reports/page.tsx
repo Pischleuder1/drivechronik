@@ -14,6 +14,9 @@ import { todayInAppTz } from "../../../lib/day";
 import { buttonClasses } from "../../../components/ui/Button";
 import { ReportFilters } from "./ReportFilters";
 
+import { NoVehicleState } from "../../../components/NoVehicleState";
+import { getVehicles } from "../../../lib/queries";
+
 export const dynamic = "force-dynamic";
 
 const ALL_CLASSIFICATIONS: Classification[] = [
@@ -59,6 +62,9 @@ export default async function ReportsPage({
   const sp = await searchParams;
   const month = sp.month && isValidMonthParam(sp.month) ? sp.month : currentMonthInAppTz();
   const selected = parseSelected(sp.classification);
+
+  const vehicles = await getVehicles();
+  if (vehicles.length === 0) return <NoVehicleState />;
 
   const [data, reimbursementRate] = await Promise.all([
     loadMonthReportData(month, selected),

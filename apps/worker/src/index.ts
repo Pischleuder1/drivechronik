@@ -2,6 +2,7 @@ import { createDb } from "@drivechronik/db";
 import { createTeslamateClient, probeTeslamateSchema } from "./teslamate/client.js";
 import { runSyncCycle } from "./sync/cycle.js";
 import { loadWorkerEnv } from "./env.js";
+import { writeWorkerHeartbeat } from "./health.js";
 
 function loadEnvOrExit() {
   try {
@@ -30,6 +31,15 @@ async function tick(): Promise<void> {
     // Fehler ist bereits in sync_state protokolliert — nächster Tick versucht es neu.
     console.error(`[drivechronik-worker] sync fehlgeschlagen:`, err);
   } finally {
+    try {
+      await writeWorkerHeartbeat();
+    } catch (err) {
+      console.error(
+        "[drivechronik-worker] heartbeat konnte nicht geschrieben werden:",
+        err,
+      );
+    }
+
     running = false;
     timer = setTimeout(() => void tick(), SYNC_INTERVAL_SECONDS * 1000);
   }
@@ -48,6 +58,7 @@ console.log(`[drivechronik-worker] starting, interval=${SYNC_INTERVAL_SECONDS}s`
 try {
   await probeTeslamateSchema(tm);
   console.log("[drivechronik-worker] TeslaMate-Schema ok");
+  await writeWorkerHeartbeat();
 } catch (err) {
   console.error(`[drivechronik-worker] ${err instanceof Error ? err.message : err}`);
   process.exit(1);

@@ -65,6 +65,17 @@ describe("charge analytics logic", () => {
     expect(timeAtSoc(points, 10)).toBe(30_000);
   });
 
+  it("uses the earliest chronological SoC crossing", () => {
+    const points = [
+      point(0, 8),
+      point(60, 12),
+      point(120, 9),
+      point(180, 10),
+    ];
+
+    expect(timeAtSoc(points, 10)).toBe(30_000);
+  });
+
   it("calculates 10–80 duration using interpolation", () => {
     const points = [
       point(0, 8),

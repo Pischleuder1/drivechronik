@@ -32,13 +32,13 @@ export function timeAtSoc(
 
   if (usable.length === 0) return null;
 
-  for (const point of usable) {
-    if (point.soc === targetSoc) return point.ts;
-  }
-
-  for (let i = 1; i < usable.length; i++) {
-    const previous = usable[i - 1]!;
+  for (let i = 0; i < usable.length; i++) {
     const current = usable[i]!;
+
+    if (current.soc === targetSoc) return current.ts;
+    if (i === 0) continue;
+
+    const previous = usable[i - 1]!;
 
     if (current.soc <= previous.soc) continue;
 

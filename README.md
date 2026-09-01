@@ -216,6 +216,18 @@ docker compose run --rm --no-deps \
   backup /scripts/restore.sh drivechronik-YYYYMMDDTHHMMSSZ.dump
 ```
 
+Standardmäßig muss die zugehörige SHA-256-Prüfsummendatei vorhanden sein.
+Fehlt sie, wird der Restore abgebrochen. Nur wenn ein nicht verifiziertes
+Backup ausdrücklich wiederhergestellt werden soll, kann dies bewusst
+übersteuert werden:
+
+```bash
+docker compose run --rm --no-deps \
+  -e RESTORE_CONFIRM=RESTORE_DRIVECHRONIK \
+  -e RESTORE_ALLOW_MISSING_CHECKSUM=1 \
+  backup /scripts/restore.sh drivechronik-YYYYMMDDTHHMMSSZ.dump
+```
+
 Vor der eigentlichen Wiederherstellung erzeugt DriveChronik automatisch
 noch ein Sicherheitsbackup des aktuellen Datenbankstands. Anschließend
 wird die DriveChronik-Datenbank neu angelegt und das gewählte Archiv

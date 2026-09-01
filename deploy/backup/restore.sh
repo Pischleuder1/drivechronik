@@ -45,8 +45,13 @@ if [ -f "$checksum" ]; then
     cd "$(dirname "$archive")"
     sha256sum -c "$(basename "$checksum")"
   )
+elif [ "${RESTORE_ALLOW_MISSING_CHECKSUM:-}" = "1" ]; then
+  echo "WARNING: no SHA-256 checksum found; continuing because RESTORE_ALLOW_MISSING_CHECKSUM=1" >&2
 else
-  echo "WARNING: no SHA-256 checksum found for this backup" >&2
+  echo "Restore refused: SHA-256 checksum file is missing." >&2
+  echo "Expected: ${checksum}" >&2
+  echo "Set RESTORE_ALLOW_MISSING_CHECKSUM=1 only if you explicitly accept restoring an unverified backup." >&2
+  exit 1
 fi
 
 echo "Checking PostgreSQL archive..."

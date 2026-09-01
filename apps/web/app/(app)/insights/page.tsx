@@ -126,7 +126,33 @@ export default async function InsightsPage({
   const { vehicle } = await searchParams;
 
   const vehicles = await getVehicles();
-  if (vehicles.length === 0) return <NoVehicleState />;
+  if (vehicles.length === 0) {
+    return (
+      <div className="mx-auto max-w-4xl">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">
+              {t("title")}
+            </h1>
+            <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+              {t("subtitleNoData")}
+            </p>
+          </div>
+
+          <Link
+            href="/insights/yearly"
+            className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-medium transition hover:border-neutral-300 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700"
+          >
+            {t("yearly.open")}
+          </Link>
+        </div>
+
+        <div className="mt-6">
+          <NoVehicleState />
+        </div>
+      </div>
+    );
+  }
 
   const requested = vehicle ? Number(vehicle) : NaN;
   const current = vehicles.find((v) => v.id === requested) ?? vehicles[0]!;

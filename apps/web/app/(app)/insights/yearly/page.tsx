@@ -74,7 +74,52 @@ export default async function YearlyInsightsPage({
   const year = parseYear(params.year);
 
   const vehicles = await getVehicles();
-  if (vehicles.length === 0) return <NoVehicleState />;
+  if (vehicles.length === 0) {
+    return (
+      <div className="mx-auto max-w-5xl">
+        <Link
+          href="/insights"
+          className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
+        >
+          <ChevronLeft aria-hidden size={16} />
+          {t("yearly.back")}
+        </Link>
+
+        <div className="mt-3">
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {t("yearly.title", { year })}
+          </h1>
+          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+            {t("yearly.subtitle")}
+          </p>
+        </div>
+
+        <div className="mt-5 flex items-center justify-between rounded-xl border border-neutral-200 bg-white p-2 dark:border-neutral-800 dark:bg-neutral-900">
+          <Link
+            href={`/insights/yearly?year=${year - 1}`}
+            className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800"
+          >
+            <ChevronLeft aria-hidden size={16} />
+            {year - 1}
+          </Link>
+
+          <span className="font-semibold tabular-nums">{year}</span>
+
+          <Link
+            href={`/insights/yearly?year=${year + 1}`}
+            className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800"
+          >
+            {year + 1}
+            <ChevronRight aria-hidden size={16} />
+          </Link>
+        </div>
+
+        <div className="mt-6">
+          <NoVehicleState />
+        </div>
+      </div>
+    );
+  }
 
   const requestedVehicle = params.vehicle
     ? Number(params.vehicle)

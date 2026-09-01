@@ -7,6 +7,7 @@ import {
   formatTime,
   type Classification,
 } from "@drivechronik/core";
+import { getBusinessReimbursementRateEurPerKm } from "../../../lib/appSettings";
 import { loadMonthReportData } from "../../../lib/exports/data";
 import { isValidMonthParam } from "../../../lib/exports/params";
 import { todayInAppTz } from "../../../lib/day";
@@ -59,8 +60,18 @@ export default async function ReportsPage({
   const month = sp.month && isValidMonthParam(sp.month) ? sp.month : currentMonthInAppTz();
   const selected = parseSelected(sp.classification);
 
-  const data = await loadMonthReportData(month, selected);
-  const report = buildMonthReport(data.drives, month, data.meta, selected);
+  const [data, reimbursementRate] = await Promise.all([
+    loadMonthReportData(month, selected),
+    getBusinessReimbursementRateEurPerKm(),
+  ]);
+
+  const report = buildMonthReport(
+    data.drives,
+    month,
+    data.meta,
+    selected,
+    reimbursementRate,
+  );
 
   const exportQuery = `?classification=${selected.join(",")}`;
 

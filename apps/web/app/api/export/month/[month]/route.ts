@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getLocale, getTranslations } from "next-intl/server";
 import { buildMonthReport } from "@drivechronik/core";
 import { validateSession } from "../../../../../lib/auth/session";
+import { getBusinessReimbursementRateEurPerKm } from "../../../../../lib/appSettings";
 import { loadMonthReportData } from "../../../../../lib/exports/data";
 import { renderMonthCsv, buildCsvLabels } from "../../../../../lib/exports/csv";
 import { renderMonthPdf, buildPdfLabels } from "../../../../../lib/exports/pdf";
@@ -45,8 +46,18 @@ export async function GET(
     return NextResponse.json({ error: t("errors.invalidClassification") }, { status: 400 });
   }
 
-  const data = await loadMonthReportData(month, classifications ?? undefined);
-  const report = buildMonthReport(data.drives, month, data.meta, classifications ?? undefined);
+  const [data, reimbursementRate] = await Promise.all([
+    loadMonthReportData(month, classifications ?? undefined),
+    getBusinessReimbursementRateEurPerKm(),
+  ]);
+
+  const report = buildMonthReport(
+    data.drives,
+    month,
+    data.meta,
+    classifications ?? undefined,
+    reimbursementRate,
+  );
   const filename = monthFilename(month, format, classifications ?? undefined);
 
   if (format === "csv") {

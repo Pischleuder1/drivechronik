@@ -145,6 +145,15 @@
     "invalidInput": "Ungültige Eingabe.",
     "userNotFound": "Benutzer nicht gefunden.",
     "currentPasswordWrong": "Aktuelles Passwort ist falsch.",
-    "invalidEfficiencyValue": "Ungültiger Wert (80–400 Wh/km)."
+    "invalidEfficiencyValue": "Ungültiger Wert (80–400 Wh/km).",
+    "invalidReimbursementRate": "Ungültiger Erstattungssatz (0,00–10,00 €/km)."
+  },
+  "reimbursementRate": {
+    "title": "Kilometererstattung",
+    "label": "Erstattungssatz",
+    "unit": "€/km",
+    "saving": "Speichert…",
+    "saved": "Gespeichert.",
+    "hint": "Wird für die Abrechnung geschäftlicher Fahrten in Reports, CSV und PDF verwendet. Standardwert: 0,30 €/km."
   }
 }

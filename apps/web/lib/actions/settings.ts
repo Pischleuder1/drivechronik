@@ -3,7 +3,13 @@ import { revalidatePath } from "next/cache";
 import { eq, ne, and } from "drizzle-orm";
 import { z } from "zod";
 import { getTranslations } from "next-intl/server";
-import { auditLog, sessions, syncState, users, vehicles } from "@drivechronik/db";
+import { auditLog, sessions, settings, syncState, users, vehicles } from "@drivechronik/db";
+import {
+  BUSINESS_REIMBURSEMENT_RATE_KEY,
+} from "../appSettings";
+import {
+  MAX_BUSINESS_REIMBURSEMENT_RATE_EUR_PER_KM,
+} from "../appSettingsLogic";
 import { db } from "../db";
 import { validateSession } from "../auth/session";
 import { hashPassword, verifyPassword } from "../auth/password";
@@ -171,5 +177,62 @@ export async function updateEfficiencyOverride(
     .where(and(eq(syncState.source, "teslamate"), eq(syncState.entity, "drives")));
 
   revalidatePath("/settings");
+  return { ok: true };
+}
+
+
+const reimbursementRateSchema = z.object({
+  rateEurPerKm: z.coerce
+    .number()
+    .min(0)
+    .max(MAX_BUSINESS_REIMBURSEMENT_RATE_EUR_PER_KM),
+});
+
+export interface ReimbursementRateResult {
+  ok: boolean;
+  error?: string;
+}
+
+export async function updateBusinessReimbursementRate(
+  _prev: ReimbursementRateResult,
+  formData: FormData,
+): Promise<ReimbursementRateResult> {
+  const user = await validateSession();
+  const t = await getTranslations("settings");
+
+  if (!user) {
+    return { ok: false, error: t("errors.notAuthenticated") };
+  }
+
+  const parsed = reimbursementRateSchema.safeParse({
+    rateEurPerKm: formData.get("rateEurPerKm"),
+  });
+
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: t("errors.invalidReimbursementRate"),
+    };
+  }
+
+  const rate = parsed.data.rateEurPerKm;
+
+  await db
+    .insert(settings)
+    .values({
+      key: BUSINESS_REIMBURSEMENT_RATE_KEY,
+      value: rate,
+    })
+    .onConflictDoUpdate({
+      target: settings.key,
+      set: {
+        value: rate,
+        updatedAt: new Date(),
+      },
+    });
+
+  revalidatePath("/settings");
+  revalidatePath("/reports");
+
   return { ok: true };
 }

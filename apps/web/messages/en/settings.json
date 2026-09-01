@@ -145,6 +145,15 @@
     "invalidInput": "Invalid input.",
     "userNotFound": "User not found.",
     "currentPasswordWrong": "Current password is wrong.",
-    "invalidEfficiencyValue": "Invalid value (80–400 Wh/km)."
+    "invalidEfficiencyValue": "Invalid value (80–400 Wh/km).",
+    "invalidReimbursementRate": "Invalid reimbursement rate (€0.00–€10.00/km)."
+  },
+  "reimbursementRate": {
+    "title": "Mileage reimbursement",
+    "label": "Reimbursement rate",
+    "unit": "€/km",
+    "saving": "Saving…",
+    "saved": "Saved.",
+    "hint": "Used to calculate business mileage reimbursement in reports, CSV and PDF. Default: €0.30/km."
   }
 }

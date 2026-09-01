@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { ChevronRight, Wand2 } from "lucide-react";
+import { getBusinessReimbursementRateEurPerKm } from "../../../lib/appSettings";
 import { APP_TIMEZONE } from "../../../lib/config";
 import { formatRelativeTime } from "../../../lib/day";
 import { getSyncState, getVehiclesDetailed } from "../../../lib/queries";
@@ -10,6 +11,7 @@ import { LogoutButton } from "./LogoutButton";
 import { ResyncButton } from "./ResyncButton";
 import { EfficiencyOverrideForm } from "./EfficiencyOverrideForm";
 import { PasswordChangeForm } from "./PasswordChangeForm";
+import { ReimbursementRateForm } from "./ReimbursementRateForm";
 import { SoftwareTimeline } from "./SoftwareTimeline";
 import { DiagnosticsCard } from "./DiagnosticsCard";
 
@@ -38,12 +40,14 @@ function maskVin(vin: string | null): string {
 }
 
 export default async function SettingsPage() {
-  const [t, locale, vehicles, syncRows] = await Promise.all([
-    getTranslations("settings"),
-    getLocale(),
-    getVehiclesDetailed(),
-    getSyncState(),
-  ]);
+  const [t, locale, vehicles, syncRows, reimbursementRate] =
+    await Promise.all([
+      getTranslations("settings"),
+      getLocale(),
+      getVehiclesDetailed(),
+      getSyncState(),
+      getBusinessReimbursementRateEurPerKm(),
+    ]);
   const defaultVehicleId = vehicles[0]?.id;
   const softwareUpdates =
     defaultVehicleId != null ? await getSoftwareUpdates(defaultVehicleId) : [];
@@ -125,6 +129,10 @@ export default async function SettingsPage() {
             </div>
           ))}
         </div>
+      </Card>
+
+      <Card title={t("reimbursementRate.title")}>
+        <ReimbursementRateForm currentRate={reimbursementRate} />
       </Card>
 
       <SoftwareTimeline updates={softwareUpdates} />

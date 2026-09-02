@@ -88,7 +88,7 @@ pnpm --filter @drivechronik/worker dev        # Sync-Loop (braucht DATABASE_URL 
 pnpm --filter @drivechronik/web dev           # http://localhost:3000
 ```
 
-Tests: `pnpm test` · Typecheck: `pnpm lint` · Mehr: [CONTRIBUTING.md](CONTRIBUTING.md)
+Tests: `pnpm test` · Typecheck: `pnpm lint`
 
 ## Deployment
 

@@ -14,6 +14,6 @@ WORKDIR /app
 COPY package.json ./
 RUN npm install
 
-COPY seed.ts ./
+COPY seed.ts demoRoutes.ts ./
 
 CMD ["npm", "run", "seed"]

@@ -13,6 +13,14 @@
  *        or: pnpm --filter @drivechronik/fixtures seed
  */
 import postgres from "postgres";
+import {
+  ZUHAUSE_BUERO,
+  BUERO_KUNDE_MUELLER,
+  ZUHAUSE_SUPERMARKT,
+  ZUHAUSE_RASTSTAETTE,
+  RASTSTAETTE_CHUR,
+  CHUR_ZUHAUSE,
+} from "./demoRoutes";
 
 const DATABASE_URL =
   process.env.TESLAMATE_DATABASE_URL ??
@@ -241,27 +249,97 @@ function tpmsReading(): Pick<
   };
 }
 
-// Interpolate along a great-circle-ish path with a slight bow (so it isn't a
-// perfectly straight line), plus small per-point jitter to feel GPS-like.
-function interpolatePoint(
-  start: LatLon,
-  end: LatLon,
-  t: number,
-  bowSeed: number,
-): LatLon {
-  const lat = start.lat + (end.lat - start.lat) * t;
-  const lon = start.lon + (end.lon - start.lon) * t;
-  // Bow perpendicular to the direct line, peaking at t=0.5
-  const bow = Math.sin(t * Math.PI) * 0.0006 * bowSeed;
-  const dx = end.lon - start.lon;
-  const dy = end.lat - start.lat;
-  const len = Math.sqrt(dx * dx + dy * dy) || 1;
-  const perpLat = -dx / len;
-  const perpLon = dy / len;
-  return {
-    lat: lat + perpLat * bow + jitter(0.00003),
-    lon: lon + perpLon * bow + jitter(0.00003),
-  };
+// Interpolate along a polyline made of multiple route points.
+// This makes the demo GPS track follow a realistic path instead of drawing
+// an almost straight line between start and destination.
+function interpolateRoutePoint(route: LatLon[], t: number): LatLon {
+  if (route.length < 2) return route[0];
+
+  const segments = route.slice(0, -1).map((p, i) => {
+    const q = route[i + 1];
+    const dx = q.lon - p.lon;
+    const dy = q.lat - p.lat;
+    return Math.sqrt(dx * dx + dy * dy);
+  });
+
+  const total = segments.reduce((sum, length) => sum + length, 0);
+  if (total === 0) return route[0];
+
+  let target = Math.max(0, Math.min(1, t)) * total;
+
+  for (let i = 0; i < segments.length; i++) {
+    const length = segments[i];
+
+    if (target <= length || i === segments.length - 1) {
+      const localT = length > 0 ? target / length : 0;
+      const a = route[i];
+      const b = route[i + 1];
+
+      return {
+        lat: a.lat + (b.lat - a.lat) * localT + jitter(0.000015),
+        lon: a.lon + (b.lon - a.lon) * localT + jitter(0.000015),
+      };
+    }
+
+    target -= length;
+  }
+
+  return route[route.length - 1];
+}
+
+// Synthetic demo routes. Production DriveChronik does NOT use these:
+// real drives use the GPS positions imported from TeslaMate.
+function demoRoute(from: LatLon, to: LatLon): LatLon[] {
+  const same = (a: LatLon, b: LatLon) =>
+    Math.abs(a.lat - b.lat) < 0.00001 &&
+    Math.abs(a.lon - b.lon) < 0.00001;
+
+  const reverse = (points: LatLon[]) => [...points].reverse();
+
+  if (same(from, ZUHAUSE) && same(to, BUERO)) return ZUHAUSE_BUERO;
+  if (same(from, BUERO) && same(to, ZUHAUSE)) return reverse(ZUHAUSE_BUERO);
+
+  if (same(from, BUERO) && same(to, KUNDE_MUELLER)) {
+    return BUERO_KUNDE_MUELLER;
+  }
+
+  if (same(from, KUNDE_MUELLER) && same(to, BUERO)) {
+    return reverse(BUERO_KUNDE_MUELLER);
+  }
+
+  if (same(from, ZUHAUSE) && same(to, SUPERMARKT)) {
+    return ZUHAUSE_SUPERMARKT;
+  }
+
+  if (same(from, SUPERMARKT) && same(to, ZUHAUSE)) {
+    return reverse(ZUHAUSE_SUPERMARKT);
+  }
+
+  if (same(from, ZUHAUSE) && same(to, RASTSTAETTE)) {
+    return ZUHAUSE_RASTSTAETTE;
+  }
+
+  if (same(from, RASTSTAETTE) && same(to, ZUHAUSE)) {
+    return reverse(ZUHAUSE_RASTSTAETTE);
+  }
+
+  if (same(from, RASTSTAETTE) && same(to, CHUR)) {
+    return RASTSTAETTE_CHUR;
+  }
+
+  if (same(from, CHUR) && same(to, RASTSTAETTE)) {
+    return reverse(RASTSTAETTE_CHUR);
+  }
+
+  if (same(from, CHUR) && same(to, ZUHAUSE)) {
+    return CHUR_ZUHAUSE;
+  }
+
+  if (same(from, ZUHAUSE) && same(to, CHUR)) {
+    return reverse(CHUR_ZUHAUSE);
+  }
+
+  return [from, to];
 }
 
 // ---------------------------------------------------------------------------
@@ -432,7 +510,7 @@ function simulateDrive(opts: {
   const rangeConsumed = distanceKm * RANGE_DROP_FACTOR;
   const socConsumed = (rangeConsumed / FULL_RATED_RANGE_KM) * 100;
 
-  const bowSeed = rng() > 0.5 ? 1 : -1;
+  const route = demoRoute(from, to);
 
   let speedMax = 0;
   let firstPositionId: number | null = null;
@@ -440,7 +518,7 @@ function simulateDrive(opts: {
 
   for (let i = 0; i <= numSteps; i++) {
     const t = i / numSteps;
-    const point = interpolatePoint(from, to, t, bowSeed);
+    const point = interpolateRoutePoint(route, t);
     const date = new Date(start.getTime() + t * durationSec * 1000);
     const traveled = distanceKm * t;
 

@@ -107,6 +107,7 @@ services:
     environment:
       DATABASE_URL: postgres://tripatlas:tripatlas-demo@tripatlas-db:5432/tripatlas
       TESLAMATE_DATABASE_URL: postgres://teslamate:teslamate-demo@teslamate-db:5432/teslamate
+      ELEVATION_ENABLED: "false"
       # Short interval so the demo fills up fast instead of the production
       # default of 60s.
       SYNC_INTERVAL_SECONDS: 15

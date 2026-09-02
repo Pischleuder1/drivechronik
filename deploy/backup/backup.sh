@@ -33,6 +33,7 @@ if [ "$BACKUP_INTERVAL_HOURS" -lt 1 ]; then
 fi
 
 mkdir -p "$BACKUP_DIR" "$BACKUP_STATUS_DIR"
+chmod 755 "$BACKUP_STATUS_DIR"
 
 write_success_status() {
   created_at="$1"
@@ -55,6 +56,7 @@ write_success_status() {
 EOF
 
   mv "$status_temporary" "$status_target"
+  chmod 644 "$status_target"
 }
 
 wait_for_db() {

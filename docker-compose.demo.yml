@@ -87,6 +87,7 @@ services:
     environment:
       DATABASE_URL: postgres://tripatlas:tripatlas-demo@tripatlas-db:5432/tripatlas
       APP_TIMEZONE: Europe/Zurich
+      DEMO_WEATHER: "true"
       INITIAL_ADMIN_PASSWORD: demo1234
       # Set here too (unlike docker-compose.yml, where it's optional) so the
       # Settings → Diagnose "TeslaMate direkt testen" button also works out

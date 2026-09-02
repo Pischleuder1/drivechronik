@@ -52,6 +52,17 @@ export async function getCurrentWeather(
   lat: number,
   lon: number,
 ): Promise<WeatherResult | null> {
+  if (process.env.DEMO_WEATHER === "true") {
+    return {
+      temperature: 18,
+      apparentTemperature: 17,
+      weatherCode: 2,
+      windSpeedKmh: 12,
+      todayMin: 11,
+      todayMax: 20,
+    };
+  }
+
   const key = cacheKey(lat, lon);
   const cached = cache.get(key);
   if (cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS) {

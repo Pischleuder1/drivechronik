@@ -16,6 +16,7 @@ import postgres from "postgres";
 import {
   ZUHAUSE_BUERO,
   BUERO_KUNDE_MUELLER,
+  BUERO_SUPERMARKT,
   ZUHAUSE_SUPERMARKT,
   ZUHAUSE_RASTSTAETTE,
   RASTSTAETTE_CHUR,
@@ -313,6 +314,14 @@ function demoRoute(from: LatLon, to: LatLon): LatLon[] {
 
   if (same(from, SUPERMARKT) && same(to, ZUHAUSE)) {
     return reverse(ZUHAUSE_SUPERMARKT);
+  }
+
+  if (same(from, BUERO) && same(to, SUPERMARKT)) {
+    return BUERO_SUPERMARKT;
+  }
+
+  if (same(from, SUPERMARKT) && same(to, BUERO)) {
+    return reverse(BUERO_SUPERMARKT);
   }
 
   if (same(from, ZUHAUSE) && same(to, RASTSTAETTE)) {
@@ -749,7 +758,7 @@ for (let w = 0; w < WEEKS; w++) {
         toKey: "buero",
         from: ZUHAUSE,
         to: BUERO,
-        distanceKm: 9 + jitter(0.6),
+        distanceKm: 3.04,
         durationMin: Math.round(25 + jitter(3)),
         cruiseSpeedKmh: 45,
         startGeofence: "Zuhause",
@@ -765,7 +774,7 @@ for (let w = 0; w < WEEKS; w++) {
           toKey: "kunde",
           from: BUERO,
           to: KUNDE_MUELLER,
-          distanceKm: 12 + jitter(1),
+          distanceKm: 8.96,
           durationMin: Math.round(22 + jitter(3)),
           cruiseSpeedKmh: 50,
           startGeofence: "Büro",
@@ -780,7 +789,7 @@ for (let w = 0; w < WEEKS; w++) {
           toKey: "buero",
           from: KUNDE_MUELLER,
           to: BUERO,
-          distanceKm: 12 + jitter(1),
+          distanceKm: 8.96,
           durationMin: Math.round(22 + jitter(3)),
           cruiseSpeedKmh: 50,
           startGeofence: "Kunde Müller",
@@ -801,7 +810,7 @@ for (let w = 0; w < WEEKS; w++) {
           toKey: "supermarkt",
           from: BUERO,
           to: SUPERMARKT,
-          distanceKm: 3.2 + jitter(0.4),
+          distanceKm: 4.05,
           durationMin: Math.round(10 + jitter(2)),
           cruiseSpeedKmh: 35,
           startGeofence: "Büro",
@@ -815,7 +824,7 @@ for (let w = 0; w < WEEKS; w++) {
           toKey: "buero",
           from: SUPERMARKT,
           to: BUERO,
-          distanceKm: 3.2 + jitter(0.4),
+          distanceKm: 4.05,
           durationMin: Math.round(10 + jitter(2)),
           cruiseSpeedKmh: 35,
           startGeofence: null,
@@ -831,7 +840,7 @@ for (let w = 0; w < WEEKS; w++) {
         toKey: "zuhause",
         from: BUERO,
         to: ZUHAUSE,
-        distanceKm: 9 + jitter(0.6),
+        distanceKm: 3.04,
         durationMin: Math.round(25 + jitter(3)),
         cruiseSpeedKmh: 45,
         startGeofence: "Büro",
@@ -870,7 +879,7 @@ for (let w = 0; w < WEEKS; w++) {
         toKey: "raststaette",
         from: ZUHAUSE,
         to: RASTSTAETTE,
-        distanceKm: 60 + jitter(2),
+        distanceKm: 52.42,
         durationMin: 35,
         cruiseSpeedKmh: 110,
         startGeofence: "Zuhause",
@@ -900,7 +909,7 @@ for (let w = 0; w < WEEKS; w++) {
         toKey: "chur",
         from: RASTSTAETTE,
         to: CHUR,
-        distanceKm: 60 + jitter(2),
+        distanceKm: 71.62,
         durationMin: 40,
         cruiseSpeedKmh: 100,
         startGeofence: null,
@@ -916,7 +925,7 @@ for (let w = 0; w < WEEKS; w++) {
         toKey: "zuhause",
         from: CHUR,
         to: ZUHAUSE,
-        distanceKm: 122 + jitter(3),
+        distanceKm: 119.18,
         durationMin: 80,
         cruiseSpeedKmh: 110,
         startGeofence: null,
@@ -937,7 +946,7 @@ for (let w = 0; w < WEEKS; w++) {
           toKey: "supermarkt",
           from: ZUHAUSE,
           to: SUPERMARKT,
-          distanceKm: 2.8 + jitter(0.4),
+          distanceKm: 1.64,
           durationMin: Math.round(9 + jitter(2)),
           cruiseSpeedKmh: 35,
           startGeofence: "Zuhause",
@@ -951,7 +960,7 @@ for (let w = 0; w < WEEKS; w++) {
           toKey: "zuhause",
           from: SUPERMARKT,
           to: ZUHAUSE,
-          distanceKm: 2.8 + jitter(0.4),
+          distanceKm: 1.64,
           durationMin: Math.round(9 + jitter(2)),
           cruiseSpeedKmh: 35,
           startGeofence: null,

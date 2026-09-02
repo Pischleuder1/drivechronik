@@ -66,6 +66,9 @@ services:
         condition: service_healthy
       migrate:
         condition: service_completed_successfully
+    networks:
+      - default
+      - teslamate
 
   worker:
     build:
@@ -84,6 +87,9 @@ services:
       migrate:
         condition: service_completed_successfully
     # No published port — sync loop only, no inbound traffic.
+    networks:
+      - default
+      - teslamate
 
   backup:
     image: postgres:17-alpine
@@ -109,6 +115,11 @@ services:
 
 volumes:
   tripatlas-db-data:
+
+networks:
+  teslamate:
+    name: teslamate_default
+    external: true
 
 # Uncomment if TeslaMate runs on this same Docker host and you want to reach
 # it via its Compose network instead of a LAN/Tailscale host address:

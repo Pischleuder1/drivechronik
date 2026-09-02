@@ -31,6 +31,7 @@ Tessie & Co. sind gut, aber: Abo-Kosten, Feature-Überschneidung mit der Tesla-A
 
 **Fahrt- & Lade-Analytics**
 - **Fahrt-Detail** — Route auf der Karte, kombinierter Verlaufs-Chart (Höhe/SoC/Tempo), Temperaturen, Max-Speed/-Leistung/Rekuperation, historisches Wetter zur Fahrtzeit, GPX-Export
+  - Bei echten Fahrten basiert die dargestellte Route auf den von TeslaMate aufgezeichneten GPS-/Positionsdaten. OSRM rekonstruiert keine aufgezeichneten Fahrten.
 - **Ladeübersicht** — Ladekurve (kW über SoC), AC/DC, Kosten, Standort-Karte
 - **Automatische Ladekosten** — Strompreis pro Ort hinterlegen (z. B. Zuhause 0,32 €/kWh) → Sessions ohne bekannten Preis werden automatisch berechnet, manuelle und gesyncte Kosten bleiben unangetastet
 - **Journeys** — Urlaube/Reisen als Klammer über Fahrten + Ladestopps mit Kennzahlen-Dashboard, Karte aller Etappen und Export als CSV, PDF und GPX
@@ -52,6 +53,12 @@ Tessie & Co. sind gut, aber: Abo-Kosten, Feature-Überschneidung mit der Tesla-A
 - **Datenhoheit** — eigene PostgreSQL-DB, quellen-agnostisches Schema (`source`/`source_id`), Annotationen überleben strukturell jeden Re-Sync
 - **Tessie-Import** — rekonstruiert Fahrten/Ladungen aus einem Tessie-Rohdaten-Export (`import-tessie`-CLI), inkl. echter Energiewerte per Fahrzeug-Zähler
 - **Energie ehrlich** — echte Zählerwerte wo verfügbar, sonst gekennzeichnete Schätzung; Effizienz-Fallback in den Settings, bis TeslaMate den Fahrzeugwert gelernt hat
+
+## Hinweis zu Fahrtenbuch und Abrechnung
+
+DriveChronik unterstützt die Dokumentation, Klassifizierung und den Export von Fahrten. Das Projekt erhebt jedoch keinen Anspruch auf eine behördliche, steuerliche oder rechtliche Zertifizierung als elektronisches Fahrtenbuch.
+
+Ob ein erzeugter Nachweis für steuerliche Zwecke, gegenüber einem Arbeitgeber oder einer anderen Stelle ausreicht, hängt vom jeweiligen Anwendungsfall und den geltenden Anforderungen ab.
 
 ## Demo ohne Auto
 
@@ -86,6 +93,18 @@ Tests: `pnpm test` · Typecheck: `pnpm lint` · Mehr: [CONTRIBUTING.md](CONTRIBU
 ## Deployment
 
 Docker Compose auf Home Server/NAS/Raspberry Pi im LAN oder VPN (z. B. Tailscale), angebunden an die bestehende TeslaMate-Postgres über eine read-only-Rolle.
+
+### Schnellstart
+
+Für eine bestehende TeslaMate-Installation:
+
+1. DriveChronik klonen oder auf den Server kopieren.
+2. Eine read-only-Rolle in der TeslaMate-Datenbank anlegen.
+3. `.env.example` nach `.env` kopieren und mindestens `POSTGRES_PASSWORD` sowie `TESLAMATE_DATABASE_URL` setzen.
+4. Mit `docker compose up -d --build` starten.
+5. `http://<server>:<WEB_PORT>` öffnen und die Erstanmeldung durchführen.
+
+Anschließend mit `docker compose ps -a` prüfen: `db`, `web` und `worker` sollten healthy sein; `migrate` muss erfolgreich mit `Exited (0)` beendet sein.
 
 ### Voraussetzungen
 
@@ -144,6 +163,11 @@ Beispiel `docker-compose.override.yml`:
 
 ```yaml
 services:
+  web:
+    networks:
+      - default
+      - teslamate
+
   worker:
     networks:
       - default

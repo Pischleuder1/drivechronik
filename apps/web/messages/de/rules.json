@@ -49,7 +49,13 @@
     "priority": "Priorität",
     "priorityHint": "Kleinere Zahl gewinnt zuerst.",
     "enabled": "Regel aktiv",
-    "saving": "Speichert…"
+    "saving": "Speichert…",
+    "previewButton": "Vorschau prüfen",
+    "previewPending": "Prüfe…",
+    "previewTitle": "Vorschau",
+    "previewMatching": "{count, plural, one {# Fahrt entspricht den Bedingungen.} other {# Fahrten entsprechen den Bedingungen.}}",
+    "previewOpen": "{count, plural, one {# davon ist aktuell für automatische Regeln offen.} other {# davon sind aktuell für automatische Regeln offen.}}",
+    "previewWouldApply": "{count, plural, one {# Fahrt würde tatsächlich von dieser Regel übernommen.} other {# Fahrten würden tatsächlich von dieser Regel übernommen.}}"
   },
   "row": {
     "priorityLabel": "Prio",

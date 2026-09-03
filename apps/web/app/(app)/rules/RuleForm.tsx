@@ -1,11 +1,13 @@
 "use client";
-import { useActionState } from "react";
+import { useActionState, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   createRule,
+  previewRule,
   updateRule,
   type RuleFormResult,
+  type RulePreviewResult,
 } from "../../../lib/actions/rules";
 import type { PlaceLite } from "../../../lib/queries";
 import { buttonClasses } from "../../../components/ui/Button";
@@ -55,6 +57,10 @@ export function RuleForm({
   const t = useTranslations("rules");
   const tCommon = useTranslations("common");
 
+  const formRef = useRef<HTMLFormElement>(null);
+  const [preview, setPreview] = useState<RulePreviewResult | null>(null);
+  const [previewPending, startPreviewTransition] = useTransition();
+
   const [state, formAction, pending] = useActionState(
     async (prev: RuleFormResult, formData: FormData) => {
       const result = await action(prev, formData);
@@ -66,8 +72,19 @@ export function RuleForm({
 
   const selectedWeekdays = new Set(initial?.weekdays ?? []);
 
+  function handlePreview() {
+    if (!formRef.current) return;
+
+    const formData = new FormData(formRef.current);
+
+    startPreviewTransition(async () => {
+      const result = await previewRule(formData);
+      setPreview(result);
+    });
+  }
+
   return (
-    <form action={formAction} className="flex flex-col gap-5">
+    <form ref={formRef} action={formAction} className="flex flex-col gap-5">
       {isEdit && <input type="hidden" name="id" value={initial!.id} />}
 
       <label className="flex flex-col gap-1.5">
@@ -148,6 +165,36 @@ export function RuleForm({
           </span>
         </fieldset>
       </fieldset>
+
+      <div className="flex flex-col gap-3 rounded-lg border border-dashed border-neutral-300 p-3 dark:border-neutral-700">
+        <div>
+          <button
+            type="button"
+            onClick={handlePreview}
+            disabled={previewPending}
+            className={buttonClasses("secondary", "sm")}
+          >
+            {previewPending ? t("form.previewPending") : t("form.previewButton")}
+          </button>
+        </div>
+
+        {preview && (
+          preview.ok ? (
+            <div className="text-sm text-neutral-700 dark:text-neutral-300">
+              <p className="font-medium">{t("form.previewTitle")}</p>
+              <p>{t("form.previewMatching", { count: preview.matching })}</p>
+              <p>{t("form.previewOpen", { count: preview.open })}</p>
+              <p className="font-medium">
+                {t("form.previewWouldApply", { count: preview.wouldApply })}
+              </p>
+            </div>
+          ) : (
+            <p className="text-sm text-red-700 dark:text-red-300">
+              {preview.error}
+            </p>
+          )
+        )}
+      </div>
 
       <fieldset className="flex flex-col gap-3 rounded-xl border border-neutral-200 p-4 dark:border-neutral-800">
         <legend className="px-1 text-sm font-semibold text-neutral-700 dark:text-neutral-300">

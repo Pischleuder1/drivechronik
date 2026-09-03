@@ -311,6 +311,122 @@ export async function setRulePriority(
   revalidatePath("/rules");
 }
 
+export interface RulePreviewResult {
+  ok: boolean;
+  matching: number;
+  open: number;
+  wouldApply: number;
+  error?: string;
+}
+
+const previewRuleSchema = z.object({
+  id: z.number().int().positive().optional(),
+  priority: z.number().int().min(-1000).max(1000),
+  startPlaceId: z.number().int().positive().nullable(),
+  endPlaceId: z.number().int().positive().nullable(),
+  weekdays: z.array(z.number().int().min(1).max(7)),
+});
+
+export async function previewRule(formData: FormData): Promise<RulePreviewResult> {
+  const user = await validateSession();
+  const t = await getTranslations("rules");
+
+  if (!user) {
+    return { ok: false, matching: 0, open: 0, wouldApply: 0, error: t("errors.notAuthenticated") };
+  }
+
+  const weekdays = [...new Set(formData.getAll("weekdays").map((v) => Number(v)))]
+    .filter((n) => Number.isInteger(n) && n >= 1 && n <= 7)
+    .sort((a, b) => a - b);
+
+  const rawId = String(formData.get("id") ?? "").trim();
+  const parsed = previewRuleSchema.safeParse({
+    id: rawId === "" ? undefined : Number(rawId),
+    priority: Number(formData.get("priority") ?? 0),
+    startPlaceId: optionalId(formData.get("startPlaceId")),
+    endPlaceId: optionalId(formData.get("endPlaceId")),
+    weekdays,
+  });
+
+  if (!parsed.success) {
+    return { ok: false, matching: 0, open: 0, wouldApply: 0, error: t("errors.invalidInput") };
+  }
+
+  const candidateRule = {
+    id: parsed.data.id ?? Number.MAX_SAFE_INTEGER,
+    priority: parsed.data.priority,
+    startPlaceId: parsed.data.startPlaceId,
+    endPlaceId: parsed.data.endPlaceId,
+    weekdays: parsed.data.weekdays.length > 0 ? parsed.data.weekdays : null,
+  };
+
+  const hasCondition =
+    candidateRule.startPlaceId != null ||
+    candidateRule.endPlaceId != null ||
+    (candidateRule.weekdays != null && candidateRule.weekdays.length > 0);
+
+  if (!hasCondition) {
+    return { ok: false, matching: 0, open: 0, wouldApply: 0, error: t("errors.conditionRequired") };
+  }
+
+  const [allDrives, enabledRules] = await Promise.all([
+    db
+      .select({
+        id: drives.id,
+        startTime: drives.startTime,
+        classification: drives.classification,
+        classifiedByRuleId: drives.classifiedByRuleId,
+        startPlaceId: drives.startPlaceId,
+        endPlaceId: drives.endPlaceId,
+      })
+      .from(drives)
+      .where(isNotNull(drives.endTime)),
+    db
+      .select({
+        id: classificationRules.id,
+        priority: classificationRules.priority,
+        startPlaceId: classificationRules.startPlaceId,
+        endPlaceId: classificationRules.endPlaceId,
+        weekdays: classificationRules.weekdays,
+      })
+      .from(classificationRules)
+      .where(eq(classificationRules.enabled, true)),
+  ]);
+
+  const otherRules = enabledRules.filter((rule) => rule.id !== parsed.data.id);
+  const rulesForPreview = [...otherRules, candidateRule];
+
+  let matching = 0;
+  let open = 0;
+  let wouldApply = 0;
+
+  for (const drive of allDrives) {
+    const driveLike = {
+      startPlaceId: drive.startPlaceId,
+      endPlaceId: drive.endPlaceId,
+      weekdayIso: isoWeekday(drive.startTime, APP_TIMEZONE),
+    };
+
+    const candidateMatches =
+      findMatchingRule(driveLike, [candidateRule])?.id === candidateRule.id;
+
+    if (!candidateMatches) continue;
+    matching++;
+
+    const isOpen =
+      drive.classification === "unclassified" &&
+      drive.classifiedByRuleId == null;
+
+    if (!isOpen) continue;
+    open++;
+
+    const winner = findMatchingRule(driveLike, rulesForPreview);
+    if (winner?.id === candidateRule.id) wouldApply++;
+  }
+
+  return { ok: true, matching, open, wouldApply };
+}
+
 export interface ApplyRulesResult {
   applied: number;
 }

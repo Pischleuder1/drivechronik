@@ -108,6 +108,11 @@ export default async function RulesPage() {
                         </>
                       )}
                   </div>
+                  {suggestion.confidence != null && (
+                    <div className="mt-1 text-xs font-medium text-neutral-600 dark:text-neutral-300">
+                      {t(`suggestions.confidence.${suggestion.confidence}`)}
+                    </div>
+                  )}
                 </div>
 
                 <Button

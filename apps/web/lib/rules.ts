@@ -2,7 +2,7 @@ import "server-only";
 import { alias } from "drizzle-orm/pg-core";
 import { and, asc, desc, eq, gte, isNull, isNotNull, notInArray, sql } from "drizzle-orm";
 import { classificationRules, drives, places, tags } from "@drivechronik/db";
-import { isoWeekday, minuteOfDay } from "@drivechronik/core";
+import { analyzeDepartureMinutes, isoWeekday, minuteOfDay, routePatternConfidence } from "@drivechronik/core";
 import { APP_TIMEZONE } from "./config";
 import { db } from "./db";
 import type { Classification } from "./classification";
@@ -15,6 +15,9 @@ export interface RuleSuggestion {
   driveCount: number;
   lastDriveAt: Date;
   weekdays: number[];
+  typicalMinute: number | null;
+  spreadMinutes: number | null;
+  confidence: "high" | "medium" | "low" | null;
   startMinuteFrom: number | null;
   startMinuteTo: number | null;
 }
@@ -247,8 +250,7 @@ export async function getRuleSuggestions(): Promise<RuleSuggestion[]> {
         : [];
 
       const minutes = pattern?.minutes ?? [];
-      const minMinute = minutes.length > 0 ? Math.min(...minutes) : null;
-      const maxMinute = minutes.length > 0 ? Math.max(...minutes) : null;
+      const departurePattern = analyzeDepartureMinutes(minutes);
 
       return {
         startPlaceId: candidate.startPlaceId!,
@@ -258,10 +260,20 @@ export async function getRuleSuggestions(): Promise<RuleSuggestion[]> {
         driveCount: candidate.driveCount,
         lastDriveAt: candidate.lastDriveAt,
         weekdays,
+        typicalMinute: departurePattern?.typicalMinute ?? null,
+        spreadMinutes: departurePattern?.spreadMinutes ?? null,
+        confidence: routePatternConfidence(
+          candidate.driveCount,
+          departurePattern?.medianDeviationMinutes ?? null,
+        ),
         startMinuteFrom:
-          minMinute == null ? null : Math.max(0, minMinute - 15),
+          departurePattern == null
+            ? null
+            : Math.max(0, departurePattern.minMinute - 15),
         startMinuteTo:
-          maxMinute == null ? null : Math.min(1439, maxMinute + 15),
+          departurePattern == null
+            ? null
+            : Math.min(1439, departurePattern.maxMinute + 15),
       };
     });
 }

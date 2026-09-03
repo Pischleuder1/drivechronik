@@ -95,6 +95,11 @@
     "hint": "Recurring unclassified drives from the last 14 days.",
     "driveCount": "{count, plural, one {# drive} other {# drives}}",
     "create": "Create rule",
-    "timeSuffix": ""
+    "timeSuffix": "",
+    "confidence": {
+      "high": "High confidence",
+      "medium": "Medium confidence",
+      "low": "Low confidence"
+    }
   }
 }

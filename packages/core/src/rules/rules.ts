@@ -150,3 +150,101 @@ export function minuteOfDay(date: Date, timeZone: string): number {
 
   return hour * 60 + minute;
 }
+
+/**
+ * Zeitliches Muster wiederkehrender Abfahrten.
+ *
+ * `typicalMinute` ist der Median der beobachteten Startzeiten.
+ * `spreadMinutes` beschreibt die gesamte Spannweite zwischen frühester
+ * und spätester beobachteter Abfahrt.
+ */
+export interface DepartureTimePattern {
+  typicalMinute: number;
+  minMinute: number;
+  maxMinute: number;
+  spreadMinutes: number;
+  medianDeviationMinutes: number;
+}
+
+export function analyzeDepartureMinutes(
+  minutes: readonly number[],
+): DepartureTimePattern | null {
+  const valid = minutes
+    .filter(
+      (minute) =>
+        Number.isInteger(minute) &&
+        minute >= 0 &&
+        minute <= 1439,
+    )
+    .sort((a, b) => a - b);
+
+  if (valid.length === 0) {
+    return null;
+  }
+
+  const middle = Math.floor(valid.length / 2);
+  const typicalMinute =
+    valid.length % 2 === 1
+      ? valid[middle]!
+      : Math.round((valid[middle - 1]! + valid[middle]!) / 2);
+
+  const minMinute = valid[0]!;
+  const maxMinute = valid[valid.length - 1]!;
+
+  const deviations = valid
+    .map((minute) => Math.abs(minute - typicalMinute))
+    .sort((a, b) => a - b);
+
+  const deviationMiddle = Math.floor(deviations.length / 2);
+  const medianDeviationMinutes =
+    deviations.length % 2 === 1
+      ? deviations[deviationMiddle]!
+      : Math.round(
+          (deviations[deviationMiddle - 1]! +
+            deviations[deviationMiddle]!) /
+            2,
+        );
+
+  return {
+    typicalMinute,
+    minMinute,
+    maxMinute,
+    spreadMinutes: maxMinute - minMinute,
+    medianDeviationMinutes,
+  };
+}
+
+export type RoutePatternConfidence = "high" | "medium" | "low";
+
+/**
+ * Bewertet, wie belastbar ein wiederkehrendes zeitliches Fahrmuster ist.
+ *
+ * high:
+ *   mindestens 6 Beobachtungen und mediane Zeitabweichung <= 15 Minuten
+ *
+ * medium:
+ *   mindestens 4 Beobachtungen und mediane Zeitabweichung <= 30 Minuten
+ *
+ * low:
+ *   mindestens 3 Beobachtungen
+ *
+ * Unter drei Beobachtungen entsteht noch kein belastbares Muster.
+ */
+export function routePatternConfidence(
+  driveCount: number,
+  medianDeviationMinutes: number | null,
+): RoutePatternConfidence | null {
+  if (driveCount < 3 || medianDeviationMinutes == null) {
+    return null;
+  }
+
+  if (driveCount >= 6 && medianDeviationMinutes <= 15) {
+    return "high";
+  }
+
+  if (driveCount >= 4 && medianDeviationMinutes <= 30) {
+    return "medium";
+  }
+
+  return "low";
+}

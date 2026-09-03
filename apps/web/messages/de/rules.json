@@ -95,6 +95,11 @@
     "hint": "Wiederkehrende unklassifizierte Fahrten der letzten 14 Tage.",
     "driveCount": "{count, plural, one {# Fahrt} other {# Fahrten}}",
     "create": "Regel erstellen",
-    "timeSuffix": "Uhr"
+    "timeSuffix": "Uhr",
+    "confidence": {
+      "high": "Hohe Sicherheit",
+      "medium": "Mittlere Sicherheit",
+      "low": "Niedrige Sicherheit"
+    }
   }
 }

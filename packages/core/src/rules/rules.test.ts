@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  analyzeDepartureMinutes,
   findMatchingRule,
   isoWeekday,
   matchRule,
   minuteOfDay,
+  routePatternConfidence,
   type MatchableRule,
 } from "./rules.js";
 
@@ -189,5 +191,80 @@ describe("minuteOfDay", () => {
 
     expect(minuteOfDay(instant, "UTC")).toBe(1410);
     expect(minuteOfDay(instant, "Europe/Zurich")).toBe(30);
+  });
+});
+
+describe("analyzeDepartureMinutes", () => {
+  it("ermittelt die typische Abfahrtszeit als Median", () => {
+    expect(
+      analyzeDepartureMinutes([587, 590, 594, 589, 591]),
+    ).toEqual({
+      typicalMinute: 590,
+      minMinute: 587,
+      maxMinute: 594,
+      spreadMinutes: 7,
+      medianDeviationMinutes: 1,
+    });
+  });
+
+  it("mittelt bei einer geraden Anzahl die beiden mittleren Werte", () => {
+    expect(analyzeDepartureMinutes([580, 590, 600, 610])).toEqual({
+      typicalMinute: 595,
+      minMinute: 580,
+      maxMinute: 610,
+      spreadMinutes: 30,
+      medianDeviationMinutes: 10,
+    });
+  });
+
+  it("ignoriert ungültige Minutenwerte", () => {
+    expect(analyzeDepartureMinutes([-1, 590, 1440, 595])).toEqual({
+      typicalMinute: 593,
+      minMinute: 590,
+      maxMinute: 595,
+      spreadMinutes: 5,
+      medianDeviationMinutes: 3,
+    });
+  });
+
+  it("liefert null ohne gültige Beobachtungen", () => {
+    expect(analyzeDepartureMinutes([])).toBeNull();
+    expect(analyzeDepartureMinutes([-1, 1440])).toBeNull();
+  });
+});
+
+describe("departure pattern robustness", () => {
+  it("bleibt bei einem einzelnen zeitlichen Ausreißer stabil", () => {
+    expect(
+      analyzeDepartureMinutes([590, 591, 588, 592, 589, 900]),
+    ).toEqual({
+      typicalMinute: 591,
+      minMinute: 588,
+      maxMinute: 900,
+      spreadMinutes: 312,
+      medianDeviationMinutes: 2,
+    });
+  });
+});
+
+describe("routePatternConfidence", () => {
+  it("bewertet ein häufiges und zeitlich stabiles Muster als high", () => {
+    expect(routePatternConfidence(10, 5)).toBe("high");
+    expect(routePatternConfidence(6, 15)).toBe("high");
+  });
+
+  it("bewertet ein ausreichend häufiges Muster als medium", () => {
+    expect(routePatternConfidence(4, 10)).toBe("medium");
+    expect(routePatternConfidence(5, 30)).toBe("medium");
+  });
+
+  it("stuft seltene oder zeitlich unregelmäßige Muster als low ein", () => {
+    expect(routePatternConfidence(3, 5)).toBe("low");
+    expect(routePatternConfidence(10, 45)).toBe("low");
+  });
+
+  it("liefert unter drei Beobachtungen noch keine Bewertung", () => {
+    expect(routePatternConfidence(2, 5)).toBeNull();
+    expect(routePatternConfidence(10, null)).toBeNull();
   });
 });

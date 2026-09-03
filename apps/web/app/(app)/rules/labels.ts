@@ -59,6 +59,33 @@ export function formatWeekdays(weekdays: number[] | null, t: Translate): string 
  * "rules"-Namespace gebunden, `tNone` liefert den generischen "—"-Fallback
  * (common.state.none).
  */
+function formatMinuteOfDay(value: number): string {
+  const hour = Math.floor(value / 60);
+  const minute = value % 60;
+  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+}
+
+export function formatTimeWindow(
+  from: number | null,
+  to: number | null,
+  t: Translate,
+): string | null {
+  if (from == null && to == null) return null;
+
+  if (from != null && to != null) {
+    return t("row.timeRange", {
+      from: formatMinuteOfDay(from),
+      to: formatMinuteOfDay(to),
+    });
+  }
+
+  if (from != null) {
+    return t("row.timeFrom", { time: formatMinuteOfDay(from) });
+  }
+
+  return t("row.timeTo", { time: formatMinuteOfDay(to!) });
+}
+
 export function describeCondition(
   rule: {
     startPlaceId: number | null;
@@ -66,6 +93,8 @@ export function describeCondition(
     endPlaceId: number | null;
     endPlaceName: string | null;
     weekdays: number[] | null;
+    startMinuteFrom: number | null;
+    startMinuteTo: number | null;
   },
   t: Translate,
   tNone: () => string,
@@ -86,6 +115,13 @@ export function describeCondition(
 
   const wd = formatWeekdays(rule.weekdays, t);
   if (wd) parts.push(wd);
+
+  const timeWindow = formatTimeWindow(
+    rule.startMinuteFrom,
+    rule.startMinuteTo,
+    t,
+  );
+  if (timeWindow) parts.push(timeWindow);
 
   return parts.length > 0 ? parts.join(", ") : tNone();
 }

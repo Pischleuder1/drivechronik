@@ -15,6 +15,8 @@ export interface ClassificationRuleRow {
   endPlaceId: number | null;
   endPlaceName: string | null;
   weekdays: number[] | null;
+  startMinuteFrom: number | null;
+  startMinuteTo: number | null;
   classification: Classification | null;
   tagId: number | null;
   tagName: string | null;
@@ -37,6 +39,8 @@ function ruleSelect() {
       endPlaceId: classificationRules.endPlaceId,
       endPlaceName: endPlace.name,
       weekdays: classificationRules.weekdays,
+      startMinuteFrom: classificationRules.startMinuteFrom,
+      startMinuteTo: classificationRules.startMinuteTo,
       classification: classificationRules.classification,
       tagId: classificationRules.tagId,
       tagName: tags.name,

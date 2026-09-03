@@ -43,6 +43,8 @@ export default async function EditRulePage({
     startPlaceId: rule.startPlaceId,
     endPlaceId: rule.endPlaceId,
     weekdays: rule.weekdays,
+    startMinuteFrom: rule.startMinuteFrom,
+    startMinuteTo: rule.startMinuteTo,
     classification,
     tagId: rule.tagId,
     purpose: rule.purpose,

@@ -15,6 +15,8 @@ export interface RulePrefill {
   startPlaceId: number | null;
   endPlaceId: number | null;
   weekdays: number[] | null;
+  startMinuteFrom: number | null;
+  startMinuteTo: number | null;
   classification: RulePrefillClassification | null;
   tagId: number | null;
   purpose: string | null;
@@ -96,6 +98,8 @@ export function buildRulePrefill(
     startPlaceId: placeIdParam(params.startPlaceId, ids),
     endPlaceId: placeIdParam(params.endPlaceId, ids),
     weekdays: weekdaysParam(params.weekdays),
+    startMinuteFrom: null,
+    startMinuteTo: null,
     classification: classificationParam(params.classification),
     tagId: null,
     purpose: null,

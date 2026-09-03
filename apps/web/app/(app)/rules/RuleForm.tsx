@@ -35,6 +35,8 @@ export interface RuleFormValues {
   startPlaceId: number | null;
   endPlaceId: number | null;
   weekdays: number[] | null;
+  startMinuteFrom: number | null;
+  startMinuteTo: number | null;
   classification: "private" | "business" | "commute" | null;
   tagId: number | null;
   purpose: string | null;
@@ -71,6 +73,13 @@ export function RuleForm({
   );
 
   const selectedWeekdays = new Set(initial?.weekdays ?? []);
+
+  function minuteToTime(value: number | null | undefined): string {
+    if (value == null) return "";
+    const hour = Math.floor(value / 60);
+    const minute = value % 60;
+    return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+  }
 
   function handlePreview() {
     if (!formRef.current) return;
@@ -164,37 +173,33 @@ export function RuleForm({
             {t("form.weekdaysHint")}
           </span>
         </fieldset>
-      </fieldset>
 
-      <div className="flex flex-col gap-3 rounded-lg border border-dashed border-neutral-300 p-3 dark:border-neutral-700">
-        <div>
-          <button
-            type="button"
-            onClick={handlePreview}
-            disabled={previewPending}
-            className={buttonClasses("secondary", "sm")}
-          >
-            {previewPending ? t("form.previewPending") : t("form.previewButton")}
-          </button>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className="flex flex-col gap-1.5">
+            <span className={labelText}>{t("form.startTimeFrom")}</span>
+            <input
+              type="time"
+              name="startMinuteFrom"
+              defaultValue={minuteToTime(initial?.startMinuteFrom)}
+              className={fieldClasses}
+            />
+          </label>
+
+          <label className="flex flex-col gap-1.5">
+            <span className={labelText}>{t("form.startTimeTo")}</span>
+            <input
+              type="time"
+              name="startMinuteTo"
+              defaultValue={minuteToTime(initial?.startMinuteTo)}
+              className={fieldClasses}
+            />
+          </label>
         </div>
 
-        {preview && (
-          preview.ok ? (
-            <div className="text-sm text-neutral-700 dark:text-neutral-300">
-              <p className="font-medium">{t("form.previewTitle")}</p>
-              <p>{t("form.previewMatching", { count: preview.matching })}</p>
-              <p>{t("form.previewOpen", { count: preview.open })}</p>
-              <p className="font-medium">
-                {t("form.previewWouldApply", { count: preview.wouldApply })}
-              </p>
-            </div>
-          ) : (
-            <p className="text-sm text-red-700 dark:text-red-300">
-              {preview.error}
-            </p>
-          )
-        )}
-      </div>
+        <span className="text-xs text-neutral-400 dark:text-neutral-500">
+          {t("form.startTimeHint")}
+        </span>
+      </fieldset>
 
       <fieldset className="flex flex-col gap-3 rounded-xl border border-neutral-200 p-4 dark:border-neutral-800">
         <legend className="px-1 text-sm font-semibold text-neutral-700 dark:text-neutral-300">
@@ -301,6 +306,25 @@ export function RuleForm({
         </label>
       </div>
 
+      <div className="flex flex-col gap-3 rounded-lg border border-dashed border-neutral-300 p-3 dark:border-neutral-700">
+        {preview && (
+          preview.ok ? (
+            <div className="text-sm text-neutral-700 dark:text-neutral-300">
+              <p className="font-medium">{t("form.previewTitle")}</p>
+              <p>{t("form.previewMatching", { count: preview.matching })}</p>
+              <p>{t("form.previewOpen", { count: preview.open })}</p>
+              <p className="font-medium">
+                {t("form.previewWouldApply", { count: preview.wouldApply })}
+              </p>
+            </div>
+          ) : (
+            <p className="text-sm text-red-700 dark:text-red-300">
+              {preview.error}
+            </p>
+          )
+        )}
+      </div>
+
       {state.error && (
         <p
           role="alert"
@@ -310,7 +334,16 @@ export function RuleForm({
         </p>
       )}
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-4">
+        <button
+          type="button"
+          onClick={handlePreview}
+          disabled={previewPending}
+          className="text-sm font-medium text-red-600 transition hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400 dark:hover:text-red-300"
+        >
+          {previewPending ? t("form.previewPending") : t("form.previewButton")}
+        </button>
+
         <button
           type="submit"
           disabled={pending}

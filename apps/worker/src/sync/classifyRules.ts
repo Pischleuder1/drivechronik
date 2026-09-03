@@ -7,7 +7,7 @@ import {
   tags,
   type Db,
 } from "@drivechronik/db";
-import { findMatchingRule, isoWeekday } from "@drivechronik/core";
+import { findMatchingRule, isoWeekday, minuteOfDay } from "@drivechronik/core";
 
 export interface ClassifyRulesResult {
   applied: number;
@@ -28,6 +28,8 @@ interface LoadedRule {
   startPlaceId: number | null;
   endPlaceId: number | null;
   weekdays: number[] | null;
+  startMinuteFrom: number | null;
+  startMinuteTo: number | null;
   classification: RuleClassification | null;
   tagId: number | null;
   tagName: string | null;
@@ -57,6 +59,8 @@ async function loadEnabledRules(db: Db): Promise<LoadedRule[]> {
       startPlaceId: classificationRules.startPlaceId,
       endPlaceId: classificationRules.endPlaceId,
       weekdays: classificationRules.weekdays,
+      startMinuteFrom: classificationRules.startMinuteFrom,
+      startMinuteTo: classificationRules.startMinuteTo,
       classification: classificationRules.classification,
       tagId: classificationRules.tagId,
       tagName: tags.name,
@@ -127,6 +131,7 @@ export async function applyClassificationRules(
           startPlaceId: drive.startPlaceId,
           endPlaceId: drive.endPlaceId,
           weekdayIso: isoWeekday(drive.startTime, APP_TIMEZONE),
+          startMinuteOfDay: minuteOfDay(drive.startTime, APP_TIMEZONE),
         },
         rules,
       );

@@ -10,7 +10,7 @@ import {
   drives,
   tags,
 } from "@drivechronik/db";
-import { findMatchingRule, isoWeekday } from "@drivechronik/core";
+import { findMatchingRule, isoWeekday, minuteOfDay } from "@drivechronik/core";
 import { db } from "../db";
 import { validateSession } from "../auth/session";
 import { APP_TIMEZONE } from "../config";
@@ -32,6 +32,8 @@ function buildRuleInputSchema(t: (key: string) => string) {
     startPlaceId: z.number().int().positive().nullable(),
     endPlaceId: z.number().int().positive().nullable(),
     weekdays: z.array(z.number().int().min(1).max(7)),
+    startMinuteFrom: z.number().int().min(0).max(1439).nullable(),
+    startMinuteTo: z.number().int().min(0).max(1439).nullable(),
     classification: classificationActionSchema.nullable(),
     tagId: z.number().int().positive().nullable(),
     purpose: z.string().trim().max(200).nullable(),
@@ -56,6 +58,30 @@ function optionalId(value: FormDataEntryValue | null): number | null {
   return Number.isInteger(n) && n > 0 ? n : null;
 }
 
+function optionalMinuteOfDay(value: FormDataEntryValue | null): number | null {
+  const str = value == null ? "" : String(value).trim();
+  if (str === "") return null;
+
+  const match = /^(\d{2}):(\d{2})$/.exec(str);
+  if (!match) return Number.NaN;
+
+  const hour = Number(match[1]);
+  const minute = Number(match[2]);
+
+  if (
+    !Number.isInteger(hour) ||
+    !Number.isInteger(minute) ||
+    hour < 0 ||
+    hour > 23 ||
+    minute < 0 ||
+    minute > 59
+  ) {
+    return Number.NaN;
+  }
+
+  return hour * 60 + minute;
+}
+
 function parseRuleForm(formData: FormData, t: (key: string) => string) {
   const weekdays = [...new Set(formData.getAll("weekdays").map((v) => Number(v)))]
     .filter((n) => Number.isInteger(n) && n >= 1 && n <= 7)
@@ -68,6 +94,8 @@ function parseRuleForm(formData: FormData, t: (key: string) => string) {
     startPlaceId: optionalId(formData.get("startPlaceId")),
     endPlaceId: optionalId(formData.get("endPlaceId")),
     weekdays,
+    startMinuteFrom: optionalMinuteOfDay(formData.get("startMinuteFrom")),
+    startMinuteTo: optionalMinuteOfDay(formData.get("startMinuteTo")),
     classification: classificationRaw === "" ? null : classificationRaw,
     tagId: optionalId(formData.get("tagId")),
     purpose: nullableString(formData.get("purpose")),
@@ -85,7 +113,9 @@ function validateRule(data: RuleInput, t: (key: string) => string): string | nul
   const hasCondition =
     data.startPlaceId != null ||
     data.endPlaceId != null ||
-    data.weekdays.length > 0;
+    data.weekdays.length > 0 ||
+    data.startMinuteFrom != null ||
+    data.startMinuteTo != null;
   if (!hasCondition) {
     return t("errors.conditionRequired");
   }
@@ -109,6 +139,8 @@ function ruleValues(data: RuleInput) {
     startPlaceId: data.startPlaceId,
     endPlaceId: data.endPlaceId,
     weekdays: data.weekdays.length > 0 ? data.weekdays : null,
+    startMinuteFrom: data.startMinuteFrom,
+    startMinuteTo: data.startMinuteTo,
     classification: data.classification,
     tagId: data.tagId,
     purpose: data.purpose,
@@ -325,6 +357,8 @@ const previewRuleSchema = z.object({
   startPlaceId: z.number().int().positive().nullable(),
   endPlaceId: z.number().int().positive().nullable(),
   weekdays: z.array(z.number().int().min(1).max(7)),
+  startMinuteFrom: z.number().int().min(0).max(1439).nullable(),
+  startMinuteTo: z.number().int().min(0).max(1439).nullable(),
 });
 
 export async function previewRule(formData: FormData): Promise<RulePreviewResult> {
@@ -346,6 +380,8 @@ export async function previewRule(formData: FormData): Promise<RulePreviewResult
     startPlaceId: optionalId(formData.get("startPlaceId")),
     endPlaceId: optionalId(formData.get("endPlaceId")),
     weekdays,
+    startMinuteFrom: optionalMinuteOfDay(formData.get("startMinuteFrom")),
+    startMinuteTo: optionalMinuteOfDay(formData.get("startMinuteTo")),
   });
 
   if (!parsed.success) {
@@ -358,12 +394,16 @@ export async function previewRule(formData: FormData): Promise<RulePreviewResult
     startPlaceId: parsed.data.startPlaceId,
     endPlaceId: parsed.data.endPlaceId,
     weekdays: parsed.data.weekdays.length > 0 ? parsed.data.weekdays : null,
+    startMinuteFrom: parsed.data.startMinuteFrom,
+    startMinuteTo: parsed.data.startMinuteTo,
   };
 
   const hasCondition =
     candidateRule.startPlaceId != null ||
     candidateRule.endPlaceId != null ||
-    (candidateRule.weekdays != null && candidateRule.weekdays.length > 0);
+    (candidateRule.weekdays != null && candidateRule.weekdays.length > 0) ||
+    candidateRule.startMinuteFrom != null ||
+    candidateRule.startMinuteTo != null;
 
   if (!hasCondition) {
     return { ok: false, matching: 0, open: 0, wouldApply: 0, error: t("errors.conditionRequired") };
@@ -388,6 +428,8 @@ export async function previewRule(formData: FormData): Promise<RulePreviewResult
         startPlaceId: classificationRules.startPlaceId,
         endPlaceId: classificationRules.endPlaceId,
         weekdays: classificationRules.weekdays,
+        startMinuteFrom: classificationRules.startMinuteFrom,
+        startMinuteTo: classificationRules.startMinuteTo,
       })
       .from(classificationRules)
       .where(eq(classificationRules.enabled, true)),
@@ -405,6 +447,7 @@ export async function previewRule(formData: FormData): Promise<RulePreviewResult
       startPlaceId: drive.startPlaceId,
       endPlaceId: drive.endPlaceId,
       weekdayIso: isoWeekday(drive.startTime, APP_TIMEZONE),
+      startMinuteOfDay: minuteOfDay(drive.startTime, APP_TIMEZONE),
     };
 
     const candidateMatches =
@@ -454,6 +497,8 @@ export async function applyRulesNow(): Promise<ApplyRulesResult> {
       startPlaceId: classificationRules.startPlaceId,
       endPlaceId: classificationRules.endPlaceId,
       weekdays: classificationRules.weekdays,
+      startMinuteFrom: classificationRules.startMinuteFrom,
+      startMinuteTo: classificationRules.startMinuteTo,
       classification: classificationRules.classification,
       tagId: classificationRules.tagId,
       tagName: tags.name,
@@ -497,6 +542,7 @@ export async function applyRulesNow(): Promise<ApplyRulesResult> {
           startPlaceId: drive.startPlaceId,
           endPlaceId: drive.endPlaceId,
           weekdayIso: isoWeekday(drive.startTime, APP_TIMEZONE),
+          startMinuteOfDay: minuteOfDay(drive.startTime, APP_TIMEZONE),
         },
         rules,
       );

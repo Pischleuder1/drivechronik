@@ -290,6 +290,8 @@ export const classificationRules = pgTable("classification_rules", {
     { onDelete: "cascade" },
   ),
   weekdays: smallint("weekdays").array(), // ISO 1=Mo … 7=So, null = alle Tage
+  startMinuteFrom: integer("start_minute_from"),
+  startMinuteTo: integer("start_minute_to"),
   // Aktionen (null = Feld nicht setzen)
   classification: driveClassification("classification"),
   tagId: bigint("tag_id", { mode: "number" }).references(() => tags.id, {

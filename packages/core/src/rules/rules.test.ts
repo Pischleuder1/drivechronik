@@ -3,6 +3,7 @@ import {
   findMatchingRule,
   isoWeekday,
   matchRule,
+  minuteOfDay,
   type MatchableRule,
 } from "./rules.js";
 
@@ -14,6 +15,8 @@ function rule(overrides: Partial<MatchableRule> = {}): MatchableRule {
     startPlaceId: null,
     endPlaceId: null,
     weekdays: null,
+    startMinuteFrom: null,
+    startMinuteTo: null,
     ...overrides,
   };
 }
@@ -61,6 +64,44 @@ describe("matchRule", () => {
     expect(matchRule({ startPlaceId: 1, endPlaceId: null, weekdayIso: null }, r)).toBe(true);
     expect(matchRule({ startPlaceId: 1, endPlaceId: null, weekdayIso: 7 }, r)).toBe(true);
   });
+  it("Zeitfenster 06:00–09:00 matcht innerhalb einschließlich Grenzen", () => {
+    const r = rule({ startMinuteFrom: 360, startMinuteTo: 540 });
+
+    expect(matchRule({ startPlaceId: 1, endPlaceId: 2, weekdayIso: 1, startMinuteOfDay: 360 }, r)).toBe(true);
+    expect(matchRule({ startPlaceId: 1, endPlaceId: 2, weekdayIso: 1, startMinuteOfDay: 450 }, r)).toBe(true);
+    expect(matchRule({ startPlaceId: 1, endPlaceId: 2, weekdayIso: 1, startMinuteOfDay: 540 }, r)).toBe(true);
+    expect(matchRule({ startPlaceId: 1, endPlaceId: 2, weekdayIso: 1, startMinuteOfDay: 359 }, r)).toBe(false);
+    expect(matchRule({ startPlaceId: 1, endPlaceId: 2, weekdayIso: 1, startMinuteOfDay: 541 }, r)).toBe(false);
+  });
+
+  it("Zeitfenster über Mitternacht 22:00–05:00 funktioniert", () => {
+    const r = rule({ startMinuteFrom: 1320, startMinuteTo: 300 });
+
+    expect(matchRule({ startPlaceId: 1, endPlaceId: 2, weekdayIso: 1, startMinuteOfDay: 1380 }, r)).toBe(true);
+    expect(matchRule({ startPlaceId: 1, endPlaceId: 2, weekdayIso: 1, startMinuteOfDay: 120 }, r)).toBe(true);
+    expect(matchRule({ startPlaceId: 1, endPlaceId: 2, weekdayIso: 1, startMinuteOfDay: 720 }, r)).toBe(false);
+  });
+
+  it("nur Zeit-Untergrenze erlaubt Fahrten ab dieser Uhrzeit", () => {
+    const r = rule({ startMinuteFrom: 1080 });
+
+    expect(matchRule({ startPlaceId: 1, endPlaceId: 2, weekdayIso: 1, startMinuteOfDay: 1080 }, r)).toBe(true);
+    expect(matchRule({ startPlaceId: 1, endPlaceId: 2, weekdayIso: 1, startMinuteOfDay: 1079 }, r)).toBe(false);
+  });
+
+  it("nur Zeit-Obergrenze erlaubt Fahrten bis zu dieser Uhrzeit", () => {
+    const r = rule({ startMinuteTo: 600 });
+
+    expect(matchRule({ startPlaceId: 1, endPlaceId: 2, weekdayIso: 1, startMinuteOfDay: 600 }, r)).toBe(true);
+    expect(matchRule({ startPlaceId: 1, endPlaceId: 2, weekdayIso: 1, startMinuteOfDay: 601 }, r)).toBe(false);
+  });
+
+  it("Zeitbedingung matcht nicht bei unbekannter Startzeit", () => {
+    const r = rule({ startMinuteFrom: 360, startMinuteTo: 540 });
+
+    expect(matchRule({ startPlaceId: 1, endPlaceId: 2, weekdayIso: 1 }, r)).toBe(false);
+  });
+
 });
 
 describe("findMatchingRule", () => {
@@ -135,5 +176,18 @@ describe("isoWeekday", () => {
     // 2024-01-01T02:00Z ist in New York noch 2023-12-31 21:00 → Sonntag
     const instant = new Date("2024-01-01T02:00:00Z");
     expect(isoWeekday(instant, "America/New_York")).toBe(7); // So
+  });
+});
+
+describe("minuteOfDay", () => {
+  it("berechnet Minuten seit Mitternacht in UTC", () => {
+    expect(minuteOfDay(new Date("2024-01-01T06:30:00Z"), "UTC")).toBe(390);
+  });
+
+  it("berücksichtigt die lokale Zeitzone", () => {
+    const instant = new Date("2024-01-01T23:30:00Z");
+
+    expect(minuteOfDay(instant, "UTC")).toBe(1410);
+    expect(minuteOfDay(instant, "Europe/Zurich")).toBe(30);
   });
 });

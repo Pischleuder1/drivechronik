@@ -21,6 +21,9 @@ export interface MatchableRule {
   endPlaceId: number | null;
   /** ISO-Wochentage 1=Mo … 7=So; null oder [] = alle Tage. */
   weekdays: number[] | null;
+  /** Minuten seit Mitternacht; null = keine Zeitgrenze. */
+  startMinuteFrom: number | null;
+  startMinuteTo: number | null;
 }
 
 /** Fahrt-Merkmale, gegen die eine Regel prüft. */
@@ -29,6 +32,8 @@ export interface DriveLike {
   endPlaceId: number | null;
   /** ISO-Wochentag der Startzeit (1..7) oder null, wenn unbekannt. */
   weekdayIso: number | null;
+  /** Startzeit als Minuten seit Mitternacht oder null, wenn unbekannt. */
+  startMinuteOfDay?: number | null;
 }
 
 /** Hat die Regel überhaupt eine gesetzte Bedingung? */
@@ -36,7 +41,9 @@ function hasAnyCondition(rule: MatchableRule): boolean {
   return (
     rule.startPlaceId != null ||
     rule.endPlaceId != null ||
-    (rule.weekdays != null && rule.weekdays.length > 0)
+    (rule.weekdays != null && rule.weekdays.length > 0) ||
+    rule.startMinuteFrom != null ||
+    rule.startMinuteTo != null
   );
 }
 
@@ -58,6 +65,27 @@ export function matchRule(drive: DriveLike, rule: MatchableRule): boolean {
       return false;
     }
   }
+  if (rule.startMinuteFrom != null || rule.startMinuteTo != null) {
+    if (drive.startMinuteOfDay == null) return false;
+
+    const from = rule.startMinuteFrom;
+    const to = rule.startMinuteTo;
+    const minute = drive.startMinuteOfDay;
+
+    if (from != null && to != null) {
+      const matches =
+        from <= to
+          ? minute >= from && minute <= to
+          : minute >= from || minute <= to;
+
+      if (!matches) return false;
+    } else if (from != null && minute < from) {
+      return false;
+    } else if (to != null && minute > to) {
+      return false;
+    }
+  }
+
   return true;
 }
 
@@ -103,4 +131,22 @@ export function isoWeekday(date: Date, timeZone: string): number {
     throw new Error(`Unerwarteter Wochentag "${short}" für Zone ${timeZone}`);
   }
   return iso;
+}
+
+export function minuteOfDay(date: Date, timeZone: string): number {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+
+  const hour = Number(parts.find((part) => part.type === "hour")?.value);
+  const minute = Number(parts.find((part) => part.type === "minute")?.value);
+
+  if (!Number.isInteger(hour) || !Number.isInteger(minute)) {
+    throw new Error(`Unerwartete Uhrzeit für Zone ${timeZone}`);
+  }
+
+  return hour * 60 + minute;
 }

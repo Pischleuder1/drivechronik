@@ -41,19 +41,19 @@ const items: NavItem[] = [
 ];
 
 function itemClasses(active: boolean, layout: "bottom" | "side"): string {
-  const base =
-    layout === "bottom"
-      ? "flex flex-1 flex-col items-center gap-0.5 py-2 text-xs"
-      : "flex items-center gap-3 rounded-lg px-3 py-2 text-sm";
+  if (layout === "bottom") {
+    const state = active
+      ? "text-neutral-900 dark:text-white font-medium"
+      : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white";
+
+    return `flex flex-1 flex-col items-center gap-0.5 py-2 text-xs transition-colors ${state}`.trim();
+  }
+
   const state = active
-    ? "text-neutral-900 dark:text-white font-medium"
-    : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white";
-  const motion = "transition-colors";
-  const sideActiveBg =
-    layout === "side" && active ? "bg-neutral-100 dark:bg-neutral-800" : "";
-  const focus =
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-white dark:focus-visible:ring-offset-neutral-950";
-  return `${base} ${state} ${sideActiveBg} ${motion} ${focus}`.trim();
+    ? "bg-sky-50 text-sky-700 font-semibold dark:bg-sky-950/50 dark:text-sky-300"
+    : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-950 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-white";
+
+  return `flex items-center gap-4 rounded-xl px-4 py-2.5 text-[15px] transition-colors ${state}`.trim();
 }
 
 export function BottomNav() {
@@ -83,8 +83,8 @@ export function SideNav() {
   const pathname = usePathname();
   const t = useTranslations("nav");
   return (
-    <nav className="min-h-0 flex-1 overflow-y-auto p-3">
-      <div className="flex flex-col gap-1">
+    <nav className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
+      <div className="flex flex-col gap-1.5">
       {items.map((item) => {
         const active = item.match(pathname);
         const Icon = item.icon;
@@ -94,7 +94,7 @@ export function SideNav() {
             href={item.href}
             className={itemClasses(active, "side")}
           >
-            <Icon aria-hidden size={20} strokeWidth={active ? 2.25 : 2} className="shrink-0" />
+            <Icon aria-hidden size={21} strokeWidth={active ? 2.25 : 1.9} className="shrink-0" />
             <span>{t(item.labelKey)}</span>
           </Link>
         );

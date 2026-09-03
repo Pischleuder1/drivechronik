@@ -20,7 +20,7 @@ export default async function AppLayout({
   if (!user) redirect("/login");
 
   const vehicles = await getVehicles();
-  const vehicleName = vehicles[0]?.displayName ?? "—";
+  const vehicleName = vehicles[0]?.displayName ?? null;
 
   const cookieStore = await cookies();
   const cookieTheme = cookieStore.get("drivechronik_theme")?.value;
@@ -50,9 +50,11 @@ export default async function AppLayout({
               />
               <BrandWordmark size="xs" />
             </Link>
-          <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
-            {vehicleName}
-          </p>
+          {vehicleName && (
+            <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+              {vehicleName}
+            </p>
+          )}
         </div>
         <SideNav />
         <div className="shrink-0 border-t border-neutral-200 p-3 dark:border-neutral-800">

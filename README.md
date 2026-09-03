@@ -23,8 +23,10 @@ Tessie & Co. sind gut, aber: Abo-Kosten, Feature-Überschneidung mit der Tesla-A
 
 **Fahrtenarchiv (der Kern)**
 - **Tagesansicht** — Datum wählen → jede Fahrt als atomarer Eintrag: `08:14–08:47 · Zuhause → Kunde Müller · 27,3 km · Geschäftlich`; Parken und Laden interleaved als Timeline
-- **Klassifizieren & Annotieren** — privat / geschäftlich / Arbeitsweg per Segmented Control, Zweck, Kunde, Projekt, Notizen, Tags; jede Änderung im Audit-Log
-- **Auto-Klassifizierungs-Regeln** — „Zuhause → Büro, Mo–Fr = Arbeitsweg": Regeln mit Orts- und Wochentags-Bedingungen klassifizieren neue Fahrten automatisch — und fassen nie an, was du manuell entschieden hast (Provenance im Audit-Log)
+- **Klassifizieren & Annotieren** — privat / geschäftlich / Arbeitsweg per Segmented Control, Zweck, Kunde, Projekt, Notizen und Tags; Änderungen bleiben mit ihrer Herkunft bzw. Regel-Provenienz nachvollziehbar
+- **Auto-Klassifizierungs-Regeln** — Regeln mit Start-/Zielort, Wochentagen und optionalem Abfahrts-Zeitfenster klassifizieren neue unklassifizierte Fahrten automatisch. Vor dem Speichern zeigt eine Vorschau, wie viele Fahrten zur Regel passen und auf wie viele offene Fahrten sie tatsächlich angewendet würde. Eine neue Regel kann außerdem direkt aus einer vorhandenen Fahrt vorbereitet werden. Manuell getroffene Klassifizierungen werden nicht überschrieben.
+
+- **Regelvorschläge für wiederkehrende Fahrten** — DriveChronik erkennt wiederkehrende unklassifizierte Start-/Ziel-Kombinationen der letzten 14 Tage und schlägt daraus Regeln vor. Wochentage und typische Abfahrtszeiten werden aus den beobachteten Fahrten abgeleitet; die zeitliche Regelmäßigkeit wird als hohe, mittlere oder niedrige Sicherheit bewertet. Vorschläge werden nie automatisch als Regel angelegt oder auf Fahrten angewendet.
 - **Bulk-Bearbeitung** — viele Fahrten auf einmal auswählen und klassifizieren/taggen, in Tagesansicht und Suche
 - **Orte** — Geofences mit Karten-Picker und Adresssuche (OSM/Nominatim); manuelle Korrekturen mit Lock, die jeden Re-Sync überleben
 - **Kalender, Suche, Reports** — Monatsgrid mit Fahrt-Intensität; Volltextsuche über Orte/Kunden/Projekte/Tags mit Filtern; Monatsreports mit CSV-/PDF-Export (Fahrtenbuch-Stil)

@@ -14,6 +14,7 @@ import {
   formatSpeed,
   formatTemp,
   formatTimeRange,
+  isoWeekday,
 } from "@drivechronik/core";
 import { weatherCodeIcon, weatherCodeKey } from "../../../../lib/weatherCodes";
 import { APP_TIMEZONE } from "../../../../lib/config";
@@ -101,6 +102,17 @@ export default async function DriveDetailPage({
   );
 
   const dateStr = toDateParam(drive.startTime);
+  const ruleWeekday = isoWeekday(drive.startTime, APP_TIMEZONE);
+  const ruleName = `${drive.startPlaceName ?? from} → ${drive.endPlaceName ?? to}`;
+  const ruleCreateHref =
+    drive.startPlaceId != null && drive.endPlaceId != null
+      ? `/rules/new?${new URLSearchParams({
+          startPlaceId: String(drive.startPlaceId),
+          endPlaceId: String(drive.endPlaceId),
+          weekdays: String(ruleWeekday),
+          name: ruleName,
+        }).toString()}`
+      : null;
   const classification = drive.classification as Classification;
 
   const gpsCoveragePercent =
@@ -401,7 +413,9 @@ export default async function DriveDetailPage({
           customer={drive.customer}
           project={drive.project}
           notes={drive.notes}
+          ruleCreateHref={ruleCreateHref}
         />
+
       </Card>
 
       <Card title={t("page.cardTags")}>

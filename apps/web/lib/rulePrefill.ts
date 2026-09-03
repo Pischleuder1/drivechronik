@@ -50,6 +50,17 @@ function placeIdParam(
   return validPlaceIds.has(id) ? id : null;
 }
 
+function weekdaysParam(
+  value: string | string[] | undefined,
+): number[] | null {
+  const values = Array.isArray(value) ? value : value != null ? [value] : [];
+  const weekdays = [...new Set(values.map(Number))]
+    .filter((day) => Number.isInteger(day) && day >= 1 && day <= 7)
+    .sort((a, b) => a - b);
+
+  return weekdays.length > 0 ? weekdays : null;
+}
+
 function classificationParam(
   value: string | string[] | undefined,
 ): RulePrefillClassification | null {
@@ -84,7 +95,7 @@ export function buildRulePrefill(
     enabled: true,
     startPlaceId: placeIdParam(params.startPlaceId, ids),
     endPlaceId: placeIdParam(params.endPlaceId, ids),
-    weekdays: null,
+    weekdays: weekdaysParam(params.weekdays),
     classification: classificationParam(params.classification),
     tagId: null,
     purpose: null,

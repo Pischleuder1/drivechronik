@@ -7,6 +7,8 @@
     "cardRoute": "Route",
     "cardCourse": "Verlauf",
     "cardPostProcessing": "Nachbearbeitung",
+    "createRuleFromDrive": "Regel aus dieser Fahrt erstellen",
+    "createRuleFromDriveHint": "Start- und Zielort dieser Fahrt als neue Regel vorbelegen",
     "cardTags": "Schlagwörter",
     "cardCorrectPlaces": "Orte korrigieren",
     "cardExport": "Export",

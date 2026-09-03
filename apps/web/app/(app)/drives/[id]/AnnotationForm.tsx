@@ -1,6 +1,8 @@
 "use client";
 import { useActionState, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
+import { ChevronRight, WandSparkles } from "lucide-react";
 import {
   updateDriveAnnotations,
   type UpdateAnnotationsResult,
@@ -27,6 +29,7 @@ export function AnnotationForm({
   customer,
   project,
   notes,
+  ruleCreateHref,
 }: {
   driveId: number;
   classification: Classification;
@@ -34,6 +37,7 @@ export function AnnotationForm({
   customer: string | null;
   project: string | null;
   notes: string | null;
+  ruleCreateHref: string | null;
 }) {
   const t = useTranslations("drives");
   const tCommon = useTranslations("common");
@@ -154,12 +158,35 @@ export function AnnotationForm({
         </p>
       )}
 
-      <div className="flex items-center gap-3">
-        <button type="submit" disabled={pending} className={buttonClasses("primary", "md")}>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
+        <button
+          type="submit"
+          disabled={pending}
+          className={buttonClasses("primary", "md", "h-14 shrink-0")}
+        >
           {pending ? t("annotationForm.saving") : tCommon("actions.save")}
         </button>
+
+        {ruleCreateHref && (
+          <Link
+            href={ruleCreateHref}
+            className="inline-flex h-14 flex-1 items-center gap-3 rounded-lg bg-red-600 px-4 text-white transition hover:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 dark:bg-red-600 dark:hover:bg-red-500"
+          >
+            <WandSparkles aria-hidden size={20} className="shrink-0" />
+            <span className="min-w-0 flex-1 text-left">
+              <span className="block text-sm font-semibold leading-tight">
+                {t("page.createRuleFromDrive")}
+              </span>
+              <span className="mt-0.5 block text-xs leading-tight text-red-100">
+                {t("page.createRuleFromDriveHint")}
+              </span>
+            </span>
+            <ChevronRight aria-hidden size={18} className="shrink-0" />
+          </Link>
+        )}
+
         {savedPulse && (
-          <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+          <span className="self-center text-sm font-medium text-emerald-600 dark:text-emerald-400">
             {t("annotationForm.saved")}
           </span>
         )}

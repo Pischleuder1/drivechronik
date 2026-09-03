@@ -7,6 +7,8 @@
     "cardRoute": "Route",
     "cardCourse": "Course",
     "cardPostProcessing": "Post-processing",
+    "createRuleFromDrive": "Create rule from this drive",
+    "createRuleFromDriveHint": "Prefill the start and destination of this drive as a new rule",
     "cardTags": "Tags",
     "cardCorrectPlaces": "Correct places",
     "cardExport": "Export",

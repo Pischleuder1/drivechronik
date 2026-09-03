@@ -468,6 +468,34 @@ export const syncState = pgTable(
   (t) => [primaryKey({ columns: [t.source, t.entity] })],
 );
 
+export const importJobs = pgTable(
+  "import_jobs",
+  {
+    id: id(),
+    source: text("source").notNull(),
+    status: text("status").notNull(),
+    phase: text("phase"),
+    progressPercent: integer("progress_percent").notNull().default(0),
+    processed: integer("processed").notNull().default(0),
+    total: integer("total"),
+    vehicleId: bigint("vehicle_id", { mode: "number" }).references(
+      () => vehicles.id,
+      { onDelete: "set null" },
+    ),
+    stagingPath: text("staging_path").notNull(),
+    startedAt: timestamp("started_at", { withTimezone: true }),
+    finishedAt: timestamp("finished_at", { withTimezone: true }),
+    error: text("error"),
+    result: jsonb("result"),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    index("import_jobs_status_idx").on(t.status),
+    index("import_jobs_created_at_idx").on(t.createdAt),
+  ],
+);
+
 export const settings = pgTable("settings", {
   key: text("key").primaryKey(),
   value: jsonb("value").notNull(),

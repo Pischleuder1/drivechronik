@@ -1,0 +1,39 @@
+{
+  "title": "Data import",
+  "subtitle": "Import historical data from external sources into DriveChronik.",
+  "tessie": {
+    "title": "Tessie",
+    "description": "Import historical driving and charging data from a Tessie raw data export.",
+    "details": "Select the four CSV files from the Tessie raw data export. DriveChronik checks the files before the import starts. Existing TeslaMate periods are protected.",
+    "selectFile": "Select file",
+    "selected": "Selected · approx. {size} KB",
+    "uploadAndCheck": "Upload and check files",
+    "uploading": "Uploading files …",
+    "ready": "All four Tessie files were uploaded and checked successfully.",
+    "start": "Start import",
+    "importing": "Import running …",
+    "completed": "The Tessie import completed successfully.",
+    "reset": "Prepare new import",
+    "progress": {
+      "upload": "Upload {current} of {total}",
+      "import": "Importing Tessie data",
+      "completed": "Import completed",
+      "processed": "{processed} of {total} records processed"
+    },
+    "result": {
+      "title": "Import result",
+      "drives": "Drives",
+      "charges": "Charging sessions",
+      "routePoints": "GPS points",
+      "chargePoints": "Charge points"
+    },
+    "errors": {
+      "wrongFilename": "Please select the file “{expected}”.",
+      "filesMissing": "Please select all four Tessie files.",
+      "serverFilesMissing": "The uploaded files are incomplete on the server.",
+      "invalidJob": "The import job could not be created.",
+      "importFailed": "The Tessie import failed.",
+      "unknown": "An unknown error occurred during the Tessie import."
+    }
+  }
+}

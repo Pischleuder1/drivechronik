@@ -48,6 +48,7 @@ const workerEnvSchema = z.object({
     .string()
     .default("Europe/Zurich")
     .refine(isValidTimeZone, "muss eine gültige IANA-Zeitzone sein"),
+  IMPORT_STAGING_DIR: z.string().min(1).default("/import-staging"),
   ELEVATION_ENABLED: z.enum(["true", "false"]).optional(),
   ELEVATION_MAX_POINTS_PER_CYCLE: z
     .union([positiveInteger, z.undefined()])
@@ -59,6 +60,7 @@ export interface WorkerEnv {
   teslamateDatabaseUrl: string;
   syncIntervalSeconds: number;
   appTimezone: string;
+  importStagingDir: string;
   elevationEnabled: boolean;
   elevationMaxPointsPerCycle?: number;
 }
@@ -69,6 +71,7 @@ export function loadWorkerEnv(): WorkerEnv {
     TESLAMATE_DATABASE_URL: process.env.TESLAMATE_DATABASE_URL,
     SYNC_INTERVAL_SECONDS: process.env.SYNC_INTERVAL_SECONDS ?? "60",
     APP_TIMEZONE: process.env.APP_TIMEZONE ?? "Europe/Zurich",
+    IMPORT_STAGING_DIR: process.env.IMPORT_STAGING_DIR ?? "/import-staging",
     ELEVATION_ENABLED: process.env.ELEVATION_ENABLED,
     ELEVATION_MAX_POINTS_PER_CYCLE:
       process.env.ELEVATION_MAX_POINTS_PER_CYCLE || undefined,
@@ -92,6 +95,7 @@ export function loadWorkerEnv(): WorkerEnv {
     teslamateDatabaseUrl: parsed.data.TESLAMATE_DATABASE_URL,
     syncIntervalSeconds: parsed.data.SYNC_INTERVAL_SECONDS,
     appTimezone: parsed.data.APP_TIMEZONE,
+    importStagingDir: parsed.data.IMPORT_STAGING_DIR,
     elevationEnabled: parsed.data.ELEVATION_ENABLED !== "false",
     elevationMaxPointsPerCycle:
       parsed.data.ELEVATION_MAX_POINTS_PER_CYCLE,

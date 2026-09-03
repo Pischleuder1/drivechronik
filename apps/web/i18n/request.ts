@@ -33,6 +33,7 @@ export const NAMESPACES = [
   "reports",
   "insights",
   "settings",
+  "import",
   "rules",
   "planner",
   "exports",

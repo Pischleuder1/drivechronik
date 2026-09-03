@@ -1,0 +1,39 @@
+{
+  "title": "Datenimport",
+  "subtitle": "Historische Daten aus externen Quellen in DriveChronik übernehmen.",
+  "tessie": {
+    "title": "Tessie",
+    "description": "Historische Fahr- und Ladedaten aus einem Tessie-Rohdatenexport importieren.",
+    "details": "Wähle die vier CSV-Dateien des Tessie-Rohdatenexports aus. DriveChronik prüft die Dateien vor dem Start. Bereits vorhandene TeslaMate-Zeiträume werden geschützt.",
+    "selectFile": "Datei auswählen",
+    "selected": "Ausgewählt · ca. {size} KB",
+    "uploadAndCheck": "Dateien hochladen und prüfen",
+    "uploading": "Dateien werden hochgeladen …",
+    "ready": "Alle vier Tessie-Dateien wurden erfolgreich hochgeladen und geprüft.",
+    "start": "Import starten",
+    "importing": "Import läuft …",
+    "completed": "Der Tessie-Import wurde erfolgreich abgeschlossen.",
+    "reset": "Neuen Import vorbereiten",
+    "progress": {
+      "upload": "Upload {current} von {total}",
+      "import": "Tessie-Daten werden importiert",
+      "completed": "Import abgeschlossen",
+      "processed": "{processed} von {total} Datensätzen verarbeitet"
+    },
+    "result": {
+      "title": "Importergebnis",
+      "drives": "Fahrten",
+      "charges": "Ladevorgänge",
+      "routePoints": "GPS-Punkte",
+      "chargePoints": "Ladepunkte"
+    },
+    "errors": {
+      "wrongFilename": "Bitte die Datei „{expected}“ auswählen.",
+      "filesMissing": "Bitte alle vier Tessie-Dateien auswählen.",
+      "serverFilesMissing": "Die hochgeladenen Dateien sind auf dem Server nicht vollständig.",
+      "invalidJob": "Der Importjob konnte nicht angelegt werden.",
+      "importFailed": "Der Tessie-Import ist fehlgeschlagen.",
+      "unknown": "Beim Tessie-Import ist ein unbekannter Fehler aufgetreten."
+    }
+  }
+}

@@ -71,7 +71,8 @@
     "journeys": "Reisen",
     "calendar": "Kalender",
     "reports": "Berichte",
-    "insights": "Auswertungen"
+    "insights": "Auswertungen",
+    "import": "Datenimport"
   },
   "logout": "Abmelden",
   "loggingOut": "Abmelden…",

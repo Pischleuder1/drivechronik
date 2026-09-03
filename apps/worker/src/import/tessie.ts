@@ -46,8 +46,33 @@ const POINT_CHUNK_SIZE = 500;
 
 const PROGRESS_EVERY = 500;
 
+export interface ImportTessieProgress {
+  phase: string;
+  progressPercent: number;
+  processed: number;
+  total: number | null;
+}
+
 export interface ImportTessieOptions {
   vehicleId?: number;
+  onProgress?: (progress: ImportTessieProgress) => void | Promise<void>;
+}
+
+async function reportProgress(
+  opts: ImportTessieOptions,
+  phase: string,
+  progressPercent: number,
+  processed: number,
+  total: number | null,
+): Promise<void> {
+  if (opts.onProgress == null) return;
+
+  await opts.onProgress({
+    phase,
+    progressPercent: Math.max(0, Math.min(100, Math.round(progressPercent))),
+    processed,
+    total,
+  });
 }
 
 // --- CSV-Rohserien (kompakte Parallel-Arrays statt 1,6M Objektkopien) --------
@@ -612,12 +637,16 @@ export async function importTessie(
   opts: ImportTessieOptions = {},
 ): Promise<ImportTessieResult> {
   console.log(`[import-tessie] lade CSVs aus ${dir} …`);
+  await reportProgress(opts, "loading", 5, 0, null);
+
   const [driving, charging, climate, battery] = await Promise.all([
     loadDriving(dir),
     loadCharging(dir),
     loadClimate(dir),
     loadBattery(dir),
   ]);
+  await reportProgress(opts, "loaded", 15, 0, null);
+
   console.log(
     `[import-tessie] geladen: ${driving.samples.length} driving, ` +
       `${charging.samples.length} charging, ${climate.ts.length} climate, ` +
@@ -650,6 +679,10 @@ export async function importTessie(
 
   const driveEpisodes = segmentDrives(driving.samples);
   const chargeEpisodes = segmentCharges(charging.samples);
+
+  const totalEpisodes = driveEpisodes.length + chargeEpisodes.length;
+  await reportProgress(opts, "segmented", 20, 0, totalEpisodes);
+
   console.log(
     `[import-tessie] segmentiert: ${driveEpisodes.length} Fahrt-, ` +
       `${chargeEpisodes.length} Lade-Episoden`,
@@ -661,11 +694,22 @@ export async function importTessie(
   let totalKm = 0;
   let minTs: number | null = null;
   let maxTs: number | null = null;
+  let driveProcessed = 0;
 
   for (const ep of driveEpisodes) {
+    driveProcessed++;
     // Overlap-Guard: keine Rekonstruktion in den TeslaMate-Zeitraum hinein.
     if (floor != null && ep.startTs >= floor) {
       drivesSkipped++;
+      await reportProgress(
+        opts,
+        "drives",
+        driveEpisodes.length === 0
+          ? 80
+          : 20 + (driveProcessed / driveEpisodes.length) * 60,
+        driveProcessed,
+        totalEpisodes,
+      );
       continue;
     }
     const values = buildDriveValues(ep, vehicleId, charging, battery, climate, packKwh, places);
@@ -678,22 +722,69 @@ export async function importTessie(
     if (drivesImported % PROGRESS_EVERY === 0) {
       console.log(`[import-tessie] … ${drivesImported} Fahrten importiert`);
     }
+
+    await reportProgress(
+      opts,
+      "drives",
+      driveEpisodes.length === 0
+        ? 80
+        : 20 + (driveProcessed / driveEpisodes.length) * 60,
+      driveProcessed,
+      totalEpisodes,
+    );
   }
+
+  await reportProgress(
+    opts,
+    "drives",
+    80,
+    driveProcessed,
+    totalEpisodes,
+  );
 
   let chargesImported = 0;
   let chargePointsImported = 0;
   let chargesSkipped = 0;
+  let chargeProcessed = 0;
 
   for (const ep of chargeEpisodes) {
+    chargeProcessed++;
     if (floor != null && ep.startTs >= floor) {
       chargesSkipped++;
+      await reportProgress(
+        opts,
+        "charges",
+        chargeEpisodes.length === 0
+          ? 98
+          : 80 + (chargeProcessed / chargeEpisodes.length) * 18,
+        driveEpisodes.length + chargeProcessed,
+        totalEpisodes,
+      );
       continue;
     }
     const values = buildChargeValues(ep, vehicleId, driving, climate, packKwh, places);
     const chargeSessionId = await upsertCharge(db, values);
     chargePointsImported += await writeChargePoints(db, chargeSessionId, ep, climate);
     chargesImported++;
+
+    await reportProgress(
+      opts,
+      "charges",
+      chargeEpisodes.length === 0
+        ? 98
+        : 80 + (chargeProcessed / chargeEpisodes.length) * 18,
+      driveEpisodes.length + chargeProcessed,
+      totalEpisodes,
+    );
   }
+
+  await reportProgress(
+    opts,
+    "finalizing",
+    98,
+    totalEpisodes,
+    totalEpisodes,
+  );
 
   const result: ImportTessieResult = {
     drivesImported,
@@ -717,6 +808,14 @@ export async function importTessie(
       `; Strecke ≈ ${Math.round(totalKm)} km; Zeitraum ` +
       `${minTs == null ? "—" : new Date(minTs).toISOString()} → ` +
       `${maxTs == null ? "—" : new Date(maxTs).toISOString()}`,
+  );
+
+  await reportProgress(
+    opts,
+    "completed",
+    100,
+    totalEpisodes,
+    totalEpisodes,
   );
 
   return result;

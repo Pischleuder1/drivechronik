@@ -71,7 +71,8 @@
     "journeys": "Journeys",
     "calendar": "Calendar",
     "reports": "Reports",
-    "insights": "Insights"
+    "insights": "Insights",
+    "import": "Data import"
   },
   "logout": "Log out",
   "loggingOut": "Logging out…",

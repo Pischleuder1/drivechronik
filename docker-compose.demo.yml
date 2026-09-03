@@ -73,6 +73,13 @@ services:
       tripatlas-db:
         condition: service_healthy
 
+  import-staging-init:
+    image: alpine:3.20
+    restart: "no"
+    command: ["sh", "-c", "chown -R 1001:1001 /import-staging"]
+    volumes:
+      - import-staging:/import-staging
+
   web:
     build:
       context: .
@@ -93,7 +100,12 @@ services:
       # Settings → Diagnose "TeslaMate direkt testen" button also works out
       # of the box in the demo.
       TESLAMATE_DATABASE_URL: postgres://teslamate:teslamate-demo@teslamate-db:5432/teslamate
+      IMPORT_STAGING_DIR: /import-staging
+    volumes:
+      - import-staging:/import-staging
     depends_on:
+      import-staging-init:
+        condition: service_completed_successfully
       tripatlas-db:
         condition: service_healthy
       migrate:
@@ -112,7 +124,12 @@ services:
       # Short interval so the demo fills up fast instead of the production
       # default of 60s.
       SYNC_INTERVAL_SECONDS: 15
+      IMPORT_STAGING_DIR: /import-staging
+    volumes:
+      - import-staging:/import-staging
     depends_on:
+      import-staging-init:
+        condition: service_completed_successfully
       tripatlas-db:
         condition: service_healthy
       migrate:
@@ -123,3 +140,4 @@ services:
 volumes:
   tripatlas-demo-db-data:
   teslamate-demo-db-data:
+  import-staging:

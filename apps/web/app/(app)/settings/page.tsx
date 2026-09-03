@@ -54,6 +54,7 @@ export default async function SettingsPage() {
   const entityLabels = buildEntityLabels(t);
 
   const links = [
+    { href: "/import", label: t("links.import") },
     { href: "/tags", label: t("links.tags") },
     { href: "/journeys", label: t("links.journeys") },
     { href: "/calendar", label: t("links.calendar") },

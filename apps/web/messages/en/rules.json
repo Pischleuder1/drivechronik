@@ -10,9 +10,9 @@
     "hint": "Example: start = Home and destination = Office on Mon–Fri → classify as commute. New drives are then sorted in automatically."
   },
   "applyButton": {
-    "label": "Apply now to all unclassified drives",
+    "label": "Apply existing rules to open drives",
     "pending": "Applying…",
-    "open": "{count, plural, one {# drive open} other {# drives open}}",
+    "open": "{count, plural, one {# unclassified drive will be checked} other {# unclassified drives will be checked}}",
     "applied": "{count, plural, one {# drive classified.} other {# drives classified.}}",
     "none": "No matching drive found — nothing changed.",
     "error": "Error while applying."
@@ -89,5 +89,12 @@
     "actionRequired": "At least one action (classification, tag, purpose, customer, or project) must be set.",
     "invalidRuleId": "Invalid rule ID.",
     "ruleNotFound": "Rule not found."
+  },
+  "suggestions": {
+    "title": "Rule suggestions",
+    "hint": "Recurring unclassified drives from the last 14 days.",
+    "driveCount": "{count, plural, one {# drive} other {# drives}}",
+    "create": "Create rule",
+    "timeSuffix": ""
   }
 }

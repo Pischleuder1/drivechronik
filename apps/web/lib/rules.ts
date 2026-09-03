@@ -1,9 +1,23 @@
 import "server-only";
 import { alias } from "drizzle-orm/pg-core";
-import { and, asc, eq, isNull, isNotNull, notInArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, isNull, isNotNull, notInArray, sql } from "drizzle-orm";
 import { classificationRules, drives, places, tags } from "@drivechronik/db";
+import { isoWeekday, minuteOfDay } from "@drivechronik/core";
+import { APP_TIMEZONE } from "./config";
 import { db } from "./db";
 import type { Classification } from "./classification";
+
+export interface RuleSuggestion {
+  startPlaceId: number;
+  startPlaceName: string;
+  endPlaceId: number;
+  endPlaceName: string;
+  driveCount: number;
+  lastDriveAt: Date;
+  weekdays: number[];
+  startMinuteFrom: number | null;
+  startMinuteTo: number | null;
+}
 
 export interface ClassificationRuleRow {
   id: number;
@@ -97,4 +111,157 @@ export async function getUnclassifiedLiveCount(): Promise<number> {
       ),
     );
   return rows[0]?.count ?? 0;
+}
+
+/**
+ * Wiederkehrende unklassifizierte Fahrten der letzten 14 Tage.
+ *
+ * Ein Vorschlag entsteht ab drei Fahrten mit identischem Start- und Zielort.
+ * Existiert bereits eine Regel für diese Ortskombination, wird kein Vorschlag
+ * erzeugt.
+ */
+export async function getRuleSuggestions(): Promise<RuleSuggestion[]> {
+  const cutoff = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+
+  const startPlace = alias(places, "suggestion_start_place");
+  const endPlace = alias(places, "suggestion_end_place");
+
+  const candidates = await db
+    .select({
+      startPlaceId: drives.startPlaceId,
+      startPlaceName: startPlace.name,
+      endPlaceId: drives.endPlaceId,
+      endPlaceName: endPlace.name,
+      driveCount: sql<number>`count(*)::int`,
+      lastDriveAt: sql<Date>`max(${drives.startTime})`,
+    })
+    .from(drives)
+    .innerJoin(startPlace, eq(drives.startPlaceId, startPlace.id))
+    .innerJoin(endPlace, eq(drives.endPlaceId, endPlace.id))
+    .where(
+      and(
+        eq(drives.classification, "unclassified"),
+        isNull(drives.classifiedByRuleId),
+        isNotNull(drives.endTime),
+        isNotNull(drives.startPlaceId),
+        isNotNull(drives.endPlaceId),
+        gte(drives.startTime, cutoff),
+        notInArray(drives.source, IMPORTED_SOURCES),
+      ),
+    )
+    .groupBy(
+      drives.startPlaceId,
+      startPlace.name,
+      drives.endPlaceId,
+      endPlace.name,
+    )
+    .having(sql`count(*) >= 3`)
+    .orderBy(desc(sql`count(*)`))
+    .limit(12);
+
+  const suggestionDrives = await db
+    .select({
+      startPlaceId: drives.startPlaceId,
+      endPlaceId: drives.endPlaceId,
+      startTime: drives.startTime,
+    })
+    .from(drives)
+    .where(
+      and(
+        eq(drives.classification, "unclassified"),
+        isNull(drives.classifiedByRuleId),
+        isNotNull(drives.endTime),
+        isNotNull(drives.startPlaceId),
+        isNotNull(drives.endPlaceId),
+        gte(drives.startTime, cutoff),
+        notInArray(drives.source, IMPORTED_SOURCES),
+      ),
+    );
+
+  const existingRules = await db
+    .select({
+      startPlaceId: classificationRules.startPlaceId,
+      endPlaceId: classificationRules.endPlaceId,
+    })
+    .from(classificationRules)
+    .where(
+      and(
+        isNotNull(classificationRules.startPlaceId),
+        isNotNull(classificationRules.endPlaceId),
+      ),
+    );
+
+  const existingPairs = new Set(
+    existingRules.map(
+      (rule) => `${rule.startPlaceId}:${rule.endPlaceId}`,
+    ),
+  );
+
+  const drivePatterns = new Map<
+    string,
+    {
+      weekdays: Set<number>;
+      minutes: number[];
+    }
+  >();
+
+  for (const drive of suggestionDrives) {
+    if (
+      drive.startPlaceId == null ||
+      drive.endPlaceId == null ||
+      drive.startTime == null
+    ) {
+      continue;
+    }
+
+    const key = `${drive.startPlaceId}:${drive.endPlaceId}`;
+    const pattern =
+      drivePatterns.get(key) ?? {
+        weekdays: new Set<number>(),
+        minutes: [],
+      };
+
+    pattern.weekdays.add(isoWeekday(drive.startTime, APP_TIMEZONE));
+    pattern.minutes.push(minuteOfDay(drive.startTime, APP_TIMEZONE));
+    drivePatterns.set(key, pattern);
+  }
+
+  return candidates
+    .filter(
+      (candidate) =>
+        candidate.startPlaceId != null &&
+        candidate.startPlaceName != null &&
+        candidate.endPlaceId != null &&
+        candidate.endPlaceName != null &&
+        !existingPairs.has(
+          `${candidate.startPlaceId}:${candidate.endPlaceId}`,
+        ),
+    )
+    .slice(0, 6)
+    .map((candidate) => {
+      const key = `${candidate.startPlaceId}:${candidate.endPlaceId}`;
+      const pattern = drivePatterns.get(key);
+
+      const weekdays = pattern
+        ? [...pattern.weekdays].sort((a, b) => a - b)
+        : [];
+
+      const minutes = pattern?.minutes ?? [];
+      const minMinute = minutes.length > 0 ? Math.min(...minutes) : null;
+      const maxMinute = minutes.length > 0 ? Math.max(...minutes) : null;
+
+      return {
+        startPlaceId: candidate.startPlaceId!,
+        startPlaceName: candidate.startPlaceName!,
+        endPlaceId: candidate.endPlaceId!,
+        endPlaceName: candidate.endPlaceName!,
+        driveCount: candidate.driveCount,
+        lastDriveAt: candidate.lastDriveAt,
+        weekdays,
+        startMinuteFrom:
+          minMinute == null ? null : Math.max(0, minMinute - 15),
+        startMinuteTo:
+          maxMinute == null ? null : Math.min(1439, maxMinute + 15),
+      };
+    });
 }

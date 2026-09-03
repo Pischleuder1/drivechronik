@@ -52,6 +52,20 @@ function placeIdParam(
   return validPlaceIds.has(id) ? id : null;
 }
 
+function minuteParam(
+  value: string | string[] | undefined,
+): number | null {
+  const raw = first(value);
+  if (raw == null || raw.trim() === "") return null;
+
+  const minute = Number(raw);
+  if (!Number.isInteger(minute) || minute < 0 || minute > 1439) {
+    return null;
+  }
+
+  return minute;
+}
+
 function weekdaysParam(
   value: string | string[] | undefined,
 ): number[] | null {
@@ -98,8 +112,8 @@ export function buildRulePrefill(
     startPlaceId: placeIdParam(params.startPlaceId, ids),
     endPlaceId: placeIdParam(params.endPlaceId, ids),
     weekdays: weekdaysParam(params.weekdays),
-    startMinuteFrom: null,
-    startMinuteTo: null,
+    startMinuteFrom: minuteParam(params.startMinuteFrom),
+    startMinuteTo: minuteParam(params.startMinuteTo),
     classification: classificationParam(params.classification),
     tagId: null,
     purpose: null,

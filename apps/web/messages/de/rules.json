@@ -10,9 +10,9 @@
     "hint": "Beispiel: Start = Zuhause und Ziel = Büro an Mo–Fr → als Arbeitsweg klassifizieren. Neue Fahrten werden dann automatisch einsortiert."
   },
   "applyButton": {
-    "label": "Jetzt auf alle unklassifizierten Fahrten anwenden",
+    "label": "Bestehende Regeln auf offene Fahrten anwenden",
     "pending": "Wende an…",
-    "open": "{count, plural, one {# Fahrt offen} other {# Fahrten offen}}",
+    "open": "{count, plural, one {# unklassifizierte Fahrt wird geprüft} other {# unklassifizierte Fahrten werden geprüft}}",
     "applied": "{count, plural, one {# Fahrt klassifiziert.} other {# Fahrten klassifiziert.}}",
     "none": "Keine passende Fahrt gefunden — nichts geändert.",
     "error": "Fehler beim Anwenden."
@@ -89,5 +89,12 @@
     "actionRequired": "Mindestens eine Aktion (Klassifizierung, Tag, Zweck, Kunde oder Projekt) muss gesetzt sein.",
     "invalidRuleId": "Ungültige Regel-ID.",
     "ruleNotFound": "Regel nicht gefunden."
+  },
+  "suggestions": {
+    "title": "Regelvorschläge",
+    "hint": "Wiederkehrende unklassifizierte Fahrten der letzten 14 Tage.",
+    "driveCount": "{count, plural, one {# Fahrt} other {# Fahrten}}",
+    "create": "Regel erstellen",
+    "timeSuffix": "Uhr"
   }
 }

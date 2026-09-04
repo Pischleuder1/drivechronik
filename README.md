@@ -76,7 +76,7 @@ Details: [docs/demo.md](docs/demo.md)
 
 ## Stack
 
-pnpm-Monorepo: Next.js 15 (`apps/web`) · Sync-Worker (`apps/worker`) · Drizzle-Schema (`packages/db`) · pure Domain-Logik (`packages/core`) · PostgreSQL 17 · Docker Compose.
+pnpm-Monorepo: Next.js 15 (`apps/web`) · Sync-Worker (`apps/worker`) · Drizzle-Schema (`packages/db`) · pure Domain-Logik (`packages/core`) · PostgreSQL 17 · Docker Compose · eingebetteter SuperchargeCompass-Dienst für Supercharger-Daten.
 
 ## Entwicklung
 
@@ -192,7 +192,9 @@ Dann kann in `.env` z. B. verwendet werden:
 docker compose up -d --build
 ```
 
-Das baut `apps/web` und `apps/worker`, lässt den `migrate`-Service einmalig die Drizzle-Migrationen einspielen (`restart: "no"`, muss erfolgreich durchlaufen) und startet dann `db`, `web`, `worker` und den automatischen `backup`-Service dauerhaft (`restart: unless-stopped`).
+Das baut `apps/web`, `apps/worker` und den eingebetteten `supercharge-compass`-Dienst, lässt den `migrate`-Service einmalig die Drizzle-Migrationen einspielen (`restart: "no"`, muss erfolgreich durchlaufen) und startet dann `db`, `web`, `worker`, `supercharge-compass` und den automatischen `backup`-Service dauerhaft (`restart: unless-stopped`).
+
+`supercharge-compass` stellt DriveChronik die Tesla-Supercharger-Standorte für die automatische Ladestopp-Planung bereit. Der Dienst ist nur im internen Docker-Netz erreichbar und veröffentlicht keinen zusätzlichen Port. Beim ersten Start wird der Supercharger-Datensatz automatisch geladen und anschließend täglich aktualisiert. Die Daten werden im Docker-Volume `supercharge-compass-data` persistent gespeichert. Für diese Nutzung ist kein OpenRouteService-API-Key erforderlich; die eigentliche Routenberechnung übernimmt weiterhin der von DriveChronik konfigurierte OSRM-Dienst.
 
 ### 4. Erstanmeldung
 
@@ -225,7 +227,7 @@ Neue Datenbank-Migrationen werden automatisch über den einmaligen `migrate`-Ser
 docker compose ps -a
 ```
 
-`db`, `web` und `worker` sollten laufen bzw. `healthy` sein. Der `migrate`-Service muss nach erfolgreicher Migration mit `Exited (0)` beendet sein.
+`db`, `web`, `worker` und `supercharge-compass` sollten laufen bzw. `healthy` sein. Der `migrate`-Service muss nach erfolgreicher Migration mit `Exited (0)` beendet sein.
 
 ### Backup & Restore
 

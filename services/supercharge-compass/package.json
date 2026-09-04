@@ -1,0 +1,33 @@
+{
+  "name": "supercharge-compass",
+  "version": "1.0.0",
+  "description": "Find the nearest Tesla Superchargers by real road distance — address in, routed results out. Unofficial, OpenStreetMap-based, daily-refreshed data.",
+  "type": "module",
+  "author": "HECer <hec_er@web.de>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HECer/supercharge-compass.git"
+  },
+  "keywords": [
+    "tesla",
+    "supercharger",
+    "ev",
+    "charging",
+    "openstreetmap",
+    "leaflet",
+    "openrouteservice",
+    "routing",
+    "geocoding"
+  ],
+  "engines": { "node": ">=20.6.0" },
+  "scripts": {
+    "start": "node --env-file=.env src/server.js",
+    "grab": "node --env-file=.env scripts/grab.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "node-cron": "^3.0.3"
+  }
+}

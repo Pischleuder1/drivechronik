@@ -49,6 +49,29 @@ services:
     volumes:
       - import-staging:/import-staging
 
+  supercharge-compass:
+    build:
+      context: ./services/supercharge-compass
+      dockerfile: Dockerfile
+    image: drivechronik-supercharge-compass:latest
+    restart: unless-stopped
+    environment:
+      PORT: "3000"
+      DATA_FILE: /app/data/superchargers.json
+    volumes:
+      - supercharge-compass-data:/app/data
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - fetch('http://127.0.0.1:3000/api/meta').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    # Internal service only — no published port required.
+
   web:
     build:
       context: .
@@ -67,6 +90,7 @@ services:
       TESLAMATE_DATABASE_URL: ${TESLAMATE_DATABASE_URL:-}
       BACKUP_STATUS_FILE: /backup-status/backup-status.json
       IMPORT_STAGING_DIR: /import-staging
+      SUPERCHARGE_COMPASS_URL: http://supercharge-compass:3000
     volumes:
       - ${BACKUP_DIR:-./backups}/status:/backup-status:ro
       - import-staging:/import-staging
@@ -77,6 +101,8 @@ services:
         condition: service_healthy
       migrate:
         condition: service_completed_successfully
+      supercharge-compass:
+        condition: service_healthy
     networks:
       - default
       - teslamate
@@ -132,6 +158,7 @@ services:
 volumes:
   tripatlas-db-data:
   import-staging:
+  supercharge-compass-data:
 
 networks:
   teslamate:

@@ -157,6 +157,11 @@ interface OsrmRoute {
   ferryDistanceM: number;
   ferryDurationS: number;
   hasFerry: boolean;
+  /** Abschnitte ohne Fahrenergieverbrauch, gemessen entlang der Gesamtroute. */
+  nonDrivingSegmentsM: Array<{
+    startM: number;
+    endM: number;
+  }>;
   /** OSRM liefert [lon, lat] — hier bereits so belassen. */
   coordinates: [number, number][];
 }
@@ -386,6 +391,12 @@ export async function planRoute(
       capacityKwh,
       routeDistanceKm: distanceKm,
       energyKwh: prediction.energyKwh,
+      nonDrivingSegmentsKm: selectedRoute.nonDrivingSegmentsM.map(
+        (segment) => ({
+          startKm: segment.startM / 1000,
+          endKm: segment.endM / 1000,
+        }),
+      ),
       targetArrivalSoc: 20,
       minimumStopArrivalSoc: 10,
     },
@@ -589,12 +600,32 @@ function parseOsrmBody(body: unknown): OsrmRoute[] | null {
 
     let ferryDistanceM = 0;
     let ferryDurationS = 0;
+    let routeProgressM = 0;
+
+    const nonDrivingSegmentsM: Array<{
+      startM: number;
+      endM: number;
+    }> = [];
 
     for (const leg of route.legs ?? []) {
       for (const step of leg.steps ?? []) {
-        if (step.mode !== "ferry") continue;
-        if (typeof step.distance === "number") ferryDistanceM += step.distance;
-        if (typeof step.duration === "number") ferryDurationS += step.duration;
+        const stepDistanceM =
+          typeof step.distance === "number" ? step.distance : 0;
+
+        if (step.mode === "ferry") {
+          ferryDistanceM += stepDistanceM;
+
+          if (typeof step.duration === "number") {
+            ferryDurationS += step.duration;
+          }
+
+          nonDrivingSegmentsM.push({
+            startM: routeProgressM,
+            endM: routeProgressM + stepDistanceM,
+          });
+        }
+
+        routeProgressM += stepDistanceM;
       }
     }
 
@@ -609,6 +640,7 @@ function parseOsrmBody(body: unknown): OsrmRoute[] | null {
       ferryDistanceM,
       ferryDurationS,
       hasFerry: ferryDistanceM > 0,
+      nonDrivingSegmentsM,
       coordinates,
     });
   }

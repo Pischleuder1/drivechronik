@@ -9,6 +9,12 @@ export interface ChargingPlanInput {
   routeDistanceKm: number;
   energyKwh: number;
 
+  /** Abschnitte der Route ohne Fahrenergieverbrauch, z. B. Fähren. */
+  nonDrivingSegmentsKm?: Array<{
+    startKm: number;
+    endKm: number;
+  }>;
+
   /** Gewünschte Reserve am Ziel. */
   targetArrivalSoc: number;
 
@@ -203,6 +209,28 @@ function locateSiteAlongRoute(
  *
  * Mehrere Ladestopps werden automatisch in Fahrtrichtung geplant.
  */
+function drivingDistanceBetween(
+  fromKm: number,
+  toKm: number,
+  nonDrivingSegments: Array<{ startKm: number; endKm: number }>,
+): number {
+  const startKm = Math.min(fromKm, toKm);
+  const endKm = Math.max(fromKm, toKm);
+
+  let nonDrivingKm = 0;
+
+  for (const segment of nonDrivingSegments) {
+    const overlapStartKm = Math.max(startKm, segment.startKm);
+    const overlapEndKm = Math.min(endKm, segment.endKm);
+
+    if (overlapEndKm > overlapStartKm) {
+      nonDrivingKm += overlapEndKm - overlapStartKm;
+    }
+  }
+
+  return Math.max(0, endKm - startKm - nonDrivingKm);
+}
+
 export function selectChargingStop(
   sites: ChargingSite[],
   geometry: [number, number][],
@@ -244,7 +272,26 @@ export function selectChargingStop(
     };
   }
 
-  const energyPerKm = input.energyKwh / input.routeDistanceKm;
+  const nonDrivingSegments = input.nonDrivingSegmentsKm ?? [];
+
+  const totalDrivingDistanceKm = drivingDistanceBetween(
+    0,
+    input.routeDistanceKm,
+    nonDrivingSegments,
+  );
+
+  if (totalDrivingDistanceKm <= 0) {
+    return {
+      stop: null,
+      stops: [],
+      chargingNeeded: true,
+      planningComplete: false,
+      plannedArrivalSoc: null,
+      targetArrivalSoc: input.targetArrivalSoc,
+    };
+  }
+
+  const energyPerDrivingKm = input.energyKwh / totalDrivingDistanceKm;
 
   // Ladeorte einmalig auf ihre Position entlang der Route projizieren.
   const positionedSites = sites
@@ -280,11 +327,14 @@ export function selectChargingStop(
   const maximumStops = 12;
 
   for (let step = 0; step < maximumStops; step += 1) {
-    const remainingDistanceKm =
-      input.routeDistanceKm - currentDistanceKm;
+    const remainingDrivingDistanceKm = drivingDistanceBetween(
+      currentDistanceKm,
+      input.routeDistanceKm,
+      nonDrivingSegments,
+    );
 
     const remainingEnergyKwh =
-      remainingDistanceKm * energyPerKm;
+      remainingDrivingDistanceKm * energyPerDrivingKm;
 
     const arrivalSocAtDestination =
       currentSoc -
@@ -308,11 +358,14 @@ export function selectChargingStop(
           routeDistanceKm > currentDistanceKm + 2,
       )
       .map(({ site, routeDistanceKm }) => {
-        const segmentDistanceKm =
-          routeDistanceKm - currentDistanceKm;
+        const segmentDrivingDistanceKm = drivingDistanceBetween(
+          currentDistanceKm,
+          routeDistanceKm,
+          nonDrivingSegments,
+        );
 
         const segmentEnergyKwh =
-          segmentDistanceKm * energyPerKm;
+          segmentDrivingDistanceKm * energyPerDrivingKm;
 
         const arrivalSoc =
           currentSoc -
@@ -344,11 +397,14 @@ export function selectChargingStop(
       };
     }
 
-    const distanceAfterStopKm =
-      input.routeDistanceKm - selected.routeDistanceKm;
+    const drivingDistanceAfterStopKm = drivingDistanceBetween(
+      selected.routeDistanceKm,
+      input.routeDistanceKm,
+      nonDrivingSegments,
+    );
 
     const energyAfterStopKwh =
-      distanceAfterStopKm * energyPerKm;
+      drivingDistanceAfterStopKm * energyPerDrivingKm;
 
     const requiredDepartureEnergyKwh =
       energyAfterStopKwh +

@@ -562,7 +562,7 @@ function Result({
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <Metric label={t("result.distance")} value={formatKm(plan.distanceKm)} />
         <Metric
-          label={t("result.duration")}
+          label="Reisezeit ohne Laden"
           value={formatDuration(plan.durationSeconds)}
           sub="inklusive möglicher Fährpassagen"
         />

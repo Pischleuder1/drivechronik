@@ -80,6 +80,29 @@ services:
     volumes:
       - import-staging:/import-staging
 
+
+  supercharge-compass:
+    build:
+      context: ./services/supercharge-compass
+      dockerfile: Dockerfile
+    image: drivechronik-supercharge-compass:demo
+    restart: unless-stopped
+    environment:
+      PORT: "3000"
+      DATA_FILE: /app/data/superchargers.json
+    volumes:
+      - supercharge-compass-data:/app/data
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - fetch('http://127.0.0.1:3000/api/meta').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
   web:
     build:
       context: .
@@ -101,7 +124,7 @@ services:
       # of the box in the demo.
       TESLAMATE_DATABASE_URL: postgres://teslamate:teslamate-demo@teslamate-db:5432/teslamate
       IMPORT_STAGING_DIR: /import-staging
-      SUPERCHARGE_COMPASS_URL: http://192.168.178.54:3010
+      SUPERCHARGE_COMPASS_URL: http://supercharge-compass:3000
     volumes:
       - import-staging:/import-staging
     depends_on:
@@ -111,6 +134,8 @@ services:
         condition: service_healthy
       migrate:
         condition: service_completed_successfully
+      supercharge-compass:
+        condition: service_healthy
 
   worker:
     build:
@@ -139,6 +164,7 @@ services:
         condition: service_completed_successfully
 
 volumes:
+  supercharge-compass-data:
   tripatlas-demo-db-data:
   teslamate-demo-db-data:
   import-staging:

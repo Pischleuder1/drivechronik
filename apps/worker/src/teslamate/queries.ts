@@ -346,3 +346,64 @@ export function fetchUpdates(sql: TeslamateSql): Promise<TmUpdate[]> {
     ORDER BY id
   `;
 }
+
+export interface TmVehicleMetric {
+  car_id: number;
+  source_date: Date;
+  bucket_ts: Date;
+  soc: number | null;
+  rated_range_km: number | null;
+  odometer: number | null;
+}
+
+/**
+ * Historische Fahrzeugwerte für technische Langzeit-Auswertungen.
+ * Maximal ein Messpunkt je Fahrzeug und 15-Minuten-Zeitfenster.
+ * Der gespeicherte Zeitstempel ist der Beginn des jeweiligen Zeitfensters.
+ */
+export function fetchVehicleMetricsSince(
+  sql: TeslamateSql,
+  since: Date,
+  limit: number,
+): Promise<TmVehicleMetric[]> {
+  return sql<TmVehicleMetric[]>`
+    SELECT
+      car_id,
+      source_date,
+      bucket_ts,
+      soc,
+      rated_range_km,
+      odometer
+    FROM (
+      SELECT DISTINCT ON (
+        car_id,
+        date_trunc('hour', date)
+          + floor(extract(minute from date) / 15) * interval '15 minutes'
+      )
+        car_id,
+        date AT TIME ZONE 'UTC' AS source_date,
+        (
+          date_trunc('hour', date)
+            + floor(extract(minute from date) / 15) * interval '15 minutes'
+        ) AT TIME ZONE 'UTC' AS bucket_ts,
+        COALESCE(usable_battery_level, battery_level) AS soc,
+        rated_battery_range_km::float8 AS rated_range_km,
+        odometer::float8 AS odometer
+      FROM positions
+      WHERE date > ${since}
+        AND (
+          usable_battery_level IS NOT NULL
+          OR battery_level IS NOT NULL
+          OR rated_battery_range_km IS NOT NULL
+          OR odometer IS NOT NULL
+        )
+      ORDER BY
+        car_id,
+        date_trunc('hour', date)
+          + floor(extract(minute from date) / 15) * interval '15 minutes',
+        date DESC
+    ) sampled
+    ORDER BY source_date
+    LIMIT ${limit}
+  `;
+}

@@ -2,6 +2,7 @@ import type { Db } from "@drivechronik/db";
 import type { TeslamateSql } from "../teslamate/client.js";
 import { syncVehicles } from "./vehicles.js";
 import { syncVehicleStatus } from "./vehicleStatus.js";
+import { syncVehicleMetrics } from "./vehicleMetrics.js";
 import { syncGeofenceImport } from "./geofences.js";
 import { syncDrives } from "./drives.js";
 import { syncRoutePoints } from "./routePoints.js";
@@ -27,6 +28,7 @@ const ELEVATION_MAX_POINTS_PER_CYCLE = process.env.ELEVATION_MAX_POINTS_PER_CYCL
 export async function runSyncCycle(db: Db, tm: TeslamateSql): Promise<void> {
   const vehicleMap = await syncVehicles(db, tm);
   await syncVehicleStatus(db, tm, vehicleMap);
+  const vehicleMetricsResult = await syncVehicleMetrics(db, tm, vehicleMap);
   const geofenceResult = await syncGeofenceImport(db, tm);
   const matchablePlaces = await loadMatchablePlaces(db);
   const driveResult = await syncDrives(db, tm, vehicleMap, matchablePlaces);
@@ -44,6 +46,7 @@ export async function runSyncCycle(db: Db, tm: TeslamateSql): Promise<void> {
 
   console.log(
     `[drivechronik-worker] sync ok: ${vehicleMap.size} vehicle(s), ` +
+      `${vehicleMetricsResult.inserted} vehicle metric(s), ` +
       `${driveResult.upserted} drive(s) upserted` +
       (driveResult.deletedZombies > 0
         ? `, ${driveResult.deletedZombies} zombie(s) entfernt`

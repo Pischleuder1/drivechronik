@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   House,
+  Car,
   CalendarDays,
   CalendarRange,
   Search,
@@ -28,6 +29,7 @@ interface NavItem {
 
 const items: NavItem[] = [
   { href: "/", labelKey: "start", icon: House, match: (p) => p === "/" },
+  { href: "/vehicle", labelKey: "vehicle", icon: Car, match: (p) => p.startsWith("/vehicle"), sideOnly: true },
   { href: "/day", labelKey: "day", icon: CalendarDays, match: (p) => p.startsWith("/day") || p.startsWith("/drives") },
   { href: "/calendar", labelKey: "calendar", icon: CalendarRange, match: (p) => p.startsWith("/calendar"), sideOnly: true },
   { href: "/search", labelKey: "search", icon: Search, match: (p) => p.startsWith("/search") },

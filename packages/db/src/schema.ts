@@ -351,6 +351,29 @@ export const vehicleStatus = pgTable("vehicle_status", {
   syncedAt: timestamp("synced_at", { withTimezone: true }),
 });
 
+// Historische Fahrzeug-Messwerte. Anders als `vehicle_status` werden diese
+// nicht überschrieben und bilden die Grundlage für Reichweiten-, Kilometerstands-
+// und Batterie-Trends. `source` hält die Tabelle für spätere Datenquellen offen.
+export const vehicleMetrics = pgTable(
+  "vehicle_metrics",
+  {
+    id: id(),
+    vehicleId: bigint("vehicle_id", { mode: "number" })
+      .notNull()
+      .references(() => vehicles.id, { onDelete: "cascade" }),
+    ts: timestamp("ts", { withTimezone: true }).notNull(),
+    soc: smallint("soc"),
+    ratedRangeKm: doublePrecision("rated_range_km"),
+    odometerKm: doublePrecision("odometer_km"),
+    source: text("source").notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique("vehicle_metrics_vehicle_ts_source_uq").on(t.vehicleId, t.ts, t.source),
+    index("vehicle_metrics_vehicle_ts_idx").on(t.vehicleId, t.ts),
+  ],
+);
+
 // Ladekurve: downsampled Leistungsverlauf je Ladevorgang aus TeslaMate `charges`.
 // Idempotent per delete+reinsert je Session (wie route_points je Drive).
 export const chargePoints = pgTable(

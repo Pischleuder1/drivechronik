@@ -20,6 +20,7 @@ export const NAMESPACES = [
   "auth",
   "ui",
   "dashboard",
+  "vehicle",
   "weather",
   "day",
   "calendar",

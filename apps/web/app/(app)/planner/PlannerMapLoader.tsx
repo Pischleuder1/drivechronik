@@ -26,17 +26,17 @@ export interface PlannerMapChargingSite {
 export function PlannerMapLoader({
   geometry,
   chargingSites,
-  recommendedChargingStop,
+  recommendedChargingStops,
 }: {
   geometry: [number, number][];
   chargingSites: PlannerMapChargingSite[];
-  recommendedChargingStop: PlannerMapChargingSite | null;
+  recommendedChargingStops: PlannerMapChargingSite[];
 }) {
   return (
     <PlannerMap
       geometry={geometry}
       chargingSites={chargingSites}
-      recommendedChargingStop={recommendedChargingStop}
+      recommendedChargingStops={recommendedChargingStops}
     />
   );
 }

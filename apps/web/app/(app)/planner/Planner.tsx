@@ -159,7 +159,7 @@ export function Planner({
     return null;
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent, routeOptionId?: string) {
     e.preventDefault();
 
     const start = resolveStart();
@@ -204,6 +204,7 @@ export function Planner({
       startSoc: socNum,
       tempC: tempNum,
       capacityKwh: capNum,
+      routeOptionId,
     });
     setPending(false);
 
@@ -214,6 +215,13 @@ export function Planner({
     }
     setPlan(res.plan);
     setPlanId((n) => n + 1);
+  }
+
+  async function handleRouteSelect(routeOptionId: string) {
+    await handleSubmit(
+      { preventDefault() {} } as React.FormEvent,
+      routeOptionId,
+    );
   }
 
   return (
@@ -433,13 +441,37 @@ export function Planner({
         </p>
       </form>
 
-      {plan && <Result key={planId} plan={plan} />}
+      {plan && (
+        <Result
+          key={planId}
+          plan={plan}
+          pending={pending}
+          onSelectRoute={handleRouteSelect}
+        />
+      )}
     </div>
   );
 }
 
-function Result({ plan }: { plan: PlanResult }) {
+function Result({
+  plan,
+  pending,
+  onSelectRoute,
+}: {
+  plan: PlanResult;
+  pending: boolean;
+  onSelectRoute: (routeOptionId: string) => Promise<void>;
+}) {
   const t = useTranslations("planner");
+  const selectedRoute =
+    plan.routeOptions.find(
+      (option) =>
+        Math.abs(option.distanceKm - plan.distanceKm) < 0.1 &&
+        Math.abs(option.durationSeconds - plan.durationSeconds) < 1,
+    ) ?? plan.routeOptions[0];
+
+  const selectedRouteId = selectedRoute?.id ?? "fastest";
+
   const arrivalRounded = Math.round(plan.arrivalSoc);
   const displaySoc = Math.max(0, arrivalRounded);
   const tone = socTone(plan.arrivalSoc);
@@ -447,10 +479,52 @@ function Result({ plan }: { plan: PlanResult }) {
 
   return (
     <div className="flex flex-col gap-4">
+      {plan.routeOptions.length > 1 && (
+        <div className="grid gap-2 sm:grid-cols-3">
+          {plan.routeOptions.map((option) => {
+            const selected = option.id === selectedRouteId;
+
+            return (
+              <button
+                key={option.id}
+                type="button"
+                onClick={() => {
+                  if (option.id === selectedRouteId || pending) return;
+                  void onSelectRoute(option.id);
+                }}
+                disabled={pending}
+                className={
+                  "rounded-xl border p-3 text-left transition " +
+                  (selected
+                    ? "border-neutral-900 bg-neutral-50 dark:border-neutral-100 dark:bg-neutral-900"
+                    : "border-neutral-200 bg-white hover:border-neutral-400 dark:border-neutral-800 dark:bg-neutral-950 dark:hover:border-neutral-600")
+                }
+              >
+                <div className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+                  {option.label}
+                </div>
+
+                <div className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                  {formatKm(option.distanceKm)} ·{" "}
+                  {formatDuration(option.durationSeconds)}
+                </div>
+
+                {option.hasFerry && (
+                  <div className="mt-1 text-xs font-medium text-amber-700 dark:text-amber-400">
+                    Fähre · ca.{" "}
+                    {formatDuration(option.ferryDurationSeconds)}
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       <PlannerMapLoader
-        geometry={plan.geometry}
+        geometry={selectedRoute?.geometry ?? plan.geometry}
         chargingSites={plan.chargingSites}
-        recommendedChargingStop={plan.recommendedChargingStop}
+        recommendedChargingStops={plan.recommendedChargingStops}
       />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -469,21 +543,34 @@ function Result({ plan }: { plan: PlanResult }) {
           sub={`${Math.round(plan.whPerKm)} Wh/km`}
         />
         <div
-          className={`col-span-2 rounded-xl border p-3 sm:col-span-1 ${tone.card}`}
+          className={"col-span-2 rounded-xl border p-3 sm:col-span-1 " + tone.card}
         >
           <p className="text-xs text-neutral-600 dark:text-neutral-400">
-            {t("result.arrivalSoc")}
+            Ankunft ohne Laden
           </p>
           <p
-            className={`mt-0.5 text-xl font-semibold tabular-nums ${tone.value}`}
+            className={"mt-0.5 text-xl font-semibold tabular-nums " + tone.value}
           >
             {displaySoc} %
           </p>
-          <p className={`text-xs font-medium ${tone.value}`}>{toneLabel}</p>
+          <p className={"text-xs font-medium " + tone.value}>{toneLabel}</p>
+        </div>
+        <div className="col-span-2 rounded-xl border border-neutral-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-900 sm:col-span-1">
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">
+            Geplante Ankunft
+          </p>
+          <p className="mt-0.5 text-xl font-semibold tabular-nums text-neutral-900 dark:text-neutral-100">
+            {plan.plannedArrivalSoc != null
+              ? Math.max(0, Math.round(plan.plannedArrivalSoc)) + " %"
+              : "–"}
+          </p>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">
+            inklusive geplanter Ladestopps
+          </p>
         </div>
       </div>
 
-      {plan.arrivalSoc < 10 && (
+      {plan.arrivalSoc < 10 && !plan.chargingPlanComplete && (
         <p className="text-xs text-neutral-500 dark:text-neutral-400">
           {t("result.lowArrivalHint")}
         </p>
@@ -497,46 +584,59 @@ function Result({ plan }: { plan: PlanResult }) {
         </p>
       </div>
 
-      {plan.recommendedChargingStop && (
-        <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 dark:border-amber-700 dark:bg-amber-950/30">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-amber-700 dark:text-amber-400">
-                Empfohlener Ladestopp
-              </p>
-              <p className="mt-1 text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-                {plan.recommendedChargingStop.name}
-              </p>
+      {plan.recommendedChargingStops.length > 0 && (
+        <div className="flex flex-col gap-3">
+          {plan.recommendedChargingStops.map((stop, index) => (
+            <div
+              key={stop.id}
+              className="rounded-2xl border border-amber-300 bg-amber-50 p-4 dark:border-amber-700 dark:bg-amber-950/30"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-amber-700 dark:text-amber-400">
+                    Ladestopp {index + 1}
+                  </p>
+                  <p className="mt-1 text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+                    {stop.name}
+                  </p>
+                </div>
+
+                <div className="rounded-full bg-amber-500 px-3 py-1 text-sm font-semibold text-white">
+                  ca. {stop.chargingMinutes} min
+                </div>
+              </div>
+
+              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <Metric
+                  label="nach Start"
+                  value={Math.round(stop.routeDistanceKm) + " km"}
+                />
+                <Metric
+                  label="Ankunft"
+                  value={Math.round(stop.arrivalSoc) + " %"}
+                />
+                <Metric
+                  label="Weiterfahrt"
+                  value={Math.round(stop.departureSoc) + " %"}
+                />
+                <Metric
+                  label="Nachladen"
+                  value={stop.energyAddedKwh.toFixed(1) + " kWh"}
+                />
+              </div>
             </div>
+          ))}
 
-            <div className="rounded-full bg-amber-500 px-3 py-1 text-sm font-semibold text-white">
-              ca. {plan.recommendedChargingStop.chargingMinutes} min
-            </div>
-          </div>
-
-          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Metric
-              label="nach Start"
-              value={`${Math.round(plan.recommendedChargingStop.routeDistanceKm)} km`}
-            />
-            <Metric
-              label="Ankunft"
-              value={`${Math.round(plan.recommendedChargingStop.arrivalSoc)} %`}
-            />
-            <Metric
-              label="Weiterfahrt"
-              value={`${Math.round(plan.recommendedChargingStop.departureSoc)} %`}
-            />
-            <Metric
-              label="Nachladen"
-              value={`${plan.recommendedChargingStop.energyAddedKwh.toFixed(1)} kWh`}
-            />
-          </div>
-
-          <p className="mt-3 text-xs text-neutral-600 dark:text-neutral-400">
+          <p className="text-xs text-neutral-600 dark:text-neutral-400">
             Berechnet für eine Zielreserve von 20 % und mindestens 10 % bei
             Ankunft am Schnelllader.
           </p>
+        </div>
+      )}
+
+      {!plan.chargingPlanComplete && (
+        <div className="rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-950/30 dark:text-red-300">
+          Die Route konnte mit den derzeit verfügbaren Superchargern nicht vollständig geplant werden.
         </div>
       )}
 

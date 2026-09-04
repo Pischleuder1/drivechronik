@@ -20,7 +20,7 @@ export interface PlannerMapProps {
   chargingSites: PlannerMapChargingSite[];
 
   /** Vom Planer ausgewählter Ladestopp. */
-  recommendedChargingStop: PlannerMapChargingSite | null;
+  recommendedChargingStops: PlannerMapChargingSite[];
 }
 
 function escapeHtml(value: string): string {
@@ -91,7 +91,7 @@ const RECOMMENDED_SUPERCHARGER_ICON = superchargerIcon("#f59e0b");
 export function PlannerMap({
   geometry,
   chargingSites,
-  recommendedChargingStop,
+  recommendedChargingStops,
 }: PlannerMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -135,7 +135,7 @@ export function PlannerMap({
           : "Anzahl Ladepunkte unbekannt";
 
       const isRecommended =
-        recommendedChargingStop?.id === site.id;
+        recommendedChargingStops.some((stop) => stop.id === site.id);
 
       L.marker([site.lat, site.lon], {
         icon: isRecommended
@@ -194,7 +194,7 @@ export function PlannerMap({
       mapRef.current = null;
     };
 
-  }, [geometry, chargingSites, recommendedChargingStop]);
+  }, [geometry, chargingSites, recommendedChargingStops]);
 
   return (
     <div

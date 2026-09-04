@@ -108,8 +108,14 @@ export function buildChargingStop(
 }
 
 export interface ChargingStopSelection {
+  /** Erster empfohlener Stopp; bleibt für bestehende UI kompatibel. */
   stop: PlannedChargingStop | null;
+  /** Alle automatisch geplanten Ladestopps in Fahrtrichtung. */
+  stops: PlannedChargingStop[];
   chargingNeeded: boolean;
+  /** false = Route konnte mit den verfügbaren Ladeorten nicht vollständig geplant werden. */
+  planningComplete: boolean;
+  plannedArrivalSoc: number | null;
   targetArrivalSoc: number;
 }
 
@@ -187,7 +193,7 @@ function locateSiteAlongRoute(
 }
 
 /**
- * Wählt für die erste Planerversion einen sinnvollen einzelnen Ladestopp.
+ * Plant automatisch einen oder mehrere sinnvolle Ladestopps.
  *
  * Strategie:
  * - Zielreserve 20 %
@@ -195,7 +201,7 @@ function locateSiteAlongRoute(
  * - nur erreichbare Stationen
  * - möglichst spät laden, um mit niedrigem SoC am Schnelllader anzukommen
  *
- * Mehrere Ladestopps folgen später.
+ * Mehrere Ladestopps werden automatisch in Fahrtrichtung geplant.
  */
 export function selectChargingStop(
   sites: ChargingSite[],
@@ -204,20 +210,8 @@ export function selectChargingStop(
 ): ChargingStopSelection {
   const requirement = calculateChargingRequirement(input);
 
-  // Praktische Sicherheitslogik:
-  //
-  // >= 15 % am Ziel:
-  //   komfortable Direktfahrt
-  //
-  // 10-15 %:
-  //   Direktfahrt weiterhin möglich, aber geringe Reserve.
-  //   Die UI warnt bereits entsprechend; wir erzwingen keinen Ladestopp.
-  //
-  // < 10 %:
-  //   automatischen Ladestopp planen.
-  //
-  // Die gewünschte Zielreserve (z. B. 20 %) bestimmt anschließend,
-  // wie weit am ausgewählten Schnelllader geladen werden soll.
+  // Unter 10 % prognostizierter Ziel-SoC wird automatisch geladen.
+  // 10-15 % bleibt wie bisher eine direkte Fahrt mit geringer Reserve.
   const automaticStopThresholdSoc = 10;
 
   if (
@@ -225,7 +219,10 @@ export function selectChargingStop(
   ) {
     return {
       stop: null,
+      stops: [],
       chargingNeeded: false,
+      planningComplete: true,
+      plannedArrivalSoc: requirement.arrivalSocWithoutCharging,
       targetArrivalSoc: input.targetArrivalSoc,
     };
   }
@@ -234,75 +231,165 @@ export function selectChargingStop(
     sites.length === 0 ||
     geometry.length < 2 ||
     input.routeDistanceKm <= 0 ||
-    input.energyKwh <= 0
+    input.energyKwh <= 0 ||
+    input.capacityKwh <= 0
   ) {
     return {
       stop: null,
+      stops: [],
       chargingNeeded: true,
+      planningComplete: false,
+      plannedArrivalSoc: null,
       targetArrivalSoc: input.targetArrivalSoc,
     };
   }
 
   const energyPerKm = input.energyKwh / input.routeDistanceKm;
 
-  const candidates = sites
+  // Ladeorte einmalig auf ihre Position entlang der Route projizieren.
+  const positionedSites = sites
     .map((site) => locateSiteAlongRoute(site, geometry))
     .filter((value): value is RouteSitePosition => value !== null)
-    .map(({ site, routeDistanceKm }) => {
-      const energyToStopKwh = routeDistanceKm * energyPerKm;
-
-      const arrivalSoc =
-        input.startSoc -
-        (energyToStopKwh / input.capacityKwh) * 100;
-
-      return {
-        site,
-        routeDistanceKm,
-        arrivalSoc,
-      };
-    })
     .filter(
-      (candidate) =>
-        candidate.routeDistanceKm > 5 &&
-        candidate.routeDistanceKm < input.routeDistanceKm - 5 &&
-        candidate.arrivalSoc >= input.minimumStopArrivalSoc,
+      ({ routeDistanceKm }) =>
+        routeDistanceKm > 5 &&
+        routeDistanceKm < input.routeDistanceKm - 5,
     )
-    .sort((a, b) => b.routeDistanceKm - a.routeDistanceKm);
+    .sort((a, b) => a.routeDistanceKm - b.routeDistanceKm);
 
-  const selected = candidates[0];
-
-  if (!selected) {
+  if (positionedSites.length === 0) {
     return {
       stop: null,
+      stops: [],
       chargingNeeded: true,
+      planningComplete: false,
+      plannedArrivalSoc: null,
       targetArrivalSoc: input.targetArrivalSoc,
     };
   }
 
-  const remainingDistanceKm =
-    input.routeDistanceKm - selected.routeDistanceKm;
+  const stops: PlannedChargingStop[] = [];
 
-  const remainingEnergyKwh =
-    remainingDistanceKm * energyPerKm;
+  let currentDistanceKm = 0;
+  let currentSoc = input.startSoc;
 
-  const requiredDepartureEnergyKwh =
-    remainingEnergyKwh +
-    (input.targetArrivalSoc / 100) * input.capacityKwh;
+  // Für Zwischenstopps vermeiden wir bewusst das langsame Laden nahe 100 %.
+  const intermediateDepartureSoc = 80;
 
-  const departureSoc = Math.min(
-    100,
-    (requiredDepartureEnergyKwh / input.capacityKwh) * 100,
-  );
+  // Schutz gegen fehlerhafte Daten oder eine Endlosschleife.
+  const maximumStops = 12;
 
-  return {
-    stop: buildChargingStop(
+  for (let step = 0; step < maximumStops; step += 1) {
+    const remainingDistanceKm =
+      input.routeDistanceKm - currentDistanceKm;
+
+    const remainingEnergyKwh =
+      remainingDistanceKm * energyPerKm;
+
+    const arrivalSocAtDestination =
+      currentSoc -
+      (remainingEnergyKwh / input.capacityKwh) * 100;
+
+    // Sobald eine Ladeplanung erforderlich ist, planen wir bis zur Zielreserve.
+    if (arrivalSocAtDestination >= input.targetArrivalSoc) {
+      return {
+        stop: stops[0] ?? null,
+        stops,
+        chargingNeeded: stops.length > 0,
+        planningComplete: true,
+        plannedArrivalSoc: arrivalSocAtDestination,
+        targetArrivalSoc: input.targetArrivalSoc,
+      };
+    }
+
+    const reachableCandidates = positionedSites
+      .filter(
+        ({ routeDistanceKm }) =>
+          routeDistanceKm > currentDistanceKm + 2,
+      )
+      .map(({ site, routeDistanceKm }) => {
+        const segmentDistanceKm =
+          routeDistanceKm - currentDistanceKm;
+
+        const segmentEnergyKwh =
+          segmentDistanceKm * energyPerKm;
+
+        const arrivalSoc =
+          currentSoc -
+          (segmentEnergyKwh / input.capacityKwh) * 100;
+
+        return {
+          site,
+          routeDistanceKm,
+          arrivalSoc,
+        };
+      })
+      .filter(
+        ({ arrivalSoc }) =>
+          arrivalSoc >= input.minimumStopArrivalSoc,
+      )
+      // Möglichst spät laden → niedriger SoC am Schnelllader.
+      .sort((a, b) => b.routeDistanceKm - a.routeDistanceKm);
+
+    const selected = reachableCandidates[0];
+
+    if (!selected) {
+      return {
+        stop: stops[0] ?? null,
+        stops,
+        chargingNeeded: true,
+        planningComplete: false,
+        plannedArrivalSoc: null,
+        targetArrivalSoc: input.targetArrivalSoc,
+      };
+    }
+
+    const distanceAfterStopKm =
+      input.routeDistanceKm - selected.routeDistanceKm;
+
+    const energyAfterStopKwh =
+      distanceAfterStopKm * energyPerKm;
+
+    const requiredDepartureEnergyKwh =
+      energyAfterStopKwh +
+      (input.targetArrivalSoc / 100) * input.capacityKwh;
+
+    const requiredDepartureSocForDestination =
+      (requiredDepartureEnergyKwh / input.capacityKwh) * 100;
+
+    // Reicht der Stopp bereits bis zum Ziel, nur die dafür nötige Energie laden.
+    // Sonst zunächst bis 80 % für die nächste Etappe.
+    const departureSoc =
+      requiredDepartureSocForDestination <= intermediateDepartureSoc
+        ? Math.max(
+            selected.arrivalSoc,
+            requiredDepartureSocForDestination,
+          )
+        : Math.max(
+            selected.arrivalSoc,
+            intermediateDepartureSoc,
+          );
+
+    const stop = buildChargingStop(
       selected.site,
       selected.routeDistanceKm,
       selected.arrivalSoc,
-      Math.max(selected.arrivalSoc, departureSoc),
+      Math.min(100, departureSoc),
       input.capacityKwh,
-    ),
+    );
+
+    stops.push(stop);
+
+    currentDistanceKm = selected.routeDistanceKm;
+    currentSoc = stop.departureSoc;
+  }
+
+  return {
+    stop: stops[0] ?? null,
+    stops,
     chargingNeeded: true,
+    planningComplete: false,
+    plannedArrivalSoc: null,
     targetArrivalSoc: input.targetArrivalSoc,
   };
 }

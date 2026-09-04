@@ -50,6 +50,7 @@ const planRouteInputSchema = z.object({
   startSoc: z.number().min(0).max(100),
   tempC: z.number().min(-40).max(55),
   capacityKwh: z.number().min(5).max(250),
+  routeOptionId: z.string().min(1).optional(),
 });
 
 export type PlanRouteInput = z.infer<typeof planRouteInputSchema>;
@@ -79,11 +80,25 @@ export interface PlanResult {
   capacityKwh: number;
   /** Ankunfts-SoC in % (kann < 0 sein → Reichweite reicht nicht). */
   arrivalSoc: number;
+  plannedArrivalSoc: number | null;
 
   /** true = öffentlicher OSRM-Demo-Server, false = eigener via OSRM_URL. */
   osrmIsDefault: boolean;
   /** [lat, lon]-Tupel für die Karten-Polyline (ausgedünnt). */
   geometry: [number, number][];
+
+  /** Vom Routing angebotene Varianten. Noch ohne eigene Ladeplanung. */
+  routeOptions: Array<{
+    id: string;
+    label: string;
+    distanceKm: number;
+    durationSeconds: number;
+    drivingDistanceKm: number;
+    hasFerry: boolean;
+    ferryDistanceKm: number;
+    ferryDurationSeconds: number;
+    geometry: [number, number][];
+  }>;
 
   /** Anzahl gefundener Schnellladeorte im Suchkorridor. */
   chargingSiteCount: number;
@@ -109,6 +124,21 @@ export interface PlanResult {
     energyAddedKwh: number;
     chargingMinutes: number;
   } | null;
+
+  recommendedChargingStops: Array<{
+    id: string;
+    name: string;
+    lat: number;
+    lon: number;
+    stalls: number | null;
+    routeDistanceKm: number;
+    arrivalSoc: number;
+    departureSoc: number;
+    energyAddedKwh: number;
+    chargingMinutes: number;
+  }>;
+
+  chargingPlanComplete: boolean;
 }
 
 export type PlanRouteResponse =
@@ -116,8 +146,17 @@ export type PlanRouteResponse =
   | { ok: false; error: string };
 
 interface OsrmRoute {
+  /** Gesamtdistanz der Route inklusive möglicher Fährpassagen. */
   distanceM: number;
+  /** Gesamtreisezeit inklusive möglicher Fährpassagen. */
   durationS: number;
+  /** Tatsächlich mit dem Fahrzeug zurückgelegte Distanz. */
+  drivingDistanceM: number;
+  /** Tatsächliche Fahrzeit ohne Fährpassagen. */
+  drivingDurationS: number;
+  ferryDistanceM: number;
+  ferryDurationS: number;
+  hasFerry: boolean;
   /** OSRM liefert [lon, lat] — hier bereits so belassen. */
   coordinates: [number, number][];
 }
@@ -150,6 +189,7 @@ export async function planRoute(
     startSoc,
     tempC,
     capacityKwh,
+    routeOptionId,
   } = parsed.data;
 
   // 1) Routing (OSRM) — server-seitig, mit Timeout und freundlicher Fehlermeldung.
@@ -166,17 +206,140 @@ export async function planRoute(
     t,
   );
   if (!routeResult.ok) return { ok: false, error: routeResult.error };
-  const route = routeResult.route;
+  const route = routeResult.routes[0];
 
-  const distanceKm = route.distanceM / 1000;
-  const durationSeconds = route.durationS;
+  const distanceSquared = (
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number,
+  ) => {
+    const dLat = lat1 - lat2;
+    const dLon = lon1 - lon2;
+    return dLat * dLat + dLon * dLon;
+  };
+
+  const startCloserToPuttgarden =
+    distanceSquared(
+      startLat,
+      startLon,
+      PUTTGARDEN_RODBY_FERRY.puttgarden.lat,
+      PUTTGARDEN_RODBY_FERRY.puttgarden.lon,
+    ) <=
+    distanceSquared(
+      startLat,
+      startLon,
+      PUTTGARDEN_RODBY_FERRY.rodby.lat,
+      PUTTGARDEN_RODBY_FERRY.rodby.lon,
+    );
+
+  const ferryViaPoints = startCloserToPuttgarden
+    ? [
+        PUTTGARDEN_RODBY_FERRY.puttgarden,
+        PUTTGARDEN_RODBY_FERRY.rodby,
+      ]
+    : [
+        PUTTGARDEN_RODBY_FERRY.rodby,
+        PUTTGARDEN_RODBY_FERRY.puttgarden,
+      ];
+
+  const ferryRouteResult = await fetchOsrmRoute(
+    startLat,
+    startLon,
+    destLat,
+    destLon,
+    osrmBaseUrl,
+    t,
+    ferryViaPoints,
+  );
+
+  const routeOptions = routeResult.routes.map((candidate, index) => ({
+    id: index === 0 ? "fastest" : "alternative-" + index,
+    label: index === 0 ? "Schnellste Route" : "Alternative Route " + index,
+    distanceKm: candidate.distanceM / 1000,
+    durationSeconds: candidate.durationS,
+    drivingDistanceKm: candidate.drivingDistanceM / 1000,
+    hasFerry: candidate.hasFerry,
+    ferryDistanceKm: candidate.ferryDistanceM / 1000,
+    ferryDurationSeconds: candidate.ferryDurationS,
+    geometry: downsample(
+      candidate.coordinates,
+      Math.min(400, candidate.coordinates.length),
+    ).map(([lon, lat]) => [lat, lon] as [number, number]),
+  }));
+
+  if (ferryRouteResult.ok) {
+    const ferryRoute = ferryRouteResult.routes.find(
+      (candidate) => candidate.hasFerry,
+    );
+
+    const ferryIsReasonable =
+      ferryRoute != null &&
+      ferryRoute.durationS <= route.durationS + 90 * 60 &&
+      ferryRoute.distanceM <= route.distanceM * 1.25;
+
+    if (ferryRoute && ferryIsReasonable) {
+      routeOptions.push({
+        id: PUTTGARDEN_RODBY_FERRY.id,
+        label: PUTTGARDEN_RODBY_FERRY.label,
+        distanceKm: ferryRoute.distanceM / 1000,
+        durationSeconds: ferryRoute.durationS,
+        drivingDistanceKm: ferryRoute.drivingDistanceM / 1000,
+        hasFerry: ferryRoute.hasFerry,
+        ferryDistanceKm: ferryRoute.ferryDistanceM / 1000,
+        ferryDurationSeconds: ferryRoute.ferryDurationS,
+        geometry: downsample(
+          ferryRoute.coordinates,
+          Math.min(400, ferryRoute.coordinates.length),
+        ).map(([lon, lat]) => [lat, lon] as [number, number]),
+      });
+    }
+  }
+
+
+  let selectedRoute = route;
+
+  if (routeOptionId === PUTTGARDEN_RODBY_FERRY.id) {
+    const ferryOptionExists = routeOptions.some(
+      (option) => option.id === PUTTGARDEN_RODBY_FERRY.id,
+    );
+
+    if (ferryOptionExists && ferryRouteResult.ok) {
+      const ferryRoute = ferryRouteResult.routes.find(
+        (candidate) => candidate.hasFerry,
+      );
+
+      if (ferryRoute) selectedRoute = ferryRoute;
+    }
+  } else if (routeOptionId?.startsWith("alternative-")) {
+    const alternativeIndex = Number(
+      routeOptionId.slice("alternative-".length),
+    );
+
+    if (
+      Number.isInteger(alternativeIndex) &&
+      alternativeIndex > 0 &&
+      routeResult.routes[alternativeIndex]
+    ) {
+      selectedRoute = routeResult.routes[alternativeIndex];
+    }
+  }
+
+  const distanceKm = selectedRoute.distanceM / 1000;
+  const durationSeconds = selectedRoute.durationS;
+
+  const drivingDistanceKm = selectedRoute.drivingDistanceM / 1000;
+  const drivingDurationSeconds = selectedRoute.drivingDurationS;
+
   const avgSpeedKmh =
-    durationSeconds > 0 ? distanceKm / (durationSeconds / 3600) : 0;
+    drivingDurationSeconds > 0
+      ? drivingDistanceKm / (drivingDurationSeconds / 3600)
+      : 0;
 
   // 2) Höhenprofil (Open-Meteo, ein Batch-Request) — optional/failure-soft.
   const elevationSample = downsample(
-    route.coordinates,
-    Math.min(ELEVATION_MAX_POINTS, route.coordinates.length),
+    selectedRoute.coordinates,
+    Math.min(ELEVATION_MAX_POINTS, selectedRoute.coordinates.length),
   );
   const elevations = await fetchElevations(elevationSample);
   const elevationOk = elevations != null;
@@ -189,7 +352,7 @@ export async function planRoute(
 
   // 4) Reines Verbrauchsmodell.
   const prediction = predictConsumption({
-    distanceKm,
+    distanceKm: drivingDistanceKm,
     avgSpeedKmh,
     tempC,
     ascentM,
@@ -203,8 +366,8 @@ export async function planRoute(
 
   // Karten-Geometrie ausdünnen und auf [lat, lon] drehen.
   const geometry: [number, number][] = downsample(
-    route.coordinates,
-    Math.min(MAP_MAX_POINTS, route.coordinates.length),
+    selectedRoute.coordinates,
+    Math.min(MAP_MAX_POINTS, selectedRoute.coordinates.length),
   ).map(([lon, lat]) => [lat, lon]);
 
   const chargingSites = await findChargingSitesAlongRoute(
@@ -229,6 +392,7 @@ export async function planRoute(
   );
 
   const recommendedStop = chargingSelection.stop;
+  const recommendedStops = chargingSelection.stops;
 
   return {
     ok: true,
@@ -251,8 +415,10 @@ export async function planRoute(
       startSoc,
       capacityKwh,
       arrivalSoc,
+      plannedArrivalSoc: chargingSelection.plannedArrivalSoc,
       osrmIsDefault,
       geometry,
+      routeOptions,
       chargingSiteCount: chargingSites.length,
       chargingSites: chargingSites
         .filter((site) => site.network === "tesla")
@@ -277,12 +443,32 @@ export async function planRoute(
             chargingMinutes: recommendedStop.chargingMinutes,
           }
         : null,
+        recommendedChargingStops: recommendedStops.map((stop) => ({
+          id: stop.site.id,
+          name: stop.site.name,
+          lat: stop.site.lat,
+          lon: stop.site.lon,
+          stalls: stop.site.stalls,
+          routeDistanceKm: stop.routeDistanceKm,
+          arrivalSoc: stop.arrivalSoc,
+          departureSoc: stop.departureSoc,
+          energyAddedKwh: stop.energyAddedKwh,
+          chargingMinutes: stop.chargingMinutes,
+        })),
+        chargingPlanComplete: chargingSelection.planningComplete,
     },
   };
 }
 
+const PUTTGARDEN_RODBY_FERRY = {
+  id: "ferry-puttgarden-rodby",
+  label: "Via Fähre Puttgarden–Rødby",
+  puttgarden: { lat: 54.49878, lon: 11.22362 },
+  rodby: { lat: 54.654306, lon: 11.35399 },
+} as const;
+
 type OsrmResult =
-  | { ok: true; route: OsrmRoute }
+  | { ok: true; routes: OsrmRoute[] }
   | { ok: false; error: string };
 
 /** OSRM route API: profile driving, overview=full, geometries=geojson. */
@@ -293,12 +479,24 @@ async function fetchOsrmRoute(
   destLon: number,
   osrmBaseUrl: string,
   t: Awaited<ReturnType<typeof getTranslations>>,
+  viaPoints: Array<{ lat: number; lon: number }> = [],
 ): Promise<OsrmResult> {
   const base = osrmBaseUrl.replace(/\/+$/, "");
-  const coords = `${startLon},${startLat};${destLon},${destLat}`;
-  const url = new URL(`${base}/route/v1/driving/${coords}`);
+  const routePoints = [
+    { lat: startLat, lon: startLon },
+    ...viaPoints,
+    { lat: destLat, lon: destLon },
+  ];
+
+  const coords = routePoints
+    .map((point) => String(point.lon) + "," + String(point.lat))
+    .join(";");
+
+  const url = new URL(base + "/route/v1/driving/" + coords);
   url.searchParams.set("overview", "full");
   url.searchParams.set("geometries", "geojson");
+  url.searchParams.set("steps", "true");
+  url.searchParams.set("alternatives", "true");
 
   let res: Response;
   try {
@@ -340,7 +538,7 @@ async function fetchOsrmRoute(
       error: t("errors.routingNoRoute"),
     };
   }
-  return { ok: true, route: parsed };
+  return { ok: true, routes: parsed };
 }
 
 interface OsrmResponseShape {
@@ -349,41 +547,73 @@ interface OsrmResponseShape {
     distance?: number;
     duration?: number;
     geometry?: { coordinates?: unknown };
+    legs?: Array<{
+      steps?: Array<{
+        mode?: string;
+        distance?: number;
+        duration?: number;
+      }>;
+    }>;
   }>;
 }
 
-/** Validiert die OSRM-Antwort und extrahiert Distanz/Dauer/Koordinaten. */
-function parseOsrmBody(body: unknown): OsrmRoute | null {
+/** Validiert die OSRM-Antwort und extrahiert alle gültigen Routen. */
+function parseOsrmBody(body: unknown): OsrmRoute[] | null {
   if (typeof body !== "object" || body === null) return null;
   const b = body as OsrmResponseShape;
-  if (b.code !== "Ok") return null;
-  const route = b.routes?.[0];
-  if (
-    !route ||
-    typeof route.distance !== "number" ||
-    typeof route.duration !== "number" ||
-    !Array.isArray(route.geometry?.coordinates)
-  ) {
-    return null;
-  }
+  if (b.code !== "Ok" || !Array.isArray(b.routes)) return null;
 
-  const coordinates: [number, number][] = [];
-  for (const c of route.geometry.coordinates as unknown[]) {
+  const routes: OsrmRoute[] = [];
+
+  for (const route of b.routes) {
     if (
-      Array.isArray(c) &&
-      typeof c[0] === "number" &&
-      typeof c[1] === "number"
+      typeof route.distance !== "number" ||
+      typeof route.duration !== "number" ||
+      !Array.isArray(route.geometry?.coordinates)
     ) {
-      coordinates.push([c[0], c[1]]); // [lon, lat]
+      continue;
     }
-  }
-  if (coordinates.length < 2) return null;
 
-  return {
-    distanceM: route.distance,
-    durationS: route.duration,
-    coordinates,
-  };
+    const coordinates: [number, number][] = [];
+    for (const c of route.geometry.coordinates as unknown[]) {
+      if (
+        Array.isArray(c) &&
+        typeof c[0] === "number" &&
+        typeof c[1] === "number"
+      ) {
+        coordinates.push([c[0], c[1]]); // [lon, lat]
+      }
+    }
+
+    if (coordinates.length < 2) continue;
+
+    let ferryDistanceM = 0;
+    let ferryDurationS = 0;
+
+    for (const leg of route.legs ?? []) {
+      for (const step of leg.steps ?? []) {
+        if (step.mode !== "ferry") continue;
+        if (typeof step.distance === "number") ferryDistanceM += step.distance;
+        if (typeof step.duration === "number") ferryDurationS += step.duration;
+      }
+    }
+
+    const drivingDistanceM = Math.max(0, route.distance - ferryDistanceM);
+    const drivingDurationS = Math.max(0, route.duration - ferryDurationS);
+
+    routes.push({
+      distanceM: route.distance,
+      durationS: route.duration,
+      drivingDistanceM,
+      drivingDurationS,
+      ferryDistanceM,
+      ferryDurationS,
+      hasFerry: ferryDistanceM > 0,
+      coordinates,
+    });
+  }
+
+  return routes.length > 0 ? routes : null;
 }
 
 /**

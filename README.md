@@ -39,7 +39,7 @@ Tessie & Co. sind gut, aber: Abo-Kosten, Feature-Überschneidung mit der Tesla-A
 - **Journeys** — Urlaube/Reisen als Klammer über Fahrten + Ladestopps mit Kennzahlen-Dashboard, Karte aller Etappen und Export als CSV, PDF und GPX
 - **Insights** — persönliche Verbrauchskurve: Verbrauch vs. Außentemperatur und Tempo, Saisonmuster, Kurzstrecken-Anteil
 - **Standzeit-Analytics** — Vampir-Verlust pro Parkvorgang, Standzeiten pro Ort
-- **Routenplaner (experimentell)** — Reichweiten-Check mit echter Route (OSRM), Höhenprofil und deinem persönlichen Verbrauchsprofil aus der eigenen Historie; alle Annahmen offengelegt
+- **Routenplaner (experimentell)** — Reichweiten-Check mit echter Route (OSRM), Höhenprofil und deinem persönlichen Verbrauchsprofil aus der eigenen Historie; automatische Tesla-Supercharger-Planung mit empfohlenem Ladestopp, Ankunfts-SoC, Ladeziel und geschätzter Ladezeit; alle Annahmen offengelegt
 
 **Cockpit & Fahrzeug**
 - **Start-Dashboard** — SoC + Reichweite, Standort, Status, Wetter, Reifendruck mit Warnung, letzte Fahrten als Karte + Liste
@@ -330,7 +330,7 @@ Idempotent (mehrfacher Lauf unschädlich), kollidiert nicht mit TeslaMate-Daten.
 - **Braucht TeslaMate** als Datenquelle — DriveChronik spricht nicht selbst mit der Tesla-API und weckt dein Auto nie
 - **Ein Fahrzeug** pro Instanz im Fokus
 - **Zahlenformatierung** aktuell durchgehend de-DE (Dezimalkomma), auch in der englischen UI
-- **Routenplaner** ist ein experimenteller Reichweiten-Check — keine Ladestopp-Planung, Standard-Routing über den öffentlichen OSRM-Demo-Server
+- **Routenplaner** ist experimentell — automatische Tesla-Supercharger-Planung ist vorhanden, die Ladezeit wird derzeit noch konservativ geschätzt; Standard-Routing über den öffentlichen OSRM-Demo-Server
 - **Kein steuerrechtliches Gutachten**: Exporte sind fahrtenbuch-artig mit Audit-Log, aber die Anerkennung beim Finanzamt ist einzelfallabhängig
 
 ## Mitmachen & Sicherheit

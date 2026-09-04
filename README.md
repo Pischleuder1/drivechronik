@@ -43,7 +43,8 @@ Tessie & Co. sind gut, aber: Abo-Kosten, Feature-Überschneidung mit der Tesla-A
 
 **Cockpit & Fahrzeug**
 - **Start-Dashboard** — SoC + Reichweite, Standort, Status, Wetter, Reifendruck mit Warnung, letzte Fahrten als Karte + Liste
-- **Software-Update-Historie** und Fahrzeugdaten in den Settings
+- **Fahrzeug-Analytics** — geschätzter Batteriezustand und Degradation, prognostizierte 100-%-Reichweite, Kilometerstand, Ladeeffizienz, Vampir-Verlust und Software-/Update-Historie
+- **Reale Fahrzeugdaten** — Auswertungen basieren auf TeslaMate-Historie und vorhandenen Fahrzeugwerten; Schätzwerte und Fallbacks werden entsprechend gekennzeichnet
 - **Verbindungs-Diagnose** — Sync-Gesundheit pro Datenquelle auf einen Blick, optionaler TeslaMate-Direkttest
 
 **Oberfläche**

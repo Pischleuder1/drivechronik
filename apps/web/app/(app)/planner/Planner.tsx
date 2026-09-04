@@ -477,6 +477,14 @@ function Result({
   const tone = socTone(plan.arrivalSoc);
   const toneLabel = t(`arrivalTone.${tone.labelKey}`);
 
+  const totalChargingMinutes = plan.recommendedChargingStops.reduce(
+    (sum, stop) => sum + stop.chargingMinutes,
+    0,
+  );
+
+  const totalTravelSeconds =
+    plan.durationSeconds + totalChargingMinutes * 60;
+
   return (
     <div className="flex flex-col gap-4">
       {plan.routeOptions.length > 1 && (
@@ -527,11 +535,58 @@ function Result({
         recommendedChargingStops={plan.recommendedChargingStops}
       />
 
+      {selectedRoute?.hasFerry && selectedRoute.ferrySegments.length > 0 && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/30">
+          <div className="mb-2 text-sm font-semibold text-amber-900 dark:text-amber-200">
+            ⛴ Fährpassage
+          </div>
+
+          <div className="flex flex-col gap-2">
+            {selectedRoute.ferrySegments.map((ferry, index) => (
+              <div
+                key={ferry.name + index}
+                className="text-sm text-amber-900 dark:text-amber-100"
+              >
+                <span className="font-medium">{ferry.name}</span>
+                {" · "}
+                {formatKm(ferry.distanceKm)}
+                {" · "}
+                {formatDuration(ferry.durationSeconds)}
+                {" · kein Fahrverbrauch"}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <Metric label={t("result.distance")} value={formatKm(plan.distanceKm)} />
         <Metric
           label={t("result.duration")}
           value={formatDuration(plan.durationSeconds)}
+          sub="inklusive möglicher Fährpassagen"
+        />
+        <Metric
+          label="Ladezeit"
+          value={
+            totalChargingMinutes > 0
+              ? formatDuration(totalChargingMinutes * 60)
+              : "0 min"
+          }
+          sub={
+            plan.recommendedChargingStops.length > 0
+              ? plan.recommendedChargingStops.length + " geplante Ladestopps"
+              : "keine Ladestopps nötig"
+          }
+        />
+        <Metric
+          label="Gesamtreisezeit"
+          value={formatDuration(totalTravelSeconds)}
+          sub={
+            totalChargingMinutes > 0
+              ? "Fahrt, Fähre und Laden"
+              : "ohne zusätzliche Pausen"
+          }
         />
         <Metric
           label={t("result.avgSpeed")}

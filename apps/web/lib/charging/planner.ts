@@ -324,7 +324,11 @@ export function selectChargingStop(
   const intermediateDepartureSoc = 80;
 
   // Schutz gegen fehlerhafte Daten oder eine Endlosschleife.
-  const maximumStops = 12;
+  // Auf sehr langen Strecken werden entsprechend mehr Ladestopps zugelassen.
+  const maximumStops = Math.min(
+    30,
+    Math.max(12, Math.ceil(totalDrivingDistanceKm / 100)),
+  );
 
   for (let step = 0; step < maximumStops; step += 1) {
     const remainingDrivingDistanceKm = drivingDistanceBetween(

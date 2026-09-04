@@ -97,6 +97,11 @@ export interface PlanResult {
     hasFerry: boolean;
     ferryDistanceKm: number;
     ferryDurationSeconds: number;
+    ferrySegments: Array<{
+      name: string;
+      distanceKm: number;
+      durationSeconds: number;
+    }>;
     geometry: [number, number][];
   }>;
 
@@ -157,6 +162,11 @@ interface OsrmRoute {
   ferryDistanceM: number;
   ferryDurationS: number;
   hasFerry: boolean;
+  ferrySegments: Array<{
+    name: string;
+    distanceM: number;
+    durationS: number;
+  }>;
   /** Abschnitte ohne Fahrenergieverbrauch, gemessen entlang der Gesamtroute. */
   nonDrivingSegmentsM: Array<{
     startM: number;
@@ -267,6 +277,11 @@ export async function planRoute(
     hasFerry: candidate.hasFerry,
     ferryDistanceKm: candidate.ferryDistanceM / 1000,
     ferryDurationSeconds: candidate.ferryDurationS,
+    ferrySegments: candidate.ferrySegments.map((segment) => ({
+      name: segment.name,
+      distanceKm: segment.distanceM / 1000,
+      durationSeconds: segment.durationS,
+    })),
     geometry: downsample(
       candidate.coordinates,
       Math.min(400, candidate.coordinates.length),
@@ -293,6 +308,11 @@ export async function planRoute(
         hasFerry: ferryRoute.hasFerry,
         ferryDistanceKm: ferryRoute.ferryDistanceM / 1000,
         ferryDurationSeconds: ferryRoute.ferryDurationS,
+        ferrySegments: ferryRoute.ferrySegments.map((segment) => ({
+          name: segment.name,
+          distanceKm: segment.distanceM / 1000,
+          durationSeconds: segment.durationS,
+        })),
         geometry: downsample(
           ferryRoute.coordinates,
           Math.min(400, ferryRoute.coordinates.length),
@@ -561,6 +581,7 @@ interface OsrmResponseShape {
     legs?: Array<{
       steps?: Array<{
         mode?: string;
+        name?: string;
         distance?: number;
         duration?: number;
       }>;
@@ -600,7 +621,15 @@ function parseOsrmBody(body: unknown): OsrmRoute[] | null {
 
     let ferryDistanceM = 0;
     let ferryDurationS = 0;
+
+    const ferrySegments: Array<{
+      name: string;
+      distanceM: number;
+      durationS: number;
+    }> = [];
+
     let routeProgressM = 0;
+    let previousStepWasFerry = false;
 
     const nonDrivingSegmentsM: Array<{
       startM: number;
@@ -615,8 +644,27 @@ function parseOsrmBody(body: unknown): OsrmRoute[] | null {
         if (step.mode === "ferry") {
           ferryDistanceM += stepDistanceM;
 
-          if (typeof step.duration === "number") {
-            ferryDurationS += step.duration;
+          const stepDurationS =
+            typeof step.duration === "number" ? step.duration : 0;
+
+          ferryDurationS += stepDurationS;
+
+          const ferryName = step.name?.trim() || "Fährpassage";
+          const previousFerry = ferrySegments[ferrySegments.length - 1];
+
+          if (
+            previousStepWasFerry &&
+            previousFerry &&
+            previousFerry.name === ferryName
+          ) {
+            previousFerry.distanceM += stepDistanceM;
+            previousFerry.durationS += stepDurationS;
+          } else {
+            ferrySegments.push({
+              name: ferryName,
+              distanceM: stepDistanceM,
+              durationS: stepDurationS,
+            });
           }
 
           nonDrivingSegmentsM.push({
@@ -625,6 +673,7 @@ function parseOsrmBody(body: unknown): OsrmRoute[] | null {
           });
         }
 
+        previousStepWasFerry = step.mode === "ferry";
         routeProgressM += stepDistanceM;
       }
     }
@@ -640,6 +689,7 @@ function parseOsrmBody(body: unknown): OsrmRoute[] | null {
       ferryDistanceM,
       ferryDurationS,
       hasFerry: ferryDistanceM > 0,
+      ferrySegments,
       nonDrivingSegmentsM,
       coordinates,
     });

@@ -1,7 +1,7 @@
 {
   "title": "Routenplaner",
   "experimentalBadge": "Experimentell",
-  "subtitle": "Reichweiten-Check auf Basis deiner persönlichen Verbrauchskurve. Eine ehrliche Prognose mit offengelegten Annahmen — keine Garantie, keine Ladestopp-Planung (kommt in einer späteren Version).",
+  "subtitle": "Reichweiten-Check auf Basis deiner persönlichen Verbrauchskurve. Eine ehrliche Prognose mit offengelegten Annahmen und automatischer Ladestopp-Planung.",
   "baseSource": {
     "tempBin": "persönliche Verbrauchskurve (Temperatur-Bereich)",
     "historyAvg": "persönlicher Gesamtdurchschnitt",
@@ -54,7 +54,7 @@
     "avgSpeed": "Ø-Tempo",
     "consumption": "Verbrauch",
     "arrivalSoc": "Ankunfts-SoC",
-    "lowArrivalHint": "Der prognostizierte Ankunfts-SoC ist niedrig — ein Ladestopp ist nötig. Automatische Ladestopp-Planung kommt in einer späteren Version."
+    "lowArrivalHint": "Der prognostizierte Ankunfts-SoC ist niedrig — ein Ladestopp ist nötig. DriveChronik plant automatisch einen geeigneten Supercharger entlang der Route."
   },
   "assumptions": {
     "summary": "Annahmen & Aufschlüsselung",

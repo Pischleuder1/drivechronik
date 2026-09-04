@@ -9,6 +9,8 @@ import {
 } from "@drivechronik/core";
 import { validateSession } from "../auth/session";
 import { getOsrmUrl } from "../config";
+import { findChargingSitesAlongRoute } from "../charging/providers";
+import { selectChargingStop } from "../charging/planner";
 import {
   resolveBaseConsumption,
   type BaseConsumptionSource,
@@ -82,6 +84,31 @@ export interface PlanResult {
   osrmIsDefault: boolean;
   /** [lat, lon]-Tupel für die Karten-Polyline (ausgedünnt). */
   geometry: [number, number][];
+
+  /** Anzahl gefundener Schnellladeorte im Suchkorridor. */
+  chargingSiteCount: number;
+
+  /** Gefundene Tesla-Supercharger im Suchkorridor. */
+  chargingSites: Array<{
+    id: string;
+    name: string;
+    lat: number;
+    lon: number;
+    stalls: number | null;
+  }>;
+
+  recommendedChargingStop: {
+    id: string;
+    name: string;
+    lat: number;
+    lon: number;
+    stalls: number | null;
+    routeDistanceKm: number;
+    arrivalSoc: number;
+    departureSoc: number;
+    energyAddedKwh: number;
+    chargingMinutes: number;
+  } | null;
 }
 
 export type PlanRouteResponse =
@@ -180,6 +207,29 @@ export async function planRoute(
     Math.min(MAP_MAX_POINTS, route.coordinates.length),
   ).map(([lon, lat]) => [lat, lon]);
 
+  const chargingSites = await findChargingSitesAlongRoute(
+    geometry,
+    {
+      corridorKm: 15,
+      minPowerKw: 150,
+    },
+  );
+
+  const chargingSelection = selectChargingStop(
+    chargingSites,
+    geometry,
+    {
+      startSoc,
+      capacityKwh,
+      routeDistanceKm: distanceKm,
+      energyKwh: prediction.energyKwh,
+      targetArrivalSoc: 20,
+      minimumStopArrivalSoc: 10,
+    },
+  );
+
+  const recommendedStop = chargingSelection.stop;
+
   return {
     ok: true,
     plan: {
@@ -203,6 +253,30 @@ export async function planRoute(
       arrivalSoc,
       osrmIsDefault,
       geometry,
+      chargingSiteCount: chargingSites.length,
+      chargingSites: chargingSites
+        .filter((site) => site.network === "tesla")
+        .map((site) => ({
+          id: site.id,
+          name: site.name,
+          lat: site.lat,
+          lon: site.lon,
+          stalls: site.stalls,
+        })),
+      recommendedChargingStop: recommendedStop
+        ? {
+            id: recommendedStop.site.id,
+            name: recommendedStop.site.name,
+            lat: recommendedStop.site.lat,
+            lon: recommendedStop.site.lon,
+            stalls: recommendedStop.site.stalls,
+            routeDistanceKm: recommendedStop.routeDistanceKm,
+            arrivalSoc: recommendedStop.arrivalSoc,
+            departureSoc: recommendedStop.departureSoc,
+            energyAddedKwh: recommendedStop.energyAddedKwh,
+            chargingMinutes: recommendedStop.chargingMinutes,
+          }
+        : null,
     },
   };
 }

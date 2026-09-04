@@ -98,7 +98,10 @@ export function Planner({
   const t = useTranslations("planner");
   const hasCurrentPosition = status?.hasPosition ?? false;
 
-  // Start: ein Dropdown mit „Aktuelle Fahrzeugposition" (falls vorhanden) + Orte.
+  // Start: eigener Ort / aktuelle Fahrzeugposition ODER Adresssuche.
+  const [startMode, setStartMode] = useState<"place" | "address">(
+    hasCurrentPosition || places.length > 0 ? "place" : "address",
+  );
   const [startValue, setStartValue] = useState<string>(
     hasCurrentPosition
       ? CURRENT_VALUE
@@ -106,6 +109,10 @@ export function Planner({
         ? `place:${places[0].id}`
         : "",
   );
+  const [startAddress, setStartAddress] = useState<AddressSearchResult | null>(
+    null,
+  );
+  const [startQuery, setStartQuery] = useState("");
 
   // Ziel: eigener Ort ODER Adresssuche.
   const [destMode, setDestMode] = useState<"place" | "address">(
@@ -140,6 +147,12 @@ export function Planner({
     return place ? { lat: place.lat, lon: place.lon } : null;
   }
 
+  function resolveStart(): Coords | null {
+    if (startMode === "place") return resolvePlaceValue(startValue);
+    if (startAddress) return { lat: startAddress.lat, lon: startAddress.lon };
+    return null;
+  }
+
   function resolveDestination(): Coords | null {
     if (destMode === "place") return resolvePlaceValue(destPlaceValue);
     if (destAddress) return { lat: destAddress.lat, lon: destAddress.lon };
@@ -149,7 +162,7 @@ export function Planner({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    const start = resolvePlaceValue(startValue);
+    const start = resolveStart();
     const dest = resolveDestination();
     if (!start) {
       setError(t("errors.missingStart"));
@@ -212,26 +225,67 @@ export function Planner({
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {/* Start */}
           <div>
-            <label htmlFor="planner-start" className={labelClasses}>
-              {t("form.start")}
-            </label>
-            <select
-              id="planner-start"
-              value={startValue}
-              onChange={(e) => setStartValue(e.target.value)}
-              className={`mt-1 ${inputClasses}`}
-            >
-              {hasCurrentPosition && (
-                <option value={CURRENT_VALUE}>
-                  {t("form.currentPosition")}
-                </option>
+            <div className="flex items-center justify-between">
+              <span className={labelClasses}>{t("form.start")}</span>
+              <div className="flex gap-1 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setStartMode("place")}
+                  className={`rounded px-1.5 py-0.5 ${
+                    startMode === "place"
+                      ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
+                      : "text-neutral-500 hover:text-neutral-900 dark:hover:text-white"
+                  }`}
+                >
+                  {t("form.destModePlace")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStartMode("address")}
+                  className={`rounded px-1.5 py-0.5 ${
+                    startMode === "address"
+                      ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
+                      : "text-neutral-500 hover:text-neutral-900 dark:hover:text-white"
+                  }`}
+                >
+                  {t("form.destModeAddress")}
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-1">
+              {startMode === "place" ? (
+                <select
+                  id="planner-start"
+                  value={startValue}
+                  onChange={(e) => setStartValue(e.target.value)}
+                  className={inputClasses}
+                >
+                  {hasCurrentPosition && (
+                    <option value={CURRENT_VALUE}>
+                      {t("form.currentPosition")}
+                    </option>
+                  )}
+                  {places.length === 0 && !hasCurrentPosition && (
+                    <option value="">{t("form.noPlaces")}</option>
+                  )}
+                  {places.map((p) => (
+                    <option key={p.id} value={`place:${p.id}`}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <DestinationSearch
+                  value={startQuery}
+                  onValueChange={(v) => {
+                    setStartQuery(v);
+                    setStartAddress(null);
+                  }}
+                  onSelect={setStartAddress}
+                />
               )}
-              {places.map((p) => (
-                <option key={p.id} value={`place:${p.id}`}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
+            </div>
           </div>
 
           {/* Ziel */}
@@ -393,7 +447,11 @@ function Result({ plan }: { plan: PlanResult }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <PlannerMapLoader geometry={plan.geometry} />
+      <PlannerMapLoader
+        geometry={plan.geometry}
+        chargingSites={plan.chargingSites}
+        recommendedChargingStop={plan.recommendedChargingStop}
+      />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <Metric label={t("result.distance")} value={formatKm(plan.distanceKm)} />
@@ -429,6 +487,57 @@ function Result({ plan }: { plan: PlanResult }) {
         <p className="text-xs text-neutral-500 dark:text-neutral-400">
           {t("result.lowArrivalHint")}
         </p>
+      )}
+      <div className="rounded-xl border border-neutral-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-900">
+        <p className="text-xs text-neutral-500 dark:text-neutral-400">
+          Tesla Supercharger entlang der Route
+        </p>
+        <p className="mt-0.5 text-xl font-semibold tabular-nums text-neutral-900 dark:text-neutral-100">
+          {plan.chargingSiteCount}
+        </p>
+      </div>
+
+      {plan.recommendedChargingStop && (
+        <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 dark:border-amber-700 dark:bg-amber-950/30">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-amber-700 dark:text-amber-400">
+                Empfohlener Ladestopp
+              </p>
+              <p className="mt-1 text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+                {plan.recommendedChargingStop.name}
+              </p>
+            </div>
+
+            <div className="rounded-full bg-amber-500 px-3 py-1 text-sm font-semibold text-white">
+              ca. {plan.recommendedChargingStop.chargingMinutes} min
+            </div>
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <Metric
+              label="nach Start"
+              value={`${Math.round(plan.recommendedChargingStop.routeDistanceKm)} km`}
+            />
+            <Metric
+              label="Ankunft"
+              value={`${Math.round(plan.recommendedChargingStop.arrivalSoc)} %`}
+            />
+            <Metric
+              label="Weiterfahrt"
+              value={`${Math.round(plan.recommendedChargingStop.departureSoc)} %`}
+            />
+            <Metric
+              label="Nachladen"
+              value={`${plan.recommendedChargingStop.energyAddedKwh.toFixed(1)} kWh`}
+            />
+          </div>
+
+          <p className="mt-3 text-xs text-neutral-600 dark:text-neutral-400">
+            Berechnet für eine Zielreserve von 20 % und mindestens 10 % bei
+            Ankunft am Schnelllader.
+          </p>
+        </div>
       )}
 
       <Assumptions plan={plan} />

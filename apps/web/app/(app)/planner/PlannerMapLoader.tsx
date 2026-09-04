@@ -15,10 +15,28 @@ const PlannerMap = dynamic(
   },
 );
 
+export interface PlannerMapChargingSite {
+  id: string;
+  name: string;
+  lat: number;
+  lon: number;
+  stalls: number | null;
+}
+
 export function PlannerMapLoader({
   geometry,
+  chargingSites,
+  recommendedChargingStop,
 }: {
   geometry: [number, number][];
+  chargingSites: PlannerMapChargingSite[];
+  recommendedChargingStop: PlannerMapChargingSite | null;
 }) {
-  return <PlannerMap geometry={geometry} />;
+  return (
+    <PlannerMap
+      geometry={geometry}
+      chargingSites={chargingSites}
+      recommendedChargingStop={recommendedChargingStop}
+    />
+  );
 }

@@ -24,6 +24,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Improved monthly PDF pagination and report layout.
 - Improved Insights chart readability and scatter-chart legends.
+- Updated README documentation for monthly logbook sealing and revision history.
+- Updated demo documentation to reflect current DriveChronik features.
+- Removed the obsolete CONTRIBUTING.md reference.
+- Clarified project copyright and attribution for the DriveChronik continuation.
 
 ## [0.1.1] - 2026-07-08
 

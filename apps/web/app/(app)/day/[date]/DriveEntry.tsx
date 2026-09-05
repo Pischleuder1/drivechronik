@@ -11,6 +11,10 @@ import {
 } from "@drivechronik/core";
 import type { DriveRow } from "../../../../lib/queries";
 import type { Classification } from "../../../../lib/classification";
+import {
+  calendarDayNumber,
+  isLogbookComplete,
+} from "../../../../lib/logbookCompletion";
 import { TagChip } from "../../../../components/TagChip";
 import {
   SelectionCheckbox,
@@ -20,23 +24,6 @@ import { QuickClassify } from "./QuickClassify";
 
 function isActive(start: Date, end: Date | null, now: number): boolean {
   return start.getTime() <= now && (end === null || end.getTime() > now);
-}
-
-const DAY_MS = 24 * 60 * 60 * 1000;
-
-function calendarDayNumber(date: Date, timeZone: string): number {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(date);
-
-  const year = Number(parts.find((part) => part.type === "year")?.value);
-  const month = Number(parts.find((part) => part.type === "month")?.value);
-  const day = Number(parts.find((part) => part.type === "day")?.value);
-
-  return Math.floor(Date.UTC(year, month - 1, day) / DAY_MS);
 }
 
 /** Inner card content (time, route, metrics, tags) — shared by both modes. */
@@ -64,11 +51,10 @@ function DriveBody({
   );
   const inProgress = row.endTime === null;
 
-  const classificationComplete = row.classification !== "unclassified";
-  const purposeComplete = (row.purpose?.trim().length ?? 0) > 0;
-  const logbookComplete =
-    classificationComplete &&
-    (row.classification !== "business" || purposeComplete);
+  const logbookComplete = isLogbookComplete(
+    row.classification,
+    row.purpose,
+  );
 
   const daysSinceEnd =
     row.endTime != null
@@ -125,15 +111,19 @@ function DriveBody({
       {!inProgress && (
         <p
           className={
-            logbookComplete
-              ? "mt-2 text-xs font-medium text-emerald-700 dark:text-emerald-400"
-              : deadlineExceeded
+            row.completedLate
+              ? "mt-2 text-xs font-medium text-amber-700 dark:text-amber-400"
+              : logbookComplete
+                ? "mt-2 text-xs font-medium text-emerald-700 dark:text-emerald-400"
+                : deadlineExceeded
                 ? "mt-2 text-xs font-medium text-red-700 dark:text-red-400"
                 : "mt-2 text-xs font-medium text-amber-700 dark:text-amber-400"
           }
         >
           {logbookComplete
-            ? t("logbookStatus.complete")
+            ? row.completedLate
+              ? t("logbookStatus.completeLate")
+              : t("logbookStatus.complete")
             : deadlineExceeded
               ? row.classification === "unclassified"
                 ? t("logbookStatus.overdueClassification")

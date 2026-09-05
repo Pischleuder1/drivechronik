@@ -29,6 +29,7 @@
     "pendingClassification": "Classification missing · {days, plural, one {# calendar day} other {# calendar days}} remaining",
     "pendingPurpose": "Purpose missing · {days, plural, one {# calendar day} other {# calendar days}} remaining",
     "overdueClassification": "Classification missing · completion period exceeded",
-    "overduePurpose": "Purpose missing · completion period exceeded"
+    "overduePurpose": "Purpose missing · completion period exceeded",
+    "completeLate": "✓ Complete · completed late"
   }
 }

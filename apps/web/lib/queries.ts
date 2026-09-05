@@ -14,6 +14,8 @@ import {
 } from "@drivechronik/db";
 import { db } from "./db";
 import { dayBounds } from "./day";
+import { APP_TIMEZONE } from "./config";
+import { detectLateLogbookCompletion } from "./logbookCompletion";
 
 export interface Vehicle {
   id: number;
@@ -94,6 +96,7 @@ export interface DriveRow {
   durationSeconds: number | null;
   classification: "unclassified" | "private" | "business" | "commute";
   purpose: string | null;
+  completedLate: boolean;
   consumedEnergyKwh: number | null;
   avgConsumptionWhKm: number | null;
   energyIsEstimated: boolean;
@@ -194,7 +197,47 @@ export async function getDayTimeline(
     if (d.endPlaceId != null) placeIds.add(d.endPlaceId);
   }
   const placeNameById = await loadPlaceNames([...placeIds]);
-  const tagsByDriveId = await loadTagsForDrives(driveRows.map((d) => d.id));
+  const driveIds = driveRows.map((d) => d.id);
+  const tagsByDriveId = await loadTagsForDrives(driveIds);
+
+  const driveAuditRows =
+    driveIds.length > 0
+      ? await db
+          .select({
+            entityId: auditLog.entityId,
+            id: auditLog.id,
+            field: auditLog.field,
+            oldValue: auditLog.oldValue,
+            newValue: auditLog.newValue,
+            changedAt: auditLog.changedAt,
+          })
+          .from(auditLog)
+          .where(
+            and(
+              eq(auditLog.entityType, "drive"),
+              inArray(auditLog.entityId, driveIds),
+              inArray(auditLog.field, ["classification", "purpose"]),
+            ),
+          )
+          .orderBy(asc(auditLog.changedAt), asc(auditLog.id))
+      : [];
+
+  const auditByDriveId = new Map<
+    number,
+    Array<{
+      id: number;
+      field: string;
+      oldValue: string | null;
+      newValue: string | null;
+      changedAt: Date;
+    }>
+  >();
+
+  for (const entry of driveAuditRows) {
+    const entries = auditByDriveId.get(entry.entityId) ?? [];
+    entries.push(entry);
+    auditByDriveId.set(entry.entityId, entries);
+  }
 
   const drivesOut: DriveRow[] = driveRows.map((d) => ({
     id: d.id,
@@ -204,6 +247,13 @@ export async function getDayTimeline(
     durationSeconds: d.durationSeconds,
     classification: d.classification,
     purpose: d.purpose,
+    completedLate: detectLateLogbookCompletion({
+      classification: d.classification,
+      purpose: d.purpose,
+      endTime: d.endTime,
+      auditEntries: auditByDriveId.get(d.id) ?? [],
+      timeZone: APP_TIMEZONE,
+    }),
     consumedEnergyKwh: d.consumedEnergyKwh,
     avgConsumptionWhKm: d.avgConsumptionWhKm,
     energyIsEstimated: d.energyIsEstimated,

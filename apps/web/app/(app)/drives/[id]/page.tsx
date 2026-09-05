@@ -30,6 +30,11 @@ import {
   CLASSIFICATION_BADGE,
   type Classification,
 } from "../../../../lib/classification";
+import {
+  calendarDayNumber,
+  detectLateLogbookCompletion,
+  isLogbookComplete,
+} from "../../../../lib/logbookCompletion";
 import { buttonClasses } from "../../../../components/ui/Button";
 import { AnnotationForm } from "./AnnotationForm";
 import { TagManager } from "./TagManager";
@@ -42,23 +47,6 @@ import { DriveChart } from "./DriveChart";
 // (die Chart-Komponente wendet dieselbe Schwelle intern an); darunter zeigen wir
 // den Hintergrund-Hinweis und das Chart fällt auf SoC/Tempo zurück.
 const MIN_ELEVATION_COVERAGE = 0.6;
-
-const DAY_MS = 24 * 60 * 60 * 1000;
-
-function calendarDayNumber(date: Date, timeZone: string): number {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(date);
-
-  const year = Number(parts.find((part) => part.type === "year")?.value);
-  const month = Number(parts.find((part) => part.type === "month")?.value);
-  const day = Number(parts.find((part) => part.type === "day")?.value);
-
-  return Math.floor(Date.UTC(year, month - 1, day) / DAY_MS);
-}
 
 export const dynamic = "force-dynamic";
 
@@ -134,14 +122,14 @@ export default async function DriveDetailPage({
 
   const isClosed = drive.endTime != null;
   const classificationComplete = classification !== "unclassified";
-  const purposeComplete = (drive.purpose?.trim().length ?? 0) > 0;
   const customerMissing =
     classification === "business" &&
     (drive.customer?.trim().length ?? 0) === 0;
 
-  const logbookComplete =
-    classificationComplete &&
-    (classification !== "business" || purposeComplete);
+  const logbookComplete = isLogbookComplete(
+    classification,
+    drive.purpose,
+  );
 
   const daysSinceEnd =
     drive.endTime != null
@@ -155,62 +143,13 @@ export default async function DriveDetailPage({
   const daysRemaining = Math.max(0, 7 - daysSinceEnd);
   const deadlineExceeded = isClosed && daysSinceEnd > 7;
 
-  // Reconstruct classification/purpose changes chronologically. We only flag
-  // late completion when the audit history proves that an incomplete drive
-  // became complete after the seven-calendar-day period.
-  const chronologicalAudit = [...auditEntries].sort(
-    (a, b) =>
-      a.changedAt.getTime() - b.changedAt.getTime() || a.id - b.id,
-  );
-
-  const firstClassificationChange = chronologicalAudit.find(
-    (entry) => entry.field === "classification",
-  );
-  const firstPurposeChange = chronologicalAudit.find(
-    (entry) => entry.field === "purpose",
-  );
-
-  let historicClassification =
-    (firstClassificationChange?.oldValue as Classification | null) ??
-    classification;
-  let historicPurpose =
-    firstPurposeChange != null
-      ? firstPurposeChange.oldValue
-      : drive.purpose;
-
-  const historicComplete = () =>
-    historicClassification !== "unclassified" &&
-    (historicClassification !== "business" ||
-      (historicPurpose?.trim().length ?? 0) > 0);
-
-  let completionChangedAt: Date | null = null;
-  const initiallyComplete = historicComplete();
-  let wasComplete = initiallyComplete;
-
-  for (const entry of chronologicalAudit) {
-    if (entry.field === "classification" && entry.newValue != null) {
-      historicClassification = entry.newValue as Classification;
-    } else if (entry.field === "purpose") {
-      historicPurpose = entry.newValue;
-    } else {
-      continue;
-    }
-
-    const isCompleteAfterChange = historicComplete();
-    if (!wasComplete && isCompleteAfterChange && completionChangedAt == null) {
-      completionChangedAt = entry.changedAt;
-    }
-    wasComplete = isCompleteAfterChange;
-  }
-
-  const completedLate =
-    isClosed &&
-    logbookComplete &&
-    !initiallyComplete &&
-    completionChangedAt != null &&
-    calendarDayNumber(completionChangedAt, APP_TIMEZONE) -
-      calendarDayNumber(drive.endTime!, APP_TIMEZONE) >
-      7;
+  const completedLate = detectLateLogbookCompletion({
+    classification,
+    purpose: drive.purpose,
+    endTime: drive.endTime,
+    auditEntries,
+    timeZone: APP_TIMEZONE,
+  });
 
   const gpsCoveragePercent =
     drive.durationSeconds != null &&

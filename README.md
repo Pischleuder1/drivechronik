@@ -30,6 +30,7 @@ Tessie & Co. sind gut, aber: Abo-Kosten, Feature-Überschneidung mit der Tesla-A
 - **Bulk-Bearbeitung** — viele Fahrten auf einmal auswählen und klassifizieren/taggen, in Tagesansicht und Suche
 - **Orte** — Geofences mit Karten-Picker und Adresssuche (OSM/Nominatim); manuelle Korrekturen mit Lock, die jeden Re-Sync überleben
 - **Kalender, Suche, Reports** — Monatsgrid mit Fahrt-Intensität; Volltextsuche über Orte/Kunden/Projekte/Tags mit Filtern; Monatsreports mit CSV-/PDF-Export (Fahrtenbuch-Stil)
+- **Monatsabschluss & Revisionshistorie** — vergangene Monate können nach Vollständigkeitsprüfung abgeschlossen werden. Jeder Abschluss erhält eine Revision mit unveränderlichem Snapshot, Fahrer-/Fahrzeugidentität sowie Content-, Seal- und Audit-Hash; spätere Änderungen bleiben erlaubt und führen beim erneuten Abschluss zu einer neuen Revision.
 
 **Fahrt- & Lade-Analytics**
 - **Fahrt-Detail** — Route auf der Karte, kombinierter Verlaufs-Chart (Höhe/SoC/Tempo), Temperaturen, Max-Speed/-Leistung/Rekuperation, historisches Wetter zur Fahrtzeit, GPX-Export
@@ -200,6 +201,8 @@ Das baut `apps/web`, `apps/worker` und den eingebetteten `supercharge-compass`-D
 
 Beim ersten Start wird ein Admin-Account bootstrapped. Optional vorab ein Passwort über `INITIAL_ADMIN_PASSWORD` in `.env` setzen — sonst wird beim ersten Login-Flow eines gesetzt (mit Passwort-Wiederholung).
 
+Für vollständige Monats- und Fahrtenbuchberichte sollten anschließend in den Einstellungen der Fahrername und beim Fahrzeug das Kennzeichen gepflegt werden. Diese Angaben werden beim Monatsabschluss in der jeweiligen Revision historisch mitgesichert.
+
 `INITIAL_ADMIN_PASSWORD` wird ausschließlich verwendet, solange noch kein Benutzer existiert. Nach erfolgreicher Erstanmeldung sollte der Wert aus `.env` entfernt und der Web-Container neu gestartet werden, damit das Initialpasswort nicht dauerhaft in der Container-Umgebung verbleibt.
 
 ### 5. HTTPS / Fernzugriff
@@ -228,6 +231,15 @@ docker compose ps -a
 ```
 
 `db`, `web`, `worker` und `supercharge-compass` sollten laufen bzw. `healthy` sein. Der `migrate`-Service muss nach erfolgreicher Migration mit `Exited (0)` beendet sein.
+
+### Monatsberichte und Monatsabschluss
+
+DriveChronik unterscheidet zwischen zwei Berichtstypen:
+
+- **Normaler Monatsreport** — aktueller, filterbarer Bericht mit CSV-/PDF-Export und optionaler Kilometererstattung für geschäftliche Fahrten.
+- **Abgeschlossener Monatsbericht** — historisch reproduzierbare Revision mit allen Fahrten des Monats, Fahrer- und Fahrzeugidentität sowie Integritätsnachweis über Content-, Seal- und Audit-Hash. Änderungen nach einem Abschluss bleiben möglich, werden nachvollziehbar protokolliert und können durch einen neuen Abschluss als nächste Revision festgehalten werden.
+
+Der Abschluss ist ein manipulationserschwerender und nachvollziehbarer Anwendungsmechanismus, keine behördliche Zertifizierung oder Garantie einer steuerlichen Anerkennung.
 
 ### Backup & Restore
 

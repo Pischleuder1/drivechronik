@@ -1,4 +1,5 @@
 import Link from "next/link";
+import webPackage from "../../../package.json";
 import { getLocale, getTranslations } from "next-intl/server";
 import { ChevronRight, Wand2 } from "lucide-react";
 import { getBusinessReimbursementRateEurPerKm, getDriverName } from "../../../lib/appSettings";
@@ -257,6 +258,9 @@ export default async function SettingsPage() {
       <div className="mt-8 border-t border-neutral-200 pt-6 dark:border-neutral-800">
         <LogoutButton />
       </div>
+      <p className="mt-6 text-center text-xs text-neutral-400 dark:text-neutral-600">
+        DriveChronik {webPackage.version}
+      </p>
     </div>
   );
 }

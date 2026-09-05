@@ -356,4 +356,7 @@ Idempotent (mehrfacher Lauf unschädlich), kollidiert nicht mit TeslaMate-Daten.
 
 ## Lizenz
 
-[AGPL-3.0](LICENSE) © 2026 Jan Schultheiss
+[AGPL-3.0](LICENSE)
+
+Basiert auf Tripatlas v0.1.1 © 2026 Jan Schultheiss.  
+DriveChronik Weiterentwicklung © 2026 Pischleuder1.

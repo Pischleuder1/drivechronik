@@ -350,7 +350,7 @@ Idempotent (mehrfacher Lauf unschädlich), kollidiert nicht mit TeslaMate-Daten.
 
 ## Mitmachen & Sicherheit
 
-- Beiträge: [CONTRIBUTING.md](CONTRIBUTING.md) · Issues gerne auf Deutsch oder Englisch
+- Issues gerne auf Deutsch oder Englisch
 - Sicherheitslücken bitte privat melden: [SECURITY.md](SECURITY.md)
 - Änderungen: [CHANGELOG.md](CHANGELOG.md)
 

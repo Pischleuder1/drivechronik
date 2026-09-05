@@ -129,8 +129,10 @@ export function buildMonthReport(
   const businessApplicable =
     allowed === null || allowed.has("business");
 
+  // Der Abrechnungswert wird auf dieselbe Kilometerpräzision gerundet,
+  // die auch im Report sichtbar ist.
   const businessDistanceKm =
-    byClassification.business.distanceKm;
+    Math.round(byClassification.business.distanceKm * 10) / 10;
 
   const businessReimbursement: BusinessReimbursement = {
     applicable: businessApplicable,

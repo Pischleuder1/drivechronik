@@ -33,6 +33,9 @@ export interface ReportDrive {
 
 export interface ReportMeta {
   vehicleName: string;
+  driverName: string;
+  licensePlate: string | null;
+  vehicleVin: string | null;
   generatedAt: Date;
   timeZone: string;
 }

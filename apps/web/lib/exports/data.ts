@@ -6,6 +6,7 @@ import { resolvePlaceLabel, type Classification, type ReportDrive, type ReportMe
 import { db } from "../db";
 import { dayBounds } from "../day";
 import { APP_TIMEZONE } from "../config";
+import { getDriverName } from "../appSettings";
 import { loadTagNamesForDrives } from "./tags";
 import type { GpxTrack } from "./gpx";
 
@@ -17,12 +18,22 @@ import type { GpxTrack } from "./gpx";
 export async function loadMeta(vehicleId?: number): Promise<ReportMeta & { vehicleId: number }> {
   const rows = vehicleId != null
     ? await db
-        .select({ id: vehicles.id, displayName: vehicles.displayName })
+        .select({
+          id: vehicles.id,
+          displayName: vehicles.displayName,
+          licensePlate: vehicles.licensePlate,
+          vin: vehicles.vin,
+        })
         .from(vehicles)
         .where(eq(vehicles.id, vehicleId))
         .limit(1)
     : await db
-        .select({ id: vehicles.id, displayName: vehicles.displayName })
+        .select({
+          id: vehicles.id,
+          displayName: vehicles.displayName,
+          licensePlate: vehicles.licensePlate,
+          vin: vehicles.vin,
+        })
         .from(vehicles)
         .orderBy(asc(vehicles.id))
         .limit(1);
@@ -33,9 +44,14 @@ export async function loadMeta(vehicleId?: number): Promise<ReportMeta & { vehic
     throw new Error(t("errors.noVehicle"));
   }
 
+  const driverName = await getDriverName();
+
   return {
     vehicleId: vehicle.id,
     vehicleName: vehicle.displayName,
+    driverName,
+    licensePlate: vehicle.licensePlate,
+    vehicleVin: vehicle.vin,
     timeZone: APP_TIMEZONE,
     generatedAt: new Date(),
   };

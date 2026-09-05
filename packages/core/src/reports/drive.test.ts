@@ -4,6 +4,9 @@ import type { ReportDrive, ReportMeta } from "./types.js";
 
 const meta: ReportMeta = {
   vehicleName: "Model 3",
+  driverName: "Testfahrer",
+  licensePlate: "TEST-DC 1",
+  vehicleVin: "TESTVIN000000001",
   generatedAt: new Date("2026-02-02T12:00:00Z"),
   timeZone: "Europe/Berlin",
 };

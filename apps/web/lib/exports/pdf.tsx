@@ -195,7 +195,9 @@ export function buildPdfLabels(t: Translator, tCommon: Translator, locale = "de"
 
 const styles = StyleSheet.create({
   page: {
-    padding: 32,
+    paddingTop: 32,
+    paddingHorizontal: 32,
+    paddingBottom: 48,
     fontSize: 9,
     fontFamily: "Helvetica",
     color: "#1a1a1a",
@@ -209,6 +211,25 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: "#555555",
     marginBottom: 16,
+  },
+  identityBox: {
+    marginBottom: 12,
+    paddingVertical: 7,
+    paddingHorizontal: 9,
+    border: "0.5pt solid #cccccc",
+    borderRadius: 3,
+    backgroundColor: "#fafafa",
+  },
+  identityRow: {
+    flexDirection: "row",
+    marginBottom: 2,
+  },
+  identityLabel: {
+    width: 70,
+    fontWeight: 700,
+  },
+  identityValue: {
+    flexGrow: 1,
   },
   table: {
     display: "flex",
@@ -321,16 +342,30 @@ function Footer({
   hasEstimated?: boolean;
 }) {
   return (
-    <Text style={styles.footer} fixed>
-      {labels.footer(formatGeneratedAt(meta.generatedAt, meta.timeZone))}
-      {hasEstimated ? `  —  ${labels.footerEstimatedSuffix}` : ""}
-    </Text>
+    <Text
+      style={styles.footer}
+      fixed
+      render={({ pageNumber, totalPages }) =>
+        labels.footer(formatGeneratedAt(meta.generatedAt, meta.timeZone)) +
+        (hasEstimated ? " — " + labels.footerEstimatedSuffix : "") +
+        " · " +
+        pageNumber +
+        " / " +
+        totalPages
+      }
+    />
   );
 }
 
-function DriveTableHeader({ labels }: { labels: PdfLabels }) {
+function DriveTableHeader({
+  labels,
+  repeat = false,
+}: {
+  labels: PdfLabels;
+  repeat?: boolean;
+}) {
   return (
-    <View style={styles.tableHeaderRow}>
+    <View style={styles.tableHeaderRow} fixed={repeat}>
       <Text style={[styles.headerCell, { width: COLS.date }]}>{labels.driveHeaders.date}</Text>
       <Text style={[styles.headerCell, { width: COLS.start }]}>{labels.driveHeaders.start}</Text>
       <Text style={[styles.headerCell, { width: COLS.end }]}>{labels.driveHeaders.end}</Text>
@@ -562,16 +597,49 @@ export function MonthPdf({ report, labels }: { report: MonthReport; labels: PdfL
     <Document>
       <Page size="A4" orientation="landscape" style={styles.page}>
         <Text style={styles.header}>{labels.month.title(monthLabel)}</Text>
-        <Text style={styles.subHeader}>{report.meta.vehicleName}</Text>
+
+        <View style={styles.identityBox} wrap={false}>
+          <View style={styles.identityRow}>
+            <Text style={styles.identityLabel}>Fahrer</Text>
+            <Text style={styles.identityValue}>
+              {report.meta.driverName || "–"}
+            </Text>
+          </View>
+
+          <View style={styles.identityRow}>
+            <Text style={styles.identityLabel}>Fahrzeug</Text>
+            <Text style={styles.identityValue}>
+              {report.meta.vehicleName}
+            </Text>
+          </View>
+
+          {report.meta.licensePlate && (
+            <View style={styles.identityRow}>
+              <Text style={styles.identityLabel}>Kennzeichen</Text>
+              <Text style={styles.identityValue}>
+                {report.meta.licensePlate}
+              </Text>
+            </View>
+          )}
+
+          {report.meta.vehicleVin && (
+            <View style={styles.identityRow}>
+              <Text style={styles.identityLabel}>VIN</Text>
+              <Text style={styles.identityValue}>
+                {report.meta.vehicleVin}
+              </Text>
+            </View>
+          )}
+        </View>
 
         <View style={styles.table}>
-          <DriveTableHeader labels={labels} />
+          <DriveTableHeader labels={labels} repeat />
           {report.rows.map((row) => (
             <DriveTableRow key={row.id} row={row} timeZone={report.meta.timeZone} labels={labels} />
           ))}
         </View>
 
-        <View style={styles.totalsBox}>
+        <View style={styles.totalsBox} wrap={false}>
           <Text style={styles.totalsTitle}>{labels.month.sumByClassification}</Text>
           {Object.values(report.byClassification)
             .filter((bucket) => bucket.driveCount > 0)
@@ -590,7 +658,7 @@ export function MonthPdf({ report, labels }: { report: MonthReport; labels: PdfL
         </View>
 
         {report.businessReimbursement.applicable && (
-          <View style={styles.totalsBox}>
+          <View style={styles.totalsBox} wrap={false}>
             <Text style={styles.totalsTitle}>
               {labels.month.reimbursementTitle}
             </Text>

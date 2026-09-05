@@ -4,6 +4,8 @@ Die Demo ermöglicht es, DriveChronik ohne Tesla und ohne bestehende TeslaMate-I
 
 Sie verwendet ausschließlich synthetische Testdaten.
 
+Der Demo-Datensatz enthält mehrere Wochen synthetische Fahrten, Ladevorgänge und Orte. Damit lassen sich neben Kalender, Fahrtdetails, Reports und Auswertungen auch Klassifizierung, Regeln sowie Monatsabschluss und Revisionshistorie gefahrlos ausprobieren.
+
 ## Start
 
 ```bash

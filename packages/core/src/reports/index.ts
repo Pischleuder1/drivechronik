@@ -5,3 +5,5 @@ export * from "./day.js";
 export * from "./month.js";
 
 export * from "./year.js";
+
+export * from "./monthSeal.js";

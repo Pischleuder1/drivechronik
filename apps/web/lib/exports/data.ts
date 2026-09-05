@@ -256,7 +256,7 @@ export async function loadBusinessYearReportData(
 
 export interface MonthExportData {
   drives: ReportDrive[];
-  meta: ReportMeta;
+  meta: ReportMeta & { vehicleId: number };
 }
 
 /**
@@ -267,9 +267,10 @@ export interface MonthExportData {
 export async function loadMonthReportData(
   month: string,
   classifications?: Classification[],
+  vehicleId?: number,
 ): Promise<MonthExportData> {
   const { start, end } = monthBounds(month);
-  const meta = await loadMeta();
+  const meta = await loadMeta(vehicleId);
 
   const conditions = [
     eq(drives.vehicleId, meta.vehicleId),

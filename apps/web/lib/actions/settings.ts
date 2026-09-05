@@ -3,9 +3,10 @@ import { revalidatePath } from "next/cache";
 import { eq, and } from "drizzle-orm";
 import { z } from "zod";
 import { getTranslations } from "next-intl/server";
-import { appendAuditEntry, sessions, settings, syncState, users, vehicles } from "@drivechronik/db";
+import { appendAuditEntries, appendAuditEntry, sessions, settings, syncState, users, vehicles } from "@drivechronik/db";
 import {
   BUSINESS_REIMBURSEMENT_RATE_KEY,
+  DRIVER_NAME_KEY,
 } from "../appSettings";
 import {
   MAX_BUSINESS_REIMBURSEMENT_RATE_EUR_PER_KM,
@@ -226,3 +227,122 @@ export async function updateBusinessReimbursementRate(
 
   return { ok: true };
 }
+
+const reportIdentitySchema = z.object({
+  driverName: z.string().trim().max(120),
+  vehicleId: z.coerce.number().int().positive(),
+  licensePlate: z.string().trim().max(32),
+});
+
+export interface ReportIdentityResult {
+  ok: boolean;
+  error?: string;
+}
+
+export async function updateReportIdentity(
+  _prev: ReportIdentityResult,
+  formData: FormData,
+): Promise<ReportIdentityResult> {
+  const user = await validateSession();
+  const t = await getTranslations("settings");
+
+  if (!user) {
+    return { ok: false, error: t("errors.notAuthenticated") };
+  }
+
+  const parsed = reportIdentitySchema.safeParse({
+    driverName: formData.get("driverName") ?? "",
+    vehicleId: formData.get("vehicleId"),
+    licensePlate: formData.get("licensePlate") ?? "",
+  });
+
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.message ?? t("errors.invalidInput"),
+    };
+  }
+
+  await db.transaction(async (tx) => {
+    const [vehicleBefore, driverNameBefore] = await Promise.all([
+      tx
+        .select({ licensePlate: vehicles.licensePlate })
+        .from(vehicles)
+        .where(eq(vehicles.id, parsed.data.vehicleId))
+        .limit(1),
+      tx
+        .select({ value: settings.value })
+        .from(settings)
+        .where(eq(settings.key, DRIVER_NAME_KEY))
+        .limit(1),
+    ]);
+
+    if (!vehicleBefore[0]) {
+      throw new Error("Vehicle not found");
+    }
+
+    const oldDriverName =
+      typeof driverNameBefore[0]?.value === "string"
+        ? driverNameBefore[0].value
+        : null;
+
+    const newLicensePlate =
+      parsed.data.licensePlate.length > 0
+        ? parsed.data.licensePlate
+        : null;
+
+    await tx
+      .insert(settings)
+      .values({
+        key: DRIVER_NAME_KEY,
+        value: parsed.data.driverName,
+      })
+      .onConflictDoUpdate({
+        target: settings.key,
+        set: {
+          value: parsed.data.driverName,
+          updatedAt: new Date(),
+        },
+      });
+
+    await tx
+      .update(vehicles)
+      .set({
+        licensePlate: newLicensePlate,
+        updatedAt: new Date(),
+      })
+      .where(eq(vehicles.id, parsed.data.vehicleId));
+
+    const auditEntries = [];
+
+    if (oldDriverName !== parsed.data.driverName) {
+      auditEntries.push({
+        entityType: "user",
+        entityId: user.id,
+        field: "driver_name",
+        oldValue: oldDriverName,
+        newValue: parsed.data.driverName,
+        changedBy: user.username,
+      });
+    }
+
+    if (vehicleBefore[0].licensePlate !== newLicensePlate) {
+      auditEntries.push({
+        entityType: "vehicle",
+        entityId: parsed.data.vehicleId,
+        field: "license_plate",
+        oldValue: vehicleBefore[0].licensePlate,
+        newValue: newLicensePlate,
+        changedBy: user.username,
+      });
+    }
+
+    await appendAuditEntries(tx, auditEntries);
+  });
+
+  revalidatePath("/settings");
+  revalidatePath("/reports");
+
+  return { ok: true };
+}
+

@@ -16,6 +16,8 @@ import { ReportFilters } from "./ReportFilters";
 
 import { NoVehicleState } from "../../../components/NoVehicleState";
 import { getVehicles } from "../../../lib/queries";
+import { getMonthSealStatus } from "../../../lib/monthSealStatus";
+import { MonthSealCard } from "./MonthSealCard";
 
 export const dynamic = "force-dynamic";
 
@@ -106,6 +108,13 @@ export default async function ReportsPage({
     reimbursementRate,
   );
 
+  const monthSealStatus = await getMonthSealStatus(
+    month,
+    data.meta.vehicleId,
+  );
+
+  const canSeal = month < currentMonthInAppTz();
+
   const exportQuery = `?classification=${selected.join(",")}`;
 
   return (
@@ -144,6 +153,13 @@ export default async function ReportsPage({
           {t("exportPdf")}
         </a>
       </div>
+
+      <MonthSealCard
+        month={month}
+        vehicleId={data.meta.vehicleId}
+        status={monthSealStatus}
+        canSeal={canSeal}
+      />
 
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
         {ALL_CLASSIFICATIONS.filter((c) => selected.includes(c)).map((c) => {

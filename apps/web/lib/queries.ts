@@ -35,6 +35,7 @@ export interface VehicleDetail {
   displayName: string;
   model: string | null;
   vin: string | null;
+  licensePlate: string | null;
   efficiencyKwhPerKm: number | null;
   efficiencyOverrideKwhPerKm: number | null;
 }
@@ -47,6 +48,7 @@ export async function getVehiclesDetailed(): Promise<VehicleDetail[]> {
       displayName: vehicles.displayName,
       model: vehicles.model,
       vin: vehicles.vin,
+      licensePlate: vehicles.licensePlate,
       efficiencyKwhPerKm: vehicles.efficiencyKwhPerKm,
       efficiencyOverrideKwhPerKm: vehicles.efficiencyOverrideKwhPerKm,
     })

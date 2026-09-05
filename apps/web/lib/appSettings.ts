@@ -25,3 +25,16 @@ export async function getBusinessReimbursementRateEurPerKm(): Promise<number> {
     DEFAULT_BUSINESS_REIMBURSEMENT_RATE_EUR_PER_KM
   );
 }
+
+export const DRIVER_NAME_KEY = "driver_name";
+
+export async function getDriverName(): Promise<string> {
+  const rows = await db
+    .select({ value: settings.value })
+    .from(settings)
+    .where(eq(settings.key, DRIVER_NAME_KEY))
+    .limit(1);
+
+  return typeof rows[0]?.value === "string" ? rows[0].value : "";
+}
+

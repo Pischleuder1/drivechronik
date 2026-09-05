@@ -59,6 +59,7 @@ export const vehicles = pgTable(
     vin: text("vin"),
     model: text("model"),
     trimBadging: text("trim_badging"),
+    licensePlate: text("license_plate"),
     efficiencyKwhPerKm: doublePrecision("efficiency_kwh_per_km"),
     // User-owned Fallback (Vision §15.3): greift nur solange TeslaMate die
     // Effizienz noch nicht aus Ladevorgängen gelernt hat. Sync fasst es nie an.
@@ -479,6 +480,50 @@ export const auditLog = pgTable(
     metadata: jsonb("metadata"),
   },
   (t) => [index("audit_log_entity_idx").on(t.entityType, t.entityId)],
+);
+
+export const monthSeals = pgTable(
+  "month_seals",
+  {
+    id: id(),
+
+    vehicleId: bigint("vehicle_id", { mode: "number" })
+      .notNull()
+      .references(() => vehicles.id),
+
+    month: text("month").notNull(),
+    revision: integer("revision").notNull(),
+
+    // Identität zum Zeitpunkt des Abschlusses.
+    // Spätere Änderungen an Fahrer/Fahrzeug verändern alte Abschlüsse nicht.
+    driverName: text("driver_name").notNull(),
+    licensePlate: text("license_plate"),
+    vehicleDisplayName: text("vehicle_display_name").notNull(),
+    vehicleVin: text("vehicle_vin"),
+
+    // Zusammenfassung des tatsächlich versiegelten Monatsinhalts.
+    driveCount: integer("drive_count").notNull(),
+    distanceKm: doublePrecision("distance_km").notNull(),
+
+    // Audit-Stand und kryptografische Fingerabdrücke des Abschlusses.
+    lastAuditHash: text("last_audit_hash"),
+    contentHash: text("content_hash").notNull(),
+    sealHash: text("seal_hash").notNull(),
+
+    sealedAt: timestamp("sealed_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    sealedBy: text("sealed_by").notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique("month_seals_vehicle_month_revision_uq").on(
+      t.vehicleId,
+      t.month,
+      t.revision,
+    ),
+    index("month_seals_vehicle_month_idx").on(t.vehicleId, t.month),
+  ],
 );
 
 export const syncState = pgTable(

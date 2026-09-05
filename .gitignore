@@ -15,3 +15,9 @@ docs/tff-post-entwurf.md
 
 # Local PostgreSQL backups
 backups/
+
+# Local cryptographic keys
+secrets/
+
+# Exported month seal proof files
+fahrtenbuch-*-proof*.json

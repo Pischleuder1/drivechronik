@@ -26,6 +26,8 @@ export type LoadSealedMonthResult =
       drives: ReturnType<
         typeof import("@drivechronik/core")["monthSealContentToReportDrives"]
       >;
+      signatureStatus: "unsigned" | "valid";
+      signingKeyId: string | null;
     }
   | {
       ok: false;
@@ -54,6 +56,9 @@ export async function loadSealedMonth(
       contentHash: monthSeals.contentHash,
       snapshot: monthSeals.snapshot,
       sealHash: monthSeals.sealHash,
+      signatureAlgorithm: monthSeals.signatureAlgorithm,
+      signature: monthSeals.signature,
+      signingPublicKey: monthSeals.signingPublicKey,
       sealedAt: monthSeals.sealedAt,
       sealedBy: monthSeals.sealedBy,
     })
@@ -87,5 +92,7 @@ export async function loadSealedMonth(
     row,
     content: verification.content,
     drives: verification.drives,
+    signatureStatus: verification.signatureStatus,
+    signingKeyId: verification.signingKeyId,
   };
 }

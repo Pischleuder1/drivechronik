@@ -1,3 +1,5 @@
+import { generateKeyPairSync } from "node:crypto";
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -16,6 +18,7 @@ import {
   verifySealedMonthRow,
   type SealedMonthRow,
 } from "./sealedMonth";
+import { signMonthSealHash } from "./monthSealSignature";
 
 const identity: MonthSealIdentity = {
   vehicleId: 1,
@@ -87,6 +90,9 @@ function makeValidRow(): SealedMonthRow {
 
   return {
     ...base,
+    signatureAlgorithm: null,
+    signature: null,
+    signingPublicKey: null,
     sealHash: hashMonthSealPayload({
       version: 1,
       vehicleId: base.vehicleId,
@@ -106,6 +112,23 @@ function makeValidRow(): SealedMonthRow {
   };
 }
 
+function makeSignedRow(): SealedMonthRow {
+  const row = makeValidRow();
+  const { privateKey } = generateKeyPairSync("ed25519");
+  const privateKeyPem = privateKey.export({
+    format: "pem",
+    type: "pkcs8",
+  });
+
+  const signed = signMonthSealHash(row.sealHash, privateKeyPem);
+
+  row.signatureAlgorithm = signed.algorithm;
+  row.signature = signed.signature;
+  row.signingPublicKey = signed.publicKey;
+
+  return row;
+}
+
 describe("verifySealedMonthRow", () => {
   it("verifiziert eine vollständig gültige Revision", () => {
     const result = verifySealedMonthRow(makeValidRow());
@@ -116,7 +139,59 @@ describe("verifySealedMonthRow", () => {
       expect(result.content.month).toBe("2026-08");
       expect(result.drives).toHaveLength(1);
       expect(result.drives[0]!.purpose).toBe("Kundentermin");
+      expect(result.signatureStatus).toBe("unsigned");
+      expect(result.signingKeyId).toBeNull();
     }
+  });
+
+  it("verifiziert eine gültige Ed25519-Signatur", () => {
+    const result = verifySealedMonthRow(makeSignedRow());
+
+    expect(result.ok).toBe(true);
+
+    if (result.ok) {
+      expect(result.signatureStatus).toBe("valid");
+      expect(result.signingKeyId).toMatch(/^[0-9a-f]{64}$/);
+    }
+  });
+
+  it("erkennt eine manipulierte Signatur", () => {
+    const row = makeSignedRow();
+    row.signature = Buffer.from("ungueltige-signatur").toString("base64");
+
+    expect(verifySealedMonthRow(row)).toEqual({
+      ok: false,
+      error: "signature_invalid",
+    });
+  });
+
+  it("erkennt einen falschen öffentlichen Schlüssel", () => {
+    const row = makeSignedRow();
+    const { privateKey } = generateKeyPairSync("ed25519");
+    const other = signMonthSealHash(
+      row.sealHash,
+      privateKey.export({
+        format: "pem",
+        type: "pkcs8",
+      }),
+    );
+
+    row.signingPublicKey = other.publicKey;
+
+    expect(verifySealedMonthRow(row)).toEqual({
+      ok: false,
+      error: "signature_invalid",
+    });
+  });
+
+  it("erkennt unvollständige Signatur-Metadaten", () => {
+    const row = makeValidRow();
+    row.signatureAlgorithm = "ed25519";
+
+    expect(verifySealedMonthRow(row)).toEqual({
+      ok: false,
+      error: "signature_invalid",
+    });
   });
 
   it("erkennt einen fehlenden Snapshot", () => {

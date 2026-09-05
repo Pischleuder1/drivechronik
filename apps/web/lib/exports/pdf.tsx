@@ -596,6 +596,8 @@ export interface SealedMonthPdfMeta {
   contentHash: string;
   sealHash: string;
   lastAuditHash: string | null;
+  signatureStatus: "unsigned" | "valid";
+  signingKeyId: string | null;
 }
 
 function formatHash(value: string): string {
@@ -1030,6 +1032,34 @@ export function SealedMonthPdf({
               </Text>
             </View>
           )}
+
+          <View style={styles.identityRow}>
+            <Text style={styles.identityLabel}>
+              Digitale Signatur
+            </Text>
+            <Text style={styles.identityValue}>
+              {seal.signatureStatus === "valid"
+                ? "Gültig · Ed25519"
+                : "Nicht signiert · ältere Revision"}
+            </Text>
+          </View>
+
+          {seal.signatureStatus === "valid" &&
+            seal.signingKeyId && (
+              <View style={styles.identityRow}>
+                <Text style={styles.identityLabel}>
+                  Schlüssel-ID
+                </Text>
+                <Text
+                  style={[
+                    styles.identityValue,
+                    { fontSize: 6.5 },
+                  ]}
+                >
+                  {formatHash(seal.signingKeyId)}
+                </Text>
+              </View>
+            )}
         </View>
 
         <Footer

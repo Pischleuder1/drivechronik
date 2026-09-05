@@ -38,6 +38,8 @@ import {
   shouldCreateMonthSealRevision,
   type MonthSealPayload,
 } from "../monthSeal";
+import { loadMonthSealPrivateKey } from "../monthSealSigningKey";
+import { signMonthSealHash } from "../monthSealSignature";
 
 const sealMonthSchema = z.object({
   month: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/),
@@ -84,6 +86,30 @@ export async function sealMonth(
       ok: false,
       error:
         "Der aktuelle oder ein zukünftiger Monat kann noch nicht abgeschlossen werden.",
+    };
+  }
+
+  let privateKey: string;
+
+  try {
+    const loadedPrivateKey = await loadMonthSealPrivateKey();
+
+    if (!loadedPrivateKey) {
+      return {
+        ok: false,
+        error:
+          "Der Monatsabschluss kann nicht signiert werden: Es ist kein privater Signaturschlüssel konfiguriert.",
+      };
+    }
+
+    privateKey = loadedPrivateKey;
+  } catch (error) {
+    return {
+      ok: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Der private Signaturschlüssel konnte nicht geladen werden.",
     };
   }
 
@@ -329,6 +355,7 @@ export async function sealMonth(
       };
 
       const sealHash = hashMonthSealPayload(sealPayload);
+      const signedSeal = signMonthSealHash(sealHash, privateKey);
 
       const inserted = await tx
         .insert(monthSeals)
@@ -346,6 +373,9 @@ export async function sealMonth(
           contentHash: hashed.contentHash,
           snapshot: hashed.content,
           sealHash,
+          signatureAlgorithm: signedSeal.algorithm,
+          signature: signedSeal.signature,
+          signingPublicKey: signedSeal.publicKey,
           sealedAt,
           sealedBy: user.username,
         })
@@ -372,6 +402,8 @@ export async function sealMonth(
           driveCount: hashed.driveCount,
           distanceKm: hashed.distanceKm,
           lastAuditHash,
+          signatureAlgorithm: signedSeal.algorithm,
+          signingKeyId: signedSeal.keyId,
         },
       });
 

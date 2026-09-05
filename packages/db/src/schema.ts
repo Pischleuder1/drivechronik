@@ -514,6 +514,9 @@ export const monthSeals = pgTable(
     snapshot: jsonb("snapshot"),
 
     sealHash: text("seal_hash").notNull(),
+    signatureAlgorithm: text("signature_algorithm"),
+    signature: text("signature"),
+    signingPublicKey: text("signing_public_key"),
 
     sealedAt: timestamp("sealed_at", { withTimezone: true })
       .notNull()

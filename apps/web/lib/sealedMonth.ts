@@ -12,6 +12,10 @@ import {
   verifyMonthSealHash,
   type MonthSealPayload,
 } from "./monthSeal";
+import {
+  publicKeyFingerprint,
+  verifyMonthSealSignature,
+} from "./monthSealSignature";
 
 
 const classificationSchema = z.enum([
@@ -66,7 +70,8 @@ export type SealedMonthVerificationError =
   | "content_hash_mismatch"
   | "identity_mismatch"
   | "totals_mismatch"
-  | "seal_hash_mismatch";
+  | "seal_hash_mismatch"
+  | "signature_invalid";
 
 export interface SealedMonthRow {
   vehicleId: number;
@@ -82,6 +87,9 @@ export interface SealedMonthRow {
   contentHash: string;
   snapshot: unknown;
   sealHash: string;
+  signatureAlgorithm: string | null;
+  signature: string | null;
+  signingPublicKey: string | null;
   sealedAt: Date;
   sealedBy: string;
 }
@@ -91,6 +99,8 @@ export type VerifySealedMonthResult =
       ok: true;
       content: MonthSealContent;
       drives: ReturnType<typeof monthSealContentToReportDrives>;
+      signatureStatus: "unsigned" | "valid";
+      signingKeyId: string | null;
     }
   | {
       ok: false;
@@ -204,9 +214,49 @@ export function verifySealedMonthRow(
     };
   }
 
+  const signatureValues = [
+    row.signatureAlgorithm,
+    row.signature,
+    row.signingPublicKey,
+  ];
+
+  const hasAnySignatureData = signatureValues.some(
+    (value) => value != null,
+  );
+  const hasCompleteSignatureData = signatureValues.every(
+    (value) => value != null,
+  );
+
+  if (!hasAnySignatureData) {
+    return {
+      ok: true,
+      content,
+      drives: monthSealContentToReportDrives(content),
+      signatureStatus: "unsigned",
+      signingKeyId: null,
+    };
+  }
+
+  if (
+    !hasCompleteSignatureData ||
+    row.signatureAlgorithm !== "ed25519" ||
+    !verifyMonthSealSignature(
+      row.sealHash,
+      row.signature!,
+      row.signingPublicKey!,
+    )
+  ) {
+    return {
+      ok: false,
+      error: "signature_invalid",
+    };
+  }
+
   return {
     ok: true,
     content,
     drives: monthSealContentToReportDrives(content),
+    signatureStatus: "valid",
+    signingKeyId: publicKeyFingerprint(row.signingPublicKey!),
   };
 }

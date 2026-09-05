@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Ed25519 signatures for new monthly logbook seal revisions.
+- Signature status and signing-key fingerprint in sealed monthly PDF reports and revision history.
+- Portable JSON proof export for sealed monthly revisions.
+- Offline month-seal proof verifier for Content-Hash, Seal-Hash, signing-key fingerprint and Ed25519 signature.
+- Runtime private-key configuration with read-only web-container mounting.
+
+### Security
+
+- Monthly seal signatures bind the existing Seal-Hash cryptographically to an Ed25519 signing key.
+- Historical public keys are stored with each signed revision so signatures remain verifiable after later key rotation.
+- Private month-seal signing keys are excluded from Git and are not stored in the database, audit log or proof snapshot.
+
 ## [0.3.1] - 2026-09-05
 
 ### Added

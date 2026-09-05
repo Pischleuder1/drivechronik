@@ -7,6 +7,10 @@ import { monthSeals } from "@drivechronik/db";
 import { db } from "./db";
 import { loadMonthReportData } from "./exports/data";
 import { buildMonthSealHash } from "./monthSeal";
+import {
+  publicKeyFingerprint,
+  verifyMonthSealSignature,
+} from "./monthSealSignature";
 
 export type MonthSealState =
   | "unsealed"
@@ -39,6 +43,8 @@ export interface MonthSealHistoryEntry {
   driveCount: number;
   distanceKm: number;
   hasSnapshot: boolean;
+  signatureStatus: "unsigned" | "valid" | "invalid";
+  signingKeyId: string | null;
 }
 
 export async function getMonthSealHistory(
@@ -53,6 +59,10 @@ export async function getMonthSealHistory(
       driveCount: monthSeals.driveCount,
       distanceKm: monthSeals.distanceKm,
       snapshot: monthSeals.snapshot,
+      sealHash: monthSeals.sealHash,
+      signatureAlgorithm: monthSeals.signatureAlgorithm,
+      signature: monthSeals.signature,
+      signingPublicKey: monthSeals.signingPublicKey,
     })
     .from(monthSeals)
     .where(
@@ -63,14 +73,54 @@ export async function getMonthSealHistory(
     )
     .orderBy(desc(monthSeals.revision));
 
-  return rows.map((row) => ({
-    revision: row.revision,
-    sealedAt: row.sealedAt,
-    sealedBy: row.sealedBy,
-    driveCount: row.driveCount,
-    distanceKm: row.distanceKm,
-    hasSnapshot: row.snapshot != null,
-  }));
+  return rows.map((row) => {
+    const signatureValues = [
+      row.signatureAlgorithm,
+      row.signature,
+      row.signingPublicKey,
+    ];
+
+    const hasAnySignatureData = signatureValues.some(
+      (value) => value != null,
+    );
+    const hasCompleteSignatureData = signatureValues.every(
+      (value) => value != null,
+    );
+
+    let signatureStatus: "unsigned" | "valid" | "invalid" =
+      "unsigned";
+    let signingKeyId: string | null = null;
+
+    if (hasAnySignatureData) {
+      if (
+        hasCompleteSignatureData &&
+        row.signatureAlgorithm === "ed25519" &&
+        verifyMonthSealSignature(
+          row.sealHash,
+          row.signature!,
+          row.signingPublicKey!,
+        )
+      ) {
+        signatureStatus = "valid";
+        signingKeyId = publicKeyFingerprint(
+          row.signingPublicKey!,
+        );
+      } else {
+        signatureStatus = "invalid";
+      }
+    }
+
+    return {
+      revision: row.revision,
+      sealedAt: row.sealedAt,
+      sealedBy: row.sealedBy,
+      driveCount: row.driveCount,
+      distanceKm: row.distanceKm,
+      hasSnapshot: row.snapshot != null,
+      signatureStatus,
+      signingKeyId,
+    };
+  });
 }
 
 export async function getMonthSealStatus(

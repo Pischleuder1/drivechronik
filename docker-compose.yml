@@ -90,8 +90,10 @@ services:
       TESLAMATE_DATABASE_URL: ${TESLAMATE_DATABASE_URL:-}
       BACKUP_STATUS_FILE: /backup-status/backup-status.json
       IMPORT_STAGING_DIR: /import-staging
+      MONTH_SEAL_PRIVATE_KEY_FILE: /run/secrets/month-seal-ed25519-private.pem
       SUPERCHARGE_COMPASS_URL: http://supercharge-compass:3000
     volumes:
+      - ./secrets/month-seal-ed25519-private.pem:/run/secrets/month-seal-ed25519-private.pem:ro
       - ${BACKUP_DIR:-./backups}/status:/backup-status:ro
       - import-staging:/import-staging
     depends_on:

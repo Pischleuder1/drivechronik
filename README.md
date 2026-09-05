@@ -30,7 +30,7 @@ Tessie & Co. sind gut, aber: Abo-Kosten, Feature-Überschneidung mit der Tesla-A
 - **Bulk-Bearbeitung** — viele Fahrten auf einmal auswählen und klassifizieren/taggen, in Tagesansicht und Suche
 - **Orte** — Geofences mit Karten-Picker und Adresssuche (OSM/Nominatim); manuelle Korrekturen mit Lock, die jeden Re-Sync überleben
 - **Kalender, Suche, Reports** — Monatsgrid mit Fahrt-Intensität; Volltextsuche über Orte/Kunden/Projekte/Tags mit Filtern; Monatsreports mit CSV-/PDF-Export (Fahrtenbuch-Stil)
-- **Monatsabschluss & Revisionshistorie** — vergangene Monate können nach Vollständigkeitsprüfung abgeschlossen werden. Jeder Abschluss erhält eine Revision mit unveränderlichem Snapshot, Fahrer-/Fahrzeugidentität sowie Content-, Seal- und Audit-Hash; spätere Änderungen bleiben erlaubt und führen beim erneuten Abschluss zu einer neuen Revision.
+- **Monatsabschluss & Revisionshistorie** — vergangene Monate können nach Vollständigkeitsprüfung abgeschlossen werden. Jeder Abschluss erhält eine Revision mit unveränderlichem Snapshot, Fahrer-/Fahrzeugidentität sowie Content-, Seal- und Audit-Hash. Neue Revisionen werden mit Ed25519 digital signiert; Signaturstatus und Schlüssel-ID werden im Abschlussbericht ausgewiesen. Ein portabler Proof-JSON-Export kann unabhängig mit dem mitgelieferten Offline-Verifier geprüft werden. Spätere Änderungen bleiben erlaubt und führen beim erneuten Abschluss zu einer neuen Revision.
 
 **Fahrt- & Lade-Analytics**
 - **Fahrt-Detail** — Route auf der Karte, kombinierter Verlaufs-Chart (Höhe/SoC/Tempo), Temperaturen, Max-Speed/-Leistung/Rekuperation, historisches Wetter zur Fahrtzeit, GPX-Export
@@ -187,7 +187,19 @@ Dann kann in `.env` z. B. verwendet werden:
 
 `TESLAMATE_DATABASE_URL=postgres://tripatlas_ro:read-only-passwort@database:5432/teslamate`
 
-### 3. Stack starten
+### 3. Signaturschlüssel für Monatsabschlüsse
+
+Neue Monatsabschluss-Revisionen benötigen einen lokalen Ed25519-Schlüssel. Der private Schlüssel bleibt ausschließlich auf dem DriveChronik-Host und darf nicht in Git eingecheckt werden.
+
+Erzeugen:
+
+`mkdir -p secrets && openssl genpkey -algorithm Ed25519 -out secrets/month-seal-ed25519-private.pem`
+
+Danach die Datei nur für den vorgesehenen Container-Benutzer lesbar machen. Der Compose-Stack bindet den Schlüssel read-only als `/run/secrets/month-seal-ed25519-private.pem` ausschließlich in den Web-Container ein.
+
+Vorhandene ältere, noch unsignierte Revisionen bleiben lesbar und exportierbar.
+
+### 4. Stack starten
 
 ```bash
 docker compose up -d --build
@@ -197,7 +209,7 @@ Das baut `apps/web`, `apps/worker` und den eingebetteten `supercharge-compass`-D
 
 `supercharge-compass` stellt DriveChronik die Tesla-Supercharger-Standorte für die automatische Ladestopp-Planung bereit. Der Dienst ist nur im internen Docker-Netz erreichbar und veröffentlicht keinen zusätzlichen Port. Beim ersten Start wird der Supercharger-Datensatz automatisch geladen und anschließend täglich aktualisiert. Die Daten werden im Docker-Volume `supercharge-compass-data` persistent gespeichert. Für diese Nutzung ist kein OpenRouteService-API-Key erforderlich; die eigentliche Routenberechnung übernimmt weiterhin der von DriveChronik konfigurierte OSRM-Dienst.
 
-### 4. Erstanmeldung
+### 5. Erstanmeldung
 
 Beim ersten Start wird ein Admin-Account bootstrapped. Optional vorab ein Passwort über `INITIAL_ADMIN_PASSWORD` in `.env` setzen — sonst wird beim ersten Login-Flow eines gesetzt (mit Passwort-Wiederholung).
 
@@ -205,7 +217,7 @@ Für vollständige Monats- und Fahrtenbuchberichte sollten anschließend in den 
 
 `INITIAL_ADMIN_PASSWORD` wird ausschließlich verwendet, solange noch kein Benutzer existiert. Nach erfolgreicher Erstanmeldung sollte der Wert aus `.env` entfernt und der Web-Container neu gestartet werden, damit das Initialpasswort nicht dauerhaft in der Container-Umgebung verbleibt.
 
-### 5. HTTPS / Fernzugriff
+### 6. HTTPS / Fernzugriff
 
 Kein eigener Reverse Proxy im Compose-Stack. Empfehlung: [`tailscale serve`](https://tailscale.com/kb/1242/tailscale-serve) auf dem Zielgerät vor `${WEB_PORT}` schalten — TLS-Zertifikat und Zugriff nur im eigenen Tailnet, ohne offenen Port am Router.
 
@@ -237,7 +249,9 @@ docker compose ps -a
 DriveChronik unterscheidet zwischen zwei Berichtstypen:
 
 - **Normaler Monatsreport** — aktueller, filterbarer Bericht mit CSV-/PDF-Export und optionaler Kilometererstattung für geschäftliche Fahrten.
-- **Abgeschlossener Monatsbericht** — historisch reproduzierbare Revision mit allen Fahrten des Monats, Fahrer- und Fahrzeugidentität sowie Integritätsnachweis über Content-, Seal- und Audit-Hash. Änderungen nach einem Abschluss bleiben möglich, werden nachvollziehbar protokolliert und können durch einen neuen Abschluss als nächste Revision festgehalten werden.
+- **Abgeschlossener Monatsbericht** — historisch reproduzierbare Revision mit allen Fahrten des Monats, Fahrer- und Fahrzeugidentität sowie Integritätsnachweis über Content-, Seal- und Audit-Hash. Neue Revisionen werden mit Ed25519 digital signiert. Der PDF-Bericht zeigt Signaturstatus und Schlüssel-ID; zusätzlich kann ein Proof-JSON mit Snapshot, Hashes, Signatur und öffentlichem Schlüssel exportiert werden. Änderungen nach einem Abschluss bleiben möglich, werden nachvollziehbar protokolliert und können durch einen neuen Abschluss als nächste Revision festgehalten werden.
+
+Der Proof kann unabhängig von Webserver und Datenbank mit `node scripts/verify-month-seal-proof.mjs <proof.json>` geprüft werden. Der Verifier berechnet Content-Hash und Seal-Hash neu, prüft die Schlüssel-ID und validiert die Ed25519-Signatur. Der enthaltene Audit-Hash ist Bestandteil des signierten Seal-Payloads; die vollständige Audit-Kette wird durch diesen portablen Proof allein nicht erneut berechnet.
 
 Der Abschluss ist ein manipulationserschwerender und nachvollziehbarer Anwendungsmechanismus, keine behördliche Zertifizierung oder Garantie einer steuerlichen Anerkennung.
 

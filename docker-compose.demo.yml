@@ -124,8 +124,10 @@ services:
       # of the box in the demo.
       TESLAMATE_DATABASE_URL: postgres://teslamate:teslamate-demo@teslamate-db:5432/teslamate
       IMPORT_STAGING_DIR: /import-staging
+      MONTH_SEAL_PRIVATE_KEY_FILE: /run/secrets/month-seal-ed25519-private.pem
       SUPERCHARGE_COMPASS_URL: http://supercharge-compass:3000
     volumes:
+      - ./secrets/month-seal-ed25519-private.pem:/run/secrets/month-seal-ed25519-private.pem:ro
       - import-staging:/import-staging
     depends_on:
       import-staging-init:

@@ -95,6 +95,26 @@ export function getTeslamateDatabaseUrl(): string | undefined {
 }
 
 /**
+ * Optional private Ed25519 key file used to sign monthly logbook seals.
+ *
+ * The key itself must not be stored in environment variables or the database.
+ */
+export function getMonthSealPrivateKeyFile(): string | undefined {
+  const value = process.env.MONTH_SEAL_PRIVATE_KEY_FILE?.trim();
+
+  if (!value) return undefined;
+
+  if (!value.startsWith("/")) {
+    throw new Error(
+      "[drivechronik-web] Ungültige Konfiguration:\n" +
+        "  - MONTH_SEAL_PRIVATE_KEY_FILE: muss ein absoluter Dateipfad sein",
+    );
+  }
+
+  return value;
+}
+
+/**
  * Optional custom OSRM endpoint.
  */
 export function getOsrmUrl(): string | undefined {

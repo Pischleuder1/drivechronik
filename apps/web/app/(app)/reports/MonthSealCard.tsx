@@ -150,6 +150,29 @@ export function MonthSealCard({
                     )}{" "}
                     km
                   </p>
+
+                  {entry.signatureStatus === "valid" && (
+                    <p className="mt-1 text-xs text-emerald-700 dark:text-emerald-300">
+                      Signatur gültig · Ed25519
+                      {entry.signingKeyId
+                        ? " · Schlüssel " +
+                          entry.signingKeyId.slice(0, 12) +
+                          "…"
+                        : ""}
+                    </p>
+                  )}
+
+                  {entry.signatureStatus === "unsigned" && (
+                    <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                      Ältere Revision · nicht signiert
+                    </p>
+                  )}
+
+                  {entry.signatureStatus === "invalid" && (
+                    <p className="mt-1 text-xs font-medium text-red-700 dark:text-red-300">
+                      Signaturprüfung fehlgeschlagen
+                    </p>
+                  )}
                 </div>
 
                 {entry.hasSnapshot ? (

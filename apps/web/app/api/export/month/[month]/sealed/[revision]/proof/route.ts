@@ -1,19 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getLocale, getTranslations } from "next-intl/server";
 
-import {
-  buildMonthReport,
-  type ReportMeta,
-} from "@drivechronik/core";
-
-import { validateSession } from "../../../../../../../lib/auth/session";
-import { APP_TIMEZONE } from "../../../../../../../lib/config";
-import {
-  buildPdfLabels,
-  renderSealedMonthPdf,
-} from "../../../../../../../lib/exports/pdf";
-import { isValidMonthParam } from "../../../../../../../lib/exports/params";
-import { loadSealedMonth } from "../../../../../../../lib/sealedMonthLoader";
+import { validateSession } from "../../../../../../../../lib/auth/session";
+import { isValidMonthParam } from "../../../../../../../../lib/exports/params";
+import { loadSealedMonth } from "../../../../../../../../lib/sealedMonthLoader";
 
 export const dynamic = "force-dynamic";
 
@@ -63,6 +52,7 @@ export async function GET(
   }
 
   const revision = parsePositiveInteger(revisionParam);
+
   const vehicleId = parsePositiveInteger(
     request.nextUrl.searchParams.get("vehicleId"),
   );
@@ -102,7 +92,7 @@ export async function GET(
       return NextResponse.json(
         {
           error:
-            "Für diese ältere Revision wurde noch kein vollständiger Snapshot gespeichert. Ein historisch reproduzierbarer Export ist daher nicht möglich.",
+            "Für diese ältere Revision wurde noch kein vollständiger Snapshot gespeichert.",
         },
         { status: 409 },
       );
@@ -118,58 +108,56 @@ export async function GET(
     );
   }
 
-  const meta: ReportMeta = {
-    vehicleName:
-      sealed.content.identity.vehicleDisplayName,
-    driverName:
-      sealed.content.identity.driverName,
-    licensePlate:
-      sealed.content.identity.licensePlate,
-    vehicleVin:
-      sealed.content.identity.vehicleVin,
-    generatedAt: new Date(),
-    timeZone: APP_TIMEZONE,
-  };
+  const proof = {
+    format: "drivechronik-month-seal-proof",
+    version: 1,
+    month: sealed.row.month,
+    vehicleId: sealed.row.vehicleId,
+    revision: sealed.row.revision,
 
-  const report = buildMonthReport(
-    sealed.drives,
-    sealed.content.month,
-    meta,
-  );
+    sealedAt: sealed.row.sealedAt.toISOString(),
+    sealedBy: sealed.row.sealedBy,
 
-  const [t, tCommon, locale] = await Promise.all([
-    getTranslations("exports"),
-    getTranslations("common"),
-    getLocale(),
-  ]);
-
-  const pdf = await renderSealedMonthPdf(
-    report,
-    buildPdfLabels(t, tCommon, locale),
-    {
-      revision: sealed.row.revision,
-      sealedAt: sealed.row.sealedAt,
-      sealedBy: sealed.row.sealedBy,
-      contentHash: sealed.row.contentHash,
-      sealHash: sealed.row.sealHash,
-      lastAuditHash: sealed.row.lastAuditHash,
-      signatureStatus: sealed.signatureStatus,
-      signingKeyId: sealed.signingKeyId,
+    identity: {
+      driverName: sealed.row.driverName,
+      licensePlate: sealed.row.licensePlate,
+      vehicleDisplayName: sealed.row.vehicleDisplayName,
+      vehicleVin: sealed.row.vehicleVin,
     },
-  );
+
+    totals: {
+      driveCount: sealed.row.driveCount,
+      distanceKm: sealed.row.distanceKm,
+    },
+
+    integrity: {
+      contentHash: sealed.row.contentHash,
+      lastAuditHash: sealed.row.lastAuditHash,
+      sealHash: sealed.row.sealHash,
+    },
+
+    signature: {
+      status: sealed.signatureStatus,
+      algorithm: sealed.row.signatureAlgorithm,
+      value: sealed.row.signature,
+      publicKey: sealed.row.signingPublicKey,
+      keyId: sealed.signingKeyId,
+    },
+
+    snapshot: sealed.content,
+  };
 
   const filename =
     "fahrtenbuch-" +
     month +
     "-revision-" +
     revision +
-    ".pdf";
+    "-proof.json";
 
-  return new NextResponse(
-    new Uint8Array(pdf),
+  return NextResponse.json(
+    proof,
     {
       headers: {
-        "Content-Type": "application/pdf",
         "Content-Disposition":
           'attachment; filename="' + filename + '"',
         "Cache-Control":

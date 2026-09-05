@@ -472,6 +472,11 @@ export const auditLog = pgTable(
       .notNull()
       .defaultNow(),
     changedBy: text("changed_by").notNull(),
+    eventId: text("event_id"),
+    eventType: text("event_type").notNull().default("change"),
+    previousHash: text("previous_hash"),
+    entryHash: text("entry_hash"),
+    metadata: jsonb("metadata"),
   },
   (t) => [index("audit_log_entity_idx").on(t.entityType, t.entityId)],
 );

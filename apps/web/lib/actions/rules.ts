@@ -4,7 +4,8 @@ import { and, asc, eq, isNull, isNotNull } from "drizzle-orm";
 import { z } from "zod";
 import { getTranslations } from "next-intl/server";
 import {
-  auditLog,
+  appendAuditEntries,
+  appendAuditEntry,
   classificationRules,
   driveTags,
   drives,
@@ -170,13 +171,14 @@ export async function createRule(
       .values(ruleValues(parsed.data))
       .returning({ id: classificationRules.id });
     const id = inserted[0]!.id;
-    await tx.insert(auditLog).values({
+    await appendAuditEntry(tx, {
       entityType: "classification_rule",
       entityId: id,
       field: "created",
       oldValue: null,
       newValue: parsed.data.name,
       changedBy: user.username,
+      eventType: "create",
     });
     return id;
   });
@@ -217,7 +219,7 @@ export async function updateRule(
       .update(classificationRules)
       .set({ ...ruleValues(parsed.data), updatedAt: new Date() })
       .where(eq(classificationRules.id, idParsed.data.id));
-    await tx.insert(auditLog).values({
+    await appendAuditEntry(tx, {
       entityType: "classification_rule",
       entityId: idParsed.data.id,
       field: "updated",
@@ -251,13 +253,14 @@ export async function deleteRule(id: number): Promise<void> {
     await tx
       .delete(classificationRules)
       .where(eq(classificationRules.id, parsed.id));
-    await tx.insert(auditLog).values({
+    await appendAuditEntry(tx, {
       entityType: "classification_rule",
       entityId: parsed.id,
       field: "deleted",
       oldValue: rows[0]!.name,
       newValue: null,
       changedBy: user.username,
+      eventType: "delete",
     });
   });
 
@@ -289,7 +292,7 @@ export async function toggleRule(id: number, enabled: boolean): Promise<void> {
       .update(classificationRules)
       .set({ enabled: parsed.enabled, updatedAt: new Date() })
       .where(eq(classificationRules.id, parsed.id));
-    await tx.insert(auditLog).values({
+    await appendAuditEntry(tx, {
       entityType: "classification_rule",
       entityId: parsed.id,
       field: "enabled",
@@ -330,7 +333,7 @@ export async function setRulePriority(
       .update(classificationRules)
       .set({ priority: parsed.priority, updatedAt: new Date() })
       .where(eq(classificationRules.id, parsed.id));
-    await tx.insert(auditLog).values({
+    await appendAuditEntry(tx, {
       entityType: "classification_rule",
       entityId: parsed.id,
       field: "priority",
@@ -593,7 +596,8 @@ export async function applyRulesNow(): Promise<ApplyRulesResult> {
       }
 
       if (audits.length > 0) {
-        await tx.insert(auditLog).values(
+        await appendAuditEntries(
+          tx,
           audits.map((a) => ({
             entityType: "drive",
             entityId: drive.id,

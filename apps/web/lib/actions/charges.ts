@@ -3,7 +3,7 @@ import { revalidatePath } from "next/cache";
 import { and, asc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getTranslations } from "next-intl/server";
-import { auditLog, chargeSessionTags, chargeSessions, tags } from "@drivechronik/db";
+import { appendAuditEntries, appendAuditEntry, type DbTransaction, chargeSessionTags, chargeSessions, tags } from "@drivechronik/db";
 import { db } from "../db";
 import { validateSession } from "../auth/session";
 // Free-text-created tags get a color from the shared preset palette, cycled
@@ -143,7 +143,8 @@ export async function updateChargeAnnotations(
       .set({ ...patch, updatedAt: new Date() })
       .where(eq(chargeSessions.id, input.chargeSessionId));
 
-    await tx.insert(auditLog).values(
+    await appendAuditEntries(
+      tx,
       changes.map((c) => ({
         entityType: "charge_session",
         entityId: input.chargeSessionId,
@@ -163,13 +164,17 @@ export async function updateChargeAnnotations(
 }
 
 /** Comma-joined, sorted tag names for a charge session — used as audit_log old/new value. */
-async function chargeTagNames(chargeSessionId: number): Promise<string> {
-  const rows = await db
+async function chargeTagNamesTx(
+  tx: DbTransaction,
+  chargeSessionId: number,
+): Promise<string> {
+  const rows = await tx
     .select({ name: tags.name })
     .from(chargeSessionTags)
     .innerJoin(tags, eq(chargeSessionTags.tagId, tags.id))
     .where(eq(chargeSessionTags.chargeSessionId, chargeSessionId))
     .orderBy(asc(tags.name));
+
   return rows.map((r) => r.name).join(", ");
 }
 
@@ -200,9 +205,8 @@ export async function assignTagToCharge(
 
   const parsed = assignTagSchema.parse({ chargeSessionId, tagName });
 
-  const before = await chargeTagNames(parsed.chargeSessionId);
-
   const assigned = await db.transaction(async (tx) => {
+    const before = await chargeTagNamesTx(tx, parsed.chargeSessionId);
     let tagRow = (
       await tx
         .select({ id: tags.id, name: tags.name, color: tags.color })
@@ -240,20 +244,21 @@ export async function assignTagToCharge(
       .values({ chargeSessionId: parsed.chargeSessionId, tagId: tagRow.id })
       .onConflictDoNothing();
 
+    const after = await chargeTagNamesTx(tx, parsed.chargeSessionId);
+
+    if (after !== before) {
+      await appendAuditEntry(tx, {
+        entityType: "charge_session",
+        entityId: parsed.chargeSessionId,
+        field: "tags",
+        oldValue: before || null,
+        newValue: after || null,
+        changedBy: user.username,
+      });
+    }
+
     return tagRow;
   });
-
-  const after = await chargeTagNames(parsed.chargeSessionId);
-  if (after !== before) {
-    await db.insert(auditLog).values({
-      entityType: "charge_session",
-      entityId: parsed.chargeSessionId,
-      field: "tags",
-      oldValue: before || null,
-      newValue: after || null,
-      changedBy: user.username,
-    });
-  }
 
   revalidatePath(`/charges/${parsed.chargeSessionId}`);
   revalidatePath("/charges");
@@ -278,28 +283,31 @@ export async function removeTagFromCharge(
 
   const parsed = removeTagSchema.parse({ chargeSessionId, tagId });
 
-  const before = await chargeTagNames(parsed.chargeSessionId);
+  await db.transaction(async (tx) => {
+    const before = await chargeTagNamesTx(tx, parsed.chargeSessionId);
 
-  await db
-    .delete(chargeSessionTags)
-    .where(
-      and(
-        eq(chargeSessionTags.chargeSessionId, parsed.chargeSessionId),
-        eq(chargeSessionTags.tagId, parsed.tagId),
-      ),
-    );
+    await tx
+      .delete(chargeSessionTags)
+      .where(
+        and(
+          eq(chargeSessionTags.chargeSessionId, parsed.chargeSessionId),
+          eq(chargeSessionTags.tagId, parsed.tagId),
+        ),
+      );
 
-  const after = await chargeTagNames(parsed.chargeSessionId);
-  if (after !== before) {
-    await db.insert(auditLog).values({
-      entityType: "charge_session",
-      entityId: parsed.chargeSessionId,
-      field: "tags",
-      oldValue: before || null,
-      newValue: after || null,
-      changedBy: user.username,
-    });
-  }
+    const after = await chargeTagNamesTx(tx, parsed.chargeSessionId);
+
+    if (after !== before) {
+      await appendAuditEntry(tx, {
+        entityType: "charge_session",
+        entityId: parsed.chargeSessionId,
+        field: "tags",
+        oldValue: before || null,
+        newValue: after || null,
+        changedBy: user.username,
+      });
+    }
+  });
 
   revalidatePath(`/charges/${parsed.chargeSessionId}`);
   revalidatePath("/charges");

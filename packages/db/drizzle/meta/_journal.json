@@ -71,6 +71,13 @@
       "when": 1788517607746,
       "tag": "0009_wet_electro",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1788579333671,
+      "tag": "0010_workable_magus",
+      "breakpoints": true
     }
   ]
 }

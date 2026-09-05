@@ -3,7 +3,7 @@ import { revalidatePath } from "next/cache";
 import { eq, and } from "drizzle-orm";
 import { z } from "zod";
 import { getTranslations } from "next-intl/server";
-import { auditLog, sessions, settings, syncState, users, vehicles } from "@drivechronik/db";
+import { appendAuditEntry, sessions, settings, syncState, users, vehicles } from "@drivechronik/db";
 import {
   BUSINESS_REIMBURSEMENT_RATE_KEY,
 } from "../appSettings";
@@ -139,30 +139,32 @@ export async function updateEfficiencyOverride(
 
   const kwhPerKm = parsed.data.whPerKm != null ? parsed.data.whPerKm / 1000 : null;
 
-  const before = await db
-    .select({ old: vehicles.efficiencyOverrideKwhPerKm })
-    .from(vehicles)
-    .where(eq(vehicles.id, parsed.data.vehicleId));
+  await db.transaction(async (tx) => {
+    const before = await tx
+      .select({ old: vehicles.efficiencyOverrideKwhPerKm })
+      .from(vehicles)
+      .where(eq(vehicles.id, parsed.data.vehicleId));
 
-  await db
-    .update(vehicles)
-    .set({ efficiencyOverrideKwhPerKm: kwhPerKm })
-    .where(eq(vehicles.id, parsed.data.vehicleId));
+    await tx
+      .update(vehicles)
+      .set({ efficiencyOverrideKwhPerKm: kwhPerKm })
+      .where(eq(vehicles.id, parsed.data.vehicleId));
 
-  await db.insert(auditLog).values({
-    entityType: "vehicle",
-    entityId: parsed.data.vehicleId,
-    field: "efficiency_override_kwh_per_km",
-    oldValue: before[0]?.old != null ? String(before[0].old) : null,
-    newValue: kwhPerKm != null ? String(kwhPerKm) : null,
-    changedBy: user.username,
+    await appendAuditEntry(tx, {
+      entityType: "vehicle",
+      entityId: parsed.data.vehicleId,
+      field: "efficiency_override_kwh_per_km",
+      oldValue: before[0]?.old != null ? String(before[0].old) : null,
+      newValue: kwhPerKm != null ? String(kwhPerKm) : null,
+      changedBy: user.username,
+    });
+
+    // Rückwirkende Neuberechnung durch den Worker anstoßen.
+    await tx
+      .update(syncState)
+      .set({ watermarkTs: null })
+      .where(and(eq(syncState.source, "teslamate"), eq(syncState.entity, "drives")));
   });
-
-  // Rückwirkende Neuberechnung durch den Worker anstoßen.
-  await db
-    .update(syncState)
-    .set({ watermarkTs: null })
-    .where(and(eq(syncState.source, "teslamate"), eq(syncState.entity, "drives")));
 
   revalidatePath("/settings");
   return { ok: true };

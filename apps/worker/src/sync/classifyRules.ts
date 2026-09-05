@@ -1,6 +1,6 @@
 import { and, asc, eq, isNull, isNotNull } from "drizzle-orm";
 import {
-  auditLog,
+  appendAuditEntries,
   classificationRules,
   driveTags,
   drives,
@@ -181,7 +181,8 @@ export async function applyClassificationRules(
       }
 
       if (audits.length > 0) {
-        await tx.insert(auditLog).values(
+        await appendAuditEntries(
+          tx,
           audits.map((a) => ({
             entityType: "drive",
             entityId: drive.id,

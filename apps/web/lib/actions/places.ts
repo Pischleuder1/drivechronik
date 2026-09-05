@@ -3,7 +3,7 @@ import { revalidatePath } from "next/cache";
 import { and, eq, isNull, or } from "drizzle-orm";
 import { z } from "zod";
 import { getTranslations } from "next-intl/server";
-import { auditLog, chargeSessions, places } from "@drivechronik/db";
+import { appendAuditEntries, chargeSessions, places } from "@drivechronik/db";
 import { computeAutoChargeCost } from "@drivechronik/core";
 import { db } from "../db";
 import { validateSession } from "../auth/session";
@@ -192,32 +192,37 @@ export async function createPlace(
   const electricityPriceCurrency =
     parsed.data.electricityPricePerKwh == null ? null : parsed.data.electricityPriceCurrency;
 
-  const inserted = await db
-    .insert(places)
-    .values({ ...parsed.data, electricityPriceCurrency, source: "user" })
-    .returning({ id: places.id });
-  const placeId = inserted[0]?.id;
+  const placeId = await db.transaction(async (tx) => {
+    const inserted = await tx
+      .insert(places)
+      .values({ ...parsed.data, electricityPriceCurrency, source: "user" })
+      .returning({ id: places.id });
 
-  if (placeId != null && parsed.data.electricityPricePerKwh != null) {
-    await db.insert(auditLog).values([
-      {
-        entityType: "place",
-        entityId: placeId,
-        field: "electricity_price_per_kwh",
-        oldValue: null,
-        newValue: parsed.data.electricityPricePerKwh,
-        changedBy: user.username,
-      },
-      {
-        entityType: "place",
-        entityId: placeId,
-        field: "electricity_price_currency",
-        oldValue: null,
-        newValue: electricityPriceCurrency,
-        changedBy: user.username,
-      },
-    ]);
-  }
+    const placeId = inserted[0]?.id;
+
+    if (placeId != null && parsed.data.electricityPricePerKwh != null) {
+      await appendAuditEntries(tx, [
+        {
+          entityType: "place",
+          entityId: placeId,
+          field: "electricity_price_per_kwh",
+          oldValue: null,
+          newValue: parsed.data.electricityPricePerKwh,
+          changedBy: user.username,
+        },
+        {
+          entityType: "place",
+          entityId: placeId,
+          field: "electricity_price_currency",
+          oldValue: null,
+          newValue: electricityPriceCurrency,
+          changedBy: user.username,
+        },
+      ]);
+    }
+
+    return placeId;
+  });
 
   await rematchAllPlaces(db);
   await resetStaleAutoChargeCosts();
@@ -286,11 +291,6 @@ export async function updatePlace(
   const current = existing[0];
   if (!current) return { ok: false, error: t("errors.placeNotFound") };
 
-  await db
-    .update(places)
-    .set({ ...values, electricityPriceCurrency, updatedAt: new Date() })
-    .where(eq(places.id, id));
-
   // Numerischer Vergleich statt String-Gleichheit — die DB liefert den Preis
   // mit fester Skala (z.B. "0.3200"), das Formular typischerweise "0.32".
   const currentPriceNum =
@@ -299,6 +299,7 @@ export async function updatePlace(
     values.electricityPricePerKwh != null ? Number(values.electricityPricePerKwh) : null;
 
   const priceChanges: Array<{ field: string; oldValue: string | null; newValue: string | null }> = [];
+
   if (currentPriceNum !== nextPriceNum) {
     priceChanges.push({
       field: "electricity_price_per_kwh",
@@ -306,6 +307,7 @@ export async function updatePlace(
       newValue: values.electricityPricePerKwh,
     });
   }
+
   if (current.electricityPriceCurrency !== electricityPriceCurrency) {
     priceChanges.push({
       field: "electricity_price_currency",
@@ -313,16 +315,25 @@ export async function updatePlace(
       newValue: electricityPriceCurrency,
     });
   }
-  if (priceChanges.length > 0) {
-    await db.insert(auditLog).values(
-      priceChanges.map((c) => ({
-        entityType: "place",
-        entityId: id,
-        ...c,
-        changedBy: user.username,
-      })),
-    );
-  }
+
+  await db.transaction(async (tx) => {
+    await tx
+      .update(places)
+      .set({ ...values, electricityPriceCurrency, updatedAt: new Date() })
+      .where(eq(places.id, id));
+
+    if (priceChanges.length > 0) {
+      await appendAuditEntries(
+        tx,
+        priceChanges.map((c) => ({
+          entityType: "place",
+          entityId: id,
+          ...c,
+          changedBy: user.username,
+        })),
+      );
+    }
+  });
 
   await rematchAllPlaces(db);
   await resetStaleAutoChargeCosts();

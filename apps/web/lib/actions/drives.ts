@@ -3,7 +3,7 @@ import { revalidatePath } from "next/cache";
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getTranslations } from "next-intl/server";
-import { auditLog, driveTags, drives, places, tags } from "@drivechronik/db";
+import { appendAuditEntries, appendAuditEntry, type DbTransaction, driveTags, drives, places, tags } from "@drivechronik/db";
 import { matchPlace } from "@drivechronik/core";
 import { db } from "../db";
 import { validateSession } from "../auth/session";
@@ -52,7 +52,7 @@ export async function setDriveClassification(
       .set({ classification: parsed.classification, updatedAt: new Date() })
       .where(eq(drives.id, parsed.driveId));
 
-    await tx.insert(auditLog).values({
+    await appendAuditEntry(tx, {
       entityType: "drive",
       entityId: parsed.driveId,
       field: "classification",
@@ -163,7 +163,7 @@ export async function updateDriveAnnotations(
       .set({ ...patch, updatedAt: new Date() })
       .where(eq(drives.id, input.driveId));
 
-    await tx.insert(auditLog).values(
+    await appendAuditEntries(tx, 
       changes.map((c) => ({
         entityType: "drive",
         entityId: input.driveId,
@@ -187,14 +187,14 @@ function nullableString(value: FormDataEntryValue | null): string | null {
   return str === "" ? null : str;
 }
 
-/** Comma-joined, sorted tag names for a drive — used as audit_log old/new value. */
-async function driveTagNames(driveId: number): Promise<string> {
-  const rows = await db
+async function driveTagNamesTx(tx: DbTransaction, driveId: number): Promise<string> {
+  const rows = await tx
     .select({ name: tags.name })
     .from(driveTags)
     .innerJoin(tags, eq(driveTags.tagId, tags.id))
     .where(eq(driveTags.driveId, driveId))
     .orderBy(asc(tags.name));
+
   return rows.map((r) => r.name).join(", ");
 }
 
@@ -225,9 +225,8 @@ export async function assignTagToDrive(
 
   const parsed = assignTagSchema.parse({ driveId, tagName });
 
-  const before = await driveTagNames(parsed.driveId);
-
   const assigned = await db.transaction(async (tx) => {
+    const before = await driveTagNamesTx(tx, parsed.driveId);
     let tagRow = (
       await tx
         .select({ id: tags.id, name: tags.name, color: tags.color })
@@ -265,20 +264,21 @@ export async function assignTagToDrive(
       .values({ driveId: parsed.driveId, tagId: tagRow.id })
       .onConflictDoNothing();
 
+    const after = await driveTagNamesTx(tx, parsed.driveId);
+
+    if (after !== before) {
+      await appendAuditEntry(tx, {
+        entityType: "drive",
+        entityId: parsed.driveId,
+        field: "tags",
+        oldValue: before || null,
+        newValue: after || null,
+        changedBy: user.username,
+      });
+    }
+
     return tagRow;
   });
-
-  const after = await driveTagNames(parsed.driveId);
-  if (after !== before) {
-    await db.insert(auditLog).values({
-      entityType: "drive",
-      entityId: parsed.driveId,
-      field: "tags",
-      oldValue: before || null,
-      newValue: after || null,
-      changedBy: user.username,
-    });
-  }
 
   revalidatePath(`/drives/${parsed.driveId}`);
   revalidatePath("/day/[date]", "page");
@@ -302,25 +302,31 @@ export async function removeTagFromDrive(
 
   const parsed = removeTagSchema.parse({ driveId, tagId });
 
-  const before = await driveTagNames(parsed.driveId);
+  await db.transaction(async (tx) => {
+    const before = await driveTagNamesTx(tx, parsed.driveId);
 
-  await db
-    .delete(driveTags)
-    .where(
-      and(eq(driveTags.driveId, parsed.driveId), eq(driveTags.tagId, parsed.tagId)),
-    );
+    await tx
+      .delete(driveTags)
+      .where(
+        and(
+          eq(driveTags.driveId, parsed.driveId),
+          eq(driveTags.tagId, parsed.tagId),
+        ),
+      );
 
-  const after = await driveTagNames(parsed.driveId);
-  if (after !== before) {
-    await db.insert(auditLog).values({
-      entityType: "drive",
-      entityId: parsed.driveId,
-      field: "tags",
-      oldValue: before || null,
-      newValue: after || null,
-      changedBy: user.username,
-    });
-  }
+    const after = await driveTagNamesTx(tx, parsed.driveId);
+
+    if (after !== before) {
+      await appendAuditEntry(tx, {
+        entityType: "drive",
+        entityId: parsed.driveId,
+        field: "tags",
+        oldValue: before || null,
+        newValue: after || null,
+        changedBy: user.username,
+      });
+    }
+  });
 
   revalidatePath(`/drives/${parsed.driveId}`);
   revalidatePath("/day/[date]", "page");
@@ -420,7 +426,7 @@ export async function setDrivePlace(
       })
       .where(eq(drives.id, parsed.driveId));
 
-    await tx.insert(auditLog).values({
+    await appendAuditEntry(tx, {
       entityType: "drive",
       entityId: parsed.driveId,
       field,
@@ -633,7 +639,7 @@ export async function bulkUpdateDrives(
     }
 
     if (auditValues.length > 0) {
-      await tx.insert(auditLog).values(auditValues);
+      await appendAuditEntries(tx, auditValues);
     }
   });
 

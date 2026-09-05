@@ -5,7 +5,7 @@ import { and, eq, gte, lt, notInArray, type SQLWrapper } from "drizzle-orm";
 import { z } from "zod";
 import { getTranslations } from "next-intl/server";
 import {
-  auditLog,
+  appendAuditEntry,
   chargeSessions,
   drives,
   journeyItems,
@@ -192,26 +192,32 @@ export async function createJourney(
   );
   if (!window.ok) return { ok: false, error: window.error };
 
-  const inserted = await db
-    .insert(journeys)
-    .values({
-      name: parsed.data.name,
-      type: parsed.data.type,
-      startTime: window.start,
-      endTime: window.end,
-      color: parsed.data.color,
-      description: parsed.data.description,
-    })
-    .returning({ id: journeys.id });
-  const journeyId = inserted[0]!.id;
+  const journeyId = await db.transaction(async (tx) => {
+    const inserted = await tx
+      .insert(journeys)
+      .values({
+        name: parsed.data.name,
+        type: parsed.data.type,
+        startTime: window.start,
+        endTime: window.end,
+        color: parsed.data.color,
+        description: parsed.data.description,
+      })
+      .returning({ id: journeys.id });
 
-  await db.insert(auditLog).values({
-    entityType: "journey",
-    entityId: journeyId,
-    field: "created",
-    oldValue: null,
-    newValue: parsed.data.name,
-    changedBy: user.username,
+    const journeyId = inserted[0]!.id;
+
+    await appendAuditEntry(tx, {
+      entityType: "journey",
+      entityId: journeyId,
+      field: "created",
+      oldValue: null,
+      newValue: parsed.data.name,
+      changedBy: user.username,
+      eventType: "create",
+    });
+
+    return journeyId;
   });
 
   await autoAssignJourney(journeyId);
@@ -258,26 +264,28 @@ export async function updateJourney(
     .limit(1);
   if (!existing[0]) return { ok: false, error: t("errors.notFound") };
 
-  await db
-    .update(journeys)
-    .set({
-      name: parsed.data.name,
-      type: parsed.data.type,
-      startTime: window.start,
-      endTime: window.end,
-      color: parsed.data.color,
-      description: parsed.data.description,
-      updatedAt: new Date(),
-    })
-    .where(eq(journeys.id, parsed.data.id));
+  await db.transaction(async (tx) => {
+    await tx
+      .update(journeys)
+      .set({
+        name: parsed.data.name,
+        type: parsed.data.type,
+        startTime: window.start,
+        endTime: window.end,
+        color: parsed.data.color,
+        description: parsed.data.description,
+        updatedAt: new Date(),
+      })
+      .where(eq(journeys.id, parsed.data.id));
 
-  await db.insert(auditLog).values({
-    entityType: "journey",
-    entityId: parsed.data.id,
-    field: "updated",
-    oldValue: null,
-    newValue: parsed.data.name,
-    changedBy: user.username,
+    await appendAuditEntry(tx, {
+      entityType: "journey",
+      entityId: parsed.data.id,
+      field: "updated",
+      oldValue: null,
+      newValue: parsed.data.name,
+      changedBy: user.username,
+    });
   });
 
   await autoAssignJourney(parsed.data.id);
@@ -299,13 +307,14 @@ export async function deleteJourney(id: number): Promise<void> {
 
   await db.transaction(async (tx) => {
     await tx.delete(journeys).where(eq(journeys.id, parsed.id));
-    await tx.insert(auditLog).values({
+    await appendAuditEntry(tx, {
       entityType: "journey",
       entityId: parsed.id,
       field: "deleted",
       oldValue: null,
       newValue: null,
       changedBy: user.username,
+      eventType: "delete",
     });
   });
 
@@ -358,7 +367,7 @@ export async function removeItem(
         set: { excluded: true, updatedAt: new Date() },
       });
 
-    await tx.insert(auditLog).values({
+    await appendAuditEntry(tx, {
       entityType: "journey",
       entityId: parsed.journeyId,
       field: "item_removed",
@@ -406,7 +415,7 @@ export async function addItem(
         set: { assignedBy: "manual", excluded: false, updatedAt: new Date() },
       });
 
-    await tx.insert(auditLog).values({
+    await appendAuditEntry(tx, {
       entityType: "journey",
       entityId: parsed.journeyId,
       field: "item_added",

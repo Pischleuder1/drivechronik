@@ -155,6 +155,63 @@ export default async function DriveDetailPage({
   const daysRemaining = Math.max(0, 7 - daysSinceEnd);
   const deadlineExceeded = isClosed && daysSinceEnd > 7;
 
+  // Reconstruct classification/purpose changes chronologically. We only flag
+  // late completion when the audit history proves that an incomplete drive
+  // became complete after the seven-calendar-day period.
+  const chronologicalAudit = [...auditEntries].sort(
+    (a, b) =>
+      a.changedAt.getTime() - b.changedAt.getTime() || a.id - b.id,
+  );
+
+  const firstClassificationChange = chronologicalAudit.find(
+    (entry) => entry.field === "classification",
+  );
+  const firstPurposeChange = chronologicalAudit.find(
+    (entry) => entry.field === "purpose",
+  );
+
+  let historicClassification =
+    (firstClassificationChange?.oldValue as Classification | null) ??
+    classification;
+  let historicPurpose =
+    firstPurposeChange != null
+      ? firstPurposeChange.oldValue
+      : drive.purpose;
+
+  const historicComplete = () =>
+    historicClassification !== "unclassified" &&
+    (historicClassification !== "business" ||
+      (historicPurpose?.trim().length ?? 0) > 0);
+
+  let completionChangedAt: Date | null = null;
+  const initiallyComplete = historicComplete();
+  let wasComplete = initiallyComplete;
+
+  for (const entry of chronologicalAudit) {
+    if (entry.field === "classification" && entry.newValue != null) {
+      historicClassification = entry.newValue as Classification;
+    } else if (entry.field === "purpose") {
+      historicPurpose = entry.newValue;
+    } else {
+      continue;
+    }
+
+    const isCompleteAfterChange = historicComplete();
+    if (!wasComplete && isCompleteAfterChange && completionChangedAt == null) {
+      completionChangedAt = entry.changedAt;
+    }
+    wasComplete = isCompleteAfterChange;
+  }
+
+  const completedLate =
+    isClosed &&
+    logbookComplete &&
+    !initiallyComplete &&
+    completionChangedAt != null &&
+    calendarDayNumber(completionChangedAt, APP_TIMEZONE) -
+      calendarDayNumber(drive.endTime!, APP_TIMEZONE) >
+      7;
+
   const gpsCoveragePercent =
     drive.durationSeconds != null &&
     drive.durationSeconds > 0 &&
@@ -462,7 +519,9 @@ export default async function DriveDetailPage({
               {!isClosed
                 ? t("logbookStatus.open")
                 : logbookComplete
-                  ? t("logbookStatus.complete")
+                  ? completedLate
+                    ? t("logbookStatus.completeLate")
+                    : t("logbookStatus.complete")
                   : deadlineExceeded
                     ? t("logbookStatus.overdue")
                     : t("logbookStatus.pending", { days: daysRemaining })}
@@ -476,6 +535,12 @@ export default async function DriveDetailPage({
               </p>
             )}
           </div>
+
+          {completedLate && (
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+              {t("logbookStatus.completedLateHint")}
+            </p>
+          )}
 
           {customerMissing && (
             <p className="text-xs text-neutral-500 dark:text-neutral-400">

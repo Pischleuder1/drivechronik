@@ -101,6 +101,8 @@
     "missingClassification": "The drive has not been classified yet.",
     "missingPurpose": "A purpose is still required for a business drive.",
     "customerHint": "No customer or business contact is entered. Add one if relevant to this drive.",
-    "lateChangeHint": "Later additions remain possible and are recorded in the change history."
+    "lateChangeHint": "Later additions remain possible and are recorded in the change history.",
+    "completeLate": "Complete – completed late",
+    "completedLateHint": "The change history shows that this drive was completed only after the 7-calendar-day period had expired."
   }
 }

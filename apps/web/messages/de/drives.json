@@ -101,6 +101,8 @@
     "missingClassification": "Die Fahrt ist noch nicht klassifiziert.",
     "missingPurpose": "Für eine geschäftliche Fahrt fehlt noch der Zweck.",
     "customerHint": "Kunde bzw. Geschäftspartner ist nicht eingetragen. Bitte ergänzen, sofern für diese Fahrt relevant.",
-    "lateChangeHint": "Eine nachträgliche Ergänzung bleibt möglich und wird in der Änderungshistorie protokolliert."
+    "lateChangeHint": "Eine nachträgliche Ergänzung bleibt möglich und wird in der Änderungshistorie protokolliert.",
+    "completeLate": "Vollständig – verspätet ergänzt",
+    "completedLateHint": "Die Änderungshistorie zeigt, dass die Fahrt erst nach Ablauf von 7 Kalendertagen vervollständigt wurde."
   }
 }

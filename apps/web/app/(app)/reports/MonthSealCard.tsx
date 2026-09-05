@@ -6,7 +6,10 @@ import {
   sealMonth,
   type SealMonthResult,
 } from "../../../lib/actions/monthSeals";
-import type { MonthSealStatus } from "../../../lib/monthSealStatus";
+import type {
+  MonthSealHistoryEntry,
+  MonthSealStatus,
+} from "../../../lib/monthSealStatus";
 
 const initialState: SealMonthResult = {
   ok: false,
@@ -16,11 +19,13 @@ export function MonthSealCard({
   month,
   vehicleId,
   status,
+  history,
   canSeal,
 }: {
   month: string;
   vehicleId: number;
   status: MonthSealStatus;
+  history: MonthSealHistoryEntry[];
   canSeal: boolean;
 }) {
   const [result, action, pending] = useActionState(
@@ -69,6 +74,15 @@ export function MonthSealCard({
                 : ""}
             </p>
           )}
+
+
+          {isSealed &&
+            status.revision != null &&
+            !status.hasSnapshot && (
+              <p className="mt-3 text-xs text-neutral-500 dark:text-neutral-400">
+                Für diese ältere Revision ist kein historischer PDF-Export verfügbar.
+              </p>
+            )}
         </div>
 
         {(!isSealed || isChanged) && (
@@ -94,6 +108,74 @@ export function MonthSealCard({
           </form>
         )}
       </div>
+
+      {history.length > 0 && (
+        <div className="mt-5 border-t border-neutral-200 pt-4 dark:border-neutral-800">
+          <p className="text-sm font-semibold">
+            Abschlusshistorie
+          </p>
+
+          <div className="mt-3 space-y-2">
+            {history.map((entry) => (
+              <div
+                key={entry.revision}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-neutral-200 px-3 py-2 dark:border-neutral-800"
+              >
+                <div>
+                  <p className="text-sm font-medium">
+                    Revision {entry.revision}
+                  </p>
+
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                    {new Intl.DateTimeFormat("de-DE", {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    }).format(new Date(entry.sealedAt))}
+                    {" · "}
+                    {entry.sealedBy}
+                  </p>
+
+                  <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                    {entry.driveCount}{" "}
+                    {entry.driveCount === 1
+                      ? "Fahrt"
+                      : "Fahrten"}
+                    {" · "}
+                    {entry.distanceKm.toLocaleString(
+                      "de-DE",
+                      {
+                        minimumFractionDigits: 1,
+                        maximumFractionDigits: 1,
+                      },
+                    )}{" "}
+                    km
+                  </p>
+                </div>
+
+                {entry.hasSnapshot ? (
+                  <a
+                    href={
+                      "/api/export/month/" +
+                      month +
+                      "/sealed/" +
+                      entry.revision +
+                      "?vehicleId=" +
+                      vehicleId
+                    }
+                    className="inline-flex h-8 items-center justify-center rounded-lg border border-neutral-300 px-3 text-xs font-medium transition hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                  >
+                    PDF
+                  </a>
+                ) : (
+                  <span className="text-xs text-neutral-400">
+                    Snapshot nicht verfügbar
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {!canSeal && (
         <p className="mt-3 text-xs text-neutral-500 dark:text-neutral-400">

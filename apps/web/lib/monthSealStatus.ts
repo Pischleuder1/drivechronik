@@ -29,6 +29,48 @@ export interface MonthSealStatus {
   vehicleVin: string | null;
   driveCount: number | null;
   distanceKm: number | null;
+  hasSnapshot: boolean;
+}
+
+export interface MonthSealHistoryEntry {
+  revision: number;
+  sealedAt: Date;
+  sealedBy: string;
+  driveCount: number;
+  distanceKm: number;
+  hasSnapshot: boolean;
+}
+
+export async function getMonthSealHistory(
+  month: string,
+  vehicleId: number,
+): Promise<MonthSealHistoryEntry[]> {
+  const rows = await db
+    .select({
+      revision: monthSeals.revision,
+      sealedAt: monthSeals.sealedAt,
+      sealedBy: monthSeals.sealedBy,
+      driveCount: monthSeals.driveCount,
+      distanceKm: monthSeals.distanceKm,
+      snapshot: monthSeals.snapshot,
+    })
+    .from(monthSeals)
+    .where(
+      and(
+        eq(monthSeals.vehicleId, vehicleId),
+        eq(monthSeals.month, month),
+      ),
+    )
+    .orderBy(desc(monthSeals.revision));
+
+  return rows.map((row) => ({
+    revision: row.revision,
+    sealedAt: row.sealedAt,
+    sealedBy: row.sealedBy,
+    driveCount: row.driveCount,
+    distanceKm: row.distanceKm,
+    hasSnapshot: row.snapshot != null,
+  }));
 }
 
 export async function getMonthSealStatus(
@@ -72,6 +114,7 @@ export async function getMonthSealStatus(
       vehicleVin: null,
       driveCount: null,
       distanceKm: null,
+      hasSnapshot: false,
     };
   }
 
@@ -106,5 +149,6 @@ export async function getMonthSealStatus(
     vehicleVin: latest.vehicleVin,
     driveCount: latest.driveCount,
     distanceKm: latest.distanceKm,
+    hasSnapshot: latest.snapshot != null,
   };
 }

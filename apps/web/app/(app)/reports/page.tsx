@@ -16,7 +16,10 @@ import { ReportFilters } from "./ReportFilters";
 
 import { NoVehicleState } from "../../../components/NoVehicleState";
 import { getVehicles } from "../../../lib/queries";
-import { getMonthSealStatus } from "../../../lib/monthSealStatus";
+import {
+  getMonthSealHistory,
+  getMonthSealStatus,
+} from "../../../lib/monthSealStatus";
 import { MonthSealCard } from "./MonthSealCard";
 
 export const dynamic = "force-dynamic";
@@ -113,6 +116,11 @@ export default async function ReportsPage({
     data.meta.vehicleId,
   );
 
+  const monthSealHistory = await getMonthSealHistory(
+    month,
+    data.meta.vehicleId,
+  );
+
   const canSeal = month < currentMonthInAppTz();
 
   const exportQuery = `?classification=${selected.join(",")}`;
@@ -158,6 +166,7 @@ export default async function ReportsPage({
         month={month}
         vehicleId={data.meta.vehicleId}
         status={monthSealStatus}
+        history={monthSealHistory}
         canSeal={canSeal}
       />
 

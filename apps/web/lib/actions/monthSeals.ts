@@ -18,13 +18,11 @@ import type { ReportDrive } from "@drivechronik/core";
 import {
   appendAuditEntry,
   auditLog,
-  canonicalJson,
   driveTags,
   drives,
   monthSeals,
   places,
   settings,
-  sha256,
   tags,
   vehicles,
 } from "@drivechronik/db";
@@ -36,7 +34,9 @@ import { monthBounds } from "../exports/data";
 import { isLogbookComplete } from "../logbookCompletion";
 import {
   buildMonthSealHash,
+  hashMonthSealPayload,
   shouldCreateMonthSealRevision,
+  type MonthSealPayload,
 } from "../monthSeal";
 
 const sealMonthSchema = z.object({
@@ -311,7 +311,7 @@ export async function sealMonth(
 
       const sealedAt = new Date();
 
-      const sealPayload = {
+      const sealPayload: MonthSealPayload = {
         version: 1,
         vehicleId,
         month,
@@ -328,9 +328,7 @@ export async function sealMonth(
         sealedBy: user.username,
       };
 
-      const sealHash = sha256(
-        canonicalJson(sealPayload),
-      );
+      const sealHash = hashMonthSealPayload(sealPayload);
 
       const inserted = await tx
         .insert(monthSeals)
@@ -346,6 +344,7 @@ export async function sealMonth(
           distanceKm: hashed.distanceKm,
           lastAuditHash,
           contentHash: hashed.contentHash,
+          snapshot: hashed.content,
           sealHash,
           sealedAt,
           sealedBy: user.username,

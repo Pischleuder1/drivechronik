@@ -21,6 +21,8 @@ describe("buildRulePrefill", () => {
       startPlaceId: null,
       endPlaceId: 42,
       weekdays: null,
+      startMinuteFrom: null,
+      startMinuteTo: null,
       classification: "business",
       tagId: null,
       purpose: null,

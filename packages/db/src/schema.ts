@@ -508,6 +508,11 @@ export const monthSeals = pgTable(
     // Audit-Stand und kryptografische Fingerabdrücke des Abschlusses.
     lastAuditHash: text("last_audit_hash"),
     contentHash: text("content_hash").notNull(),
+
+    // Vollständiger unveränderlicher Monatsstand zum Zeitpunkt des Abschlusses.
+    // Grundlage für die spätere reproduzierbare Ausgabe jeder Seal-Revision.
+    snapshot: jsonb("snapshot"),
+
     sealHash: text("seal_hash").notNull(),
 
     sealedAt: timestamp("sealed_at", { withTimezone: true })

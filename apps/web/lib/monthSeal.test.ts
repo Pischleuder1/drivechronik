@@ -7,7 +7,11 @@ import type {
 
 import {
   buildMonthSealHash,
+  hashMonthSealContent,
+  hashMonthSealPayload,
   shouldCreateMonthSealRevision,
+  verifyMonthSealContentHash,
+  verifyMonthSealHash,
 } from "./monthSeal";
 
 const identity: MonthSealIdentity = {
@@ -183,6 +187,100 @@ describe("buildMonthSealHash", () => {
 
     expect(result.driveCount).toBe(3);
     expect(result.distanceKm).toBe(32.5);
+  });
+});
+
+describe("gespeicherter Monats-Snapshot", () => {
+  it("liefert aus dem gespeicherten Inhalt wieder denselben Hash", () => {
+    const result = buildMonthSealHash(
+      "2026-08",
+      identity,
+      [makeDrive()],
+    );
+
+    expect(hashMonthSealContent(result.content)).toBe(
+      result.contentHash,
+    );
+
+    expect(
+      verifyMonthSealContentHash(
+        result.content,
+        result.contentHash,
+      ),
+    ).toBe(true);
+  });
+
+  it("erkennt einen nachträglich veränderten Snapshot", () => {
+    const result = buildMonthSealHash(
+      "2026-08",
+      identity,
+      [makeDrive()],
+    );
+
+    const manipulated = structuredClone(result.content);
+    manipulated.drives[0]!.purpose = "Manipuliert";
+
+    expect(
+      verifyMonthSealContentHash(
+        manipulated,
+        result.contentHash,
+      ),
+    ).toBe(false);
+  });
+});
+
+describe("Monatsabschluss-Hash", () => {
+  it("verifiziert einen unveränderten Seal-Payload", () => {
+    const payload = {
+      version: 1 as const,
+      vehicleId: 1,
+      month: "2026-08",
+      revision: 3,
+      driverName: "Hans Mustermann",
+      licensePlate: "AB-CD 9876 E",
+      vehicleDisplayName: "Blitzkarre",
+      vehicleVin: "DEMO-VIN",
+      driveCount: 101,
+      distanceKm: 637.7,
+      lastAuditHash: "audit-hash",
+      contentHash: "content-hash",
+      sealedAt: "2026-09-05T07:00:00.000Z",
+      sealedBy: "demo",
+    };
+
+    const sealHash = hashMonthSealPayload(payload);
+
+    expect(verifyMonthSealHash(payload, sealHash)).toBe(true);
+  });
+
+  it("erkennt eine veränderte Identität im Seal-Payload", () => {
+    const payload = {
+      version: 1 as const,
+      vehicleId: 1,
+      month: "2026-08",
+      revision: 3,
+      driverName: "Hans Mustermann",
+      licensePlate: "AB-CD 9876 E",
+      vehicleDisplayName: "Blitzkarre",
+      vehicleVin: "DEMO-VIN",
+      driveCount: 101,
+      distanceKm: 637.7,
+      lastAuditHash: "audit-hash",
+      contentHash: "content-hash",
+      sealedAt: "2026-09-05T07:00:00.000Z",
+      sealedBy: "demo",
+    };
+
+    const sealHash = hashMonthSealPayload(payload);
+
+    const manipulated = {
+      ...payload,
+      licensePlate: "XY-Z 1234",
+    };
+
+    expect(
+      verifyMonthSealHash(manipulated, sealHash),
+    ).toBe(false);
   });
 });
 

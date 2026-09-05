@@ -1,0 +1,1 @@
+ALTER TABLE "month_seals" ADD COLUMN "snapshot" jsonb;

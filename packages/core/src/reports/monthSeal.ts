@@ -107,3 +107,44 @@ export function monthSealTotals(content: MonthSealContent): {
     ),
   };
 }
+
+/**
+ * Rekonstruiert die für Reports benötigten Fahrtdaten ausschließlich aus
+ * einem gespeicherten Monats-Snapshot.
+ *
+ * Energie-/Verbrauchswerte sind bewusst nicht Bestandteil des versiegelten
+ * Fahrtenbuchinhalts und werden deshalb nicht nachträglich ergänzt.
+ */
+export function monthSealContentToReportDrives(
+  content: MonthSealContent,
+): ReportDrive[] {
+  return content.drives.map((drive) => ({
+    id: drive.id,
+    startTime: new Date(drive.startTime),
+    endTime:
+      drive.endTime != null
+        ? new Date(drive.endTime)
+        : null,
+    startPlaceName: drive.startPlaceName,
+    endPlaceName: drive.endPlaceName,
+    startAddress: drive.startAddress,
+    endAddress: drive.endAddress,
+    startLat: drive.startLat,
+    startLon: drive.startLon,
+    endLat: drive.endLat,
+    endLon: drive.endLon,
+    startOdometerKm: drive.startOdometerKm,
+    endOdometerKm: drive.endOdometerKm,
+    distanceKm: drive.distanceKm,
+    durationSeconds: drive.durationSeconds,
+    consumedEnergyKwh: null,
+    energyIsEstimated: false,
+    avgConsumptionWhKm: null,
+    classification: drive.classification,
+    purpose: drive.purpose,
+    customer: drive.customer,
+    project: drive.project,
+    notes: drive.notes,
+    tags: [...drive.tags],
+  }));
+}

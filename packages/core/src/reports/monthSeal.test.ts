@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   createMonthSealContent,
+  monthSealContentToReportDrives,
   monthSealTotals,
   type MonthSealIdentity,
 } from "./monthSeal.js";
@@ -148,6 +149,74 @@ describe("createMonthSealContent", () => {
         [],
       ),
     ).toThrow("YYYY-MM");
+  });
+});
+
+describe("monthSealContentToReportDrives", () => {
+  it("rekonstruiert Zeitstempel als Date-Objekte", () => {
+    const content = createMonthSealContent(
+      "2026-08",
+      identity,
+      [makeDrive()],
+    );
+
+    const [drive] = monthSealContentToReportDrives(content);
+
+    expect(drive!.startTime).toBeInstanceOf(Date);
+    expect(drive!.endTime).toBeInstanceOf(Date);
+    expect(drive!.startTime.toISOString()).toBe(
+      "2026-08-10T08:00:00.000Z",
+    );
+    expect(drive!.endTime!.toISOString()).toBe(
+      "2026-08-10T08:30:00.000Z",
+    );
+  });
+
+  it("erfindet keine nicht versiegelten Energiedaten", () => {
+    const content = createMonthSealContent(
+      "2026-08",
+      identity,
+      [makeDrive()],
+    );
+
+    const [drive] = monthSealContentToReportDrives(content);
+
+    expect(drive!.consumedEnergyKwh).toBeNull();
+    expect(drive!.energyIsEstimated).toBe(false);
+    expect(drive!.avgConsumptionWhKm).toBeNull();
+  });
+
+  it("liefert nach Roundtrip wieder denselben Monats-Snapshot", () => {
+    const original = createMonthSealContent(
+      "2026-08",
+      identity,
+      [
+        makeDrive({
+          id: 2,
+          tags: ["Kunde", "Außendienst"],
+        }),
+        makeDrive({
+          id: 1,
+          startTime: new Date("2026-08-01T07:00:00Z"),
+          endTime: null,
+          classification: "private",
+          purpose: null,
+          customer: null,
+          tags: ["Privat"],
+        }),
+      ],
+    );
+
+    const drives =
+      monthSealContentToReportDrives(original);
+
+    const recreated = createMonthSealContent(
+      original.month,
+      original.identity,
+      drives,
+    );
+
+    expect(recreated).toEqual(original);
   });
 });
 

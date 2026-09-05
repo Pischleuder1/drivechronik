@@ -589,6 +589,19 @@ export function DayPdf({ report, labels }: { report: DayReport; labels: PdfLabel
 }
 
 /** Month PDF export (vision.md §20.3): Fahrtenbuch table + per-classification totals. */
+export interface SealedMonthPdfMeta {
+  revision: number;
+  sealedAt: Date;
+  sealedBy: string;
+  contentHash: string;
+  sealHash: string;
+  lastAuditHash: string | null;
+}
+
+function formatHash(value: string): string {
+  return value.match(/.{1,32}/g)?.join(" ") ?? value;
+}
+
 export function MonthPdf({ report, labels }: { report: MonthReport; labels: PdfLabels }) {
   const monthLabel = formatMonthLabel(report.month, labels.intlLocale);
   const anyEstimated = false; // month report has no energy totals per §20.3
@@ -809,6 +822,226 @@ export function JourneyPdf({ report, labels }: { report: JourneyReport; labels: 
   );
 }
 
+export function SealedMonthPdf({
+  report,
+  labels,
+  seal,
+}: {
+  report: MonthReport;
+  labels: PdfLabels;
+  seal: SealedMonthPdfMeta;
+}) {
+  const monthLabel = formatMonthLabel(
+    report.month,
+    labels.intlLocale,
+  );
+
+  return (
+    <Document>
+      <Page
+        size="A4"
+        orientation="landscape"
+        style={styles.page}
+      >
+        <Text style={styles.header}>
+          Abgeschlossener Fahrtenbuchbericht
+        </Text>
+
+        <Text style={styles.subHeader}>
+          {monthLabel + " · Revision " + seal.revision}
+        </Text>
+
+        <View style={styles.identityBox} wrap={false}>
+          <View style={styles.identityRow}>
+            <Text style={styles.identityLabel}>Fahrer</Text>
+            <Text style={styles.identityValue}>
+              {report.meta.driverName || "–"}
+            </Text>
+          </View>
+
+          <View style={styles.identityRow}>
+            <Text style={styles.identityLabel}>Fahrzeug</Text>
+            <Text style={styles.identityValue}>
+              {report.meta.vehicleName}
+            </Text>
+          </View>
+
+          {report.meta.licensePlate && (
+            <View style={styles.identityRow}>
+              <Text style={styles.identityLabel}>
+                Kennzeichen
+              </Text>
+              <Text style={styles.identityValue}>
+                {report.meta.licensePlate}
+              </Text>
+            </View>
+          )}
+
+          {report.meta.vehicleVin && (
+            <View style={styles.identityRow}>
+              <Text style={styles.identityLabel}>VIN</Text>
+              <Text style={styles.identityValue}>
+                {report.meta.vehicleVin}
+              </Text>
+            </View>
+          )}
+
+          <View style={styles.identityRow}>
+            <Text style={styles.identityLabel}>Abschluss</Text>
+            <Text style={styles.identityValue}>
+              {formatGeneratedAt(
+                seal.sealedAt,
+                report.meta.timeZone,
+              )}
+            </Text>
+          </View>
+
+          <View style={styles.identityRow}>
+            <Text
+              style={[
+                styles.identityLabel,
+                { width: 90 },
+              ]}
+            >
+              Abgeschlossen von
+            </Text>
+            <Text style={styles.identityValue}>
+              {seal.sealedBy}
+            </Text>
+          </View>
+
+          <View style={styles.identityRow}>
+            <Text style={styles.identityLabel}>
+              Prüfstatus
+            </Text>
+            <Text style={styles.identityValue}>
+              Integrität erfolgreich geprüft
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.table}>
+          <DriveTableHeader labels={labels} repeat />
+          {report.rows.map((row) => (
+            <DriveTableRow
+              key={row.id}
+              row={row}
+              timeZone={report.meta.timeZone}
+              labels={labels}
+            />
+          ))}
+        </View>
+
+        <View style={styles.totalsBox} wrap={false}>
+          <Text style={styles.totalsTitle}>
+            {labels.month.sumByClassification}
+          </Text>
+
+          {Object.values(report.byClassification)
+            .filter((bucket) => bucket.driveCount > 0)
+            .map((bucket) => (
+              <View
+                style={styles.totalsRow}
+                key={bucket.classification}
+              >
+                <Text>
+                  {
+                    labels.classification[
+                      bucket.classification
+                    ]
+                  }
+                </Text>
+                <Text>
+                  {labels.month.driveCountKm(
+                    bucket.driveCount,
+                    formatKmCell(bucket.distanceKm),
+                  )}
+                </Text>
+              </View>
+            ))}
+
+          <View
+            style={[
+              styles.totalsRow,
+              {
+                marginTop: 6,
+                borderTop: "0.5pt solid #cccccc",
+                paddingTop: 4,
+              },
+            ]}
+          >
+            <Text style={{ fontWeight: 700 }}>
+              {labels.month.total}
+            </Text>
+            <Text style={{ fontWeight: 700 }}>
+              {labels.month.driveCountKm(
+                report.totals.driveCount,
+                formatKmCell(report.totals.distanceKm),
+              )}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.totalsBox} wrap={false}>
+          <Text style={styles.totalsTitle}>
+            Integritätsnachweis
+          </Text>
+
+          <View style={styles.identityRow}>
+            <Text style={styles.identityLabel}>
+              Content-Hash
+            </Text>
+            <Text
+              style={[
+                styles.identityValue,
+                { fontSize: 6.5 },
+              ]}
+            >
+              {formatHash(seal.contentHash)}
+            </Text>
+          </View>
+
+          <View style={styles.identityRow}>
+            <Text style={styles.identityLabel}>
+              Seal-Hash
+            </Text>
+            <Text
+              style={[
+                styles.identityValue,
+                { fontSize: 6.5 },
+              ]}
+            >
+              {formatHash(seal.sealHash)}
+            </Text>
+          </View>
+
+          {seal.lastAuditHash && (
+            <View style={styles.identityRow}>
+              <Text style={styles.identityLabel}>
+                Audit-Hash
+              </Text>
+              <Text
+                style={[
+                  styles.identityValue,
+                  { fontSize: 6.5 },
+                ]}
+              >
+                {formatHash(seal.lastAuditHash)}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        <Footer
+          meta={report.meta}
+          labels={labels}
+          hasEstimated={false}
+        />
+      </Page>
+    </Document>
+  );
+}
+
 function formatMonthLabel(month: string, locale: IntlLocale): string {
   const [y, m] = month.split("-").map(Number);
   const date = new Date(Date.UTC(y!, m! - 1, 1));
@@ -829,6 +1062,20 @@ export async function renderDayPdf(report: DayReport, labels: PdfLabels): Promis
 
 export async function renderMonthPdf(report: MonthReport, labels: PdfLabels): Promise<Buffer> {
   return renderToBuffer(<MonthPdf report={report} labels={labels} />);
+}
+
+export async function renderSealedMonthPdf(
+  report: MonthReport,
+  labels: PdfLabels,
+  seal: SealedMonthPdfMeta,
+): Promise<Buffer> {
+  return renderToBuffer(
+    <SealedMonthPdf
+      report={report}
+      labels={labels}
+      seal={seal}
+    />,
+  );
 }
 
 export async function renderJourneyPdf(report: JourneyReport, labels: PdfLabels): Promise<Buffer> {

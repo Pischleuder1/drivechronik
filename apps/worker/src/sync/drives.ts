@@ -1,5 +1,5 @@
 import { and, eq, inArray, isNull, sql } from "drizzle-orm";
-import { drives, type Db } from "@drivechronik/db";
+import { appendAuditEntries, drives, type Db } from "@drivechronik/db";
 import { deriveDriveEnergy, matchPlace, type MatchablePlace } from "@drivechronik/core";
 import type { TeslamateSql } from "../teslamate/client.js";
 import {
@@ -245,12 +245,32 @@ async function deleteZombieDrives(
   const toDelete = candidates.filter((c) => !existing.has(c.sourceId));
   if (toDelete.length === 0) return 0;
 
-  await db.delete(drives).where(
-    inArray(
-      drives.id,
-      toDelete.map((c) => c.id),
-    ),
-  );
+  await db.transaction(async (tx) => {
+    await tx.delete(drives).where(
+      inArray(
+        drives.id,
+        toDelete.map((c) => c.id),
+      ),
+    );
+
+    await appendAuditEntries(
+      tx,
+      toDelete.map((drive) => ({
+        entityType: "drive",
+        entityId: drive.id,
+        field: "deleted",
+        oldValue: drive.sourceId,
+        newValue: null,
+        changedBy: "system:teslamate-sync",
+        eventType: "delete",
+        metadata: {
+          reason: "teslamate_zombie",
+          source: "teslamate",
+          sourceId: drive.sourceId,
+        },
+      })),
+    );
+  });
   console.warn(
     `[sync:drives] ${toDelete.length} von TeslaMate verworfene offene Fahrt(en) entfernt`,
   );

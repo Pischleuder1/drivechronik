@@ -93,6 +93,7 @@ export interface DriveRow {
   distanceKm: number | null;
   durationSeconds: number | null;
   classification: "unclassified" | "private" | "business" | "commute";
+  purpose: string | null;
   consumedEnergyKwh: number | null;
   avgConsumptionWhKm: number | null;
   energyIsEstimated: boolean;
@@ -163,6 +164,7 @@ export async function getDayTimeline(
       distanceKm: drives.distanceKm,
       durationSeconds: drives.durationSeconds,
       classification: drives.classification,
+      purpose: drives.purpose,
       consumedEnergyKwh: drives.consumedEnergyKwh,
       avgConsumptionWhKm: drives.avgConsumptionWhKm,
       energyIsEstimated: drives.energyIsEstimated,
@@ -201,6 +203,7 @@ export async function getDayTimeline(
     distanceKm: d.distanceKm,
     durationSeconds: d.durationSeconds,
     classification: d.classification,
+    purpose: d.purpose,
     consumedEnergyKwh: d.consumedEnergyKwh,
     avgConsumptionWhKm: d.avgConsumptionWhKm,
     energyIsEstimated: d.energyIsEstimated,

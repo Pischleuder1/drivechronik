@@ -22,8 +22,33 @@ function isActive(start: Date, end: Date | null, now: number): boolean {
   return start.getTime() <= now && (end === null || end.getTime() > now);
 }
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+function calendarDayNumber(date: Date, timeZone: string): number {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+
+  const year = Number(parts.find((part) => part.type === "year")?.value);
+  const month = Number(parts.find((part) => part.type === "month")?.value);
+  const day = Number(parts.find((part) => part.type === "day")?.value);
+
+  return Math.floor(Date.UTC(year, month - 1, day) / DAY_MS);
+}
+
 /** Inner card content (time, route, metrics, tags) — shared by both modes. */
-function DriveBody({ row, tz }: { row: DriveRow; tz: string }) {
+function DriveBody({
+  row,
+  tz,
+  now,
+}: {
+  row: DriveRow;
+  tz: string;
+  now: number;
+}) {
   const t = useTranslations("day");
   const from = formatPlaceLabel(
     row.startPlaceName,
@@ -38,6 +63,24 @@ function DriveBody({ row, tz }: { row: DriveRow; tz: string }) {
     row.endLon,
   );
   const inProgress = row.endTime === null;
+
+  const classificationComplete = row.classification !== "unclassified";
+  const purposeComplete = (row.purpose?.trim().length ?? 0) > 0;
+  const logbookComplete =
+    classificationComplete &&
+    (row.classification !== "business" || purposeComplete);
+
+  const daysSinceEnd =
+    row.endTime != null
+      ? Math.max(
+          0,
+          calendarDayNumber(new Date(now), tz) -
+            calendarDayNumber(row.endTime, tz),
+        )
+      : 0;
+
+  const daysRemaining = Math.max(0, 7 - daysSinceEnd);
+  const deadlineExceeded = !inProgress && daysSinceEnd > 7;
 
   const meta: Array<{ text: string; title?: string }> = [];
   if (row.distanceKm != null) meta.push({ text: formatKm(row.distanceKm) });
@@ -78,6 +121,32 @@ function DriveBody({ row, tz }: { row: DriveRow; tz: string }) {
           </span>
         ))}
       </div>
+
+      {!inProgress && (
+        <p
+          className={
+            logbookComplete
+              ? "mt-2 text-xs font-medium text-emerald-700 dark:text-emerald-400"
+              : deadlineExceeded
+                ? "mt-2 text-xs font-medium text-red-700 dark:text-red-400"
+                : "mt-2 text-xs font-medium text-amber-700 dark:text-amber-400"
+          }
+        >
+          {logbookComplete
+            ? t("logbookStatus.complete")
+            : deadlineExceeded
+              ? row.classification === "unclassified"
+                ? t("logbookStatus.overdueClassification")
+                : t("logbookStatus.overduePurpose")
+              : row.classification === "unclassified"
+                ? t("logbookStatus.pendingClassification", {
+                    days: daysRemaining,
+                  })
+                : t("logbookStatus.pendingPurpose", {
+                    days: daysRemaining,
+                  })}
+        </p>
+      )}
 
       {row.tags.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-1.5">
@@ -127,7 +196,7 @@ export function DriveEntry({
             <SelectionCheckbox checked={selected} />
           </span>
           <span className="min-w-0 flex-1">
-            <DriveBody row={row} tz={tz} />
+            <DriveBody row={row} tz={tz} now={now} />
           </span>
         </button>
       </li>
@@ -139,7 +208,7 @@ export function DriveEntry({
   return (
     <li className={cardClasses}>
       <Link href={`/drives/${row.id}`} className="block px-4 pt-3">
-        <DriveBody row={row} tz={tz} />
+        <DriveBody row={row} tz={tz} now={now} />
       </Link>
 
       <div className="px-4 pb-3 pt-2">

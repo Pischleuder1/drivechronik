@@ -23,5 +23,12 @@
     "private": "Privat",
     "business": "Geschäftlich",
     "commute": "Arbeitsweg"
+  },
+  "logbookStatus": {
+    "complete": "✓ Fahrtenbuch vollständig",
+    "pendingClassification": "Klassifizierung fehlt · noch {days, plural, one {# Kalendertag} other {# Kalendertage}}",
+    "pendingPurpose": "Zweck fehlt · noch {days, plural, one {# Kalendertag} other {# Kalendertage}}",
+    "overdueClassification": "Klassifizierung fehlt · Frist überschritten",
+    "overduePurpose": "Zweck fehlt · Frist überschritten"
   }
 }

@@ -43,6 +43,23 @@ import { DriveChart } from "./DriveChart";
 // den Hintergrund-Hinweis und das Chart fällt auf SoC/Tempo zurück.
 const MIN_ELEVATION_COVERAGE = 0.6;
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+function calendarDayNumber(date: Date, timeZone: string): number {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+
+  const year = Number(parts.find((part) => part.type === "year")?.value);
+  const month = Number(parts.find((part) => part.type === "month")?.value);
+  const day = Number(parts.find((part) => part.type === "day")?.value);
+
+  return Math.floor(Date.UTC(year, month - 1, day) / DAY_MS);
+}
+
 export const dynamic = "force-dynamic";
 
 function Card({
@@ -114,6 +131,29 @@ export default async function DriveDetailPage({
         }).toString()}`
       : null;
   const classification = drive.classification as Classification;
+
+  const isClosed = drive.endTime != null;
+  const classificationComplete = classification !== "unclassified";
+  const purposeComplete = (drive.purpose?.trim().length ?? 0) > 0;
+  const customerMissing =
+    classification === "business" &&
+    (drive.customer?.trim().length ?? 0) === 0;
+
+  const logbookComplete =
+    classificationComplete &&
+    (classification !== "business" || purposeComplete);
+
+  const daysSinceEnd =
+    drive.endTime != null
+      ? Math.max(
+          0,
+          calendarDayNumber(new Date(), APP_TIMEZONE) -
+            calendarDayNumber(drive.endTime, APP_TIMEZONE),
+        )
+      : 0;
+
+  const daysRemaining = Math.max(0, 7 - daysSinceEnd);
+  const deadlineExceeded = isClosed && daysSinceEnd > 7;
 
   const gpsCoveragePercent =
     drive.durationSeconds != null &&
@@ -404,6 +444,52 @@ export default async function DriveDetailPage({
           )}
         </Card>
       )}
+
+      <Card title={t("page.cardLogbookStatus")}>
+        <div className="space-y-2">
+          <div
+            className={
+              !isClosed
+                ? "rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+                : logbookComplete
+                  ? "rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-900 dark:border-green-900 dark:bg-green-950 dark:text-green-100"
+                  : deadlineExceeded
+                    ? "rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900 dark:border-red-900 dark:bg-red-950 dark:text-red-100"
+                    : "rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100"
+            }
+          >
+            <span className="font-medium">
+              {!isClosed
+                ? t("logbookStatus.open")
+                : logbookComplete
+                  ? t("logbookStatus.complete")
+                  : deadlineExceeded
+                    ? t("logbookStatus.overdue")
+                    : t("logbookStatus.pending", { days: daysRemaining })}
+            </span>
+
+            {!logbookComplete && isClosed && (
+              <p className="mt-1 text-xs opacity-80">
+                {!classificationComplete
+                  ? t("logbookStatus.missingClassification")
+                  : t("logbookStatus.missingPurpose")}
+              </p>
+            )}
+          </div>
+
+          {customerMissing && (
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+              {t("logbookStatus.customerHint")}
+            </p>
+          )}
+
+          {deadlineExceeded && !logbookComplete && (
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+              {t("logbookStatus.lateChangeHint")}
+            </p>
+          )}
+        </div>
+      </Card>
 
       <Card title={t("page.cardPostProcessing")}>
         <AnnotationForm

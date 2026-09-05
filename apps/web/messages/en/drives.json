@@ -25,7 +25,8 @@
     "gpsSource": "GPS data from TeslaMate · stored route downsampled to approximately 15-second intervals.",
     "noTrackData": "No track data available.",
     "elevationBackgroundNote": "Elevation data is being filled in in the background…",
-    "auditHistory": "History"
+    "auditHistory": "History",
+    "cardLogbookStatus": "Logbook status"
   },
   "metrics": {
     "distance": "Distance",
@@ -91,5 +92,15 @@
     "invalidInput": "Invalid input.",
     "tagCreateFailed": "Could not create tag.",
     "tagNotFound": "Tag not found."
+  },
+  "logbookStatus": {
+    "open": "Drive in progress – status evaluated after completion",
+    "complete": "Complete",
+    "pending": "Incomplete – {days, plural, one {# calendar day} other {# calendar days}} remaining",
+    "overdue": "Completion period exceeded",
+    "missingClassification": "The drive has not been classified yet.",
+    "missingPurpose": "A purpose is still required for a business drive.",
+    "customerHint": "No customer or business contact is entered. Add one if relevant to this drive.",
+    "lateChangeHint": "Later additions remain possible and are recorded in the change history."
   }
 }

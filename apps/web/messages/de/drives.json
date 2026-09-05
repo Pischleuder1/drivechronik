@@ -25,7 +25,8 @@
     "gpsSource": "GPS-Daten aus TeslaMate · gespeicherte Route auf ca. 15-Sekunden-Abstand verdichtet.",
     "noTrackData": "Keine Trackdaten vorhanden.",
     "elevationBackgroundNote": "Höhendaten werden im Hintergrund ergänzt…",
-    "auditHistory": "Verlauf"
+    "auditHistory": "Verlauf",
+    "cardLogbookStatus": "Fahrtenbuchstatus"
   },
   "metrics": {
     "distance": "Distanz",
@@ -91,5 +92,15 @@
     "invalidInput": "Ungültige Eingabe.",
     "tagCreateFailed": "Tag konnte nicht angelegt werden.",
     "tagNotFound": "Tag nicht gefunden."
+  },
+  "logbookStatus": {
+    "open": "Fahrt läuft – Bewertung nach Fahrtende",
+    "complete": "Vollständig",
+    "pending": "Unvollständig – noch {days, plural, one {# Kalendertag} other {# Kalendertage}}",
+    "overdue": "Frist überschritten",
+    "missingClassification": "Die Fahrt ist noch nicht klassifiziert.",
+    "missingPurpose": "Für eine geschäftliche Fahrt fehlt noch der Zweck.",
+    "customerHint": "Kunde bzw. Geschäftspartner ist nicht eingetragen. Bitte ergänzen, sofern für diese Fahrt relevant.",
+    "lateChangeHint": "Eine nachträgliche Ergänzung bleibt möglich und wird in der Änderungshistorie protokolliert."
   }
 }

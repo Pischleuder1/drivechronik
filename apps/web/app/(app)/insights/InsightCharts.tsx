@@ -119,7 +119,7 @@ export function ScatterBinnedChart({
                 y={y}
                 textAnchor="end"
                 dominantBaseline={i === 2 ? "hanging" : i === 0 ? "auto" : "middle"}
-                className="fill-neutral-500 text-[9px] dark:fill-neutral-400"
+                className="fill-neutral-500 text-[12px] dark:fill-neutral-400"
               >
                 {numFmt.format(Math.round(val))}
               </text>
@@ -134,7 +134,7 @@ export function ScatterBinnedChart({
             x={i === 0 ? PADDING.left : CHART_WIDTH - PADDING.right}
             y={PLOT_BOTTOM + 14}
             textAnchor={i === 0 ? "start" : "end"}
-            className="fill-neutral-500 text-[9px] dark:fill-neutral-400"
+            className="fill-neutral-500 text-[12px] dark:fill-neutral-400"
           >
             {numFmt.format(val)} {xUnit}
           </text>
@@ -142,7 +142,7 @@ export function ScatterBinnedChart({
         <text
           x={PADDING.left}
           y={PADDING.top - 6}
-          className="fill-neutral-400 text-[9px] dark:fill-neutral-500"
+          className="fill-neutral-400 text-[12px] dark:fill-neutral-500"
         >
           {yUnit}
         </text>
@@ -187,7 +187,7 @@ export function ScatterBinnedChart({
       </svg>
 
       {/* Tooltip-Zeile: Bin-Mittel bei Hover, sonst dezente Legende. */}
-      <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+      <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
         <span className="inline-flex items-center gap-1.5 text-blue-700 dark:text-blue-400">
           <span
             aria-hidden
@@ -316,7 +316,7 @@ export function MonthChart({ months }: { months: MonthDatum[] }) {
           y={PADDING.top}
           textAnchor="end"
           dominantBaseline="hanging"
-          className="fill-emerald-700 text-[9px] dark:fill-emerald-400"
+          className="fill-emerald-700 text-[12px] dark:fill-emerald-400"
         >
           {numFmt.format(kmMax)} km
         </text>
@@ -328,7 +328,7 @@ export function MonthChart({ months }: { months: MonthDatum[] }) {
             y={i === 0 ? PADDING.top : PLOT_BOTTOM}
             textAnchor="end"
             dominantBaseline={i === 0 ? "hanging" : "auto"}
-            className="fill-blue-700 text-[9px] dark:fill-blue-400"
+            className="fill-blue-700 text-[12px] dark:fill-blue-400"
           >
             {numFmt.format(val)}
           </text>
@@ -341,14 +341,14 @@ export function MonthChart({ months }: { months: MonthDatum[] }) {
             x={barX(i)}
             y={PLOT_BOTTOM + 14}
             textAnchor="middle"
-            className="fill-neutral-500 text-[9px] dark:fill-neutral-400"
+            className="fill-neutral-500 text-[12px] dark:fill-neutral-400"
           >
             {m.label}
           </text>
         ))}
       </svg>
 
-      <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+      <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
         <span className="inline-flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400">
           <span aria-hidden className="inline-block h-2 w-2 rounded-sm bg-emerald-500 dark:bg-emerald-400" />
           km
@@ -414,7 +414,7 @@ export function WeekdayChart({ days }: { days: WeekdayDatum[] }) {
                 y={y}
                 textAnchor="end"
                 dominantBaseline={i === 2 ? "hanging" : i === 0 ? "auto" : "middle"}
-                className="fill-neutral-500 text-[9px] dark:fill-neutral-400"
+                className="fill-neutral-500 text-[12px] dark:fill-neutral-400"
               >
                 {numFmt.format(Math.round(val))}
               </text>
@@ -445,7 +445,7 @@ export function WeekdayChart({ days }: { days: WeekdayDatum[] }) {
         <text
           x={PADDING.left}
           y={PADDING.top - 6}
-          className="fill-neutral-400 text-[9px] dark:fill-neutral-500"
+          className="fill-neutral-400 text-[12px] dark:fill-neutral-500"
         >
           km
         </text>
@@ -456,14 +456,14 @@ export function WeekdayChart({ days }: { days: WeekdayDatum[] }) {
             x={barX(i)}
             y={PLOT_BOTTOM + 14}
             textAnchor="middle"
-            className="fill-neutral-500 text-[9px] dark:fill-neutral-400"
+            className="fill-neutral-500 text-[12px] dark:fill-neutral-400"
           >
             {d.label}
           </text>
         ))}
       </svg>
 
-      <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+      <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
         <span className="inline-flex items-center gap-1.5 text-amber-700 dark:text-amber-400">
           <span aria-hidden className="inline-block h-2 w-2 rounded-sm bg-amber-500 dark:bg-amber-400" />
           {t("charts.weekdayChartLegend")}

@@ -771,14 +771,12 @@ function Result({
   onSelectRoute: (routeOptionId: string) => Promise<void>;
 }) {
   const t = useTranslations("planner");
+  const selectedRouteId = plan.selectedRouteOptionId;
+
   const selectedRoute =
     plan.routeOptions.find(
-      (option) =>
-        Math.abs(option.distanceKm - plan.distanceKm) < 0.1 &&
-        Math.abs(option.durationSeconds - plan.durationSeconds) < 1,
+      (option) => option.id === selectedRouteId,
     ) ?? plan.routeOptions[0];
-
-  const selectedRouteId = selectedRoute?.id ?? "fastest";
 
   const arrivalRounded = Math.round(plan.arrivalSoc);
   const displaySoc = Math.max(0, arrivalRounded);
@@ -812,7 +810,7 @@ function Result({
                 className={
                   "rounded-xl border p-3 text-left transition " +
                   (selected
-                    ? "border-neutral-900 bg-neutral-50 dark:border-neutral-100 dark:bg-neutral-900"
+                    ? "border-red-500 bg-red-50 ring-2 ring-red-200 dark:border-red-500 dark:bg-red-950/20 dark:ring-red-900"
                     : "border-neutral-200 bg-white hover:border-neutral-400 dark:border-neutral-800 dark:bg-neutral-950 dark:hover:border-neutral-600")
                 }
               >

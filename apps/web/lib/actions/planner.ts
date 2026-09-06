@@ -94,6 +94,9 @@ export interface PlanResult {
   /** [lat, lon]-Tupel für die Karten-Polyline (ausgedünnt). */
   geometry: [number, number][];
 
+  /** Vom Nutzer gewählte Routenvariante. */
+  selectedRouteOptionId: string;
+
   /** Vom Routing angebotene Varianten. Noch ohne eigene Ladeplanung. */
   routeOptions: Array<{
     id: string;
@@ -273,6 +276,9 @@ export async function planRoute(
         PUTTGARDEN_RODBY_FERRY.puttgarden,
       ];
 
+  const puttgardenRodbyFerrySelected =
+    routeOptionId === PUTTGARDEN_RODBY_FERRY.id;
+
   const ferryRouteResult =
     waypoints.length === 0
       ? await fetchOsrmRoute(
@@ -341,8 +347,9 @@ export async function planRoute(
 
 
   let selectedRoute = route;
+  let selectedRouteOptionId = "fastest";
 
-  if (routeOptionId === PUTTGARDEN_RODBY_FERRY.id) {
+  if (puttgardenRodbyFerrySelected) {
     const ferryOptionExists = routeOptions.some(
       (option) => option.id === PUTTGARDEN_RODBY_FERRY.id,
     );
@@ -352,7 +359,10 @@ export async function planRoute(
         (candidate) => candidate.hasFerry,
       );
 
-      if (ferryRoute) selectedRoute = ferryRoute;
+      if (ferryRoute) {
+        selectedRoute = ferryRoute;
+        selectedRouteOptionId = PUTTGARDEN_RODBY_FERRY.id;
+      }
     }
   } else if (routeOptionId?.startsWith("alternative-")) {
     const alternativeIndex = Number(
@@ -365,6 +375,7 @@ export async function planRoute(
       routeResult.routes[alternativeIndex]
     ) {
       selectedRoute = routeResult.routes[alternativeIndex];
+      selectedRouteOptionId = routeOptionId;
     }
   }
 
@@ -415,7 +426,8 @@ export async function planRoute(
   // 1. Schnelllader entlang der ursprünglichen Referenzroute suchen.
   // 2. Sinnvolle Ladestopps bestimmen.
   // 3. Falls diese Stopps noch nicht Bestandteil der Route sind, OSRM erneut
-  //    über die manuellen Zwischenziele und die Ladestopps routen.
+  //    über manuelle Zwischenziele, verpflichtende Fährpunkte und Ladestopps
+  //    routen.
   // 4. Verbrauch und Ladeplanung auf der tatsächlich gerouteten Strecke
   //    erneut berechnen, ohne den Suchkorridor für Ladeorte zu verschieben.
   //
@@ -520,8 +532,15 @@ export async function planRoute(
       break;
     }
 
+    // Eine ausdrücklich gewählte Fährroute muss auch beim erneuten Routing
+    // über Ladestopps erhalten bleiben. Ohne die beiden Fährpunkte könnte
+    // OSRM wieder auf eine reine Landroute wechseln.
+    const requiredRouteWaypoints = puttgardenRodbyFerrySelected
+      ? ferryViaPoints
+      : waypoints;
+
     const chargingRouteWaypoints = mergeRouteWaypoints(
-      waypoints,
+      requiredRouteWaypoints,
       finalChargingSelection.stops.map((stop) => ({
         lat: stop.site.lat,
         lon: stop.site.lon,
@@ -540,11 +559,21 @@ export async function planRoute(
       chargingRouteWaypoints,
     );
 
-    if (!chargingRouteResult.ok || !chargingRouteResult.routes[0]) {
+    if (!chargingRouteResult.ok) {
       break;
     }
 
-    finalRoute = chargingRouteResult.routes[0];
+    const chargingRoute = puttgardenRodbyFerrySelected
+      ? chargingRouteResult.routes.find((candidate) => candidate.hasFerry)
+      : chargingRouteResult.routes[0];
+
+    // Bei ausdrücklich ausgewählter Fährroute niemals still auf eine
+    // Landroute zurückfallen.
+    if (!chargingRoute) {
+      break;
+    }
+
+    finalRoute = chargingRoute;
     routedChargingStopIds = selectedChargingStopIds;
 
     finalDistanceKm = finalRoute.distanceM / 1000;
@@ -650,6 +679,7 @@ export async function planRoute(
       plannedArrivalSoc: finalChargingSelection.plannedArrivalSoc,
       osrmIsDefault,
       geometry: routedGeometry,
+      selectedRouteOptionId,
       routeOptions,
       chargingSiteCount: chargingSites.length,
       chargingSites: chargingSites.map((site) => ({

@@ -155,6 +155,7 @@ function haversineKm(
 function locateSiteAlongRoute(
   site: ChargingSite,
   geometry: [number, number][],
+  routeDistanceKm: number,
 ): RouteSitePosition[] {
   if (geometry.length < 2) return [];
 
@@ -172,6 +173,22 @@ function locateSiteAlongRoute(
         ),
     );
   }
+
+  // Die Geometrie ist für die Karte ausgedünnt und ihre kumulierte
+  // Haversine-Länge kann daher von der echten OSRM-Routendistanz abweichen.
+  // Ladeorte und nonDrivingSegments müssen aber dieselbe Kilometerachse
+  // verwenden. Deshalb skalieren wir die Geometrie auf routeDistanceKm.
+  const geometryDistanceKm =
+    cumulativeKm[cumulativeKm.length - 1] ?? 0;
+
+  const routeDistanceScale =
+    geometryDistanceKm > 0
+      ? routeDistanceKm / geometryDistanceKm
+      : 1;
+
+  const routeCumulativeKm = cumulativeKm.map(
+    (distanceKm) => distanceKm * routeDistanceScale,
+  );
 
   const distancesKm = geometry.map((point) =>
     haversineKm(site.lat, site.lon, point[0], point[1]),
@@ -204,8 +221,8 @@ function locateSiteAlongRoute(
 
     const previousCandidate = currentGroup[currentGroup.length - 1]!;
     const routeGapKm =
-      cumulativeKm[candidate.index]! -
-      cumulativeKm[previousCandidate.index]!;
+      routeCumulativeKm[candidate.index]! -
+      routeCumulativeKm[previousCandidate.index]!;
 
     if (routeGapKm > 5) {
       groups.push([candidate]);
@@ -223,7 +240,7 @@ function locateSiteAlongRoute(
 
     return {
       site,
-      routeDistanceKm: cumulativeKm[best.index]!,
+      routeDistanceKm: routeCumulativeKm[best.index]!,
       offRouteDistanceKm: best.distanceKm,
     };
   });
@@ -326,7 +343,13 @@ export function selectChargingStop(
 
   // Ladeorte einmalig auf ihre Position entlang der Route projizieren.
   const positionedSites = sites
-    .flatMap((site) => locateSiteAlongRoute(site, geometry))
+    .flatMap((site) =>
+      locateSiteAlongRoute(
+        site,
+        geometry,
+        input.routeDistanceKm,
+      ),
+    )
     .filter(
       ({ routeDistanceKm }) =>
         routeDistanceKm > 5 &&
@@ -356,6 +379,9 @@ export function selectChargingStop(
   // Kann das Ziel mit höchstens 90 % Abfahrt-SoC direkt erreicht werden,
   // laden wir lieber etwas länger und vermeiden einen zusätzlichen Kurzstopp.
   const maximumSingleStopDepartureSoc = 90;
+
+  // Ein Ladehalt ohne nennenswerte Nachladung ist kein echter Ladestopp.
+  const minimumUsefulChargeKwh = 0.5;
 
   // Schutz gegen fehlerhafte Daten oder eine Endlosschleife.
   // Auf sehr langen Strecken werden entsprechend mehr Ladestopps zugelassen.
@@ -494,6 +520,15 @@ export function selectChargingStop(
       Math.min(100, departureSoc),
       input.capacityKwh,
     );
+
+    // Falls aufgrund von Rundung oder abweichenden Routendaten an diesem
+    // Punkt gar nicht sinnvoll geladen werden müsste, passieren wir den
+    // Ladeort lediglich und planen mit dem tatsächlichen Ankunfts-SoC weiter.
+    if (stop.energyAddedKwh < minimumUsefulChargeKwh) {
+      currentDistanceKm = selected.routeDistanceKm;
+      currentSoc = selected.arrivalSoc;
+      continue;
+    }
 
     stops.push(stop);
 

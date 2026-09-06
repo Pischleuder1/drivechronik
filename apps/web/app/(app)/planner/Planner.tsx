@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { MapPin, Navigation, TriangleAlert } from "lucide-react";
 import { formatDuration } from "@drivechronik/core";
@@ -141,10 +141,64 @@ export function Planner({
   const [capacityKwh, setCapacityKwh] = useState(String(defaultCapacityKwh));
 
   const [pending, setPending] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [progressStage, setProgressStage] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [plan, setPlan] = useState<PlanResult | null>(null);
   const [plannedWaypoints, setPlannedWaypoints] = useState<Coords[]>([]);
   const [planId, setPlanId] = useState(0);
+
+  // Die Server-Action liefert keinen echten Zwischenstand. Deshalb zeigt
+  // DriveChronik während der Berechnung nachvollziehbare Arbeitsphasen an,
+  // ohne einen technisch exakten Prozentwert vorzutäuschen.
+  useEffect(() => {
+    if (!pending) return;
+
+    const steps = [
+      {
+        afterMs: 500,
+        progress: 25,
+        label: "Route wird berechnet …",
+      },
+      {
+        afterMs: 1400,
+        progress: 45,
+        label: "Verbrauch wird prognostiziert …",
+      },
+      {
+        afterMs: 2600,
+        progress: 68,
+        label: "Schnelllader entlang der Route werden geprüft …",
+      },
+      {
+        afterMs: 4200,
+        progress: 88,
+        label: "Ladeplanung wird optimiert …",
+      },
+    ];
+
+    const timers = steps.map((step) =>
+      window.setTimeout(() => {
+        setProgress(step.progress);
+        setProgressStage(step.label);
+      }, step.afterMs),
+    );
+
+    return () => {
+      timers.forEach((timer) => window.clearTimeout(timer));
+    };
+  }, [pending]);
+
+  // 100 % nach erfolgreicher Berechnung noch kurz sichtbar lassen.
+  useEffect(() => {
+    if (pending || progress !== 100) return;
+
+    const timer = window.setTimeout(() => {
+      setProgress(0);
+    }, 650);
+
+    return () => window.clearTimeout(timer);
+  }, [pending, progress]);
 
   function resolvePlaceValue(value: string): Coords | null {
     if (value === CURRENT_VALUE) {
@@ -276,6 +330,8 @@ export function Planner({
       return;
     }
 
+    setProgress(8);
+    setProgressStage("Route wird vorbereitet …");
     setPending(true);
     setError(null);
     const res = await planRoute({
@@ -290,9 +346,10 @@ export function Planner({
       capacityKwh: capNum,
       routeOptionId,
     });
-    setPending(false);
-
     if (!res.ok) {
+      setPending(false);
+      setProgress(0);
+      setProgressStage("");
       setError(res.error);
       setPlan(null);
       return;
@@ -300,6 +357,9 @@ export function Planner({
     setPlan(res.plan);
     setPlannedWaypoints(resolvedWaypoints);
     setPlanId((n) => n + 1);
+    setProgressStage("Berechnung abgeschlossen");
+    setProgress(100);
+    setPending(false);
   }
 
   async function handleRouteSelect(routeOptionId: string) {
@@ -649,6 +709,34 @@ export function Planner({
             </span>
           )}
         </div>
+
+        {progress > 0 && (
+          <div
+            className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3 dark:border-neutral-700 dark:bg-neutral-950"
+            aria-live="polite"
+          >
+            <div className="flex items-center justify-between gap-4 text-xs">
+              <span className="font-medium text-neutral-700 dark:text-neutral-300">
+                {progressStage}
+              </span>
+              <span className="shrink-0 tabular-nums text-neutral-500 dark:text-neutral-400">
+                {progress} %
+              </span>
+            </div>
+
+            <div className="mt-2 h-2 overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-800">
+              <div
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={progress}
+                aria-label="Fortschritt der Routenberechnung"
+                className="h-full rounded-full bg-blue-600 transition-[width] duration-500 ease-out dark:bg-blue-500"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
+        )}
 
         <p className="mt-3 text-xs text-neutral-400 dark:text-neutral-500">
           {t("form.routingPrefix")}{" "}

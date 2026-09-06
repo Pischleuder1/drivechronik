@@ -7,6 +7,7 @@ import type {
 
 import { getSuperchargeCompassProvider } from "./superchargeCompass";
 import { getBundesnetzagenturProvider } from "./bundesnetzagentur";
+import { getNetherlandsNdwProvider } from "./netherlandsNdw";
 
 export async function findChargingSitesAlongRoute(
   geometry: [number, number][],
@@ -18,7 +19,10 @@ export async function findChargingSitesAlongRoute(
     getSuperchargeCompassProvider(),
     ...(preference === "tesla-only"
       ? []
-      : [getBundesnetzagenturProvider()]),
+      : [
+          getBundesnetzagenturProvider(),
+          getNetherlandsNdwProvider(),
+        ]),
   ].filter((provider) => provider != null);
 
   if (providers.length === 0) return [];

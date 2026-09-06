@@ -241,56 +241,91 @@ export async function planRoute(
   if (!routeResult.ok) return { ok: false, error: routeResult.error };
   const route = routeResult.routes[0];
 
-  const distanceSquared = (
-    lat1: number,
-    lon1: number,
-    lat2: number,
-    lon2: number,
-  ) => {
-    const dLat = lat1 - lat2;
-    const dLon = lon1 - lon2;
-    return dLat * dLat + dLon * dLon;
-  };
+  const routeSequencePoints: RoutePoint[] = [
+    { lat: startLat, lon: startLon },
+    ...waypoints,
+    { lat: destLat, lon: destLon },
+  ];
 
-  const startCloserToPuttgarden =
-    distanceSquared(
-      startLat,
-      startLon,
-      PUTTGARDEN_RODBY_FERRY.puttgarden.lat,
-      PUTTGARDEN_RODBY_FERRY.puttgarden.lon,
-    ) <=
-    distanceSquared(
-      startLat,
-      startLon,
-      PUTTGARDEN_RODBY_FERRY.rodby.lat,
-      PUTTGARDEN_RODBY_FERRY.rodby.lon,
+  const specialFerryRoutes = new Map<
+    string,
+    {
+      label: string;
+      route: OsrmRoute;
+      viaPoints: RoutePoint[];
+      ferry: SpecialFerry;
+    }
+  >();
+
+  for (const ferry of SPECIAL_FERRIES) {
+    if (
+      !specialFerryIsRelevant(
+        routeSequencePoints,
+        ferry.portA,
+        ferry.portB,
+      )
+    ) {
+      continue;
+    }
+
+    const ferryViaPoints = buildSpecialFerryViaPoints(
+      { lat: startLat, lon: startLon },
+      waypoints,
+      { lat: destLat, lon: destLon },
+      ferry.portA,
+      ferry.portB,
     );
 
-  const ferryViaPoints = startCloserToPuttgarden
-    ? [
-        PUTTGARDEN_RODBY_FERRY.puttgarden,
-        PUTTGARDEN_RODBY_FERRY.rodby,
-      ]
-    : [
-        PUTTGARDEN_RODBY_FERRY.rodby,
-        PUTTGARDEN_RODBY_FERRY.puttgarden,
-      ];
+    const ferryRouteResult =
+      ferry.routing === "virtual"
+        ? await fetchVirtualFerryRoute(
+            { lat: startLat, lon: startLon },
+            { lat: destLat, lon: destLon },
+            ferryViaPoints,
+            osrmBaseUrl,
+            t,
+            ferry,
+          )
+        : await fetchOsrmRoute(
+            startLat,
+            startLon,
+            destLat,
+            destLon,
+            osrmBaseUrl,
+            t,
+            ferryViaPoints,
+          );
 
-  const puttgardenRodbyFerrySelected =
-    routeOptionId === PUTTGARDEN_RODBY_FERRY.id;
+    if (!ferryRouteResult.ok) {
+      continue;
+    }
 
-  const ferryRouteResult =
-    waypoints.length === 0
-      ? await fetchOsrmRoute(
-          startLat,
-          startLon,
-          destLat,
-          destLon,
-          osrmBaseUrl,
-          t,
-          ferryViaPoints,
-        )
-      : null;
+    const ferryRoute =
+      ferry.routing === "virtual"
+        ? ferryRouteResult.routes[0]
+        : ferryRouteResult.routes.find(
+            (candidate) => candidate.hasFerry,
+          );
+
+    if (!ferryRoute) {
+      continue;
+    }
+
+    const ferryIsReasonable =
+      ferryRoute.durationS <= route.durationS + 6 * 60 * 60 &&
+      ferryRoute.distanceM <= route.distanceM * 1.35;
+
+    if (!ferryIsReasonable) {
+      continue;
+    }
+
+    specialFerryRoutes.set(ferry.id, {
+      label: ferry.label,
+      route: ferryRoute,
+      viaPoints: ferryViaPoints,
+      ferry,
+    });
+  }
 
   const routeOptions = routeResult.routes.map((candidate, index) => ({
     id: index === 0 ? "fastest" : "alternative-" + index,
@@ -312,58 +347,41 @@ export async function planRoute(
     ).map(([lon, lat]) => [lat, lon] as [number, number]),
   }));
 
-  if (ferryRouteResult?.ok) {
-    const ferryRoute = ferryRouteResult.routes.find(
-      (candidate) => candidate.hasFerry,
-    );
+  for (const [ferryId, candidate] of specialFerryRoutes) {
+    const ferryRoute = candidate.route;
 
-    const ferryIsReasonable =
-      ferryRoute != null &&
-      ferryRoute.durationS <= route.durationS + 90 * 60 &&
-      ferryRoute.distanceM <= route.distanceM * 1.25;
-
-    if (ferryRoute && ferryIsReasonable) {
-      routeOptions.push({
-        id: PUTTGARDEN_RODBY_FERRY.id,
-        label: PUTTGARDEN_RODBY_FERRY.label,
-        distanceKm: ferryRoute.distanceM / 1000,
-        durationSeconds: ferryRoute.durationS,
-        drivingDistanceKm: ferryRoute.drivingDistanceM / 1000,
-        hasFerry: ferryRoute.hasFerry,
-        ferryDistanceKm: ferryRoute.ferryDistanceM / 1000,
-        ferryDurationSeconds: ferryRoute.ferryDurationS,
-        ferrySegments: ferryRoute.ferrySegments.map((segment) => ({
-          name: segment.name,
-          distanceKm: segment.distanceM / 1000,
-          durationSeconds: segment.durationS,
-        })),
-        geometry: downsample(
-          ferryRoute.coordinates,
-          Math.min(400, ferryRoute.coordinates.length),
-        ).map(([lon, lat]) => [lat, lon] as [number, number]),
-      });
-    }
+    routeOptions.push({
+      id: ferryId,
+      label: candidate.label,
+      distanceKm: ferryRoute.distanceM / 1000,
+      durationSeconds: ferryRoute.durationS,
+      drivingDistanceKm: ferryRoute.drivingDistanceM / 1000,
+      hasFerry: ferryRoute.hasFerry,
+      ferryDistanceKm: ferryRoute.ferryDistanceM / 1000,
+      ferryDurationSeconds: ferryRoute.ferryDurationS,
+      ferrySegments: ferryRoute.ferrySegments.map((segment) => ({
+        name: segment.name,
+        distanceKm: segment.distanceM / 1000,
+        durationSeconds: segment.durationS,
+      })),
+      geometry: downsample(
+        ferryRoute.coordinates,
+        Math.min(400, ferryRoute.coordinates.length),
+      ).map(([lon, lat]) => [lat, lon] as [number, number]),
+    });
   }
-
 
   let selectedRoute = route;
   let selectedRouteOptionId = "fastest";
 
-  if (puttgardenRodbyFerrySelected) {
-    const ferryOptionExists = routeOptions.some(
-      (option) => option.id === PUTTGARDEN_RODBY_FERRY.id,
-    );
+  const selectedSpecialFerry =
+    routeOptionId != null
+      ? specialFerryRoutes.get(routeOptionId)
+      : undefined;
 
-    if (ferryOptionExists && ferryRouteResult?.ok) {
-      const ferryRoute = ferryRouteResult.routes.find(
-        (candidate) => candidate.hasFerry,
-      );
-
-      if (ferryRoute) {
-        selectedRoute = ferryRoute;
-        selectedRouteOptionId = PUTTGARDEN_RODBY_FERRY.id;
-      }
-    }
+  if (selectedSpecialFerry) {
+    selectedRoute = selectedSpecialFerry.route;
+    selectedRouteOptionId = routeOptionId!;
   } else if (routeOptionId?.startsWith("alternative-")) {
     const alternativeIndex = Number(
       routeOptionId.slice("alternative-".length),
@@ -535,8 +553,8 @@ export async function planRoute(
     // Eine ausdrücklich gewählte Fährroute muss auch beim erneuten Routing
     // über Ladestopps erhalten bleiben. Ohne die beiden Fährpunkte könnte
     // OSRM wieder auf eine reine Landroute wechseln.
-    const requiredRouteWaypoints = puttgardenRodbyFerrySelected
-      ? ferryViaPoints
+    const requiredRouteWaypoints = selectedSpecialFerry
+      ? selectedSpecialFerry.viaPoints
       : waypoints;
 
     const chargingRouteWaypoints = mergeRouteWaypoints(
@@ -549,23 +567,38 @@ export async function planRoute(
       routedGeometry,
     );
 
-    const chargingRouteResult = await fetchOsrmRoute(
-      startLat,
-      startLon,
-      destLat,
-      destLon,
-      osrmBaseUrl,
-      t,
-      chargingRouteWaypoints,
-    );
+    const chargingRouteResult =
+      selectedSpecialFerry?.ferry.routing === "virtual"
+        ? await fetchVirtualFerryRoute(
+            { lat: startLat, lon: startLon },
+            { lat: destLat, lon: destLon },
+            chargingRouteWaypoints,
+            osrmBaseUrl,
+            t,
+            selectedSpecialFerry.ferry,
+          )
+        : await fetchOsrmRoute(
+            startLat,
+            startLon,
+            destLat,
+            destLon,
+            osrmBaseUrl,
+            t,
+            chargingRouteWaypoints,
+          );
 
     if (!chargingRouteResult.ok) {
       break;
     }
 
-    const chargingRoute = puttgardenRodbyFerrySelected
-      ? chargingRouteResult.routes.find((candidate) => candidate.hasFerry)
-      : chargingRouteResult.routes[0];
+    const chargingRoute =
+      selectedSpecialFerry?.ferry.routing === "virtual"
+        ? chargingRouteResult.routes[0]
+        : selectedSpecialFerry
+          ? chargingRouteResult.routes.find(
+              (candidate) => candidate.hasFerry,
+            )
+          : chargingRouteResult.routes[0];
 
     // Bei ausdrücklich ausgewählter Fährroute niemals still auf eine
     // Landroute zurückfallen.
@@ -732,6 +765,299 @@ const PUTTGARDEN_RODBY_FERRY = {
   puttgarden: { lat: 54.49878, lon: 11.22362 },
   rodby: { lat: 54.654306, lon: 11.35399 },
 } as const;
+
+const SASSNITZ_RONNE_FERRY = {
+  id: "ferry-sassnitz-ronne",
+  label: "Via BORNHOLMSLINJEN Sassnitz–Rønne",
+  sassnitz: { lat: 54.486071, lon: 13.587807 },
+  ronne: { lat: 55.099583, lon: 14.692352 },
+} as const;
+
+/**
+ * Explizite Fährverbindungen, die DriveChronik zusätzlich zu den von OSRM
+ * automatisch erkannten Fähren als eigene Routenvarianten anbieten kann.
+ */
+const SPECIAL_FERRIES = [
+  {
+    id: PUTTGARDEN_RODBY_FERRY.id,
+    label: PUTTGARDEN_RODBY_FERRY.label,
+    portA: PUTTGARDEN_RODBY_FERRY.puttgarden,
+    portB: PUTTGARDEN_RODBY_FERRY.rodby,
+    routing: "osrm",
+  },
+  {
+    id: SASSNITZ_RONNE_FERRY.id,
+    label: SASSNITZ_RONNE_FERRY.label,
+    portA: SASSNITZ_RONNE_FERRY.sassnitz,
+    portB: SASSNITZ_RONNE_FERRY.ronne,
+    routing: "virtual",
+    ferryName: "Sassnitz – Rønne",
+    ferryDurationSeconds: 3 * 60 * 60 + 20 * 60,
+  },
+] as const;
+
+interface RoutePoint {
+  lat: number;
+  lon: number;
+}
+
+function routePointDistanceKm(
+  a: RoutePoint,
+  b: RoutePoint,
+): number {
+  const radiusKm = 6371;
+  const toRad = (value: number) => (value * Math.PI) / 180;
+
+  const dLat = toRad(b.lat - a.lat);
+  const dLon = toRad(b.lon - a.lon);
+  const lat1 = toRad(a.lat);
+  const lat2 = toRad(b.lat);
+
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1) *
+      Math.cos(lat2) *
+      Math.sin(dLon / 2) ** 2;
+
+  return 2 * radiusKm * Math.asin(Math.sqrt(h));
+}
+
+/**
+ * Eine Spezialfähre ist nur interessant, wenn die vorgegebenen Routenpunkte
+ * auf beiden Seiten der Verbindung liegen. So vermeiden wir unnötige
+ * zusätzliche OSRM-Anfragen bei normalen Inlandrouten.
+ */
+function specialFerryIsRelevant(
+  points: RoutePoint[],
+  portA: RoutePoint,
+  portB: RoutePoint,
+): boolean {
+  let hasPortASide = false;
+  let hasPortBSide = false;
+
+  for (const point of points) {
+    const distanceA = routePointDistanceKm(point, portA);
+    const distanceB = routePointDistanceKm(point, portB);
+
+    if (distanceA <= distanceB) {
+      hasPortASide = true;
+    } else {
+      hasPortBSide = true;
+    }
+  }
+
+  return hasPortASide && hasPortBSide;
+}
+
+/**
+ * Fügt eine geordnete Fährverbindung an der geometrisch sinnvollsten Stelle
+ * in die bereits vom Nutzer festgelegte Zwischenziel-Reihenfolge ein.
+ */
+function buildSpecialFerryViaPoints(
+  start: RoutePoint,
+  waypoints: RoutePoint[],
+  destination: RoutePoint,
+  portA: RoutePoint,
+  portB: RoutePoint,
+): RoutePoint[] {
+  let bestGap = 0;
+  let bestFirst = portA;
+  let bestSecond = portB;
+  let bestAdditionalDistanceKm = Number.POSITIVE_INFINITY;
+
+  const orientations: Array<[RoutePoint, RoutePoint]> = [
+    [portA, portB],
+    [portB, portA],
+  ];
+
+  for (const [first, second] of orientations) {
+    for (let gap = 0; gap <= waypoints.length; gap += 1) {
+      const previous =
+        gap === 0 ? start : waypoints[gap - 1]!;
+      const next =
+        gap === waypoints.length
+          ? destination
+          : waypoints[gap]!;
+
+      const additionalDistanceKm =
+        routePointDistanceKm(previous, first) +
+        routePointDistanceKm(first, second) +
+        routePointDistanceKm(second, next) -
+        routePointDistanceKm(previous, next);
+
+      if (additionalDistanceKm < bestAdditionalDistanceKm) {
+        bestAdditionalDistanceKm = additionalDistanceKm;
+        bestGap = gap;
+        bestFirst = first;
+        bestSecond = second;
+      }
+    }
+  }
+
+  return [
+    ...waypoints.slice(0, bestGap),
+    bestFirst,
+    bestSecond,
+    ...waypoints.slice(bestGap),
+  ];
+}
+
+type SpecialFerry = (typeof SPECIAL_FERRIES)[number];
+
+function sameRoutePoint(
+  a: RoutePoint,
+  b: RoutePoint,
+): boolean {
+  return (
+    Math.abs(a.lat - b.lat) < 1e-7 &&
+    Math.abs(a.lon - b.lon) < 1e-7
+  );
+}
+
+/**
+ * Baut eine Route mit einer von OSRM nicht unterstützten Fähre aus zwei
+ * normalen Straßenrouten und einem künstlichen, fahrenergiefreien
+ * Fährabschnitt zusammen.
+ */
+async function fetchVirtualFerryRoute(
+  start: RoutePoint,
+  destination: RoutePoint,
+  viaPoints: RoutePoint[],
+  osrmBaseUrl: string,
+  t: Awaited<ReturnType<typeof getTranslations>>,
+  ferry: Extract<SpecialFerry, { routing: "virtual" }>,
+): Promise<OsrmResult> {
+  const firstPortIndex = viaPoints.findIndex(
+    (point) =>
+      sameRoutePoint(point, ferry.portA) ||
+      sameRoutePoint(point, ferry.portB),
+  );
+
+  if (firstPortIndex < 0) {
+    return { ok: false, error: t("errors.routingNoRoute") };
+  }
+
+  const firstPort = viaPoints[firstPortIndex]!;
+
+  const expectedSecondPort = sameRoutePoint(firstPort, ferry.portA)
+    ? ferry.portB
+    : ferry.portA;
+
+  const secondPortIndex = viaPoints.findIndex(
+    (point, index) =>
+      index > firstPortIndex &&
+      sameRoutePoint(point, expectedSecondPort),
+  );
+
+  if (secondPortIndex < 0) {
+    return { ok: false, error: t("errors.routingNoRoute") };
+  }
+
+  const secondPort = viaPoints[secondPortIndex]!;
+
+  const beforeFerryWaypoints = viaPoints.slice(0, firstPortIndex);
+  const afterFerryWaypoints = viaPoints.slice(secondPortIndex + 1);
+
+  const beforeResult = await fetchOsrmRoute(
+    start.lat,
+    start.lon,
+    firstPort.lat,
+    firstPort.lon,
+    osrmBaseUrl,
+    t,
+    beforeFerryWaypoints,
+  );
+
+  if (!beforeResult.ok || !beforeResult.routes[0]) {
+    return beforeResult;
+  }
+
+  const afterResult = await fetchOsrmRoute(
+    secondPort.lat,
+    secondPort.lon,
+    destination.lat,
+    destination.lon,
+    osrmBaseUrl,
+    t,
+    afterFerryWaypoints,
+  );
+
+  if (!afterResult.ok || !afterResult.routes[0]) {
+    return afterResult;
+  }
+
+  const before = beforeResult.routes[0];
+  const after = afterResult.routes[0];
+
+  const virtualFerryDistanceM =
+    routePointDistanceKm(firstPort, secondPort) * 1000;
+
+  const ferryStartM = before.distanceM;
+  const afterOffsetM = ferryStartM + virtualFerryDistanceM;
+
+  const route: OsrmRoute = {
+    distanceM:
+      before.distanceM +
+      virtualFerryDistanceM +
+      after.distanceM,
+
+    durationS:
+      before.durationS +
+      ferry.ferryDurationSeconds +
+      after.durationS,
+
+    drivingDistanceM:
+      before.drivingDistanceM +
+      after.drivingDistanceM,
+
+    drivingDurationS:
+      before.drivingDurationS +
+      after.drivingDurationS,
+
+    ferryDistanceM:
+      before.ferryDistanceM +
+      virtualFerryDistanceM +
+      after.ferryDistanceM,
+
+    ferryDurationS:
+      before.ferryDurationS +
+      ferry.ferryDurationSeconds +
+      after.ferryDurationS,
+
+    hasFerry: true,
+
+    ferrySegments: [
+      ...before.ferrySegments,
+      {
+        name: ferry.ferryName,
+        distanceM: virtualFerryDistanceM,
+        durationS: ferry.ferryDurationSeconds,
+      },
+      ...after.ferrySegments,
+    ],
+
+    nonDrivingSegmentsM: [
+      ...before.nonDrivingSegmentsM,
+      {
+        startM: ferryStartM,
+        endM: ferryStartM + virtualFerryDistanceM,
+      },
+      ...after.nonDrivingSegmentsM.map((segment) => ({
+        startM: segment.startM + afterOffsetM,
+        endM: segment.endM + afterOffsetM,
+      })),
+    ],
+
+    // Das direkte Verbinden der beiden Hafenkoordinaten zeichnet auf der Karte
+    // den virtuellen Fährabschnitt als Gerade über die Ostsee.
+    coordinates: [
+      ...before.coordinates,
+      ...after.coordinates,
+    ],
+  };
+
+  return { ok: true, routes: [route] };
+}
 
 type OsrmResult =
   | { ok: true; routes: OsrmRoute[] }

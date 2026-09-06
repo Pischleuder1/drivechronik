@@ -21,6 +21,8 @@ export interface PlannerMapChargingSite {
   lat: number;
   lon: number;
   stalls: number | null;
+  network: "tesla" | "ionity" | "enbw" | "fastned" | "other";
+  powerKw: number | null;
 }
 
 export function PlannerMapLoader({

@@ -115,13 +115,15 @@ export interface PlanResult {
   /** Anzahl gefundener Schnellladeorte im Suchkorridor. */
   chargingSiteCount: number;
 
-  /** Gefundene Tesla-Supercharger im Suchkorridor. */
+  /** Gefundene Schnellladeorte im Suchkorridor. */
   chargingSites: Array<{
     id: string;
     name: string;
     lat: number;
     lon: number;
     stalls: number | null;
+    network: "tesla" | "ionity" | "enbw" | "fastned" | "other";
+    powerKw: number | null;
   }>;
 
   recommendedChargingStop: {
@@ -130,6 +132,8 @@ export interface PlanResult {
     lat: number;
     lon: number;
     stalls: number | null;
+    network: "tesla" | "ionity" | "enbw" | "fastned" | "other";
+    powerKw: number | null;
     routeDistanceKm: number;
     arrivalSoc: number;
     departureSoc: number;
@@ -143,6 +147,8 @@ export interface PlanResult {
     lat: number;
     lon: number;
     stalls: number | null;
+    network: "tesla" | "ionity" | "enbw" | "fastned" | "other";
+    powerKw: number | null;
     routeDistanceKm: number;
     arrivalSoc: number;
     departureSoc: number;
@@ -437,11 +443,16 @@ export async function planRoute(
     {
       corridorKm: 15,
       minPowerKw: 150,
+      preference: "tesla-preferred",
     },
   );
 
+  const teslaChargingSites = chargingSites.filter(
+    (site) => site.network === "tesla",
+  );
+
   let finalChargingSelection = selectChargingStop(
-    chargingSites,
+    teslaChargingSites,
     routedGeometry,
     {
       startSoc,
@@ -458,6 +469,37 @@ export async function planRoute(
       minimumStopArrivalSoc: 10,
     },
   );
+
+  // Reicht die Tesla-only-Planung nicht aus, dürfen öffentliche
+  // HPC-Schnelllader ab 150 kW die Lücken schließen.
+  if (!finalChargingSelection.planningComplete) {
+    const mixedChargingSelection = selectChargingStop(
+      chargingSites,
+      routedGeometry,
+      {
+        startSoc,
+        capacityKwh,
+        routeDistanceKm: finalDistanceKm,
+        energyKwh: finalPrediction.energyKwh,
+        nonDrivingSegmentsKm: finalRoute.nonDrivingSegmentsM.map(
+          (segment) => ({
+            startKm: segment.startM / 1000,
+            endKm: segment.endM / 1000,
+          }),
+        ),
+        targetArrivalSoc: 20,
+        minimumStopArrivalSoc: 10,
+      },
+    );
+
+    if (
+      mixedChargingSelection.planningComplete ||
+      mixedChargingSelection.stops.length >
+        finalChargingSelection.stops.length
+    ) {
+      finalChargingSelection = mixedChargingSelection;
+    }
+  }
 
   let routedChargingStopIds: string[] = [];
 
@@ -610,15 +652,15 @@ export async function planRoute(
       geometry: routedGeometry,
       routeOptions,
       chargingSiteCount: chargingSites.length,
-      chargingSites: chargingSites
-        .filter((site) => site.network === "tesla")
-        .map((site) => ({
-          id: site.id,
-          name: site.name,
-          lat: site.lat,
-          lon: site.lon,
-          stalls: site.stalls,
-        })),
+      chargingSites: chargingSites.map((site) => ({
+        id: site.id,
+        name: site.name,
+        lat: site.lat,
+        lon: site.lon,
+        stalls: site.stalls,
+        network: site.network,
+        powerKw: site.powerKw,
+      })),
       recommendedChargingStop: finalRecommendedStop
         ? {
             id: finalRecommendedStop.site.id,
@@ -626,6 +668,8 @@ export async function planRoute(
             lat: finalRecommendedStop.site.lat,
             lon: finalRecommendedStop.site.lon,
             stalls: finalRecommendedStop.site.stalls,
+            network: finalRecommendedStop.site.network,
+            powerKw: finalRecommendedStop.site.powerKw,
             routeDistanceKm: finalRecommendedStop.routeDistanceKm,
             arrivalSoc: finalRecommendedStop.arrivalSoc,
             departureSoc: finalRecommendedStop.departureSoc,
@@ -639,6 +683,8 @@ export async function planRoute(
           lat: stop.site.lat,
           lon: stop.site.lon,
           stalls: stop.site.stalls,
+          network: stop.site.network,
+          powerKw: stop.site.powerKw,
           routeDistanceKm: stop.routeDistanceKm,
           arrivalSoc: stop.arrivalSoc,
           departureSoc: stop.departureSoc,

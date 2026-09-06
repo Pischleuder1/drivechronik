@@ -853,7 +853,7 @@ function Result({
       )}
       <div className="rounded-xl border border-neutral-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-900">
         <p className="text-xs text-neutral-500 dark:text-neutral-400">
-          Tesla Supercharger entlang der Route
+          Schnelllader im 15-km-Suchkorridor
         </p>
         <p className="mt-0.5 text-xl font-semibold tabular-nums text-neutral-900 dark:text-neutral-100">
           {plan.chargingSiteCount}
@@ -912,10 +912,9 @@ function Result({
 
       {!plan.chargingPlanComplete && (
         <div className="rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-950/30 dark:text-red-300">
-          <strong>Tesla-Ladeplanung nicht vollständig möglich.</strong>{" "}
+          <strong>Ladeplanung nicht vollständig möglich.</strong>{" "}
           Entlang der gewählten Route wurde keine durchgängige Folge geeigneter
-          Supercharger gefunden. Andere Schnellladenetze werden derzeit nicht
-          berücksichtigt.
+          Schnelllader gefunden.
         </div>
       )}
 

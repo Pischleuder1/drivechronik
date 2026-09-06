@@ -10,6 +10,8 @@ export interface PlannerMapChargingSite {
   lat: number;
   lon: number;
   stalls: number | null;
+  network: "tesla" | "ionity" | "enbw" | "fastned" | "other";
+  powerKw: number | null;
 }
 
 export interface PlannerMapProps {
@@ -97,6 +99,41 @@ function superchargerIcon(color: string): L.DivIcon {
 const TESLA_SUPERCHARGER_ICON = superchargerIcon("#e82127");
 const RECOMMENDED_SUPERCHARGER_ICON = superchargerIcon("#f59e0b");
 
+function fastChargerIcon(color: string): L.DivIcon {
+  return L.divIcon({
+    className: "",
+    html: `
+      <div style="
+        width:30px;
+        height:30px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        border-radius:50% 50% 50% 8%;
+        background:${color};
+        border:2px solid white;
+        box-shadow:0 1px 5px rgba(0,0,0,0.4);
+        transform:rotate(-45deg);
+      ">
+        <span style="
+          color:white;
+          font-family:Arial,sans-serif;
+          font-size:17px;
+          font-weight:700;
+          line-height:1;
+          transform:rotate(45deg);
+        ">⚡</span>
+      </div>
+    `,
+    iconSize: [30, 30],
+    iconAnchor: [15, 28],
+    popupAnchor: [0, -27],
+  });
+}
+
+const FAST_CHARGER_ICON = fastChargerIcon("#2563eb");
+const RECOMMENDED_FAST_CHARGER_ICON = fastChargerIcon("#f59e0b");
+
 /*
  * Alte Inline-Definition wird entfernt.
  */
@@ -155,6 +192,11 @@ export function PlannerMap({
         );
     });
 
+    // Auf der Gesamtübersicht bleiben Tesla-Supercharger und empfohlene
+    // Ladestopps immer sichtbar. Die zahlreichen übrigen HPCs werden erst
+    // beim Hineinzoomen eingeblendet.
+    const hpcLayer = L.layerGroup();
+
     for (const site of chargingSites) {
       const stallsText =
         site.stalls != null
@@ -164,34 +206,66 @@ export function PlannerMap({
       const isRecommended =
         recommendedChargingStops.some((stop) => stop.id === site.id);
 
-      L.marker([site.lat, site.lon], {
-        icon: isRecommended
+      const isTesla = site.network === "tesla";
+
+      const icon = isTesla
+        ? isRecommended
           ? RECOMMENDED_SUPERCHARGER_ICON
-          : TESLA_SUPERCHARGER_ICON,
+          : TESLA_SUPERCHARGER_ICON
+        : isRecommended
+          ? RECOMMENDED_FAST_CHARGER_ICON
+          : FAST_CHARGER_ICON;
+
+      const marker = L.marker([site.lat, site.lon], {
+        icon,
         title: site.name,
-        zIndexOffset: isRecommended ? 1000 : 0,
-      })
-        .addTo(map)
-        .bindPopup(`
+        zIndexOffset: isRecommended ? 1000 : isTesla ? 300 : 0,
+      }).bindPopup(`
           <div style="min-width:180px">
             ${
               isRecommended
                 ? "<strong>Empfohlener Ladestopp</strong><br>"
-                : "<strong>Tesla Supercharger</strong><br>"
+                : isTesla
+                  ? "<strong>Tesla Supercharger</strong><br>"
+                  : "<strong>HPC-Schnelllader</strong><br>"
             }
             ${escapeHtml(site.name)}<br>
             <span style="color:#666">
               ${escapeHtml(stallsText)}
+              ${
+                site.powerKw != null
+                  ? ` · bis ${Math.round(site.powerKw)} kW`
+                  : ""
+              }
             </span>
           </div>
         `);
+
+      if (isTesla || isRecommended) {
+        marker.addTo(map);
+      } else {
+        marker.addTo(hpcLayer);
+      }
     }
+
+    const updateHpcVisibility = () => {
+      const showHpc = map.getZoom() >= 9;
+
+      if (showHpc && !map.hasLayer(hpcLayer)) {
+        hpcLayer.addTo(map);
+      } else if (!showHpc && map.hasLayer(hpcLayer)) {
+        map.removeLayer(hpcLayer);
+      }
+    };
+
+    map.on("zoomend", updateHpcVisibility);
 
     const fit = () => {
       map.invalidateSize();
       map.fitBounds(polyline.getBounds(), {
         padding: [24, 24],
       });
+      updateHpcVisibility();
     };
 
     fit();
@@ -217,6 +291,7 @@ export function PlannerMap({
 
     return () => {
       ro.disconnect();
+      map.off("zoomend", updateHpcVisibility);
       map.remove();
       mapRef.current = null;
     };

@@ -45,6 +45,9 @@ export interface ChargingSearchOptions {
 
   /** Mindestleistung eines Ladepunkts. */
   minPowerKw?: number;
+
+  /** Bevorzugte Auswahl der Ladenetze. */
+  preference?: ChargingPreference;
 }
 
 export interface ChargingSiteProvider {

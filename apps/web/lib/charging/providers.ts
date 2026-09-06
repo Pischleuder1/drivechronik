@@ -6,13 +6,19 @@ import type {
 } from "./types";
 
 import { getSuperchargeCompassProvider } from "./superchargeCompass";
+import { getBundesnetzagenturProvider } from "./bundesnetzagentur";
 
 export async function findChargingSitesAlongRoute(
   geometry: [number, number][],
   options: ChargingSearchOptions = {},
 ): Promise<ChargingSite[]> {
+  const preference = options.preference ?? "tesla-preferred";
+
   const providers = [
     getSuperchargeCompassProvider(),
+    ...(preference === "tesla-only"
+      ? []
+      : [getBundesnetzagenturProvider()]),
   ].filter((provider) => provider != null);
 
   if (providers.length === 0) return [];

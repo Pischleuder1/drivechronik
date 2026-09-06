@@ -353,6 +353,10 @@ export function selectChargingStop(
   // Für Zwischenstopps vermeiden wir bewusst das langsame Laden nahe 100 %.
   const intermediateDepartureSoc = 80;
 
+  // Kann das Ziel mit höchstens 90 % Abfahrt-SoC direkt erreicht werden,
+  // laden wir lieber etwas länger und vermeiden einen zusätzlichen Kurzstopp.
+  const maximumSingleStopDepartureSoc = 90;
+
   // Schutz gegen fehlerhafte Daten oder eine Endlosschleife.
   // Auf sehr langen Strecken werden entsprechend mehr Ladestopps zugelassen.
   const maximumStops = Math.min(
@@ -417,14 +421,21 @@ export function selectChargingStop(
           arrivalSoc >= input.minimumStopArrivalSoc,
       )
       // Möglichst spät laden, aber größere Abweichungen von der Route
-      // deutlich bestrafen. 1 km seitlicher Abstand zählt hier wie
-      // 6 km verlorener Routenfortschritt.
+      // deutlich bestrafen. Tesla wird bei ähnlich guten Ladeorten leicht
+      // bevorzugt, ohne deutlich besser gelegene HPCs zu verdrängen.
       .sort((a, b) => {
         const detourPenaltyFactor = 6;
+        const teslaPreferenceBonusKm = 15;
+
         const scoreA =
-          a.routeDistanceKm - a.offRouteDistanceKm * detourPenaltyFactor;
+          a.routeDistanceKm -
+          a.offRouteDistanceKm * detourPenaltyFactor +
+          (a.site.network === "tesla" ? teslaPreferenceBonusKm : 0);
+
         const scoreB =
-          b.routeDistanceKm - b.offRouteDistanceKm * detourPenaltyFactor;
+          b.routeDistanceKm -
+          b.offRouteDistanceKm * detourPenaltyFactor +
+          (b.site.network === "tesla" ? teslaPreferenceBonusKm : 0);
 
         if (scoreA !== scoreB) return scoreB - scoreA;
         if (a.offRouteDistanceKm !== b.offRouteDistanceKm) {
@@ -462,10 +473,11 @@ export function selectChargingStop(
     const requiredDepartureSocForDestination =
       (requiredDepartureEnergyKwh / input.capacityKwh) * 100;
 
-    // Reicht der Stopp bereits bis zum Ziel, nur die dafür nötige Energie laden.
-    // Sonst zunächst bis 80 % für die nächste Etappe.
+    // Reicht eine moderate Ladung bis zum Ziel, laden wir direkt die dafür
+    // nötige Energie. Erst wenn dafür mehr als 90 % erforderlich wären,
+    // bleibt es bei 80 % und einer weiteren Ladeetappe.
     const departureSoc =
-      requiredDepartureSocForDestination <= intermediateDepartureSoc
+      requiredDepartureSocForDestination <= maximumSingleStopDepartureSoc
         ? Math.max(
             selected.arrivalSoc,
             requiredDepartureSocForDestination,

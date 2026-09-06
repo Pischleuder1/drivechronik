@@ -128,6 +128,7 @@ export interface ChargingStopSelection {
 interface RouteSitePosition {
   site: ChargingSite;
   routeDistanceKm: number;
+  offRouteDistanceKm: number;
 }
 
 function haversineKm(
@@ -154,48 +155,78 @@ function haversineKm(
 function locateSiteAlongRoute(
   site: ChargingSite,
   geometry: [number, number][],
-): RouteSitePosition | null {
-  if (geometry.length < 2) return null;
+): RouteSitePosition[] {
+  if (geometry.length < 2) return [];
 
-  let bestIndex = -1;
-  let bestDistanceKm = Number.POSITIVE_INFINITY;
-
-  for (let i = 0; i < geometry.length; i += 1) {
-    const point = geometry[i]!;
-
-    const distanceKm = haversineKm(
-      site.lat,
-      site.lon,
-      point[0],
-      point[1],
+  const cumulativeKm: number[] = [0];
+  for (let i = 1; i < geometry.length; i += 1) {
+    const previous = geometry[i - 1]!;
+    const current = geometry[i]!;
+    cumulativeKm.push(
+      cumulativeKm[i - 1]! +
+        haversineKm(
+          previous[0],
+          previous[1],
+          current[0],
+          current[1],
+        ),
     );
+  }
 
-    if (distanceKm < bestDistanceKm) {
-      bestDistanceKm = distanceKm;
-      bestIndex = i;
+  const distancesKm = geometry.map((point) =>
+    haversineKm(site.lat, site.lon, point[0], point[1]),
+  );
+
+  const bestDistanceKm = Math.min(...distancesKm);
+
+  // Durch Downsampling liegt der rechnerisch nächste Routenpunkt nicht
+  // zwingend exakt am Ladeort. Punkte bis 1 km über dem besten Treffer
+  // werden deshalb derselben möglichen Vorbeifahrt zugeordnet.
+  const matchThresholdKm = bestDistanceKm + 1;
+
+  const candidateIndexes = distancesKm
+    .map((distanceKm, index) => ({ distanceKm, index }))
+    .filter(({ distanceKm }) => distanceKm <= matchThresholdKm);
+
+  if (candidateIndexes.length === 0) return [];
+
+  // Benachbarte Treffer gehören zur selben Vorbeifahrt. Erst wenn entlang
+  // der Route mindestens 5 km dazwischenliegen, behandeln wir den Treffer
+  // als weitere mögliche Passage derselben Ladestation.
+  const groups: Array<Array<{ distanceKm: number; index: number }>> = [];
+
+  for (const candidate of candidateIndexes) {
+    const currentGroup = groups[groups.length - 1];
+    if (!currentGroup) {
+      groups.push([candidate]);
+      continue;
+    }
+
+    const previousCandidate = currentGroup[currentGroup.length - 1]!;
+    const routeGapKm =
+      cumulativeKm[candidate.index]! -
+      cumulativeKm[previousCandidate.index]!;
+
+    if (routeGapKm > 5) {
+      groups.push([candidate]);
+    } else {
+      currentGroup.push(candidate);
     }
   }
 
-  if (bestIndex < 0) return null;
-
-  let routeDistanceKm = 0;
-
-  for (let i = 1; i <= bestIndex; i += 1) {
-    const previous = geometry[i - 1]!;
-    const current = geometry[i]!;
-
-    routeDistanceKm += haversineKm(
-      previous[0],
-      previous[1],
-      current[0],
-      current[1],
+  return groups.map((group) => {
+    const best = group.reduce((currentBest, candidate) =>
+      candidate.distanceKm < currentBest.distanceKm
+        ? candidate
+        : currentBest,
     );
-  }
 
-  return {
-    site,
-    routeDistanceKm,
-  };
+    return {
+      site,
+      routeDistanceKm: cumulativeKm[best.index]!,
+      offRouteDistanceKm: best.distanceKm,
+    };
+  });
 }
 
 /**
@@ -295,8 +326,7 @@ export function selectChargingStop(
 
   // Ladeorte einmalig auf ihre Position entlang der Route projizieren.
   const positionedSites = sites
-    .map((site) => locateSiteAlongRoute(site, geometry))
-    .filter((value): value is RouteSitePosition => value !== null)
+    .flatMap((site) => locateSiteAlongRoute(site, geometry))
     .filter(
       ({ routeDistanceKm }) =>
         routeDistanceKm > 5 &&
@@ -361,7 +391,7 @@ export function selectChargingStop(
         ({ routeDistanceKm }) =>
           routeDistanceKm > currentDistanceKm + 2,
       )
-      .map(({ site, routeDistanceKm }) => {
+      .map(({ site, routeDistanceKm, offRouteDistanceKm }) => {
         const segmentDrivingDistanceKm = drivingDistanceBetween(
           currentDistanceKm,
           routeDistanceKm,
@@ -378,6 +408,7 @@ export function selectChargingStop(
         return {
           site,
           routeDistanceKm,
+          offRouteDistanceKm,
           arrivalSoc,
         };
       })
@@ -385,8 +416,22 @@ export function selectChargingStop(
         ({ arrivalSoc }) =>
           arrivalSoc >= input.minimumStopArrivalSoc,
       )
-      // Möglichst spät laden → niedriger SoC am Schnelllader.
-      .sort((a, b) => b.routeDistanceKm - a.routeDistanceKm);
+      // Möglichst spät laden, aber größere Abweichungen von der Route
+      // deutlich bestrafen. 1 km seitlicher Abstand zählt hier wie
+      // 6 km verlorener Routenfortschritt.
+      .sort((a, b) => {
+        const detourPenaltyFactor = 6;
+        const scoreA =
+          a.routeDistanceKm - a.offRouteDistanceKm * detourPenaltyFactor;
+        const scoreB =
+          b.routeDistanceKm - b.offRouteDistanceKm * detourPenaltyFactor;
+
+        if (scoreA !== scoreB) return scoreB - scoreA;
+        if (a.offRouteDistanceKm !== b.offRouteDistanceKm) {
+          return a.offRouteDistanceKm - b.offRouteDistanceKm;
+        }
+        return b.routeDistanceKm - a.routeDistanceKm;
+      });
 
     const selected = reachableCandidates[0];
 

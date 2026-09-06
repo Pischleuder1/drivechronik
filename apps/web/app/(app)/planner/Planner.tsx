@@ -45,6 +45,14 @@ interface Coords {
   lon: number;
 }
 
+interface WaypointInput {
+  id: number;
+  mode: "place" | "address";
+  placeValue: string;
+  address: AddressSearchResult | null;
+  query: string;
+}
+
 interface SocTone {
   /** Key unter messages/planner.json#arrivalTone — Übersetzung erfolgt beim Aufrufer. */
   labelKey: "comfortable" | "tight" | "critical";
@@ -125,6 +133,8 @@ export function Planner({
     null,
   );
   const [destQuery, setDestQuery] = useState("");
+  const [waypoints, setWaypoints] = useState<WaypointInput[]>([]);
+  const [nextWaypointId, setNextWaypointId] = useState(1);
 
   const [soc, setSoc] = useState(String(defaultSoc));
   const [tempC, setTempC] = useState(String(defaultTempC));
@@ -133,6 +143,7 @@ export function Planner({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [plan, setPlan] = useState<PlanResult | null>(null);
+  const [plannedWaypoints, setPlannedWaypoints] = useState<Coords[]>([]);
   const [planId, setPlanId] = useState(0);
 
   function resolvePlaceValue(value: string): Coords | null {
@@ -159,11 +170,79 @@ export function Planner({
     return null;
   }
 
+  function addWaypoint() {
+    if (waypoints.length >= 10) return;
+
+    setWaypoints((current) => [
+      ...current,
+      {
+        id: nextWaypointId,
+        mode: places.length > 0 ? "place" : "address",
+        placeValue: places[0] ? "place:" + places[0].id : "",
+        address: null,
+        query: "",
+      },
+    ]);
+    setNextWaypointId((current) => current + 1);
+  }
+
+  function updateWaypoint(id: number, patch: Partial<WaypointInput>) {
+    setWaypoints((current) =>
+      current.map((waypoint) =>
+        waypoint.id === id ? { ...waypoint, ...patch } : waypoint,
+      ),
+    );
+  }
+
+  function removeWaypoint(id: number) {
+    setWaypoints((current) =>
+      current.filter((waypoint) => waypoint.id !== id),
+    );
+  }
+
+  function moveWaypoint(id: number, direction: -1 | 1) {
+    setWaypoints((current) => {
+      const index = current.findIndex((waypoint) => waypoint.id === id);
+      const targetIndex = index + direction;
+
+      if (
+        index < 0 ||
+        targetIndex < 0 ||
+        targetIndex >= current.length
+      ) {
+        return current;
+      }
+
+      const next = [...current];
+      [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
+      return next;
+    });
+  }
+
+  function resolveWaypoints(): Coords[] | null {
+    const resolved: Coords[] = [];
+
+    for (const waypoint of waypoints) {
+      const coords =
+        waypoint.mode === "place"
+          ? resolvePlaceValue(waypoint.placeValue)
+          : waypoint.address
+            ? { lat: waypoint.address.lat, lon: waypoint.address.lon }
+            : null;
+
+      if (!coords) return null;
+      resolved.push(coords);
+    }
+
+    return resolved;
+  }
+
   async function handleSubmit(e: React.FormEvent, routeOptionId?: string) {
     e.preventDefault();
 
     const start = resolveStart();
     const dest = resolveDestination();
+    const resolvedWaypoints = resolveWaypoints();
     if (!start) {
       setError(t("errors.missingStart"));
       return;
@@ -174,6 +253,10 @@ export function Planner({
           ? t("errors.missingDestAddress")
           : t("errors.missingDestPlace"),
       );
+      return;
+    }
+    if (!resolvedWaypoints) {
+      setError("Bitte alle Zwischenziele vollständig auswählen.");
       return;
     }
 
@@ -201,6 +284,7 @@ export function Planner({
       startLon: start.lon,
       destLat: dest.lat,
       destLon: dest.lon,
+      waypoints: resolvedWaypoints,
       startSoc: socNum,
       tempC: tempNum,
       capacityKwh: capNum,
@@ -214,6 +298,7 @@ export function Planner({
       return;
     }
     setPlan(res.plan);
+    setPlannedWaypoints(resolvedWaypoints);
     setPlanId((n) => n + 1);
   }
 
@@ -355,6 +440,138 @@ export function Planner({
             </div>
           </div>
 
+          {/* Zwischenziele */}
+          <div className="sm:col-span-2">
+            <div className="flex items-center justify-between">
+              <span className={labelClasses}>Zwischenziele</span>
+              <button
+                type="button"
+                onClick={addWaypoint}
+                disabled={waypoints.length >= 10}
+                className="text-xs font-medium text-neutral-600 hover:text-neutral-900 disabled:cursor-not-allowed disabled:opacity-40 dark:text-neutral-400 dark:hover:text-white"
+              >
+                + Zwischenziel hinzufügen
+              </button>
+            </div>
+
+            {waypoints.length > 0 && (
+              <div className="mt-2 flex flex-col gap-3">
+                {waypoints.map((waypoint, index) => (
+                  <div
+                    key={waypoint.id}
+                    className="rounded-xl border border-neutral-200 p-3 dark:border-neutral-800"
+                  >
+                    <div className="mb-2 flex items-center justify-between gap-3">
+                      <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
+                        Zwischenziel {index + 1}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => moveWaypoint(waypoint.id, -1)}
+                          disabled={index === 0}
+                          aria-label={"Zwischenziel " + (index + 1) + " nach oben"}
+                          title="Nach oben"
+                          className="rounded px-1.5 py-0.5 text-sm text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 disabled:cursor-not-allowed disabled:opacity-30 dark:hover:bg-neutral-800 dark:hover:text-white"
+                        >
+                          ↑
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveWaypoint(waypoint.id, 1)}
+                          disabled={index === waypoints.length - 1}
+                          aria-label={"Zwischenziel " + (index + 1) + " nach unten"}
+                          title="Nach unten"
+                          className="rounded px-1.5 py-0.5 text-sm text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 disabled:cursor-not-allowed disabled:opacity-30 dark:hover:bg-neutral-800 dark:hover:text-white"
+                        >
+                          ↓
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => removeWaypoint(waypoint.id)}
+                          className="text-xs text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                        >
+                          Entfernen
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="mb-2 flex gap-1 text-xs">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          updateWaypoint(waypoint.id, {
+                            mode: "place",
+                            address: null,
+                            query: "",
+                          })
+                        }
+                        className={
+                          "rounded px-1.5 py-0.5 " +
+                          (waypoint.mode === "place"
+                            ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
+                            : "text-neutral-500 hover:text-neutral-900 dark:hover:text-white")
+                        }
+                      >
+                        Ort
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          updateWaypoint(waypoint.id, {
+                            mode: "address",
+                          })
+                        }
+                        className={
+                          "rounded px-1.5 py-0.5 " +
+                          (waypoint.mode === "address"
+                            ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
+                            : "text-neutral-500 hover:text-neutral-900 dark:hover:text-white")
+                        }
+                      >
+                        Adresse
+                      </button>
+                    </div>
+
+                    {waypoint.mode === "place" ? (
+                      <select
+                        value={waypoint.placeValue}
+                        onChange={(e) =>
+                          updateWaypoint(waypoint.id, {
+                            placeValue: e.target.value,
+                          })
+                        }
+                        className={inputClasses}
+                      >
+                        {places.length === 0 && (
+                          <option value="">Keine Orte vorhanden</option>
+                        )}
+                        {places.map((place) => (
+                          <option key={place.id} value={"place:" + place.id}>
+                            {place.name}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <DestinationSearch
+                        value={waypoint.query}
+                        onValueChange={(value) =>
+                          updateWaypoint(waypoint.id, {
+                            query: value,
+                            address: null,
+                          })
+                        }
+                        onSelect={(address) =>
+                          updateWaypoint(waypoint.id, { address })
+                        }
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Start-SoC */}
           <div>
             <label htmlFor="planner-soc" className={labelClasses}>
@@ -445,6 +662,7 @@ export function Planner({
         <Result
           key={planId}
           plan={plan}
+          waypoints={plannedWaypoints}
           pending={pending}
           onSelectRoute={handleRouteSelect}
         />
@@ -455,10 +673,12 @@ export function Planner({
 
 function Result({
   plan,
+  waypoints,
   pending,
   onSelectRoute,
 }: {
   plan: PlanResult;
+  waypoints: Coords[];
   pending: boolean;
   onSelectRoute: (routeOptionId: string) => Promise<void>;
 }) {
@@ -530,7 +750,8 @@ function Result({
       )}
 
       <PlannerMapLoader
-        geometry={selectedRoute?.geometry ?? plan.geometry}
+        geometry={plan.geometry}
+        waypoints={waypoints}
         chargingSites={plan.chargingSites}
         recommendedChargingStops={plan.recommendedChargingStops}
       />
@@ -691,7 +912,10 @@ function Result({
 
       {!plan.chargingPlanComplete && (
         <div className="rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-950/30 dark:text-red-300">
-          Die Route konnte mit den derzeit verfügbaren Superchargern nicht vollständig geplant werden.
+          <strong>Tesla-Ladeplanung nicht vollständig möglich.</strong>{" "}
+          Entlang der gewählten Route wurde keine durchgängige Folge geeigneter
+          Supercharger gefunden. Andere Schnellladenetze werden derzeit nicht
+          berücksichtigt.
         </div>
       )}
 

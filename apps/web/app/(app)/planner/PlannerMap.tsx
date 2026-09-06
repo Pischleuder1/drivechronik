@@ -15,6 +15,7 @@ export interface PlannerMapChargingSite {
 export interface PlannerMapProps {
   /** Route-Polyline als [lat, lon]-Tupel. */
   geometry: [number, number][];
+  waypoints: Array<{ lat: number; lon: number }>;
 
   /** Tesla-Supercharger im Routenkorridor. */
   chargingSites: PlannerMapChargingSite[];
@@ -43,6 +44,19 @@ function markerIcon(color: string): L.DivIcon {
 
 const START_ICON = markerIcon("#16a34a");
 const END_ICON = markerIcon("#dc2626");
+
+function waypointIcon(number: number): L.DivIcon {
+  return L.divIcon({
+    className: "",
+    html:
+      "<div style='width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:9999px;background:#2563eb;color:white;border:2px solid white;box-shadow:0 1px 5px rgba(0,0,0,0.4);font-family:Arial,sans-serif;font-size:13px;font-weight:700;'>" +
+      String(number) +
+      "</div>",
+    iconSize: [26, 26],
+    iconAnchor: [13, 13],
+    popupAnchor: [0, -14],
+  });
+}
 
 /**
  * Roter Supercharger-Pin mit stilisiertem Tesla-T.
@@ -90,6 +104,7 @@ const RECOMMENDED_SUPERCHARGER_ICON = superchargerIcon("#f59e0b");
 
 export function PlannerMap({
   geometry,
+  waypoints,
   chargingSites,
   recommendedChargingStops,
 }: PlannerMapProps) {
@@ -127,6 +142,18 @@ export function PlannerMap({
       icon: END_ICON,
       title: "Ziel",
     }).addTo(map);
+
+    waypoints.forEach((waypoint, index) => {
+      L.marker([waypoint.lat, waypoint.lon], {
+        icon: waypointIcon(index + 1),
+        title: "Zwischenziel " + String(index + 1),
+        zIndexOffset: 500,
+      })
+        .addTo(map)
+        .bindPopup(
+          "<strong>Zwischenziel " + String(index + 1) + "</strong>",
+        );
+    });
 
     for (const site of chargingSites) {
       const stallsText =
@@ -194,7 +221,7 @@ export function PlannerMap({
       mapRef.current = null;
     };
 
-  }, [geometry, chargingSites, recommendedChargingStops]);
+  }, [geometry, waypoints, chargingSites, recommendedChargingStops]);
 
   return (
     <div

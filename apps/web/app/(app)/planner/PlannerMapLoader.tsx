@@ -25,16 +25,19 @@ export interface PlannerMapChargingSite {
 
 export function PlannerMapLoader({
   geometry,
+  waypoints,
   chargingSites,
   recommendedChargingStops,
 }: {
   geometry: [number, number][];
+  waypoints: Array<{ lat: number; lon: number }>;
   chargingSites: PlannerMapChargingSite[];
   recommendedChargingStops: PlannerMapChargingSite[];
 }) {
   return (
     <PlannerMap
       geometry={geometry}
+      waypoints={waypoints}
       chargingSites={chargingSites}
       recommendedChargingStops={recommendedChargingStops}
     />

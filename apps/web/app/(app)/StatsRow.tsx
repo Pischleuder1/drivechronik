@@ -13,6 +13,10 @@ import {
   formatPlaceLabel,
 } from "@drivechronik/core";
 import { formatRelativeTime } from "../../lib/day";
+import {
+  IconBadge,
+  type IconBadgeTone,
+} from "../../components/ui/IconBadge";
 import type {
   LastChargeStats,
   TodayStats,
@@ -23,6 +27,7 @@ import type {
 function StatCard({
   icon: Icon,
   label,
+  tone,
   children,
 }: {
   icon: React.ComponentType<{
@@ -31,14 +36,15 @@ function StatCard({
     className?: string;
   }>;
   label: string;
+  tone: IconBadgeTone;
   children: React.ReactNode;
 }) {
   return (
     <div className="group rounded-3xl border border-neutral-200/80 bg-white p-4 shadow-sm transition-shadow hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900">
       <div className="flex items-start gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-300">
+        <IconBadge tone={tone}>
           <Icon aria-hidden size={18} />
-        </div>
+        </IconBadge>
 
         <div className="min-w-0 flex-1">
           <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
@@ -71,7 +77,7 @@ export async function StatsRow({
 
   return (
     <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-      <StatCard icon={CalendarDays} label={t("stats.today")}>
+      <StatCard icon={CalendarDays} label={t("stats.today")} tone="blue">
         <p className="text-xl font-semibold tracking-tight tabular-nums text-neutral-950 dark:text-neutral-50">
           {formatKm(today.distanceKm)}
         </p>
@@ -80,7 +86,7 @@ export async function StatsRow({
         </p>
       </StatCard>
 
-      <StatCard icon={CalendarRange} label={t("stats.thisWeek")}>
+      <StatCard icon={CalendarRange} label={t("stats.thisWeek")} tone="violet">
         <p className="text-xl font-semibold tracking-tight tabular-nums text-neutral-950 dark:text-neutral-50">
           {formatKm(week.distanceKm)}
         </p>
@@ -89,7 +95,7 @@ export async function StatsRow({
         </p>
       </StatCard>
 
-      <StatCard icon={Zap} label={t("stats.lastCharge")}>
+      <StatCard icon={Zap} label={t("stats.lastCharge")} tone="emerald">
         {lastCharge ? (
           <>
             <p className="text-xl font-semibold tracking-tight tabular-nums text-neutral-950 dark:text-neutral-50">
@@ -117,7 +123,7 @@ export async function StatsRow({
         )}
       </StatCard>
 
-      <StatCard icon={HelpCircle} label={t("stats.unclassified")}>
+      <StatCard icon={HelpCircle} label={t("stats.unclassified")} tone="amber">
         <p className="text-xl font-semibold tracking-tight tabular-nums text-neutral-950 dark:text-neutral-50">
           {unclassifiedCount.live}
         </p>

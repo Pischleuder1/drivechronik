@@ -9,6 +9,7 @@ import { APP_TIMEZONE } from "../../lib/config";
 import { formatRelativeTime } from "../../lib/day";
 import type { OpenSessionStatus, VehicleStatusRow } from "../../lib/dashboard";
 import { VehicleArtwork } from "./VehicleArtwork";
+import { IconBadge } from "../../components/ui/IconBadge";
 
 type VehicleCardTranslator = Awaited<ReturnType<typeof getTranslations>>;
 
@@ -96,9 +97,9 @@ export async function VehicleCard({
       <div className="relative grid h-full min-h-[255px] gap-6 p-5 sm:p-6 lg:grid-cols-[minmax(0,1fr)_300px]">
         <div className="flex min-w-0 flex-col">
           <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
+            <IconBadge tone="indigo" size="sm">
               <CarIcon aria-hidden size={18} />
-            </div>
+            </IconBadge>
 
             <div className="min-w-0">
               <p className="text-xs font-medium uppercase tracking-[0.14em] text-neutral-400">

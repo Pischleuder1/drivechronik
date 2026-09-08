@@ -2,6 +2,7 @@ import { CheckCircle2, Gauge, TriangleAlert } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { assessTpms, type TpmsTireAssessment } from "@drivechronik/core";
 import type { VehicleStatusRow } from "../../lib/dashboard";
+import { IconBadge } from "../../components/ui/IconBadge";
 
 const barFormatter = new Intl.NumberFormat("de-DE", {
   minimumFractionDigits: 1,
@@ -77,9 +78,12 @@ export async function TpmsCard({
     <section className="rounded-3xl border border-neutral-200/80 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-300">
+          <IconBadge
+            tone={assessment.anyWarn ? "amber" : "cyan"}
+            size="sm"
+          >
             <Gauge aria-hidden size={18} />
-          </div>
+          </IconBadge>
 
           <h2 className="text-sm font-semibold text-neutral-950 dark:text-neutral-50">
             {t("tpms.title")}

@@ -16,6 +16,9 @@ import { dayBounds, shiftDate, todayInAppTz } from "./day";
 export interface VehicleStatusRow {
   vehicleId: number;
   displayName: string;
+  vin: string | null;
+  model: string | null;
+  trimBadging: string | null;
   ts: Date | null;
   lat: number | null;
   lon: number | null;
@@ -44,6 +47,9 @@ export async function getVehicleStatus(
     .select({
       vehicleId: vehicles.id,
       displayName: vehicles.displayName,
+      vin: vehicles.vin,
+      model: vehicles.model,
+      trimBadging: vehicles.trimBadging,
       ts: vehicleStatus.ts,
       lat: vehicleStatus.lat,
       lon: vehicleStatus.lon,

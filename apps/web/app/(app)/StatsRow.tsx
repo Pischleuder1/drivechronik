@@ -1,7 +1,17 @@
 import Link from "next/link";
-import { CalendarDays, CalendarRange, Zap, HelpCircle, ArrowRight } from "lucide-react";
+import {
+  ArrowRight,
+  CalendarDays,
+  CalendarRange,
+  HelpCircle,
+  Zap,
+} from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
-import { formatKm, formatKwh, formatPlaceLabel } from "@drivechronik/core";
+import {
+  formatKm,
+  formatKwh,
+  formatPlaceLabel,
+} from "@drivechronik/core";
 import { formatRelativeTime } from "../../lib/day";
 import type {
   LastChargeStats,
@@ -15,17 +25,29 @@ function StatCard({
   label,
   children,
 }: {
-  icon: React.ComponentType<{ size?: number; "aria-hidden"?: boolean; className?: string }>;
+  icon: React.ComponentType<{
+    size?: number;
+    "aria-hidden"?: boolean;
+    className?: string;
+  }>;
   label: string;
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-      <div className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-neutral-400">
-        <Icon aria-hidden size={13} />
-        {label}
+    <div className="group rounded-3xl border border-neutral-200/80 bg-white p-4 shadow-sm transition-shadow hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900">
+      <div className="flex items-start gap-3">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-300">
+          <Icon aria-hidden size={18} />
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
+            {label}
+          </p>
+
+          <div className="mt-1">{children}</div>
+        </div>
       </div>
-      <div className="mt-1.5">{children}</div>
     </div>
   );
 }
@@ -48,17 +70,21 @@ export async function StatsRow({
   ]);
 
   return (
-    <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+    <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
       <StatCard icon={CalendarDays} label={t("stats.today")}>
-        <p className="text-lg font-semibold tabular-nums">{formatKm(today.distanceKm)}</p>
-        <p className="text-xs text-neutral-500 dark:text-neutral-400">
+        <p className="text-xl font-semibold tracking-tight tabular-nums text-neutral-950 dark:text-neutral-50">
+          {formatKm(today.distanceKm)}
+        </p>
+        <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
           {t("stats.driveCount", { count: today.driveCount })}
         </p>
       </StatCard>
 
       <StatCard icon={CalendarRange} label={t("stats.thisWeek")}>
-        <p className="text-lg font-semibold tabular-nums">{formatKm(week.distanceKm)}</p>
-        <p className="text-xs text-neutral-500 dark:text-neutral-400">
+        <p className="text-xl font-semibold tracking-tight tabular-nums text-neutral-950 dark:text-neutral-50">
+          {formatKm(week.distanceKm)}
+        </p>
+        <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
           {t("stats.driveCount", { count: week.driveCount })}
         </p>
       </StatCard>
@@ -66,40 +92,57 @@ export async function StatsRow({
       <StatCard icon={Zap} label={t("stats.lastCharge")}>
         {lastCharge ? (
           <>
-            <p className="text-lg font-semibold tabular-nums">
+            <p className="text-xl font-semibold tracking-tight tabular-nums text-neutral-950 dark:text-neutral-50">
               {lastCharge.energyAddedKwh != null
                 ? formatKwh(lastCharge.energyAddedKwh, { sign: true })
                 : tCommon("state.none")}
             </p>
-            <p className="truncate text-xs text-neutral-500 dark:text-neutral-400">
+
+            <p className="mt-0.5 truncate text-xs text-neutral-500 dark:text-neutral-400">
               {formatRelativeTime(lastCharge.endTime, locale)}
               {lastCharge.placeName || lastCharge.address
-                ? ` · ${formatPlaceLabel(lastCharge.placeName, lastCharge.address, null, null)}`
+                ? ` · ${formatPlaceLabel(
+                    lastCharge.placeName,
+                    lastCharge.address,
+                    null,
+                    null,
+                  )}`
                 : ""}
             </p>
           </>
         ) : (
-          <p className="text-sm text-neutral-400">{t("stats.noData")}</p>
+          <p className="text-sm text-neutral-400">
+            {t("stats.noData")}
+          </p>
         )}
       </StatCard>
 
       <StatCard icon={HelpCircle} label={t("stats.unclassified")}>
-        <p className="text-lg font-semibold tabular-nums">{unclassifiedCount.live}</p>
+        <p className="text-xl font-semibold tracking-tight tabular-nums text-neutral-950 dark:text-neutral-50">
+          {unclassifiedCount.live}
+        </p>
+
         {unclassifiedCount.live > 0 ? (
           <Link
             href="/search?classification=unclassified"
-            className="mt-0.5 inline-flex items-center gap-1 text-xs font-medium text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
+            className="mt-0.5 inline-flex items-center gap-1 text-xs font-medium text-neutral-600 hover:text-neutral-950 dark:text-neutral-400 dark:hover:text-white"
           >
-            {t("stats.classifyNow")} <ArrowRight aria-hidden size={11} />
+            {t("stats.classifyNow")}
+            <ArrowRight aria-hidden size={11} />
           </Link>
         ) : (
-          <p className="text-xs text-neutral-500 dark:text-neutral-400">{t("stats.allDone")}</p>
-        )}
-        {unclassifiedCount.imported > 0 ? (
-          <p className="mt-0.5 text-xs text-neutral-400 dark:text-neutral-500">
-            {t("stats.importedExtra", { count: unclassifiedCount.imported })}
+          <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
+            {t("stats.allDone")}
           </p>
-        ) : null}
+        )}
+
+        {unclassifiedCount.imported > 0 && (
+          <p className="mt-0.5 text-xs text-neutral-400 dark:text-neutral-500">
+            {t("stats.importedExtra", {
+              count: unclassifiedCount.imported,
+            })}
+          </p>
+        )}
       </StatCard>
     </div>
   );

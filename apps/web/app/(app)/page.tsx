@@ -130,8 +130,8 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="flex flex-col gap-4 md:grid md:grid-cols-3 md:gap-4">
-      <div className="md:col-span-2">
+    <div className="flex flex-col gap-5 md:grid md:grid-cols-12 md:gap-5">
+      <div className="md:col-span-8 md:h-full">
         {status ? (
           <VehicleCard status={status} openSession={openSession} />
         ) : (
@@ -139,12 +139,12 @@ export default async function DashboardPage() {
         )}
       </div>
 
-      <div className="flex flex-col gap-4 md:col-span-1">
+      <div className="flex flex-col gap-5 md:col-span-4">
         <WeatherCard weather={weather} />
         {status && <TpmsCard status={status} />}
       </div>
 
-      <div className="md:col-span-3">
+      <div className="md:col-span-12">
         <StatsRow
           today={today}
           week={week}
@@ -153,7 +153,7 @@ export default async function DashboardPage() {
         />
       </div>
 
-      <div className="md:col-span-3">
+      <div className="md:col-span-12">
         <RecentDrivesCard drives={recentDrives} tracks={driveTracks} car={car} />
       </div>
     </div>

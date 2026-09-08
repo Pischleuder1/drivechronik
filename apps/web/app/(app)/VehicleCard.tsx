@@ -1,7 +1,6 @@
 import {
   BatteryCharging,
   Car as CarIcon,
-  CarFront,
   MapPin,
 } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -9,6 +8,7 @@ import { formatKwh, formatOdometer, formatTime } from "@drivechronik/core";
 import { APP_TIMEZONE } from "../../lib/config";
 import { formatRelativeTime } from "../../lib/day";
 import type { OpenSessionStatus, VehicleStatusRow } from "../../lib/dashboard";
+import { VehicleArtwork } from "./VehicleArtwork";
 
 type VehicleCardTranslator = Awaited<ReturnType<typeof getTranslations>>;
 
@@ -190,17 +190,11 @@ export async function VehicleCard({
           </div>
         </div>
 
-        <div className="relative hidden items-center justify-center lg:flex">
-          <div className="absolute h-44 w-44 rounded-full bg-neutral-100/80 dark:bg-neutral-800/70" />
-          <div className="absolute h-32 w-32 rounded-full border border-neutral-200/80 dark:border-neutral-700" />
-
-          <CarFront
-            aria-hidden
-            size={112}
-            strokeWidth={1.15}
-            className="relative text-neutral-500 dark:text-neutral-300"
-          />
-        </div>
+        <VehicleArtwork
+          vin={status.vin}
+          model={status.model}
+          trimBadging={status.trimBadging}
+        />
       </div>
     </section>
   );

@@ -21,7 +21,8 @@
     "placeUnknown": "Standort unbekannt",
     "odometerUnknown": "km unbekannt",
     "lastUpdated": "zuletzt aktualisiert {time}",
-    "neverSynced": "noch nie synchronisiert"
+    "neverSynced": "noch nie synchronisiert",
+    "label": "Fahrzeug"
   },
   "tpms": {
     "title": "Reifendruck",

@@ -21,7 +21,8 @@
     "placeUnknown": "Location unknown",
     "odometerUnknown": "km unknown",
     "lastUpdated": "last updated {time}",
-    "neverSynced": "never synced"
+    "neverSynced": "never synced",
+    "label": "Vehicle"
   },
   "tpms": {
     "title": "Tire pressure",

@@ -102,7 +102,7 @@ export async function VehicleCard({
 
             <div className="min-w-0">
               <p className="text-xs font-medium uppercase tracking-[0.14em] text-neutral-400">
-                Fahrzeug
+                {t("vehicleCard.label")}
               </p>
               <h1 className="truncate text-base font-semibold text-neutral-950 dark:text-neutral-50">
                 {status.displayName}

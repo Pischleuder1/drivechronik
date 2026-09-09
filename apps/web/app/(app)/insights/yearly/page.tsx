@@ -1,5 +1,10 @@
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  FileText,
+} from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
 
 import {
@@ -191,6 +196,19 @@ export default async function YearlyInsightsPage({
     0,
   );
 
+  const topCustomer =
+    [...customerDestinations].sort(
+      (a, b) =>
+        b.visitCount - a.visitCount ||
+        b.distanceKm - a.distanceKm ||
+        a.label.localeCompare(b.label),
+    )[0] ?? null;
+
+  const businessCustomerDistanceKm = customerDestinations.reduce(
+    (sum, destination) => sum + destination.businessDistanceKm,
+    0,
+  );
+
   const currencyFormatter = new Intl.NumberFormat(locale, {
     style: "currency",
     currency: "EUR",
@@ -290,6 +308,24 @@ export default async function YearlyInsightsPage({
           {year + 1}
           <ChevronRight aria-hidden size={16} />
         </Link>
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Link
+          href={`/reports/year?year=${year}`}
+          className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-medium hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:bg-neutral-800"
+        >
+          <FileText aria-hidden size={16} />
+          {t("yearly.actions.report")}
+        </Link>
+
+        <a
+          href={`/api/export/year/${year}?format=pdf`}
+          className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-medium hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:bg-neutral-800"
+        >
+          <Download aria-hidden size={16} />
+          {t("yearly.actions.pdf")}
+        </a>
       </div>
 
       <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -457,10 +493,84 @@ export default async function YearlyInsightsPage({
             </div>
           </section>
 
-          <section className="mt-6 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+                    {customerDestinations.length > 0 && (
+            <section className="mt-6">
+              <h2 className="text-lg font-semibold">
+                {t("yearly.customers.title")}
+              </h2>
+
+              <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                {t("yearly.customers.subtitle")}
+              </p>
+
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <div className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                    {t("yearly.customers.top")}
+                  </p>
+
+                  <p className="mt-1 truncate text-lg font-semibold">
+                    {topCustomer?.label ?? "—"}
+                  </p>
+
+                  {topCustomer && (
+                    <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                      {t("yearly.visits", {
+                        count: topCustomer.visitCount,
+                      })}
+                      {" · "}
+                      {formatKm(topCustomer.distanceKm)}
+                    </p>
+                  )}
+                </div>
+
+                <div className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                    {t("yearly.customers.businessDistance")}
+                  </p>
+
+                  <p className="mt-1 text-lg font-semibold tabular-nums">
+                    {formatKm(businessCustomerDistanceKm)}
+                  </p>
+
+                  <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                    {t("yearly.customers.businessDistanceHint")}
+                  </p>
+                </div>
+              </div>
+            </section>
+          )}
+
+<section className="mt-6 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
             <h2 className="text-sm font-semibold">
               {t("yearly.months.title")}
             </h2>
+
+            <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+              {t("yearly.months.subtitle")}
+            </p>
+
+            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-neutral-600 dark:text-neutral-300">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-2.5 w-2.5 rounded-sm bg-blue-600 dark:bg-blue-400" />
+                {tc("classification.business")}
+              </span>
+
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-2.5 w-2.5 rounded-sm bg-emerald-600 dark:bg-emerald-400" />
+                {tc("classification.private")}
+              </span>
+
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-2.5 w-2.5 rounded-sm bg-amber-500 dark:bg-amber-400" />
+                {tc("classification.commute")}
+              </span>
+
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-2.5 w-2.5 rounded-sm bg-neutral-400 dark:bg-neutral-500" />
+                {tc("classification.unclassified")}
+              </span>
+            </div>
 
             <div className="mt-4 grid grid-cols-12 gap-2">
               {result.months.map((month) => {
@@ -474,6 +584,29 @@ export default async function YearlyInsightsPage({
                       )
                     : 4;
 
+                const percentage = (distanceKm: number): number =>
+                  month.distanceKm > 0
+                    ? (distanceKm / month.distanceKm) * 100
+                    : 0;
+
+                const tooltip = [
+                  `${monthLabel(month.monthKey, locale)}: ${formatKm(
+                    month.distanceKm,
+                  )}`,
+                  `${tc("classification.business")}: ${formatKm(
+                    month.businessDistanceKm,
+                  )}`,
+                  `${tc("classification.private")}: ${formatKm(
+                    month.privateDistanceKm,
+                  )}`,
+                  `${tc("classification.commute")}: ${formatKm(
+                    month.commuteDistanceKm,
+                  )}`,
+                  `${tc("classification.unclassified")}: ${formatKm(
+                    month.unclassifiedDistanceKm,
+                  )}`,
+                ].join(" · ");
+
                 return (
                   <div
                     key={month.monthKey}
@@ -481,13 +614,54 @@ export default async function YearlyInsightsPage({
                   >
                     <div className="flex h-32 w-full items-end justify-center">
                       <div
-                        className="w-full max-w-7 rounded-t bg-neutral-800 dark:bg-neutral-200"
+                        className="flex w-full max-w-7 flex-col-reverse overflow-hidden rounded-t bg-neutral-100 dark:bg-neutral-800"
                         style={{ height: `${height}%` }}
-                        title={`${monthLabel(
-                          month.monthKey,
-                          locale,
-                        )}: ${formatKm(month.distanceKm)}`}
-                      />
+                        title={tooltip}
+                      >
+                        {month.businessDistanceKm > 0 && (
+                          <div
+                            className="w-full shrink-0 bg-blue-600 dark:bg-blue-400"
+                            style={{
+                              height: `${percentage(
+                                month.businessDistanceKm,
+                              )}%`,
+                            }}
+                          />
+                        )}
+
+                        {month.privateDistanceKm > 0 && (
+                          <div
+                            className="w-full shrink-0 bg-emerald-600 dark:bg-emerald-400"
+                            style={{
+                              height: `${percentage(
+                                month.privateDistanceKm,
+                              )}%`,
+                            }}
+                          />
+                        )}
+
+                        {month.commuteDistanceKm > 0 && (
+                          <div
+                            className="w-full shrink-0 bg-amber-500 dark:bg-amber-400"
+                            style={{
+                              height: `${percentage(
+                                month.commuteDistanceKm,
+                              )}%`,
+                            }}
+                          />
+                        )}
+
+                        {month.unclassifiedDistanceKm > 0 && (
+                          <div
+                            className="w-full shrink-0 bg-neutral-400 dark:bg-neutral-500"
+                            style={{
+                              height: `${percentage(
+                                month.unclassifiedDistanceKm,
+                              )}%`,
+                            }}
+                          />
+                        )}
+                      </div>
                     </div>
 
                     <span className="mt-2 text-[10px] text-neutral-500 dark:text-neutral-400">

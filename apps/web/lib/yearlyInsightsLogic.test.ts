@@ -89,15 +89,35 @@ describe("buildYearlyInsights", () => {
 
   it("builds monthly totals and finds the busiest month", () => {
     const result = buildYearlyInsights(2026, [
-      drive(1, { date: "2026-01-10", distance: 100 }),
-      drive(2, { date: "2026-02-10", distance: 120 }),
-      drive(3, { date: "2026-02-11", distance: 80 }),
+      drive(1, {
+        date: "2026-01-10",
+        distance: 100,
+        classification: "business",
+      }),
+      drive(2, {
+        date: "2026-02-10",
+        distance: 120,
+        classification: "private",
+      }),
+      drive(3, {
+        date: "2026-02-11",
+        distance: 80,
+        classification: "commute",
+      }),
     ]);
 
-    expect(
-      result.months.find((month) => month.monthKey === "2026-02")
-        ?.distanceKm,
-    ).toBe(200);
+    const january = result.months.find(
+      (month) => month.monthKey === "2026-01",
+    );
+    const february = result.months.find(
+      (month) => month.monthKey === "2026-02",
+    );
+
+    expect(february?.distanceKm).toBe(200);
+    expect(february?.privateDistanceKm).toBe(120);
+    expect(february?.commuteDistanceKm).toBe(80);
+    expect(february?.businessDistanceKm).toBe(0);
+    expect(january?.businessDistanceKm).toBe(100);
 
     expect(result.busiestMonth?.monthKey).toBe("2026-02");
   });

@@ -34,6 +34,10 @@ export interface YearlyMonthSummary {
   driveCount: number;
   distanceKm: number;
   durationSeconds: number;
+  businessDistanceKm: number;
+  privateDistanceKm: number;
+  commuteDistanceKm: number;
+  unclassifiedDistanceKm: number;
 }
 
 export interface YearlyDaySummary {

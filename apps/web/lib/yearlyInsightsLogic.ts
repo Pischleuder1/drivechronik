@@ -74,6 +74,10 @@ export function buildYearlyInsights(
       driveCount: 0,
       distanceKm: 0,
       durationSeconds: 0,
+      businessDistanceKm: 0,
+      privateDistanceKm: 0,
+      commuteDistanceKm: 0,
+      unclassifiedDistanceKm: 0,
     });
   }
 
@@ -101,6 +105,21 @@ export function buildYearlyInsights(
       month.driveCount += 1;
       month.distanceKm += driveDistance;
       month.durationSeconds += driveDuration;
+
+      switch (drive.classification) {
+        case "business":
+          month.businessDistanceKm += driveDistance;
+          break;
+        case "private":
+          month.privateDistanceKm += driveDistance;
+          break;
+        case "commute":
+          month.commuteDistanceKm += driveDistance;
+          break;
+        case "unclassified":
+          month.unclassifiedDistanceKm += driveDistance;
+          break;
+      }
     }
 
     const day = dayMap.get(drive.dateKey) ?? {

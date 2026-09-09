@@ -75,7 +75,8 @@
       "topDestination": "Top destination"
     },
     "months": {
-      "title": "Distance by month"
+      "title": "Monthly distance by category",
+      "subtitle": "Split into business, private, commute and unclassified drives."
     },
     "classification": {
       "title": "Usage by category"
@@ -102,6 +103,17 @@
       "subtitle": "Frequently visited destinations are shown larger and more prominently.",
       "visits": "Visits",
       "distance": "Distance"
+    },
+    "actions": {
+      "report": "Year report",
+      "pdf": "Download PDF"
+    },
+    "customers": {
+      "title": "Customers this year",
+      "subtitle": "Your most important customer metrics at a glance.",
+      "top": "Most visited customer",
+      "businessDistance": "Business customer km",
+      "businessDistanceHint": "Only drives to customer places classified as business."
     }
   }
 }

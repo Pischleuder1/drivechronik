@@ -75,7 +75,8 @@
       "topDestination": "Häufigstes Ziel"
     },
     "months": {
-      "title": "Kilometer je Monat"
+      "title": "Kilometer je Monat nach Kategorie",
+      "subtitle": "Aufteilung in Dienstlich, Privat, Arbeitsweg und unklassifizierte Fahrten."
     },
     "classification": {
       "title": "Nutzung nach Kategorie"
@@ -102,6 +103,17 @@
       "subtitle": "Häufig angefahrene Ziele werden größer und stärker hervorgehoben.",
       "visits": "Besuche",
       "distance": "Kilometer"
+    },
+    "actions": {
+      "report": "Jahresabrechnung",
+      "pdf": "PDF herunterladen"
+    },
+    "customers": {
+      "title": "Kunden im Jahr",
+      "subtitle": "Deine wichtigsten Kundenkennzahlen auf einen Blick.",
+      "top": "Meistbesuchter Kunde",
+      "businessDistance": "Dienstliche Kunden-km",
+      "businessDistanceHint": "Nur als dienstlich klassifizierte Fahrten zu Kundenorten."
     }
   }
 }

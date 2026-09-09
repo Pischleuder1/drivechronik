@@ -54,7 +54,13 @@
       "distance": "Kilometer",
       "drives": "Fahrten",
       "duration": "Fahrzeit",
-      "classified": "Klassifiziert"
+      "classified": "Klassifiziert",
+      "businessDistance": "Dienstlich",
+      "reimbursement": "Kilometererstattung",
+      "reimbursementRate": "{rate}/km",
+      "averageDrive": "Ø je Fahrt",
+      "customerVisits": "Kundenbesuche",
+      "customerCount": "{count} unterschiedliche Kunden"
     },
     "empty": {
       "title": "Keine Fahrten in diesem Jahr",
@@ -75,7 +81,11 @@
       "title": "Nutzung nach Kategorie"
     },
     "destinations": {
-      "title": "Häufigste Ziele"
+      "title": "Häufigste Ziele",
+      "businessVisits": "Dienstlich: {count}",
+      "privateVisits": "Privat: {count}",
+      "commuteVisits": "Arbeitsweg: {count}",
+      "lastVisit": "Zuletzt: {date}"
     },
     "driveCount": "{count, plural, one {# Fahrt} other {# Fahrten}}",
     "visits": "{count, plural, one {# Besuch} other {# Besuche}}",

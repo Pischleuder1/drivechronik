@@ -131,12 +131,41 @@ export function buildYearlyInsights(
         label,
         visitCount: 0,
         distanceKm: 0,
+        businessVisitCount: 0,
+        privateVisitCount: 0,
+        commuteVisitCount: 0,
+        unclassifiedVisitCount: 0,
+        lastVisitDateKey: drive.dateKey,
+        placeType: drive.endPlaceType,
         lat: drive.endLat,
         lon: drive.endLon,
       };
 
       destination.visitCount += 1;
       destination.distanceKm += driveDistance;
+
+      switch (drive.classification) {
+        case "business":
+          destination.businessVisitCount += 1;
+          break;
+        case "private":
+          destination.privateVisitCount += 1;
+          break;
+        case "commute":
+          destination.commuteVisitCount += 1;
+          break;
+        case "unclassified":
+          destination.unclassifiedVisitCount += 1;
+          break;
+      }
+
+      if (drive.dateKey > destination.lastVisitDateKey) {
+        destination.lastVisitDateKey = drive.dateKey;
+      }
+
+      if (destination.placeType == null && drive.endPlaceType != null) {
+        destination.placeType = drive.endPlaceType;
+      }
 
       if (destination.lat == null && drive.endLat != null) {
         destination.lat = drive.endLat;

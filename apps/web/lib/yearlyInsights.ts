@@ -64,6 +64,7 @@ export async function getYearlyInsights(
 
       endPlaceId: drives.endPlaceId,
       endPlaceName: places.name,
+      endPlaceType: places.type,
       endAddress: drives.endAddress,
       endLat: drives.endLat,
       endLon: drives.endLon,
@@ -96,6 +97,7 @@ export async function getYearlyInsights(
 
       endPlaceId: row.endPlaceId,
       endPlaceName: row.endPlaceName,
+      endPlaceType: row.endPlaceType,
       endAddress: row.endAddress,
       endLat: row.endLat,
       endLon: row.endLon,

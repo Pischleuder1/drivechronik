@@ -54,7 +54,13 @@
       "distance": "Distance",
       "drives": "Drives",
       "duration": "Driving time",
-      "classified": "Classified"
+      "classified": "Classified",
+      "businessDistance": "Business",
+      "reimbursement": "Mileage reimbursement",
+      "reimbursementRate": "{rate}/km",
+      "averageDrive": "Ø per drive",
+      "customerVisits": "Customer visits",
+      "customerCount": "{count} different customers"
     },
     "empty": {
       "title": "No drives in this year",
@@ -75,7 +81,11 @@
       "title": "Usage by category"
     },
     "destinations": {
-      "title": "Top destinations"
+      "title": "Top destinations",
+      "businessVisits": "Business: {count}",
+      "privateVisits": "Private: {count}",
+      "commuteVisits": "Commute: {count}",
+      "lastVisit": "Last visit: {date}"
     },
     "driveCount": "{count, plural, one {# drive} other {# drives}}",
     "visits": "{count, plural, one {# visit} other {# visits}}",

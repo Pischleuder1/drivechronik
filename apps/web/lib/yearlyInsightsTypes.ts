@@ -16,6 +16,7 @@ export interface YearlyDrive {
 
   endPlaceId: number | null;
   endPlaceName: string | null;
+  endPlaceType: "home" | "work" | "customer" | "charger" | "other" | null;
   endAddress: string | null;
   endLat: number | null;
   endLon: number | null;
@@ -47,6 +48,12 @@ export interface YearlyDestinationSummary {
   label: string;
   visitCount: number;
   distanceKm: number;
+  businessVisitCount: number;
+  privateVisitCount: number;
+  commuteVisitCount: number;
+  unclassifiedVisitCount: number;
+  lastVisitDateKey: string;
+  placeType: "home" | "work" | "customer" | "charger" | "other" | null;
   lat: number | null;
   lon: number | null;
 }

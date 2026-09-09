@@ -8,6 +8,7 @@ import {
 } from "@drivechronik/core";
 
 import { todayInAppTz } from "../../../../lib/day";
+import { getBusinessReimbursementRateEurPerKm } from "../../../../lib/appSettings";
 import { getVehicles } from "../../../../lib/queries";
 import { getYearlyInsights } from "../../../../lib/yearlyInsights";
 import { InsightsVehicleSwitcher } from "../InsightsVehicleSwitcher";
@@ -129,7 +130,10 @@ export default async function YearlyInsightsPage({
     vehicles.find((vehicle) => vehicle.id === requestedVehicle) ??
     vehicles[0]!;
 
-  const result = await getYearlyInsights(currentVehicle.id, year);
+  const [result, reimbursementRateEurPerKm] = await Promise.all([
+    getYearlyInsights(currentVehicle.id, year),
+    getBusinessReimbursementRateEurPerKm(),
+  ]);
 
   const maxMonthKm = Math.max(
     ...result.months.map((month) => month.distanceKm),
@@ -148,6 +152,34 @@ export default async function YearlyInsightsPage({
     result.distanceKm > 0
       ? classifiedKm / result.distanceKm
       : 0;
+
+  const businessSummary = result.byClassification.find(
+    (row) => row.classification === "business",
+  );
+
+  const businessDistanceKm = businessSummary?.distanceKm ?? 0;
+
+  const averageDriveDistanceKm =
+    result.driveCount > 0
+      ? result.distanceKm / result.driveCount
+      : 0;
+
+  const reimbursementAmountEur =
+    businessDistanceKm * reimbursementRateEurPerKm;
+
+  const customerDestinations = result.destinations.filter(
+    (destination) => destination.placeType === "customer",
+  );
+
+  const customerVisitCount = customerDestinations.reduce(
+    (sum, destination) => sum + destination.businessVisitCount,
+    0,
+  );
+
+  const currencyFormatter = new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: "EUR",
+  });
 
   const destinationMapPoints = result.destinations.flatMap(
     (destination) =>
@@ -247,6 +279,54 @@ export default async function YearlyInsightsPage({
           </p>
           <p className="mt-1 text-xl font-semibold tabular-nums">
             {Math.round(classifiedShare * 100)} %
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">
+            {t("yearly.kpi.businessDistance")}
+          </p>
+          <p className="mt-1 text-xl font-semibold tabular-nums">
+            {formatKm(businessDistanceKm)}
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">
+            {t("yearly.kpi.reimbursement")}
+          </p>
+          <p className="mt-1 text-xl font-semibold tabular-nums">
+            {currencyFormatter.format(reimbursementAmountEur)}
+          </p>
+          <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+            {t("yearly.kpi.reimbursementRate", {
+              rate: currencyFormatter.format(reimbursementRateEurPerKm),
+            })}
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">
+            {t("yearly.kpi.averageDrive")}
+          </p>
+          <p className="mt-1 text-xl font-semibold tabular-nums">
+            {formatKm(averageDriveDistanceKm)}
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">
+            {t("yearly.kpi.customerVisits")}
+          </p>
+          <p className="mt-1 text-xl font-semibold tabular-nums">
+            {customerVisitCount}
+          </p>
+          <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+            {t("yearly.kpi.customerCount", {
+              count: customerDestinations.length,
+            })}
           </p>
         </div>
       </div>
@@ -423,6 +503,25 @@ export default async function YearlyInsightsPage({
                       </p>
                       <p className="text-xs text-neutral-500 dark:text-neutral-400">
                         {formatKm(destination.distanceKm)}
+                        {" · "}
+                        {t("yearly.destinations.businessVisits", {
+                          count: destination.businessVisitCount,
+                        })}
+                        {" · "}
+                        {t("yearly.destinations.privateVisits", {
+                          count: destination.privateVisitCount,
+                        })}
+                        {" · "}
+                        {t("yearly.destinations.commuteVisits", {
+                          count: destination.commuteVisitCount,
+                        })}
+                        {" · "}
+                        {t("yearly.destinations.lastVisit", {
+                          date: dateLabel(
+                            destination.lastVisitDateKey,
+                            locale,
+                          ),
+                        })}
                       </p>
                     </div>
 

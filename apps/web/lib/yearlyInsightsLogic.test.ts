@@ -15,6 +15,7 @@ function drive(
     classification?: YearlyClassification;
     placeId?: number | null;
     placeName?: string | null;
+    placeType?: "home" | "work" | "customer" | "charger" | "other" | null;
     address?: string | null;
     lat?: number | null;
     lon?: number | null;
@@ -33,6 +34,7 @@ function drive(
     classification: options.classification ?? "private",
     endPlaceId: options.placeId ?? null,
     endPlaceName: options.placeName ?? null,
+    endPlaceType: options.placeType ?? null,
     endAddress: options.address ?? null,
     endLat: options.lat ?? null,
     endLon: options.lon ?? null,
@@ -155,6 +157,45 @@ describe("buildYearlyInsights", () => {
     expect(result.topDestination?.label).toBe("Musterstraße 1");
     expect(result.topDestination?.visitCount).toBe(2);
   });
+  it("counts destination classifications and tracks customer visits", () => {
+    const result = buildYearlyInsights(2026, [
+      drive(1, {
+        date: "2026-02-10",
+        placeId: 10,
+        placeName: "Kunde A",
+        placeType: "customer",
+        classification: "business",
+        distance: 50,
+      }),
+      drive(2, {
+        date: "2026-03-15",
+        placeId: 10,
+        placeName: "Kunde A",
+        placeType: "customer",
+        classification: "business",
+        distance: 70,
+      }),
+      drive(3, {
+        date: "2026-04-20",
+        placeId: 10,
+        placeName: "Kunde A",
+        placeType: "customer",
+        classification: "private",
+        distance: 30,
+      }),
+    ]);
+
+    const destination = result.destinations[0];
+
+    expect(destination?.label).toBe("Kunde A");
+    expect(destination?.placeType).toBe("customer");
+    expect(destination?.visitCount).toBe(3);
+    expect(destination?.businessVisitCount).toBe(2);
+    expect(destination?.privateVisitCount).toBe(1);
+    expect(destination?.commuteVisitCount).toBe(0);
+    expect(destination?.lastVisitDateKey).toBe("2026-04-20");
+  });
+
   it("keeps all destinations while limiting the ranking to ten", () => {
     const drives = Array.from({ length: 12 }, (_, index) =>
       drive(index + 1, {

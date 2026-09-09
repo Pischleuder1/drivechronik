@@ -30,6 +30,18 @@ function parseYear(raw: string | undefined): number {
   return parsed;
 }
 
+type DestinationView = "all" | "business" | "customers";
+
+function parseDestinationView(
+  raw: string | undefined,
+): DestinationView {
+  if (raw === "business" || raw === "customers") {
+    return raw;
+  }
+
+  return "all";
+}
+
 function monthLabel(monthKey: string, locale: string): string {
   const month = Number(monthKey.slice(5, 7));
 
@@ -53,8 +65,9 @@ function dateLabel(dateKey: string, locale: string): string {
 function yearHref(
   year: number,
   vehicleId: number,
+  view: DestinationView,
 ): string {
-  return `/insights/yearly?year=${year}&vehicle=${vehicleId}`;
+  return `/insights/yearly?year=${year}&vehicle=${vehicleId}&view=${view}`;
 }
 
 export default async function YearlyInsightsPage({
@@ -63,6 +76,7 @@ export default async function YearlyInsightsPage({
   searchParams: Promise<{
     year?: string;
     vehicle?: string;
+    view?: string;
   }>;
 }) {
   const [t, tc, locale] = await Promise.all([
@@ -73,6 +87,7 @@ export default async function YearlyInsightsPage({
 
   const params = await searchParams;
   const year = parseYear(params.year);
+  const destinationView = parseDestinationView(params.view);
 
   const vehicles = await getVehicles();
   if (vehicles.length === 0) {
@@ -181,7 +196,39 @@ export default async function YearlyInsightsPage({
     currency: "EUR",
   });
 
-  const destinationMapPoints = result.destinations.flatMap(
+  const destinationRows = result.destinations
+    .filter((destination) => {
+      if (destinationView === "business") {
+        return destination.businessVisitCount > 0;
+      }
+
+      if (destinationView === "customers") {
+        return destination.placeType === "customer";
+      }
+
+      return true;
+    })
+    .map((destination) => {
+      if (destinationView !== "business") {
+        return destination;
+      }
+
+      return {
+        ...destination,
+        visitCount: destination.businessVisitCount,
+        distanceKm: destination.businessDistanceKm,
+      };
+    })
+    .sort(
+      (a, b) =>
+        b.visitCount - a.visitCount ||
+        b.distanceKm - a.distanceKm ||
+        a.label.localeCompare(b.label),
+    );
+
+  const topDestinationRows = destinationRows.slice(0, 10);
+
+  const destinationMapPoints = destinationRows.flatMap(
     (destination) =>
       destination.lat != null && destination.lon != null
         ? [
@@ -227,7 +274,7 @@ export default async function YearlyInsightsPage({
 
       <div className="mt-5 flex items-center justify-between rounded-xl border border-neutral-200 bg-white p-2 dark:border-neutral-800 dark:bg-neutral-900">
         <Link
-          href={yearHref(year - 1, currentVehicle.id)}
+          href={yearHref(year - 1, currentVehicle.id, destinationView)}
           className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800"
         >
           <ChevronLeft aria-hidden size={16} />
@@ -237,7 +284,7 @@ export default async function YearlyInsightsPage({
         <span className="font-semibold tabular-nums">{year}</span>
 
         <Link
-          href={yearHref(year + 1, currentVehicle.id)}
+          href={yearHref(year + 1, currentVehicle.id, destinationView)}
           className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800"
         >
           {year + 1}
@@ -481,14 +528,67 @@ export default async function YearlyInsightsPage({
             </div>
           </section>
 
-          {result.topDestinations.length > 0 && (
+          {result.destinations.length > 0 && (
+            <div className="mt-6 flex flex-wrap items-center gap-2">
+              <span className="mr-1 text-sm text-neutral-500 dark:text-neutral-400">
+                {t("yearly.destinations.filters.label")}
+              </span>
+
+              <Link
+                href={yearHref(
+                  year,
+                  currentVehicle.id,
+                  "all",
+                )}
+                className={`rounded-full border px-3 py-1.5 text-sm font-medium ${
+                  destinationView === "all"
+                    ? "border-neutral-900 bg-neutral-900 text-white dark:border-white dark:bg-white dark:text-neutral-900"
+                    : "border-neutral-200 bg-white hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:bg-neutral-800"
+                }`}
+              >
+                {t("yearly.destinations.filters.all")}
+              </Link>
+
+              <Link
+                href={yearHref(
+                  year,
+                  currentVehicle.id,
+                  "business",
+                )}
+                className={`rounded-full border px-3 py-1.5 text-sm font-medium ${
+                  destinationView === "business"
+                    ? "border-neutral-900 bg-neutral-900 text-white dark:border-white dark:bg-white dark:text-neutral-900"
+                    : "border-neutral-200 bg-white hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:bg-neutral-800"
+                }`}
+              >
+                {t("yearly.destinations.filters.business")}
+              </Link>
+
+              <Link
+                href={yearHref(
+                  year,
+                  currentVehicle.id,
+                  "customers",
+                )}
+                className={`rounded-full border px-3 py-1.5 text-sm font-medium ${
+                  destinationView === "customers"
+                    ? "border-neutral-900 bg-neutral-900 text-white dark:border-white dark:bg-white dark:text-neutral-900"
+                    : "border-neutral-200 bg-white hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:bg-neutral-800"
+                }`}
+              >
+                {t("yearly.destinations.filters.customers")}
+              </Link>
+            </div>
+          )}
+
+          {topDestinationRows.length > 0 && (
             <section className="mt-6">
               <h2 className="text-lg font-semibold">
                 {t("yearly.destinations.title")}
               </h2>
 
               <div className="mt-3 overflow-hidden rounded-xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
-                {result.topDestinations.map((destination, index) => (
+                {topDestinationRows.map((destination, index) => (
                   <div
                     key={destination.key}
                     className="grid grid-cols-[2rem_1fr_auto] items-center gap-3 border-b border-neutral-100 p-4 last:border-b-0 dark:border-neutral-800"

@@ -135,6 +135,10 @@ export function buildYearlyInsights(
         privateVisitCount: 0,
         commuteVisitCount: 0,
         unclassifiedVisitCount: 0,
+        businessDistanceKm: 0,
+        privateDistanceKm: 0,
+        commuteDistanceKm: 0,
+        unclassifiedDistanceKm: 0,
         lastVisitDateKey: drive.dateKey,
         placeType: drive.endPlaceType,
         lat: drive.endLat,
@@ -147,15 +151,19 @@ export function buildYearlyInsights(
       switch (drive.classification) {
         case "business":
           destination.businessVisitCount += 1;
+          destination.businessDistanceKm += driveDistance;
           break;
         case "private":
           destination.privateVisitCount += 1;
+          destination.privateDistanceKm += driveDistance;
           break;
         case "commute":
           destination.commuteVisitCount += 1;
+          destination.commuteDistanceKm += driveDistance;
           break;
         case "unclassified":
           destination.unclassifiedVisitCount += 1;
+          destination.unclassifiedDistanceKm += driveDistance;
           break;
       }
 

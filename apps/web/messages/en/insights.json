@@ -85,7 +85,13 @@
       "businessVisits": "Business: {count}",
       "privateVisits": "Private: {count}",
       "commuteVisits": "Commute: {count}",
-      "lastVisit": "Last visit: {date}"
+      "lastVisit": "Last visit: {date}",
+      "filters": {
+        "label": "Show destinations:",
+        "all": "All",
+        "business": "Business",
+        "customers": "Customers"
+      }
     },
     "driveCount": "{count, plural, one {# drive} other {# drives}}",
     "visits": "{count, plural, one {# visit} other {# visits}}",

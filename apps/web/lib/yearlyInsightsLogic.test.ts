@@ -193,6 +193,9 @@ describe("buildYearlyInsights", () => {
     expect(destination?.businessVisitCount).toBe(2);
     expect(destination?.privateVisitCount).toBe(1);
     expect(destination?.commuteVisitCount).toBe(0);
+    expect(destination?.businessDistanceKm).toBe(120);
+    expect(destination?.privateDistanceKm).toBe(30);
+    expect(destination?.commuteDistanceKm).toBe(0);
     expect(destination?.lastVisitDateKey).toBe("2026-04-20");
   });
 

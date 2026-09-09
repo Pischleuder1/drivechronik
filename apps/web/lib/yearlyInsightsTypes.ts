@@ -52,6 +52,10 @@ export interface YearlyDestinationSummary {
   privateVisitCount: number;
   commuteVisitCount: number;
   unclassifiedVisitCount: number;
+  businessDistanceKm: number;
+  privateDistanceKm: number;
+  commuteDistanceKm: number;
+  unclassifiedDistanceKm: number;
   lastVisitDateKey: string;
   placeType: "home" | "work" | "customer" | "charger" | "other" | null;
   lat: number | null;

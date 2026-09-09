@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
-import { chargeSessions, places } from "@drivechronik/db";
+import { chargeSessions, places, teslaChargingRecords } from "@drivechronik/db";
 import {
   formatDuration,
   formatKwh,
@@ -49,6 +49,69 @@ async function getChargeCostMeta(chargeSessionId: number) {
     .where(eq(chargeSessions.id, chargeSessionId))
     .limit(1);
   return rows[0] ?? null;
+}
+
+async function getTeslaChargingRecord(chargeSessionId: number) {
+  const rows = await db
+    .select({
+      id: teslaChargingRecords.id,
+      chargeStartTime: teslaChargingRecords.chargeStartTime,
+      siteLocationName: teslaChargingRecords.siteLocationName,
+      energyKwh: teslaChargingRecords.energyKwh,
+      vatRaw: teslaChargingRecords.vatRaw,
+      totalExVat: teslaChargingRecords.totalExVat,
+      totalIncVat: teslaChargingRecords.totalIncVat,
+      currency: teslaChargingRecords.currency,
+      invoiceNumber: teslaChargingRecords.invoiceNumber,
+      status: teslaChargingRecords.status,
+      invoiceUrl: teslaChargingRecords.invoiceUrl,
+    })
+    .from(teslaChargingRecords)
+    .where(eq(teslaChargingRecords.chargeSessionId, chargeSessionId))
+    .orderBy(desc(teslaChargingRecords.chargeStartTime))
+    .limit(1);
+
+  return rows[0] ?? null;
+}
+
+function formatTeslaAmount(
+  value: string | null,
+  currency: string | null,
+  locale: string,
+): string {
+  if (value == null) return "—";
+
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) return value;
+
+  if (currency) {
+    try {
+      return new Intl.NumberFormat(locale, {
+        style: "currency",
+        currency,
+      }).format(amount);
+    } catch {
+      // Bei unbekanntem Währungscode auf normale Betragsanzeige zurückfallen.
+    }
+  }
+
+  const formatted = new Intl.NumberFormat(locale, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
+
+  return currency ? `${formatted} ${currency}` : formatted;
+}
+
+function safeTeslaInvoiceUrl(value: string | null): string | null {
+  if (!value) return null;
+
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" ? url.toString() : null;
+  } catch {
+    return null;
+  }
 }
 
 function Card({
@@ -104,11 +167,18 @@ export default async function ChargeDetailPage({
     dc: t("detail.chargerType.dc"),
   };
 
-  const [auditEntries, allTags, curvePoints, costMeta] = await Promise.all([
+  const [
+    auditEntries,
+    allTags,
+    curvePoints,
+    costMeta,
+    teslaChargingRecord,
+  ] = await Promise.all([
     getAuditLogFor("charge_session", chargeId),
     getAllTags(),
     getChargeCurve(chargeId),
     getChargeCostMeta(chargeId),
+    getTeslaChargingRecord(chargeId),
   ]);
 
   const placeLabel = formatPlaceLabel(charge.placeName, charge.address, charge.lat, charge.lon);
@@ -151,6 +221,20 @@ export default async function ChargeDetailPage({
   if (charge.outsideTempAvg != null) {
     kennzahlen.push([t("detail.metrics.outsideTempAvg"), formatTemp(charge.outsideTempAvg)]);
   }
+
+  const teslaInvoiceUrl = safeTeslaInvoiceUrl(
+    teslaChargingRecord?.invoiceUrl ?? null,
+  );
+
+  const teslaRawStatus = teslaChargingRecord?.status?.trim() ?? null;
+  const teslaStatus = teslaRawStatus?.toUpperCase();
+
+  const teslaStatusLabel =
+    teslaStatus === "PAID"
+      ? t("detail.tesla.statusPaid")
+      : teslaStatus === "OPEN" || teslaStatus === "PENDING"
+        ? t("detail.tesla.statusOpen")
+        : teslaRawStatus ?? "—";
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -220,6 +304,83 @@ export default async function ChargeDetailPage({
           ))}
         </dl>
       </Card>
+
+      {teslaChargingRecord && (
+        <Card title={t("detail.tesla.title")}>
+          <dl className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
+            <div className="flex justify-between gap-4 text-sm">
+              <dt className="text-neutral-500 dark:text-neutral-400">
+                {t("detail.tesla.invoiceNumber")}
+              </dt>
+              <dd className="text-right font-medium">
+                {teslaChargingRecord.invoiceNumber ?? "—"}
+              </dd>
+            </div>
+
+            <div className="flex justify-between gap-4 text-sm">
+              <dt className="text-neutral-500 dark:text-neutral-400">
+                {t("detail.tesla.amount")}
+              </dt>
+              <dd className="text-right font-medium tabular-nums">
+                {formatTeslaAmount(
+                  teslaChargingRecord.totalIncVat,
+                  teslaChargingRecord.currency,
+                  locale,
+                )}
+              </dd>
+            </div>
+
+            <div className="flex justify-between gap-4 text-sm">
+              <dt className="text-neutral-500 dark:text-neutral-400">
+                {t("detail.tesla.vat")}
+              </dt>
+              <dd className="text-right font-medium tabular-nums">
+                {teslaChargingRecord.vatRaw ?? "—"}
+              </dd>
+            </div>
+
+            <div className="flex justify-between gap-4 text-sm">
+              <dt className="text-neutral-500 dark:text-neutral-400">
+                {t("detail.tesla.status")}
+              </dt>
+              <dd className="text-right font-medium">
+                {teslaStatusLabel}
+              </dd>
+            </div>
+
+            <div className="flex justify-between gap-4 text-sm">
+              <dt className="text-neutral-500 dark:text-neutral-400">
+                {t("detail.tesla.location")}
+              </dt>
+              <dd className="text-right font-medium">
+                {teslaChargingRecord.siteLocationName ?? "—"}
+              </dd>
+            </div>
+
+            <div className="flex justify-between gap-4 text-sm">
+              <dt className="text-neutral-500 dark:text-neutral-400">
+                {t("detail.tesla.energy")}
+              </dt>
+              <dd className="text-right font-medium tabular-nums">
+                {teslaChargingRecord.energyKwh != null
+                  ? formatKwh(teslaChargingRecord.energyKwh)
+                  : "—"}
+              </dd>
+            </div>
+          </dl>
+
+          {teslaInvoiceUrl && (
+            <a
+              href={teslaInvoiceUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-4 inline-flex items-center rounded-lg border border-neutral-300 px-3 py-1.5 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
+            >
+              {t("detail.tesla.openInvoice")}
+            </a>
+          )}
+        </Card>
+      )}
 
       <Card title={t("detail.curve.title")}>
         <p className="mb-3 text-xs text-neutral-500 dark:text-neutral-400">

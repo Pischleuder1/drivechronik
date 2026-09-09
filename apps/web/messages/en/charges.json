@@ -67,7 +67,19 @@
     "tags": {
       "title": "Tags"
     },
-    "history": "History"
+    "history": "History",
+    "tesla": {
+      "title": "Tesla Supercharger",
+      "invoiceNumber": "Invoice number",
+      "amount": "Tesla amount",
+      "vat": "VAT (Tesla)",
+      "status": "Status",
+      "statusPaid": "Paid",
+      "statusOpen": "Open",
+      "location": "Tesla charging location",
+      "energy": "Tesla energy",
+      "openInvoice": "Open invoice at Tesla"
+    }
   },
   "annotationForm": {
     "cost": "Cost",

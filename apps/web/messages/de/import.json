@@ -35,5 +35,36 @@
       "importFailed": "Der Tessie-Import ist fehlgeschlagen.",
       "unknown": "Beim Tessie-Import ist ein unbekannter Fehler aufgetreten."
     }
+  },
+  "teslaCharging": {
+    "title": "Tesla Supercharger",
+    "description": "Tesla-Ladehistorie aus dem CSV-Export der Tesla-App importieren und vorhandenen Ladevorgängen zuordnen.",
+    "details": "DriveChronik prüft VIN, Ladebeginn, Energiemenge und Standort. Der Import verändert keine manuell gepflegten Ladekosten.",
+    "selectFile": "Tesla-CSV auswählen",
+    "fileHint": "CSV-Export aus Tesla App → Aufladen → Historie",
+    "selected": "Ausgewählt · ca. {size} KB",
+    "check": "CSV prüfen",
+    "import": "Tesla-Daten importieren",
+    "reset": "Neuen Import vorbereiten",
+    "completed": "{total} Tesla-Einträge importiert · {matched} Ladevorgängen zugeordnet.",
+    "reviewHint": "Einige Einträge konnten nicht eindeutig zugeordnet werden. Sie werden trotzdem archiviert und können später erneut abgeglichen werden.",
+    "noInvoice": "Keine Rechnungsnummer",
+    "alreadyImported": "bereits importiert",
+    "previewTruncated": "Die Vorschau zeigt maximal 100 Einträge. Beim Import werden alle Datensätze verarbeitet.",
+    "summary": {
+      "total": "Einträge",
+      "matched": "Zugeordnet",
+      "unmatched": "Offen",
+      "existing": "Vorhanden"
+    },
+    "match": {
+      "matched": "Zugeordnet",
+      "ambiguous": "Mehrdeutig",
+      "unmatched": "Nicht gefunden",
+      "vehicle_not_found": "VIN unbekannt"
+    },
+    "errors": {
+      "unknown": "Die Tesla-CSV konnte nicht verarbeitet werden."
+    }
   }
 }

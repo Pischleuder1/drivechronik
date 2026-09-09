@@ -35,5 +35,36 @@
       "importFailed": "The Tessie import failed.",
       "unknown": "An unknown error occurred during the Tessie import."
     }
+  },
+  "teslaCharging": {
+    "title": "Tesla Supercharger",
+    "description": "Import Tesla charging history from the Tesla app CSV export and match it to existing charging sessions.",
+    "details": "DriveChronik checks VIN, charging start time, energy and location. The import does not overwrite manually maintained charging costs.",
+    "selectFile": "Select Tesla CSV",
+    "fileHint": "CSV export from Tesla app → Charging → History",
+    "selected": "Selected · approx. {size} KB",
+    "check": "Check CSV",
+    "import": "Import Tesla data",
+    "reset": "Prepare new import",
+    "completed": "{total} Tesla records imported · {matched} matched to charging sessions.",
+    "reviewHint": "Some entries could not be matched unambiguously. They are still archived and can be matched again later.",
+    "noInvoice": "No invoice number",
+    "alreadyImported": "already imported",
+    "previewTruncated": "The preview shows at most 100 entries. All records are processed during import.",
+    "summary": {
+      "total": "Records",
+      "matched": "Matched",
+      "unmatched": "Open",
+      "existing": "Existing"
+    },
+    "match": {
+      "matched": "Matched",
+      "ambiguous": "Ambiguous",
+      "unmatched": "Not found",
+      "vehicle_not_found": "Unknown VIN"
+    },
+    "errors": {
+      "unknown": "The Tesla CSV could not be processed."
+    }
   }
 }

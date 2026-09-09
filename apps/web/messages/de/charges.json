@@ -67,7 +67,19 @@
     "tags": {
       "title": "Schlagwörter"
     },
-    "history": "Verlauf"
+    "history": "Verlauf",
+    "tesla": {
+      "title": "Tesla Supercharger",
+      "invoiceNumber": "Rechnungsnummer",
+      "amount": "Tesla-Betrag",
+      "vat": "MwSt. (Tesla)",
+      "status": "Status",
+      "statusPaid": "Bezahlt",
+      "statusOpen": "Offen",
+      "location": "Tesla-Ladeort",
+      "energy": "Tesla-Energie",
+      "openInvoice": "Rechnung bei Tesla öffnen"
+    }
   },
   "annotationForm": {
     "cost": "Kosten",

@@ -244,6 +244,54 @@ export const chargeSessions = pgTable(
   ],
 );
 
+export const teslaChargingRecords = pgTable(
+  "tesla_charging_records",
+  {
+    id: id(),
+
+    chargeSessionId: bigint("charge_session_id", { mode: "number" }).references(
+      () => chargeSessions.id,
+      { onDelete: "set null" },
+    ),
+
+    chargeStartTime: timestamp("charge_start_time", {
+      withTimezone: true,
+    }).notNull(),
+
+    name: text("name"),
+    vin: text("vin").notNull(),
+    model: text("model"),
+    country: text("country"),
+    siteLocationName: text("site_location_name"),
+    description: text("description"),
+
+    quantityBaseRaw: text("quantity_base_raw"),
+    energyKwh: doublePrecision("energy_kwh"),
+    unitCostBaseRaw: text("unit_cost_base_raw"),
+
+    vatRaw: text("vat_raw"),
+    totalExVat: numeric("total_ex_vat", { precision: 12, scale: 2 }),
+    totalIncVat: numeric("total_inc_vat", { precision: 12, scale: 2 }),
+    currency: char("currency", { length: 3 }),
+
+    invoiceNumber: text("invoice_number"),
+    status: text("status"),
+    invoiceUrl: text("invoice_url"),
+
+    sourceHash: text("source_hash").notNull(),
+    rawData: text("raw_data").notNull(),
+
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    unique("tesla_charging_records_source_hash_uq").on(t.sourceHash),
+    index("tesla_charging_records_charge_session_idx").on(t.chargeSessionId),
+    index("tesla_charging_records_start_idx").on(t.chargeStartTime),
+    index("tesla_charging_records_vin_idx").on(t.vin),
+  ],
+);
+
 export const routePoints = pgTable(
   "route_points",
   {

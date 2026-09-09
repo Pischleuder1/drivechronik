@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Expanded yearly Insights / Wrapped with annual distance, drive count, driving time, classification rate, longest drive, busiest month, busiest day and top destination.
+- Destination analytics with visit counts, distance, last visit and filters for all, business and customer destinations.
+- Customer analytics with total customer visits, number of different customers, most-visited customer and business distance to customer places.
+- Monthly yearly-distance chart split into business, private, commute and unclassified driving.
+- Direct access from yearly Insights to the yearly business report and PDF export.
+- Public HPC charger support in the route planner, including additional charger coverage in the Netherlands.
+- Ferry-aware Sassnitz–Rønne routing.
+
+### Changed
+
+- Yearly Insights now show business distance, configurable kilometre reimbursement, reimbursement amount and average distance per drive.
+- Route planning preserves the selected route while charging stops are calculated and displays calculation progress.
+- Dashboard overview modernized with vehicle metadata, localized vehicle label and dynamic vehicle artwork.
+
+### Fixed
+
+- Improved charging-stop handling on ferry routes.
+
 ## [0.3.2] - 2026-09-05
 
 ### Added

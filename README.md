@@ -29,7 +29,7 @@ Tessie & Co. sind gut, aber: Abo-Kosten, Feature-Überschneidung mit der Tesla-A
 - **Regelvorschläge für wiederkehrende Fahrten** — DriveChronik erkennt wiederkehrende unklassifizierte Start-/Ziel-Kombinationen der letzten 14 Tage und schlägt daraus Regeln vor. Wochentage und typische Abfahrtszeiten werden aus den beobachteten Fahrten abgeleitet; die zeitliche Regelmäßigkeit wird als hohe, mittlere oder niedrige Sicherheit bewertet. Vorschläge werden nie automatisch als Regel angelegt oder auf Fahrten angewendet.
 - **Bulk-Bearbeitung** — viele Fahrten auf einmal auswählen und klassifizieren/taggen, in Tagesansicht und Suche
 - **Orte** — Geofences mit Karten-Picker und Adresssuche (OSM/Nominatim); manuelle Korrekturen mit Lock, die jeden Re-Sync überleben
-- **Kalender, Suche, Reports** — Monatsgrid mit Fahrt-Intensität; Volltextsuche über Orte/Kunden/Projekte/Tags mit Filtern; Monatsreports mit CSV-/PDF-Export (Fahrtenbuch-Stil)
+- **Kalender, Suche, Reports** — Monatsgrid mit Fahrt-Intensität; Volltextsuche über Orte/Kunden/Projekte/Tags mit Filtern; Monats- und Jahresreports mit CSV-/PDF-Export (Fahrtenbuch-Stil)
 - **Monatsabschluss & Revisionshistorie** — vergangene Monate können nach Vollständigkeitsprüfung abgeschlossen werden. Jeder Abschluss erhält eine Revision mit unveränderlichem Snapshot, Fahrer-/Fahrzeugidentität sowie Content-, Seal- und Audit-Hash. Neue Revisionen werden mit Ed25519 digital signiert; Signaturstatus und Schlüssel-ID werden im Abschlussbericht ausgewiesen. Ein portabler Proof-JSON-Export kann unabhängig mit dem mitgelieferten Offline-Verifier geprüft werden. Spätere Änderungen bleiben erlaubt und führen beim erneuten Abschluss zu einer neuen Revision.
 
 **Fahrt- & Lade-Analytics**
@@ -38,12 +38,14 @@ Tessie & Co. sind gut, aber: Abo-Kosten, Feature-Überschneidung mit der Tesla-A
 - **Ladeübersicht** — Ladekurve (kW über SoC), AC/DC, Kosten, Standort-Karte
 - **Automatische Ladekosten** — Strompreis pro Ort hinterlegen (z. B. Zuhause 0,32 €/kWh) → Sessions ohne bekannten Preis werden automatisch berechnet, manuelle und gesyncte Kosten bleiben unangetastet
 - **Journeys** — Urlaube/Reisen als Klammer über Fahrten + Ladestopps mit Kennzahlen-Dashboard, Karte aller Etappen und Export als CSV, PDF und GPX
-- **Insights** — persönliche Verbrauchskurve: Verbrauch vs. Außentemperatur und Tempo, Saisonmuster, Kurzstrecken-Anteil
+- **Insights** — persönliche Verbrauchskurve: Verbrauch vs. Außentemperatur und Tempo, Saisonmuster und Kurzstrecken-Anteil; zusätzlich eine Jahresübersicht („Wrapped“) mit Gesamtkilometern, Fahrten, Fahrzeit, Klassifizierungsquote, längster Fahrt, stärkstem Monat/Tag und Top-Ziel
+- **Ziel- & Kundenanalyse** — Top-Ziele mit Besuchen, Kilometern, letzter Anfahrt und Aufteilung nach geschäftlich / privat / Arbeitsweg; Filter für alle Ziele, geschäftliche Ziele und Kunden sowie eine Ziel-Heatmap. Kundenkennzahlen zeigen Gesamtbesuche, unterschiedliche Kunden, meistbesuchten Kunden und geschäftliche Kundenkilometer
+- **Jahresanalyse & Abrechnung** — Monatsverlauf nach geschäftlich / privat / Arbeitsweg / unklassifiziert, geschäftliche Jahreskilometer, konfigurierbare Kilometererstattung, direkter Jahresbericht sowie CSV-/PDF-Export
 - **Standzeit-Analytics** — Vampir-Verlust pro Parkvorgang, Standzeiten pro Ort
-- **Routenplaner (experimentell)** — Reichweiten-Check mit echter Route (OSRM), Höhenprofil und deinem persönlichen Verbrauchsprofil aus der eigenen Historie; automatische Tesla-Supercharger-Planung mit empfohlenem Ladestopp, Ankunfts-SoC, Ladeziel und geschätzter Ladezeit; alle Annahmen offengelegt
+- **Routenplaner (experimentell)** — Reichweiten-Check mit echter Route (OSRM), Höhenprofil und deinem persönlichen Verbrauchsprofil aus der eigenen Historie; automatische Ladeplanung mit Tesla-Superchargern und öffentlichen HPC-Ladern entlang der Route, mehreren Ladestopps, Ankunfts-SoC, Ladeziel und geschätzter Ladezeit; alternative Routen und fährenbewusste Streckenführung einschließlich Sassnitz–Rønne; alle Annahmen offengelegt
 
 **Cockpit & Fahrzeug**
-- **Start-Dashboard** — SoC + Reichweite, Standort, Status, Wetter, Reifendruck mit Warnung, letzte Fahrten als Karte + Liste
+- **Start-Dashboard** — SoC + Reichweite, Standort, Status, Wetter, Reifendruck mit Warnung und letzte Fahrten als Karte + Liste; zusätzlich Fahrzeugmetadaten, lokalisierte Modellbezeichnung und dynamische Fahrzeugdarstellung
 - **Fahrzeug-Analytics** — geschätzter Batteriezustand und Degradation, prognostizierte 100-%-Reichweite, Kilometerstand, Ladeeffizienz, Vampir-Verlust und Software-/Update-Historie
 - **Reale Fahrzeugdaten** — Auswertungen basieren auf TeslaMate-Historie und vorhandenen Fahrzeugwerten; Schätzwerte und Fallbacks werden entsprechend gekennzeichnet
 - **Verbindungs-Diagnose** — Sync-Gesundheit pro Datenquelle auf einen Blick, optionaler TeslaMate-Direkttest
@@ -359,7 +361,7 @@ Idempotent (mehrfacher Lauf unschädlich), kollidiert nicht mit TeslaMate-Daten.
 - **Braucht TeslaMate** als Datenquelle — DriveChronik spricht nicht selbst mit der Tesla-API und weckt dein Auto nie
 - **Ein Fahrzeug** pro Instanz im Fokus
 - **Zahlenformatierung** aktuell durchgehend de-DE (Dezimalkomma), auch in der englischen UI
-- **Routenplaner** ist experimentell — automatische Tesla-Supercharger-Planung ist vorhanden, die Ladezeit wird derzeit noch konservativ geschätzt; Standard-Routing über den öffentlichen OSRM-Demo-Server
+- **Routenplaner** ist experimentell — automatische Ladeplanung mit Tesla-Superchargern und öffentlichen HPC-Ladern ist vorhanden, die Ladezeit wird derzeit noch konservativ geschätzt; Standard-Routing über den öffentlichen OSRM-Demo-Server
 - **Kein steuerrechtliches Gutachten**: Exporte sind fahrtenbuch-artig mit Audit-Log, aber die Anerkennung beim Finanzamt ist einzelfallabhängig
 
 ## Mitmachen & Sicherheit

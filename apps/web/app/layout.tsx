@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { cookies } from "next/headers";
 import { NextIntlClientProvider } from "next-intl";
+import { PwaRegister } from "../components/PwaRegister";
 import { getLocale, getMessages, getTranslations } from "next-intl/server";
 import "./globals.css";
 
@@ -76,6 +77,7 @@ export default async function RootLayout({
         <NextIntlClientProvider locale={locale} messages={messages}>
           {children}
         </NextIntlClientProvider>
+        <PwaRegister />
       </body>
     </html>
   );

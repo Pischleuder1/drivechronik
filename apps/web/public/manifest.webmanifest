@@ -1,4 +1,5 @@
 {
+  "id": "/",
   "name": "DriveChronik",
   "short_name": "DriveChronik",
   "description": "Self-hosted Fahrtenarchiv für Tesla",

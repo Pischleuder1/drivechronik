@@ -187,7 +187,7 @@ export default async function YearlyInsightsPage({
   );
 
   const customerVisitCount = customerDestinations.reduce(
-    (sum, destination) => sum + destination.businessVisitCount,
+    (sum, destination) => sum + destination.visitCount,
     0,
   );
 

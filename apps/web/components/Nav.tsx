@@ -55,7 +55,7 @@ function itemClasses(active: boolean, layout: "bottom" | "side"): string {
     ? "bg-sky-50 text-sky-700 font-semibold dark:bg-sky-950/50 dark:text-sky-300"
     : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-950 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-white";
 
-  return `flex items-center gap-4 rounded-xl px-4 py-2.5 text-[15px] transition-colors ${state}`.trim();
+  return `flex items-center gap-4 rounded-xl px-4 py-1.5 text-[15px] transition-colors ${state}`.trim();
 }
 
 export function BottomNav() {
@@ -86,7 +86,7 @@ export function SideNav() {
   const t = useTranslations("nav");
   return (
     <nav className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-0.5">
       {items.map((item) => {
         const active = item.match(pathname);
         const Icon = item.icon;

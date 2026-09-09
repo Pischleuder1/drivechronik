@@ -37,7 +37,7 @@ export default async function AppLayout({
           <Link
               href="/"
               aria-label="DriveChronik start"
-              className="inline-flex items-center gap-2.5"
+              className="inline-flex items-center gap-2"
             >
               <Image
                 src="/brand/drivechronik-logo.png"

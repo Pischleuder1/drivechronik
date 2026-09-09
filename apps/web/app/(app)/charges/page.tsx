@@ -84,12 +84,19 @@ export default async function ChargesPage({
         {t("page.subtitle")}
       </p>
 
-      <div className="mt-4">
+      <div className="mt-4 flex flex-wrap gap-2">
         <Link
           href="/charges/analysis"
           className="inline-flex items-center rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-medium transition hover:border-neutral-300 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700"
         >
           {t("analysis.title")}
+        </Link>
+
+        <Link
+          href="/charges/tesla"
+          className="inline-flex items-center rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-medium transition hover:border-neutral-300 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700"
+        >
+          {t("teslaOverview.open")}
         </Link>
       </div>
 

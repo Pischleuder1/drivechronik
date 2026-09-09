@@ -136,5 +136,50 @@
     "locationsTitle": "Ladeorte im Vergleich",
     "locationSessions": "Ladungen",
     "note": "10–80 % und 20–60 % werden aus den aufgezeichneten TeslaMate-Ladekurven interpoliert. Auffälligkeiten sind Vergleichswerte und keine Diagnose."
+  },
+  "teslaOverview": {
+    "open": "Tesla-Rechnungen",
+    "title": "Tesla-Rechnungen",
+    "subtitle": "Importierte Tesla-Supercharger-Abrechnungen und noch offene Einträge.",
+    "back": "Zur Ladeübersicht",
+    "filters": {
+      "month": "Monat",
+      "status": "Status",
+      "assignment": "Zuordnung",
+      "all": "Alle",
+      "apply": "Anzeigen",
+      "reset": "Zurücksetzen"
+    },
+    "stats": {
+      "entries": "Tesla-Einträge",
+      "invoices": "Rechnungen",
+      "energy": "Energie",
+      "total": "Gesamtbetrag",
+      "matched": "Zugeordnet"
+    },
+    "status": {
+      "paid": "Bezahlt",
+      "open": "Offen"
+    },
+    "assignment": {
+      "matched": "Zugeordnet",
+      "unmatched": "Nicht zugeordnet"
+    },
+    "row": {
+      "invoice": "Rechnungsnummer",
+      "noInvoice": "Noch keine Rechnung",
+      "energy": "Energie",
+      "amount": "Betrag",
+      "status": "Tesla-Status",
+      "unknownLocation": "Unbekannter Tesla-Ladeort"
+    },
+    "actions": {
+      "openCharge": "Ladevorgang öffnen",
+      "openInvoice": "Rechnung öffnen"
+    },
+    "empty": {
+      "title": "Keine Tesla-Einträge gefunden.",
+      "hint": "Für den gewählten Monat und die aktuellen Filter liegen keine Daten vor."
+    }
   }
 }

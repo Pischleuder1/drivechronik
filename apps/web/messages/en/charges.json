@@ -136,5 +136,50 @@
     "locationsTitle": "Charging locations compared",
     "locationSessions": "Sessions",
     "note": "10–80% and 20–60% are interpolated from recorded TeslaMate charging curves. Anomalies are comparative indicators, not diagnostics."
+  },
+  "teslaOverview": {
+    "open": "Tesla invoices",
+    "title": "Tesla invoices",
+    "subtitle": "Imported Tesla Supercharger billing records and entries that are still open.",
+    "back": "Back to charging overview",
+    "filters": {
+      "month": "Month",
+      "status": "Status",
+      "assignment": "Assignment",
+      "all": "All",
+      "apply": "Show",
+      "reset": "Reset"
+    },
+    "stats": {
+      "entries": "Tesla entries",
+      "invoices": "Invoices",
+      "energy": "Energy",
+      "total": "Total amount",
+      "matched": "Matched"
+    },
+    "status": {
+      "paid": "Paid",
+      "open": "Open"
+    },
+    "assignment": {
+      "matched": "Matched",
+      "unmatched": "Not matched"
+    },
+    "row": {
+      "invoice": "Invoice number",
+      "noInvoice": "No invoice yet",
+      "energy": "Energy",
+      "amount": "Amount",
+      "status": "Tesla status",
+      "unknownLocation": "Unknown Tesla charging location"
+    },
+    "actions": {
+      "openCharge": "Open charging session",
+      "openInvoice": "Open invoice"
+    },
+    "empty": {
+      "title": "No Tesla entries found.",
+      "hint": "No data is available for the selected month and filters."
+    }
   }
 }

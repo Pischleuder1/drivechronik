@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Installable Progressive Web App (PWA) with offline fallback for the application shell.
+- Tesla Supercharger CSV import with preview, duplicate-safe updates and automatic matching to charging sessions.
+- Tesla invoice overview with monthly filters, payment status, assignment status, totals and links to matched charging sessions.
+
 - Expanded yearly Insights / Wrapped with annual distance, drive count, driving time, classification rate, longest drive, busiest month, busiest day and top destination.
 - Destination analytics with visit counts, distance, last visit and filters for all, business and customer destinations.
 - Customer analytics with total customer visits, number of different customers, most-visited customer and business distance to customer places.
@@ -18,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Ferry-aware Sassnitz–Rønne routing.
 
 ### Changed
+
+- Renamed remaining internal TripAtlas identifiers to DriveChronik across PostgreSQL, Docker images and volumes, container users, session cookie, demo/dev configuration, backup defaults, release workflow and documentation.
+- Refined sidebar branding and navigation spacing.
 
 - Yearly Insights now show business distance, configurable kilometre reimbursement, reimbursement amount and average distance per drive.
 - Route planning preserves the selected route while charging stops are calculated and displays calculation progress.

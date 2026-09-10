@@ -87,9 +87,9 @@ Ohne echtes Auto — eine Fixture-TeslaMate-DB mit 6 Wochen synthetischer Fahrda
 
 ```bash
 pnpm install
-pnpm dev:db                                # tripatlas-db :5432 + fixture teslamate-db :5433
+pnpm dev:db                                # drivechronik-db :5432 + fixture teslamate-db :5433
 pnpm db:seed:teslamate                     # ~140 Fahrten, Laden, Geofences (Raum Zürich)
-DATABASE_URL=postgres://tripatlas:tripatlas@localhost:5432/tripatlas pnpm db:migrate
+DATABASE_URL=postgres://drivechronik:drivechronik@localhost:5432/drivechronik pnpm db:migrate
 pnpm --filter @drivechronik/worker dev        # Sync-Loop (braucht DATABASE_URL + TESLAMATE_DATABASE_URL, siehe .env.example)
 pnpm --filter @drivechronik/web dev           # http://localhost:3000
 ```
@@ -138,11 +138,11 @@ Die Docker-Netzwerk-Variante ist optional und keine Voraussetzung für DriveChro
 DriveChronik liest die TeslaMate-DB nur — nie schreibend. Auf dem TeslaMate-Postgres ausführen:
 
 ```sql
-CREATE ROLE tripatlas_ro WITH LOGIN PASSWORD 'ein-sicheres-passwort';
-GRANT CONNECT ON DATABASE teslamate TO tripatlas_ro;
-GRANT USAGE ON SCHEMA public TO tripatlas_ro;
-GRANT SELECT ON ALL TABLES IN SCHEMA public TO tripatlas_ro;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO tripatlas_ro;
+CREATE ROLE drivechronik_ro WITH LOGIN PASSWORD 'ein-sicheres-passwort';
+GRANT CONNECT ON DATABASE teslamate TO drivechronik_ro;
+GRANT USAGE ON SCHEMA public TO drivechronik_ro;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO drivechronik_ro;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO drivechronik_ro;
 ```
 
 ### 2. `.env` einrichten
@@ -154,10 +154,10 @@ cp .env.example .env
 Mindestens setzen:
 
 - `POSTGRES_PASSWORD` — Passwort für die neue DriveChronik-eigene PostgreSQL-Datenbank (Pflicht, kein Default)
-- `TESLAMATE_DATABASE_URL` — Connection-String der `tripatlas_ro`-Rolle zur bestehenden TeslaMate-Datenbank
+- `TESLAMATE_DATABASE_URL` — Connection-String der `drivechronik_ro`-Rolle zur bestehenden TeslaMate-Datenbank
 - optional `WEB_PORT` (Default `3000`), `APP_TIMEZONE`, `SYNC_INTERVAL_SECONDS`, `OSRM_URL`
 
-Beispiel: `TESLAMATE_DATABASE_URL=postgres://tripatlas_ro:read-only-passwort@192.168.1.50:5432/teslamate`
+Beispiel: `TESLAMATE_DATABASE_URL=postgres://drivechronik_ro:read-only-passwort@192.168.1.50:5432/teslamate`
 
 Der TeslaMate-PostgreSQL-Port muss vom DriveChronik-Host erreichbar sein. Auf demselben Docker-Host kann alternativ ein gemeinsames Docker-Netzwerk verwendet werden.
 
@@ -187,7 +187,7 @@ networks:
 
 Dann kann in `.env` z. B. verwendet werden:
 
-`TESLAMATE_DATABASE_URL=postgres://tripatlas_ro:read-only-passwort@database:5432/teslamate`
+`TESLAMATE_DATABASE_URL=postgres://drivechronik_ro:read-only-passwort@database:5432/teslamate`
 
 ### 3. Signaturschlüssel für Monatsabschlüsse
 

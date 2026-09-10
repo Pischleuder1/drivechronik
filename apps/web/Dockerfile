@@ -41,16 +41,16 @@ ENV NODE_ENV=production
 ENV PORT=3000
 WORKDIR /app
 
-RUN groupadd --system --gid 1001 tripatlas \
- && useradd --system --uid 1001 --gid tripatlas tripatlas
+RUN groupadd --system --gid 1001 drivechronik \
+ && useradd --system --uid 1001 --gid drivechronik drivechronik
 
 # Next.js standalone output already contains a pruned node_modules with only
 # the traced production dependencies — no separate prod-deps install needed.
-COPY --from=build --chown=tripatlas:tripatlas /repo/apps/web/.next/standalone ./
-COPY --from=build --chown=tripatlas:tripatlas /repo/apps/web/.next/static ./apps/web/.next/static
-COPY --from=build --chown=tripatlas:tripatlas /repo/apps/web/public ./apps/web/public
+COPY --from=build --chown=drivechronik:drivechronik /repo/apps/web/.next/standalone ./
+COPY --from=build --chown=drivechronik:drivechronik /repo/apps/web/.next/static ./apps/web/.next/static
+COPY --from=build --chown=drivechronik:drivechronik /repo/apps/web/public ./apps/web/public
 
-USER tripatlas
+USER drivechronik
 EXPOSE 3000
 
 # Docker setzt HOSTNAME auf die Container-ID; Next standalone nutzt genau

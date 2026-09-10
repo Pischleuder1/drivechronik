@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { loadWorkerEnv } from "./env.js";
 
 const VALID_DB =
-  "postgres://tripatlas:tripatlas@localhost:5432/tripatlas";
+  "postgres://drivechronik:drivechronik@localhost:5432/drivechronik";
 const VALID_TESLAMATE =
   "postgres://teslamate:teslamate@localhost:5433/teslamate";
 

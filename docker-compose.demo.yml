@@ -12,17 +12,17 @@
 # deployment. Use docker-compose.yml + .env for that instead.
 
 services:
-  tripatlas-db:
+  drivechronik-db:
     image: postgres:17-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: tripatlas
-      POSTGRES_PASSWORD: tripatlas-demo
-      POSTGRES_DB: tripatlas
+      POSTGRES_USER: drivechronik
+      POSTGRES_PASSWORD: drivechronik-demo
+      POSTGRES_DB: drivechronik
     volumes:
-      - tripatlas-demo-db-data:/var/lib/postgresql/data
+      - drivechronik-demo-db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U tripatlas"]
+      test: ["CMD-SHELL", "pg_isready -U drivechronik"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -52,7 +52,7 @@ services:
     build:
       context: ./dev/fixtures
       dockerfile: Dockerfile
-    image: tripatlas-fixtures:demo
+    image: drivechronik-fixtures:demo
     restart: "no"
     environment:
       TESLAMATE_DATABASE_URL: postgres://teslamate:teslamate-demo@teslamate-db:5432/teslamate
@@ -64,13 +64,13 @@ services:
     build:
       context: .
       dockerfile: apps/worker/Dockerfile
-    image: tripatlas-worker:demo
+    image: drivechronik-worker:demo
     command: ["node", "dist/migrate.js"]
     restart: "no"
     environment:
-      DATABASE_URL: postgres://tripatlas:tripatlas-demo@tripatlas-db:5432/tripatlas
+      DATABASE_URL: postgres://drivechronik:drivechronik-demo@drivechronik-db:5432/drivechronik
     depends_on:
-      tripatlas-db:
+      drivechronik-db:
         condition: service_healthy
 
   import-staging-init:
@@ -107,7 +107,7 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
-    image: tripatlas-web:demo
+    image: drivechronik-web:demo
     restart: unless-stopped
     ports:
       # Already running a real DriveChronik stack on :3000 on this host? Edit
@@ -115,7 +115,7 @@ services:
       # this file is meant to just work with a single command.
       - "3000:3000"
     environment:
-      DATABASE_URL: postgres://tripatlas:tripatlas-demo@tripatlas-db:5432/tripatlas
+      DATABASE_URL: postgres://drivechronik:drivechronik-demo@drivechronik-db:5432/drivechronik
       APP_TIMEZONE: Europe/Zurich
       DEMO_WEATHER: "true"
       INITIAL_ADMIN_PASSWORD: demo1234
@@ -132,7 +132,7 @@ services:
     depends_on:
       import-staging-init:
         condition: service_completed_successfully
-      tripatlas-db:
+      drivechronik-db:
         condition: service_healthy
       migrate:
         condition: service_completed_successfully
@@ -143,10 +143,10 @@ services:
     build:
       context: .
       dockerfile: apps/worker/Dockerfile
-    image: tripatlas-worker:demo
+    image: drivechronik-worker:demo
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgres://tripatlas:tripatlas-demo@tripatlas-db:5432/tripatlas
+      DATABASE_URL: postgres://drivechronik:drivechronik-demo@drivechronik-db:5432/drivechronik
       TESLAMATE_DATABASE_URL: postgres://teslamate:teslamate-demo@teslamate-db:5432/teslamate
       ELEVATION_ENABLED: "false"
       # Short interval so the demo fills up fast instead of the production
@@ -158,7 +158,7 @@ services:
     depends_on:
       import-staging-init:
         condition: service_completed_successfully
-      tripatlas-db:
+      drivechronik-db:
         condition: service_healthy
       migrate:
         condition: service_completed_successfully
@@ -167,6 +167,6 @@ services:
 
 volumes:
   supercharge-compass-data:
-  tripatlas-demo-db-data:
+  drivechronik-demo-db-data:
   teslamate-demo-db-data:
   import-staging:

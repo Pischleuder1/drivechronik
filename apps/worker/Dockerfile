@@ -45,19 +45,19 @@ FROM ${NODE_IMAGE} AS runtime
 ENV NODE_ENV=production
 WORKDIR /app
 
-RUN groupadd --system --gid 1001 tripatlas \
- && useradd --system --uid 1001 --gid tripatlas tripatlas
+RUN groupadd --system --gid 1001 drivechronik \
+ && useradd --system --uid 1001 --gid drivechronik drivechronik
 
 # Pruned node_modules for the whole workspace. pnpm creates a node_modules
 # symlink dir (-> .pnpm store) in the root AND in each workspace package that
 # has direct deps — all of them are needed for Node's ESM resolution to find
 # packages like drizzle-orm/postgres from apps/worker/dist/*.js.
 COPY --from=prod-deps /repo/node_modules ./node_modules
-COPY --from=prod-deps --chown=tripatlas:tripatlas /repo/package.json ./package.json
-COPY --from=prod-deps --chown=tripatlas:tripatlas /repo/packages/core/package.json ./packages/core/package.json
-COPY --from=prod-deps --chown=tripatlas:tripatlas /repo/packages/db/package.json ./packages/db/package.json
+COPY --from=prod-deps --chown=drivechronik:drivechronik /repo/package.json ./package.json
+COPY --from=prod-deps --chown=drivechronik:drivechronik /repo/packages/core/package.json ./packages/core/package.json
+COPY --from=prod-deps --chown=drivechronik:drivechronik /repo/packages/db/package.json ./packages/db/package.json
 COPY --from=prod-deps /repo/packages/db/node_modules ./packages/db/node_modules
-COPY --from=prod-deps --chown=tripatlas:tripatlas /repo/apps/worker/package.json ./apps/worker/package.json
+COPY --from=prod-deps --chown=drivechronik:drivechronik /repo/apps/worker/package.json ./apps/worker/package.json
 COPY --from=prod-deps /repo/apps/worker/node_modules ./apps/worker/node_modules
 
 # Compiled output.
@@ -68,10 +68,10 @@ COPY --from=build /repo/apps/worker/dist ./apps/worker/dist
 # Migrations folder, shipped alongside the worker so the `migrate` compose
 # service (same image, different command) can run drizzle-orm's migrator
 # without drizzle-kit or dev deps in the runtime image.
-COPY --chown=tripatlas:tripatlas packages/db/drizzle ./apps/worker/drizzle
+COPY --chown=drivechronik:drivechronik packages/db/drizzle ./apps/worker/drizzle
 
 WORKDIR /app/apps/worker
-USER tripatlas
+USER drivechronik
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
   CMD ["node", "dist/healthcheck.js"]

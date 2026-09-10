@@ -15,14 +15,14 @@ describe("web configuration", () => {
   it("accepts a valid database URL", async () => {
     vi.stubEnv(
       "DATABASE_URL",
-      "postgres://tripatlas:tripatlas@localhost:5432/tripatlas",
+      "postgres://drivechronik:drivechronik@localhost:5432/drivechronik",
     );
     vi.stubEnv("APP_TIMEZONE", "Europe/Berlin");
 
     const { getDatabaseUrl } = await import("./config");
 
     expect(getDatabaseUrl()).toBe(
-      "postgres://tripatlas:tripatlas@localhost:5432/tripatlas",
+      "postgres://drivechronik:drivechronik@localhost:5432/drivechronik",
     );
   });
 

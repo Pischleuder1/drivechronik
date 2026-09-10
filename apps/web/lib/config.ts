@@ -72,7 +72,7 @@ if (!parsedAppConfig.success) {
 export const APP_TIMEZONE = parsedAppConfig.data.APP_TIMEZONE;
 
 /** Name of the httpOnly session cookie. */
-export const SESSION_COOKIE = "tripatlas_session";
+export const SESSION_COOKIE = "drivechronik_session";
 
 /**
  * Required DriveChronik database URL.

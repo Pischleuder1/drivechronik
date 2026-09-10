@@ -3,8 +3,8 @@ set -eu
 
 DB_HOST="${DB_HOST:-db}"
 DB_PORT="${DB_PORT:-5432}"
-DB_USER="${DB_USER:-tripatlas}"
-DB_NAME="${DB_NAME:-tripatlas}"
+DB_USER="${DB_USER:-drivechronik}"
+DB_NAME="${DB_NAME:-drivechronik}"
 
 BACKUP_DIR="${BACKUP_DIR_CONTAINER:-/backups}"
 BACKUP_STATUS_DIR="${BACKUP_STATUS_DIR:-$BACKUP_DIR/status}"

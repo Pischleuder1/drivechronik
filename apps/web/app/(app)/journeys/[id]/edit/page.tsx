@@ -5,6 +5,8 @@ import { getTranslations } from "next-intl/server";
 import { getJourneyById } from "../../../../../lib/journeys";
 import { toDateTimeLocal } from "../../../../../lib/day";
 import { JourneyForm, type JourneyFormValues } from "../../JourneyForm";
+import { PageHeader } from "../../../../../components/ui/PageHeader";
+import { Panel } from "../../../../../components/ui/Panel";
 
 export const dynamic = "force-dynamic";
 
@@ -42,13 +44,14 @@ export default async function EditJourneyPage({
         {tCommon("actions.back")}
       </Link>
 
-      <h1 className="mt-3 text-2xl font-semibold tracking-tight">
-        {t("editTitle")}
-      </h1>
+      <PageHeader
+        className="mt-3"
+        title={t("editTitle")}
+      />
 
-      <div className="mt-6 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+      <Panel className="mt-4">
         <JourneyForm initial={initial} />
-      </div>
+      </Panel>
     </div>
   );
 }

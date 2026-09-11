@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 export type IconBadgeTone =
   | "blue"
+  | "sky"
   | "indigo"
   | "violet"
   | "emerald"
@@ -13,6 +14,8 @@ export type IconBadgeTone =
 const toneClasses: Record<IconBadgeTone, string> = {
   blue:
     "bg-blue-50 text-blue-600 ring-1 ring-inset ring-blue-100 dark:bg-blue-950/40 dark:text-blue-300 dark:ring-blue-900/60",
+  sky:
+    "bg-sky-50 text-sky-600 ring-1 ring-inset ring-sky-100 dark:bg-sky-950/40 dark:text-sky-300 dark:ring-sky-900/60",
   indigo:
     "bg-indigo-50 text-indigo-600 ring-1 ring-inset ring-indigo-100 dark:bg-indigo-950/40 dark:text-indigo-300 dark:ring-indigo-900/60",
   violet:

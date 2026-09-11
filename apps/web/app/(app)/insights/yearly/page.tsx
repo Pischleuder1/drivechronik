@@ -20,6 +20,10 @@ import { InsightsVehicleSwitcher } from "../InsightsVehicleSwitcher";
 import { YearlyDestinationMapLoader } from "./YearlyDestinationMapLoader";
 
 import { NoVehicleState } from "../../../../components/NoVehicleState";
+import { PageHeader } from "../../../../components/ui/PageHeader";
+import { StatCard } from "../../../../components/ui/StatCard";
+import { Panel } from "../../../../components/ui/Panel";
+import { SectionHeader } from "../../../../components/ui/SectionHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -106,14 +110,11 @@ export default async function YearlyInsightsPage({
           {t("yearly.back")}
         </Link>
 
-        <div className="mt-3">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {t("yearly.title", { year })}
-          </h1>
-          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-            {t("yearly.subtitle")}
-          </p>
-        </div>
+        <PageHeader
+          className="mt-3"
+          title={t("yearly.title", { year })}
+          subtitle={t("yearly.subtitle")}
+        />
 
         <div className="mt-5 flex items-center justify-between rounded-xl border border-neutral-200 bg-white p-2 dark:border-neutral-800 dark:bg-neutral-900">
           <Link
@@ -272,23 +273,19 @@ export default async function YearlyInsightsPage({
         {t("yearly.back")}
       </Link>
 
-      <div className="mt-3 flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {t("yearly.title", { year })}
-          </h1>
-          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-            {t("yearly.subtitle")}
-          </p>
-        </div>
-
-        {vehicles.length > 1 && (
-          <InsightsVehicleSwitcher
-            vehicles={vehicles}
-            current={currentVehicle.id}
-          />
-        )}
-      </div>
+      <PageHeader
+        className="mt-3"
+        title={t("yearly.title", { year })}
+        subtitle={t("yearly.subtitle")}
+        actions={
+          vehicles.length > 1 ? (
+            <InsightsVehicleSwitcher
+              vehicles={vehicles}
+              current={currentVehicle.id}
+            />
+          ) : undefined
+        }
+      />
 
       <div className="mt-5 flex items-center justify-between rounded-xl border border-neutral-200 bg-white p-2 dark:border-neutral-800 dark:bg-neutral-900">
         <Link
@@ -328,227 +325,167 @@ export default async function YearlyInsightsPage({
         </a>
       </div>
 
-      <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <div className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-          <p className="text-xs text-neutral-500 dark:text-neutral-400">
-            {t("yearly.kpi.distance")}
-          </p>
-          <p className="mt-1 text-xl font-semibold tabular-nums">
-            {formatKm(result.distanceKm)}
-          </p>
-        </div>
-
-        <div className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-          <p className="text-xs text-neutral-500 dark:text-neutral-400">
-            {t("yearly.kpi.drives")}
-          </p>
-          <p className="mt-1 text-xl font-semibold tabular-nums">
-            {result.driveCount}
-          </p>
-        </div>
-
-        <div className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-          <p className="text-xs text-neutral-500 dark:text-neutral-400">
-            {t("yearly.kpi.duration")}
-          </p>
-          <p className="mt-1 text-xl font-semibold tabular-nums">
-            {formatDuration(Math.round(result.durationSeconds))}
-          </p>
-        </div>
-
-        <div className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-          <p className="text-xs text-neutral-500 dark:text-neutral-400">
-            {t("yearly.kpi.classified")}
-          </p>
-          <p className="mt-1 text-xl font-semibold tabular-nums">
-            {Math.round(classifiedShare * 100)} %
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <div className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-          <p className="text-xs text-neutral-500 dark:text-neutral-400">
-            {t("yearly.kpi.businessDistance")}
-          </p>
-          <p className="mt-1 text-xl font-semibold tabular-nums">
-            {formatKm(businessDistanceKm)}
-          </p>
-        </div>
-
-        <div className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-          <p className="text-xs text-neutral-500 dark:text-neutral-400">
-            {t("yearly.kpi.reimbursement")}
-          </p>
-          <p className="mt-1 text-xl font-semibold tabular-nums">
-            {currencyFormatter.format(reimbursementAmountEur)}
-          </p>
-          <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-            {t("yearly.kpi.reimbursementRate", {
-              rate: currencyFormatter.format(reimbursementRateEurPerKm),
-            })}
-          </p>
-        </div>
-
-        <div className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-          <p className="text-xs text-neutral-500 dark:text-neutral-400">
-            {t("yearly.kpi.averageDrive")}
-          </p>
-          <p className="mt-1 text-xl font-semibold tabular-nums">
-            {formatKm(averageDriveDistanceKm)}
-          </p>
-        </div>
-
-        <div className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-          <p className="text-xs text-neutral-500 dark:text-neutral-400">
-            {t("yearly.kpi.customerVisits")}
-          </p>
-          <p className="mt-1 text-xl font-semibold tabular-nums">
-            {customerVisitCount}
-          </p>
-          <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-            {t("yearly.kpi.customerCount", {
-              count: customerDestinations.length,
-            })}
-          </p>
-        </div>
+      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          label={t("yearly.kpi.distance")}
+          value={formatKm(result.distanceKm)}
+          tone="blue"
+        />
+        <StatCard
+          label={t("yearly.kpi.drives")}
+          value={String(result.driveCount)}
+          tone="sky"
+        />
+        <StatCard
+          label={t("yearly.kpi.duration")}
+          value={formatDuration(Math.round(result.durationSeconds))}
+          tone="violet"
+        />
+        <StatCard
+          label={t("yearly.kpi.classified")}
+          value={`${Math.round(classifiedShare * 100)} %`}
+          tone="indigo"
+        />
+        <StatCard
+          label={t("yearly.kpi.businessDistance")}
+          value={formatKm(businessDistanceKm)}
+          tone="cyan"
+        />
+        <StatCard
+          label={t("yearly.kpi.reimbursement")}
+          value={currencyFormatter.format(reimbursementAmountEur)}
+          hint={t("yearly.kpi.reimbursementRate", {
+            rate: currencyFormatter.format(reimbursementRateEurPerKm),
+          })}
+          tone="emerald"
+        />
+        <StatCard
+          label={t("yearly.kpi.averageDrive")}
+          value={formatKm(averageDriveDistanceKm)}
+          tone="neutral"
+        />
+        <StatCard
+          label={t("yearly.kpi.customerVisits")}
+          value={String(customerVisitCount)}
+          hint={t("yearly.kpi.customerCount", {
+            count: customerDestinations.length,
+          })}
+          tone="amber"
+        />
       </div>
 
       {result.driveCount === 0 ? (
-        <div className="mt-6 rounded-xl border border-neutral-200 bg-white p-6 text-center dark:border-neutral-800 dark:bg-neutral-900">
+        <Panel
+          className="mt-6"
+          bodyClassName="text-center"
+        >
           <p className="font-medium">{t("yearly.empty.title")}</p>
           <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
             {t("yearly.empty.hint", { year })}
           </p>
-        </div>
+        </Panel>
       ) : (
         <>
           <section className="mt-6">
-            <h2 className="text-lg font-semibold">
-              {t("yearly.wrapped.title")}
-            </h2>
-            <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-              {t("yearly.wrapped.subtitle")}
-            </p>
+            <SectionHeader
+              title={t("yearly.wrapped.title")}
+              subtitle={t("yearly.wrapped.subtitle")}
+              tone="violet"
+            />
 
             <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-                <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                  {t("yearly.wrapped.longest")}
-                </p>
-                <p className="mt-1 font-semibold">
-                  {result.longestDrive?.distanceKm != null
+              <StatCard
+                label={t("yearly.wrapped.longest")}
+                value={
+                  result.longestDrive?.distanceKm != null
                     ? formatKm(result.longestDrive.distanceKm)
-                    : "—"}
-                </p>
-              </div>
+                    : "—"
+                }
+                tone="blue"
+              />
 
-              <div className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-                <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                  {t("yearly.wrapped.busiestMonth")}
-                </p>
-                <p className="mt-1 font-semibold">
-                  {result.busiestMonth
+              <StatCard
+                label={t("yearly.wrapped.busiestMonth")}
+                value={
+                  result.busiestMonth
                     ? monthLabel(result.busiestMonth.monthKey, locale)
-                    : "—"}
-                </p>
-                {result.busiestMonth && (
-                  <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-                    {formatKm(result.busiestMonth.distanceKm)}
-                  </p>
-                )}
-              </div>
+                    : "—"
+                }
+                hint={
+                  result.busiestMonth
+                    ? formatKm(result.busiestMonth.distanceKm)
+                    : undefined
+                }
+                tone="violet"
+              />
 
-              <div className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-                <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                  {t("yearly.wrapped.busiestDay")}
-                </p>
-                <p className="mt-1 font-semibold">
-                  {result.busiestDay
+              <StatCard
+                label={t("yearly.wrapped.busiestDay")}
+                value={
+                  result.busiestDay
                     ? dateLabel(result.busiestDay.dateKey, locale)
-                    : "—"}
-                </p>
-                {result.busiestDay && (
-                  <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-                    {formatKm(result.busiestDay.distanceKm)}
-                  </p>
-                )}
-              </div>
+                    : "—"
+                }
+                hint={
+                  result.busiestDay
+                    ? formatKm(result.busiestDay.distanceKm)
+                    : undefined
+                }
+                tone="cyan"
+              />
 
-              <div className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-                <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                  {t("yearly.wrapped.topDestination")}
-                </p>
-                <p className="mt-1 truncate font-semibold">
-                  {result.topDestination?.label ?? "—"}
-                </p>
-                {result.topDestination && (
-                  <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-                    {t("yearly.visits", {
-                      count: result.topDestination.visitCount,
-                    })}
-                  </p>
-                )}
-              </div>
+              <StatCard
+                label={t("yearly.wrapped.topDestination")}
+                value={result.topDestination?.label ?? "—"}
+                hint={
+                  result.topDestination
+                    ? t("yearly.visits", {
+                        count: result.topDestination.visitCount,
+                      })
+                    : undefined
+                }
+                tone="amber"
+              />
             </div>
           </section>
 
                     {customerDestinations.length > 0 && (
             <section className="mt-6">
-              <h2 className="text-lg font-semibold">
-                {t("yearly.customers.title")}
-              </h2>
-
-              <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-                {t("yearly.customers.subtitle")}
-              </p>
+              <SectionHeader
+                title={t("yearly.customers.title")}
+                subtitle={t("yearly.customers.subtitle")}
+                tone="emerald"
+              />
 
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-                  <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                    {t("yearly.customers.top")}
-                  </p>
+                <StatCard
+                  label={t("yearly.customers.top")}
+                  value={topCustomer?.label ?? "—"}
+                  hint={
+                    topCustomer
+                      ? `${t("yearly.visits", {
+                          count: topCustomer.visitCount,
+                        })} · ${formatKm(topCustomer.distanceKm)}`
+                      : undefined
+                  }
+                  tone="emerald"
+                />
 
-                  <p className="mt-1 truncate text-lg font-semibold">
-                    {topCustomer?.label ?? "—"}
-                  </p>
-
-                  {topCustomer && (
-                    <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-                      {t("yearly.visits", {
-                        count: topCustomer.visitCount,
-                      })}
-                      {" · "}
-                      {formatKm(topCustomer.distanceKm)}
-                    </p>
-                  )}
-                </div>
-
-                <div className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-                  <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                    {t("yearly.customers.businessDistance")}
-                  </p>
-
-                  <p className="mt-1 text-lg font-semibold tabular-nums">
-                    {formatKm(businessCustomerDistanceKm)}
-                  </p>
-
-                  <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-                    {t("yearly.customers.businessDistanceHint")}
-                  </p>
-                </div>
+                <StatCard
+                  label={t("yearly.customers.businessDistance")}
+                  value={formatKm(businessCustomerDistanceKm)}
+                  hint={t("yearly.customers.businessDistanceHint")}
+                  tone="cyan"
+                />
               </div>
             </section>
           )}
 
-<section className="mt-6 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-            <h2 className="text-sm font-semibold">
-              {t("yearly.months.title")}
-            </h2>
-
-            <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-              {t("yearly.months.subtitle")}
-            </p>
+<Panel
+            className="mt-6"
+            title={t("yearly.months.title")}
+            subtitle={t("yearly.months.subtitle")}
+          >
 
             <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-neutral-600 dark:text-neutral-300">
               <span className="inline-flex items-center gap-1.5">
@@ -671,39 +608,40 @@ export default async function YearlyInsightsPage({
                 );
               })}
             </div>
-          </section>
+          </Panel>
 
           <section className="mt-6">
-            <h2 className="text-lg font-semibold">
-              {t("yearly.classification.title")}
-            </h2>
+            <SectionHeader
+              title={t("yearly.classification.title")}
+              count={result.byClassification.length}
+              tone="indigo"
+            />
 
             <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {result.byClassification.map((row) => (
-                <div
+                <StatCard
                   key={row.classification}
-                  className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900"
-                >
-                  <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
-                    {tc(`classification.${row.classification}`)}
-                  </p>
-
-                  <p className="mt-1 text-lg font-semibold tabular-nums">
-                    {formatKm(row.distanceKm)}
-                  </p>
-
-                  <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                    {t("yearly.driveCount", {
-                      count: row.driveCount,
-                    })}
-                  </p>
-                </div>
+                  label={tc(`classification.${row.classification}`)}
+                  value={formatKm(row.distanceKm)}
+                  hint={t("yearly.driveCount", {
+                    count: row.driveCount,
+                  })}
+                  tone={
+                    row.classification === "business"
+                      ? "blue"
+                      : row.classification === "private"
+                        ? "emerald"
+                        : row.classification === "commute"
+                          ? "amber"
+                          : "neutral"
+                  }
+                />
               ))}
             </div>
           </section>
 
           {result.destinations.length > 0 && (
-            <div className="mt-6 flex flex-wrap items-center gap-2">
+            <div className="mt-6 flex flex-wrap items-center gap-2 rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
               <span className="mr-1 text-sm text-neutral-500 dark:text-neutral-400">
                 {t("yearly.destinations.filters.label")}
               </span>
@@ -757,11 +695,13 @@ export default async function YearlyInsightsPage({
 
           {topDestinationRows.length > 0 && (
             <section className="mt-6">
-              <h2 className="text-lg font-semibold">
-                {t("yearly.destinations.title")}
-              </h2>
+              <SectionHeader
+                title={t("yearly.destinations.title")}
+                count={topDestinationRows.length}
+                tone="sky"
+              />
 
-              <div className="mt-3 overflow-hidden rounded-xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
+              <div className="mt-3 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                 {topDestinationRows.map((destination, index) => (
                   <div
                     key={destination.key}
@@ -814,14 +754,14 @@ export default async function YearlyInsightsPage({
 
       {destinationMapPoints.length > 0 && (
         <section className="mt-6">
-          <h2 className="text-lg font-semibold">
-            {t("yearly.map.title")}
-          </h2>
-          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-            {t("yearly.map.subtitle")}
-          </p>
+          <SectionHeader
+            title={t("yearly.map.title")}
+            subtitle={t("yearly.map.subtitle")}
+            count={destinationMapPoints.length}
+            tone="emerald"
+          />
 
-          <div className="mt-3">
+          <div className="mt-3 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
             <YearlyDestinationMapLoader
               points={destinationMapPoints}
               locale={locale}

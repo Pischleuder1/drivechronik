@@ -1,6 +1,17 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Download, Zap, ArrowRight, ChevronLeft } from "lucide-react";
+import {
+  ArrowRight,
+  Battery,
+  BatteryCharging,
+  ChevronLeft,
+  CircleDollarSign,
+  Clock,
+  Download,
+  Gauge,
+  Route,
+  Zap,
+} from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import {
   buildJourneyKpis,
@@ -18,6 +29,11 @@ import {
   type JourneyTimelineItem,
 } from "../../../../lib/journeys";
 import { buttonClasses } from "../../../../components/ui/Button";
+import { PageHeader } from "../../../../components/ui/PageHeader";
+import { StatusBadge } from "../../../../components/ui/StatusBadge";
+import { StatCard } from "../../../../components/ui/StatCard";
+import { SectionHeader } from "../../../../components/ui/SectionHeader";
+import { Panel } from "../../../../components/ui/Panel";
 import { DeleteJourneyButton } from "./DeleteJourneyButton";
 import { AddItemButton, RemoveItemButton } from "./ItemButtons";
 import { JourneyMapLoader } from "./JourneyMapLoader";
@@ -44,32 +60,6 @@ function formatEur(value: number): string {
     style: "currency",
     currency: "EUR",
   }).format(value);
-}
-
-function Kpi({
-  label,
-  value,
-  sub,
-}: {
-  label: string;
-  value: string;
-  sub?: string;
-}) {
-  return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-900">
-      <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
-        {label}
-      </p>
-      <p className="mt-1 text-lg font-semibold tabular-nums text-neutral-900 dark:text-neutral-100">
-        {value}
-      </p>
-      {sub && (
-        <p className="text-xs tabular-nums text-neutral-500 dark:text-neutral-400">
-          {sub}
-        </p>
-      )}
-    </div>
-  );
 }
 
 export default async function JourneyDetailPage({
@@ -122,41 +112,40 @@ export default async function JourneyDetailPage({
         {t("detail.allJourneys")}
       </Link>
 
-      {/* Header */}
-      <div className="mt-3 flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
+      <PageHeader
+        className="mt-3"
+        title={journey.name}
+        subtitle={formatRange(journey.startTime, journey.endTime)}
+        eyebrow={
+          <div className="flex items-center gap-2">
             <span
               aria-hidden
-              className="h-3 w-3 shrink-0 rounded-full"
+              className="h-2.5 w-2.5 shrink-0 rounded-full"
               style={{ backgroundColor: journey.color ?? "#94a3b8" }}
             />
-            <h1 className="text-2xl font-semibold tracking-tight">
-              {journey.name}
-            </h1>
-            <span className="inline-flex items-center rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
+            <StatusBadge tone="neutral">
               {t(`type.${journey.type}`)}
-            </span>
+            </StatusBadge>
           </div>
-          <p className="mt-1 text-sm tabular-nums text-neutral-500 dark:text-neutral-400">
-            {formatRange(journey.startTime, journey.endTime)}
-          </p>
-          {journey.description && (
-            <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-300">
-              {journey.description}
-            </p>
-          )}
-        </div>
-        <div className="flex shrink-0 flex-col items-end gap-2">
-          <Link
-            href={`/journeys/${journey.id}/edit`}
-            className={buttonClasses("secondary", "md")}
-          >
-            {tCommon("actions.edit")}
-          </Link>
-          <DeleteJourneyButton journeyId={journey.id} name={journey.name} />
-        </div>
-      </div>
+        }
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href={`/journeys/${journey.id}/edit`}
+              className={buttonClasses("secondary", "md")}
+            >
+              {tCommon("actions.edit")}
+            </Link>
+            <DeleteJourneyButton journeyId={journey.id} name={journey.name} />
+          </div>
+        }
+      />
+
+      {journey.description && (
+        <p className="mt-3 text-sm text-neutral-600 dark:text-neutral-300">
+          {journey.description}
+        </p>
+      )}
 
       {/* Export (vision.md §20.4) */}
       <div className="mt-4 flex items-center gap-1.5">
@@ -200,42 +189,83 @@ export default async function JourneyDetailPage({
       )}
 
       {/* KPI grid */}
-      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <Kpi label={t("detail.kpi.totalDistance")} value={formatKm(kpis.totalDistanceKm)} />
-        <Kpi label={t("detail.kpi.driveTime")} value={formatDuration(kpis.driveTimeSeconds)} />
-        <Kpi label={t("detail.kpi.chargeTime")} value={formatDuration(kpis.chargeTimeSeconds)} />
-        <Kpi
+      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <StatCard
+          label={t("detail.kpi.totalDistance")}
+          value={formatKm(kpis.totalDistanceKm)}
+          tone="blue"
+          icon={<Route aria-hidden size={18} />}
+        />
+
+        <StatCard
+          label={t("detail.kpi.driveTime")}
+          value={formatDuration(kpis.driveTimeSeconds)}
+          tone="violet"
+          icon={<Clock aria-hidden size={18} />}
+        />
+
+        <StatCard
+          label={t("detail.kpi.chargeTime")}
+          value={formatDuration(kpis.chargeTimeSeconds)}
+          tone="amber"
+          icon={<BatteryCharging aria-hidden size={18} />}
+        />
+
+        <StatCard
           label={t("detail.kpi.avgConsumption")}
           value={
             kpis.avgConsumptionWhKm != null
               ? formatConsumption(kpis.avgConsumptionWhKm, kpis.anyEstimated)
               : "–"
           }
+          tone="cyan"
+          icon={<Gauge aria-hidden size={18} />}
         />
-        <Kpi
+
+        <StatCard
           label={t("detail.kpi.consumedEnergy")}
           value={formatKwh(kpis.consumedEnergyKwh)}
-          sub={kpis.anyEstimated ? t("detail.kpi.partiallyEstimated") : undefined}
+          hint={kpis.anyEstimated ? t("detail.kpi.partiallyEstimated") : undefined}
+          tone="rose"
+          icon={<Zap aria-hidden size={18} />}
         />
-        <Kpi
+
+        <StatCard
           label={t("detail.kpi.chargedEnergy")}
           value={formatKwh(kpis.chargedEnergyKwh)}
+          tone="emerald"
+          icon={<BatteryCharging aria-hidden size={18} />}
         />
-        <Kpi
+
+        <StatCard
           label={t("detail.kpi.chargeStops")}
           value={String(kpis.chargeStopCount)}
+          tone="amber"
+          icon={<Zap aria-hidden size={18} />}
         />
-        <Kpi label={t("detail.kpi.socMinMax")} value={socValue} sub={socSub} />
-        <Kpi
+
+        <StatCard
+          label={t("detail.kpi.socMinMax")}
+          value={socValue}
+          hint={socSub}
+          tone="sky"
+          icon={<Battery aria-hidden size={18} />}
+        />
+
+        <StatCard
           label={t("detail.kpi.cost")}
           value={kpis.totalCost != null ? formatEur(kpis.totalCost) : "–"}
-          sub={
+          hint={
             kpis.costPer100Km != null
-              ? t("detail.kpi.costPerKm", { value: formatEur(kpis.costPer100Km) })
+              ? t("detail.kpi.costPerKm", {
+                  value: formatEur(kpis.costPer100Km),
+                })
               : kpis.hasIncompleteCost
                 ? t("detail.kpi.incomplete")
                 : undefined
           }
+          tone="emerald"
+          icon={<CircleDollarSign aria-hidden size={18} />}
         />
       </div>
 
@@ -246,10 +276,13 @@ export default async function JourneyDetailPage({
       )}
 
       {/* Chronological item list */}
-      <h2 className="mt-8 text-sm font-semibold text-neutral-900 dark:text-neutral-100">
-        {t("detail.itemsHeading")}
-      </h2>
-      <div className="mt-3 overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-800">
+      <SectionHeader
+        className="mt-8"
+        title={t("detail.itemsHeading")}
+        count={items.length}
+        tone="blue"
+      />
+      <Panel className="mt-3 overflow-hidden" padding="none">
         {items.length === 0 ? (
           <p className="px-4 py-8 text-center text-sm text-neutral-500 dark:text-neutral-400">
             {t("detail.noItems")}
@@ -261,16 +294,17 @@ export default async function JourneyDetailPage({
             ))}
           </ul>
         )}
-      </div>
+      </Panel>
 
       {/* Add candidates */}
-      <h2 className="mt-8 text-sm font-semibold text-neutral-900 dark:text-neutral-100">
-        {t("detail.add")}
-      </h2>
-      <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-        {t("detail.addHint")}
-      </p>
-      <div className="mt-3 overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-800">
+      <SectionHeader
+        className="mt-8"
+        title={t("detail.add")}
+        subtitle={t("detail.addHint")}
+        count={candidates.length}
+        tone="emerald"
+      />
+      <Panel className="mt-3 overflow-hidden" padding="none">
         {candidates.length === 0 ? (
           <p className="px-4 py-8 text-center text-sm text-neutral-500 dark:text-neutral-400">
             {t("detail.noCandidates")}
@@ -280,7 +314,7 @@ export default async function JourneyDetailPage({
             {candidates.map((c) => (
               <li
                 key={`${c.kind}-${c.id}`}
-                className="flex items-center gap-3 px-4 py-2.5"
+                className="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
               >
                 {c.kind === "charge" ? (
                   <Zap aria-hidden size={16} className="shrink-0 text-amber-500" />
@@ -317,7 +351,7 @@ export default async function JourneyDetailPage({
             ))}
           </ul>
         )}
-      </div>
+      </Panel>
     </div>
   );
 }
@@ -362,7 +396,7 @@ function ItemRow({
           .join(" · ");
 
   return (
-    <li className="flex items-center gap-3 px-4 py-2.5">
+    <li className="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/50">
       {item.kind === "charge" ? (
         <Zap aria-hidden size={16} className="shrink-0 text-amber-500" />
       ) : (

@@ -11,6 +11,13 @@ import { APP_TIMEZONE } from "../../../../lib/config";
 import { todayInAppTz } from "../../../../lib/day";
 import { monthBounds } from "../../../../lib/exports/data";
 import { isValidMonthParam } from "../../../../lib/exports/params";
+import { PageHeader } from "../../../../components/ui/PageHeader";
+import { StatCard } from "../../../../components/ui/StatCard";
+import { StatusBadge } from "../../../../components/ui/StatusBadge";
+import {
+  MetricGrid,
+  MetricItem,
+} from "../../../../components/ui/MetricGrid";
 
 export const dynamic = "force-dynamic";
 
@@ -194,22 +201,13 @@ export default async function TeslaInvoicesPage({
         ← {t("teslaOverview.back")}
       </Link>
 
-      <div className="mt-4 flex items-start gap-3">
-        <div className="rounded-xl bg-red-50 p-2.5 text-red-600 dark:bg-red-950/40 dark:text-red-300">
-          <ReceiptText aria-hidden size={22} />
-        </div>
+      <PageHeader
+        className="mt-4"
+        title={t("teslaOverview.title")}
+        subtitle={t("teslaOverview.subtitle")}
+      />
 
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {t("teslaOverview.title")}
-          </h1>
-          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-            {t("teslaOverview.subtitle")}
-          </p>
-        </div>
-      </div>
-
-      <form className="mt-6 grid gap-3 rounded-xl border border-neutral-200 bg-white p-4 sm:grid-cols-[1fr_1fr_1fr_auto] dark:border-neutral-800 dark:bg-neutral-900">
+      <form className="mt-6 grid gap-3 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:grid-cols-[1fr_1fr_1fr_auto] dark:border-neutral-800 dark:bg-neutral-900">
         <label className="text-sm">
           <span className="mb-1 block text-xs font-medium text-neutral-500 dark:text-neutral-400">
             {t("teslaOverview.filters.month")}
@@ -285,22 +283,27 @@ export default async function TeslaInvoicesPage({
         <StatCard
           label={t("teslaOverview.stats.entries")}
           value={String(filteredRows.length)}
+          tone="blue"
         />
         <StatCard
           label={t("teslaOverview.stats.invoices")}
           value={String(invoiceCount)}
+          tone="violet"
         />
         <StatCard
           label={t("teslaOverview.stats.energy")}
           value={formatKwh(totalEnergy)}
+          tone="cyan"
         />
         <StatCard
           label={t("teslaOverview.stats.total")}
           value={formatTotals(totalsByCurrency, locale)}
+          tone="emerald"
         />
         <StatCard
           label={t("teslaOverview.stats.matched")}
           value={`${matchedCount} / ${filteredRows.length}`}
+          tone="sky"
         />
       </div>
 
@@ -328,7 +331,7 @@ export default async function TeslaInvoicesPage({
             return (
               <article
                 key={row.id}
-                className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900"
+                className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -342,80 +345,57 @@ export default async function TeslaInvoicesPage({
                   </div>
 
                   <div className="flex flex-wrap gap-2">
-                    <span
-                      className={
-                        isPaid
-                          ? "rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
-                          : "rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-300"
-                      }
-                    >
+                    <StatusBadge tone={isPaid ? "emerald" : "amber"}>
                       {isPaid
                         ? t("teslaOverview.status.paid")
                         : t("teslaOverview.status.open")}
-                    </span>
+                    </StatusBadge>
 
-                    <span
-                      className={
-                        row.chargeSessionId != null
-                          ? "rounded-full bg-sky-100 px-2.5 py-1 text-xs font-medium text-sky-800 dark:bg-sky-950 dark:text-sky-300"
-                          : "rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-medium text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300"
-                      }
+                    <StatusBadge
+                      tone={row.chargeSessionId != null ? "sky" : "neutral"}
                     >
                       {row.chargeSessionId != null
                         ? t("teslaOverview.assignment.matched")
                         : t("teslaOverview.assignment.unmatched")}
-                    </span>
+                    </StatusBadge>
                   </div>
                 </div>
 
-                <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-4">
-                  <div>
-                    <dt className="text-xs text-neutral-500 dark:text-neutral-400">
-                      {t("teslaOverview.row.invoice")}
-                    </dt>
-                    <dd className="mt-0.5 font-medium">
-                      {row.invoiceNumber ||
-                        t("teslaOverview.row.noInvoice")}
-                    </dd>
-                  </div>
-
-                  <div>
-                    <dt className="text-xs text-neutral-500 dark:text-neutral-400">
-                      {t("teslaOverview.row.energy")}
-                    </dt>
-                    <dd className="mt-0.5 font-medium tabular-nums">
-                      {row.energyKwh != null
+                <MetricGrid columns={4} className="mt-4">
+                  <MetricItem
+                    label={t("teslaOverview.row.invoice")}
+                    value={
+                      row.invoiceNumber ||
+                      t("teslaOverview.row.noInvoice")
+                    }
+                  />
+                  <MetricItem
+                    label={t("teslaOverview.row.energy")}
+                    value={
+                      row.energyKwh != null
                         ? formatKwh(row.energyKwh)
-                        : "–"}
-                    </dd>
-                  </div>
-
-                  <div>
-                    <dt className="text-xs text-neutral-500 dark:text-neutral-400">
-                      {t("teslaOverview.row.amount")}
-                    </dt>
-                    <dd className="mt-0.5 font-medium tabular-nums">
-                      {formatMoney(
-                        row.totalIncVat,
-                        row.currency,
-                        locale,
-                      )}
-                    </dd>
-                  </div>
-
-                  <div>
-                    <dt className="text-xs text-neutral-500 dark:text-neutral-400">
-                      {t("teslaOverview.row.status")}
-                    </dt>
-                    <dd className="mt-0.5 font-medium">
-                      {status === "PAID"
+                        : "–"
+                    }
+                  />
+                  <MetricItem
+                    label={t("teslaOverview.row.amount")}
+                    value={formatMoney(
+                      row.totalIncVat,
+                      row.currency,
+                      locale,
+                    )}
+                  />
+                  <MetricItem
+                    label={t("teslaOverview.row.status")}
+                    value={
+                      status === "PAID"
                         ? t("teslaOverview.status.paid")
                         : status === "OPEN" || status === "PENDING"
                           ? t("teslaOverview.status.open")
-                          : row.status || "–"}
-                    </dd>
-                  </div>
-                </dl>
+                          : row.status || "–"
+                    }
+                  />
+                </MetricGrid>
 
                 {(row.chargeSessionId != null || invoiceUrl) && (
                   <div className="mt-4 flex flex-wrap gap-2 border-t border-neutral-100 pt-3 dark:border-neutral-800">
@@ -446,25 +426,6 @@ export default async function TeslaInvoicesPage({
           })}
         </div>
       )}
-    </div>
-  );
-}
-
-function StatCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-      <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
-        {label}
-      </p>
-      <p className="mt-1 break-words text-lg font-semibold tabular-nums">
-        {value}
-      </p>
     </div>
   );
 }

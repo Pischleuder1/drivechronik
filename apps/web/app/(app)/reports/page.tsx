@@ -12,6 +12,10 @@ import { loadMonthReportData } from "../../../lib/exports/data";
 import { isValidMonthParam } from "../../../lib/exports/params";
 import { todayInAppTz } from "../../../lib/day";
 import { buttonClasses } from "../../../components/ui/Button";
+import { PageHeader } from "../../../components/ui/PageHeader";
+import { Panel } from "../../../components/ui/Panel";
+import { StatCard } from "../../../components/ui/StatCard";
+import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { ReportFilters } from "./ReportFilters";
 
 import { NoVehicleState } from "../../../components/NoVehicleState";
@@ -33,6 +37,22 @@ const ALL_CLASSIFICATIONS: Classification[] = [
 
 /** Default filter: only "Geschäftlich" checked (vision.md §8.4 main use case). */
 const DEFAULT_CLASSIFICATIONS: Classification[] = ["business"];
+
+function classificationTone(
+  classification: Classification,
+): "blue" | "emerald" | "amber" | "neutral" {
+  switch (classification) {
+    case "business":
+      return "blue";
+    case "private":
+      return "emerald";
+    case "commute":
+      return "amber";
+    case "unclassified":
+    default:
+      return "neutral";
+  }
+}
 
 function currentMonthInAppTz(): string {
   return todayInAppTz().slice(0, 7);
@@ -73,23 +93,22 @@ export default async function ReportsPage({
   if (vehicles.length === 0) {
     return (
       <div className="mx-auto max-w-4xl">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
-        <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-          {t("subtitle")}
-        </p>
+        <PageHeader
+          title={t("title")}
+          subtitle={t("subtitle")}
+          actions={
+            <Link
+              href={`/reports/year?year=${month.slice(0, 4)}`}
+              className={buttonClasses("secondary", "md")}
+            >
+              {t("year.open")}
+            </Link>
+          }
+        />
 
-        <div className="mt-6">
+        <Panel className="mt-4" padding="sm">
           <ReportFilters month={month} selected={selected} />
-        </div>
-
-        <div className="mt-3">
-          <Link
-            href={`/reports/year?year=${month.slice(0, 4)}`}
-            className={buttonClasses("secondary", "sm")}
-          >
-            {t("year.open")}
-          </Link>
-        </div>
+        </Panel>
 
         <div className="mt-6">
           <NoVehicleState />
@@ -127,23 +146,22 @@ export default async function ReportsPage({
 
   return (
     <div className="mx-auto max-w-4xl">
-      <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
-      <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-        {t("subtitle")}
-      </p>
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+        actions={
+          <Link
+            href={`/reports/year?year=${month.slice(0, 4)}`}
+            className={buttonClasses("secondary", "md")}
+          >
+            {t("year.open")}
+          </Link>
+        }
+      />
 
-      <div className="mt-6">
+      <Panel className="mt-4" padding="sm">
         <ReportFilters month={month} selected={selected} />
-      </div>
-
-      <div className="mt-3">
-        <Link
-          href={`/reports/year?year=${month.slice(0, 4)}`}
-          className={buttonClasses("secondary", "sm")}
-        >
-          {t("year.open")}
-        </Link>
-      </div>
+      </Panel>
 
       <div className="mt-4 flex gap-1.5">
         <a
@@ -170,41 +188,39 @@ export default async function ReportsPage({
         canSeal={canSeal}
       />
 
-      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
+      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
         {ALL_CLASSIFICATIONS.filter((c) => selected.includes(c)).map((c) => {
           const bucket = report.byClassification[c];
+
           return (
-            <div
+            <StatCard
               key={c}
-              className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900"
-            >
-              <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
-                {tc(`classification.${c}`)}
-              </p>
-              <p className="mt-1 text-lg font-semibold tabular-nums">
-                {formatKm(bucket.distanceKm)}
-              </p>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                {t("driveCountLabel", { count: bucket.driveCount })}
-              </p>
-            </div>
+              label={tc(`classification.${c}`)}
+              value={formatKm(bucket.distanceKm)}
+              tone={classificationTone(c)}
+              footer={
+                <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                  {t("driveCountLabel", { count: bucket.driveCount })}
+                </p>
+              }
+            />
           );
         })}
-        <div className="rounded-xl border border-neutral-300 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800">
-          <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
-            {t("total")}
-          </p>
-          <p className="mt-1 text-lg font-semibold tabular-nums">
-            {formatKm(report.totals.distanceKm)}
-          </p>
-          <p className="text-xs text-neutral-500 dark:text-neutral-400">
-            {t("driveCountLabel", { count: report.totals.driveCount })}
-          </p>
-        </div>
+
+        <StatCard
+          label={t("total")}
+          value={formatKm(report.totals.distanceKm)}
+          tone="violet"
+          footer={
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+              {t("driveCountLabel", { count: report.totals.driveCount })}
+            </p>
+          }
+        />
       </div>
 
       {report.businessReimbursement.applicable && (
-        <div className="mt-4 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+        <div className="mt-4 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
@@ -230,7 +246,7 @@ export default async function ReportsPage({
               <p className="text-xs text-neutral-500 dark:text-neutral-400">
                 {t("reimbursement.amount")}
               </p>
-              <p className="text-xl font-semibold tabular-nums">
+              <p className="mt-1 text-2xl font-semibold tracking-tight tabular-nums">
                 {new Intl.NumberFormat(locale, {
                   style: "currency",
                   currency: "EUR",
@@ -255,15 +271,15 @@ export default async function ReportsPage({
         </p>
       )}
 
-      <div className="mt-6 overflow-x-auto rounded-xl border border-neutral-200 dark:border-neutral-800">
+      <div className="mt-6 overflow-x-auto rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
         <table className="w-full text-sm">
-          <thead className="bg-neutral-50 text-left text-xs font-medium text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
+          <thead className="border-b border-neutral-200 bg-neutral-50 text-left text-xs font-semibold text-neutral-500 dark:border-neutral-800 dark:bg-neutral-800/60 dark:text-neutral-400">
             <tr>
-              <th className="px-3 py-2">{t("table.date")}</th>
-              <th className="px-3 py-2">{t("table.time")}</th>
-              <th className="px-3 py-2">{t("table.route")}</th>
-              <th className="px-3 py-2 text-right">{t("table.km")}</th>
-              <th className="px-3 py-2">{t("table.classification")}</th>
+              <th className="px-4 py-3">{t("table.date")}</th>
+              <th className="px-4 py-3">{t("table.time")}</th>
+              <th className="px-4 py-3">{t("table.route")}</th>
+              <th className="px-4 py-3 text-right">{t("table.km")}</th>
+              <th className="px-4 py-3">{t("table.classification")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
@@ -278,7 +294,7 @@ export default async function ReportsPage({
               </tr>
             ) : (
               report.rows.map((row) => (
-                <tr key={row.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-900">
+                <tr key={row.id} className="transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/50">
                   <td className="whitespace-nowrap px-3 py-2">
                     <Link
                       href={`/drives/${row.id}`}
@@ -299,7 +315,9 @@ export default async function ReportsPage({
                     {row.distanceKm != null ? formatKm(row.distanceKm) : "–"}
                   </td>
                   <td className="whitespace-nowrap px-3 py-2">
-                    {tc(`classification.${row.classification}`)}
+                    <StatusBadge tone={classificationTone(row.classification)}>
+                      {tc(`classification.${row.classification}`)}
+                    </StatusBadge>
                   </td>
                 </tr>
               ))

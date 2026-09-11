@@ -6,6 +6,8 @@ import {
   sealMonth,
   type SealMonthResult,
 } from "../../../lib/actions/monthSeals";
+import { buttonClasses } from "../../../components/ui/Button";
+import { StatusBadge } from "../../../components/ui/StatusBadge";
 import type {
   MonthSealHistoryEntry,
   MonthSealStatus,
@@ -36,31 +38,33 @@ export function MonthSealCard({
   const isChanged = status.state === "sealed_changed";
   const isSealed = status.state !== "unsealed";
 
+  const statusTone =
+    status.state === "sealed_unchanged"
+      ? "emerald"
+      : status.state === "sealed_changed"
+        ? "amber"
+        : "neutral";
+
+  const statusLabel =
+    status.state === "sealed_unchanged"
+      ? `Abgeschlossen · Revision ${status.revision}`
+      : status.state === "sealed_changed"
+        ? `Abgeschlossen, danach geändert · Revision ${status.revision}`
+        : "Noch nicht abgeschlossen";
+
   return (
-    <div className="mt-6 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+    <div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-sm font-semibold">
             Monatsabschluss
           </p>
 
-          {status.state === "unsealed" && (
-            <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-              Noch nicht abgeschlossen
-            </p>
-          )}
-
-          {status.state === "sealed_unchanged" && (
-            <p className="mt-1 text-sm text-emerald-700 dark:text-emerald-300">
-              Abgeschlossen · Revision {status.revision}
-            </p>
-          )}
-
-          {status.state === "sealed_changed" && (
-            <p className="mt-1 text-sm text-amber-700 dark:text-amber-300">
-              Abgeschlossen, danach geändert · Revision {status.revision}
-            </p>
-          )}
+          <div className="mt-2">
+            <StatusBadge tone={statusTone}>
+              {statusLabel}
+            </StatusBadge>
+          </div>
 
           {isSealed && status.sealedAt && (
             <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
@@ -97,7 +101,7 @@ export function MonthSealCard({
             <button
               type="submit"
               disabled={!canSeal || pending}
-              className="inline-flex h-9 items-center justify-center rounded-lg bg-neutral-900 px-3 text-sm font-medium text-white transition hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300"
+              className={buttonClasses("primary", "md", "!h-9 disabled:cursor-not-allowed")}
             >
               {pending
                 ? "Wird abgeschlossen …"
@@ -119,7 +123,7 @@ export function MonthSealCard({
             {history.map((entry) => (
               <div
                 key={entry.revision}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-neutral-200 px-3 py-2 dark:border-neutral-800"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-neutral-50/60 px-3 py-2.5 dark:border-neutral-800 dark:bg-neutral-800/40"
               >
                 <div>
                   <p className="text-sm font-medium">

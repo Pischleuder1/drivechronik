@@ -6,6 +6,9 @@ import { dayBounds, isValidDateParam } from "../../../lib/day";
 import { getDefaultVehicleId, runSearch, type SearchType } from "../../../lib/search";
 import { getAllTags } from "../../../lib/queries";
 import { EmptyState } from "../../../components/ui/EmptyState";
+import { PageHeader } from "../../../components/ui/PageHeader";
+import { Panel } from "../../../components/ui/Panel";
+import { SectionHeader } from "../../../components/ui/SectionHeader";
 import {
   BulkSelectionProvider,
   SelectionToggle,
@@ -85,12 +88,12 @@ export default async function SearchPage({
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
-      <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-        {t("subtitle")}
-      </p>
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+      />
 
-      <div className="mt-6">
+      <Panel className="mt-6">
         <SearchControls
           q={q}
           from={from}
@@ -98,7 +101,7 @@ export default async function SearchPage({
           classifications={classifications}
           type={type}
         />
-      </div>
+      </Panel>
 
       <div className="mt-6">
         {!shouldSearch && (
@@ -110,22 +113,21 @@ export default async function SearchPage({
         )}
 
         {shouldSearch && vehicleId == null && (
-          <p className="rounded-xl border border-dashed border-neutral-300 px-4 py-8 text-center text-sm text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
-            {t("noVehicle")}
-          </p>
+          <Panel>
+            <p className="py-4 text-center text-sm text-neutral-500 dark:text-neutral-400">
+              {t("noVehicle")}
+            </p>
+          </Panel>
         )}
 
         {result && (
           <BulkSelectionProvider allIds={driveResultIds} tags={tagOptions}>
-            <div className="mb-3 flex items-center justify-between gap-2">
-              <p
-                className="text-sm font-medium text-neutral-700 dark:text-neutral-300"
-                data-testid="search-summary"
-              >
-                {formatSummary(t, result.driveCount, result.chargeCount, type)}
-              </p>
-              {driveResultIds.length > 0 && <SelectionToggle />}
-            </div>
+            <SectionHeader
+              className="mb-3"
+              title={formatSummary(t, result.driveCount, result.chargeCount, type)}
+              tone="sky"
+              actions={driveResultIds.length > 0 ? <SelectionToggle /> : undefined}
+            />
 
             {result.rows.length === 0 ? (
               <EmptyState

@@ -56,10 +56,13 @@ export async function SearchResults({
   return (
     <div className="flex flex-col gap-6">
       {orderedKeys.map((dateKey) => (
-        <section key={dateKey}>
+        <section
+          key={dateKey}
+          className="rounded-2xl border border-neutral-200 bg-neutral-50/60 p-3 shadow-sm dark:border-neutral-800 dark:bg-neutral-900/40"
+        >
           <Link
             href={`/day/${dateKey}`}
-            className="text-sm font-semibold text-neutral-700 hover:underline dark:text-neutral-300"
+            className="text-sm font-semibold text-neutral-800 hover:underline dark:text-neutral-200"
           >
             {formatDayHeading(dateKey, locale)}
           </Link>
@@ -95,7 +98,7 @@ async function ChargeResultRow({
   ]);
 
   return (
-    <li className="rounded-xl border border-emerald-200 bg-emerald-50 dark:border-emerald-900 dark:bg-emerald-950/40">
+    <li className="rounded-2xl border border-emerald-200 bg-emerald-50 shadow-sm transition hover:shadow-md dark:border-emerald-900 dark:bg-emerald-950/40">
       <Link href={`/charges/${row.id}`} className="block px-4 py-3">
         <div className="flex flex-wrap items-center justify-between gap-2 text-emerald-800 dark:text-emerald-300">
           <span className="flex items-center gap-1.5 tabular-nums text-xs">

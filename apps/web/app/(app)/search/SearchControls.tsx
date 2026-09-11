@@ -75,7 +75,7 @@ export function SearchControls({
         onChange={(e) => onQChange(e.target.value)}
         placeholder={t("placeholder")}
         aria-label={t("title")}
-        className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-base text-neutral-900 shadow-sm focus:border-neutral-500 focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+        className="w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3 text-base text-neutral-900 shadow-sm transition focus:border-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-200 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:focus:ring-neutral-800"
       />
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
@@ -91,7 +91,7 @@ export function SearchControls({
             type="date"
             value={from}
             onChange={(e) => pushParams({ from: e.target.value })}
-            className="rounded-lg border border-neutral-300 bg-white px-2.5 py-1.5 text-base text-neutral-900 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+            className="rounded-xl border border-neutral-300 bg-white px-2.5 py-1.5 text-base text-neutral-900 shadow-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
           />
           <label
             htmlFor="search-to"
@@ -104,7 +104,7 @@ export function SearchControls({
             type="date"
             value={to}
             onChange={(e) => pushParams({ to: e.target.value })}
-            className="rounded-lg border border-neutral-300 bg-white px-2.5 py-1.5 text-base text-neutral-900 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+            className="rounded-xl border border-neutral-300 bg-white px-2.5 py-1.5 text-base text-neutral-900 shadow-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
           />
         </div>
 
@@ -129,7 +129,7 @@ export function SearchControls({
           })}
         </div>
 
-        <div className="flex items-center gap-1 rounded-lg border border-neutral-300 p-0.5 dark:border-neutral-700">
+        <div className="flex items-center gap-1 rounded-xl border border-neutral-300 bg-neutral-50 p-1 dark:border-neutral-700 dark:bg-neutral-800/50">
           {TYPE_VALUES.map((value) => {
             const active = type === value;
             return (

@@ -18,7 +18,10 @@
       "soc": "SoC",
       "maxPower": "Max. power",
       "duration": "Duration",
-      "cost": "Cost"
+      "cost": "Cost",
+      "chargerAc": "AC charging",
+      "chargerDc": "DC charging",
+      "costMissing": "Not recorded"
     }
   },
   "filters": {

@@ -29,6 +29,9 @@ import { TagManager } from "./TagManager";
 import { AuditLogList } from "../../drives/[id]/AuditLogList";
 import { ChargeChart } from "./ChargeChart";
 import { ChargeMapLoader } from "./ChargeMapLoader";
+import { PageHeader } from "../../../../components/ui/PageHeader";
+import { Panel } from "../../../../components/ui/Panel";
+import { StatusBadge } from "../../../../components/ui/StatusBadge";
 
 export const dynamic = "force-dynamic";
 
@@ -122,12 +125,12 @@ function Card({
   children: React.ReactNode;
 }) {
   return (
-    <section className="mt-6 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-      <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
-        {title}
-      </h2>
-      <div className="mt-3">{children}</div>
-    </section>
+    <Panel
+      className="mt-6"
+      title={title}
+    >
+      {children}
+    </Panel>
   );
 }
 
@@ -246,26 +249,29 @@ export default async function ChargeDetailPage({
         {tCommon("actions.back")}
       </Link>
 
-      <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">
+      <PageHeader
+        className="mt-3"
+        title={placeLabel}
+        subtitle={
+          <>
             {formatLongDate(dateStr, locale)} ·{" "}
-            {formatTimeRange(charge.startTime, charge.endTime, APP_TIMEZONE)}
-          </p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight">{placeLabel}</h1>
-        </div>
-        {charge.chargerType && (
-          <span
-            className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium uppercase ${
-              charge.chargerType === "dc"
-                ? "bg-violet-100 text-violet-800 dark:bg-violet-950 dark:text-violet-300"
-                : "bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300"
-            }`}
-          >
-            {charge.chargerType}
-          </span>
-        )}
-      </div>
+            {formatTimeRange(
+              charge.startTime,
+              charge.endTime,
+              APP_TIMEZONE,
+            )}
+          </>
+        }
+        actions={
+          charge.chargerType ? (
+            <StatusBadge
+              tone={charge.chargerType === "dc" ? "violet" : "sky"}
+            >
+              {CHARGER_TYPE_LABEL[charge.chargerType]}
+            </StatusBadge>
+          ) : undefined
+        }
+      />
 
       <Link
         href={`/day/${dateStr}`}

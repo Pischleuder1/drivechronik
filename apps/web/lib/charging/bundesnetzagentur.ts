@@ -207,6 +207,14 @@ async function loadSites(): Promise<ChargingSite[]> {
     response.body as Parameters<typeof Readable.fromWeb>[0],
   );
 
+  // Ein Abbruch/Timeout des Fetch-Body tritt als Fehler des Source-Streams auf.
+  // pipe() reicht diesen Fehler nicht automatisch an den CSV-Parser weiter.
+  // Durch destroy(error) wird daraus eine normale Promise-Ablehnung, die
+  // cachedSites() fehlertolerant abfangen kann.
+  source.on("error", (error) => {
+    parser.destroy(error);
+  });
+
   source.pipe(parser);
 
   const byLocation = new Map<string, ChargingSite>();
@@ -304,8 +312,14 @@ async function cachedSites(): Promise<ChargingSite[]> {
     return cache.sites;
   }
 
-  if (loadingPromise) return loadingPromise;
+  // Läuft bereits ein Refresh, blockieren wir den Planner nicht.
+  // Falls vorhanden, verwenden wir den bisherigen Cache, ansonsten [].
+  if (loadingPromise) {
+    return cache?.sites ?? [];
+  }
 
+  // Cache im Hintergrund auffrischen. Die aktuelle Routenplanung wartet
+  // bewusst nicht auf den Download des vollständigen BNetzA-Registers.
   loadingPromise = loadSites()
     .then((sites) => {
       cache = {
@@ -314,12 +328,15 @@ async function cachedSites(): Promise<ChargingSite[]> {
       };
       return sites;
     })
-    .catch(() => cache?.sites ?? [])
+    .catch((error) => {
+      console.warn("[charging] bundesnetzagentur refresh failed:", error);
+      return cache?.sites ?? [];
+    })
     .finally(() => {
       loadingPromise = null;
     });
 
-  return loadingPromise;
+  return cache?.sites ?? [];
 }
 
 export class BundesnetzagenturProvider

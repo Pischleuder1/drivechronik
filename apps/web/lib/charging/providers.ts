@@ -27,7 +27,7 @@ export async function findChargingSitesAlongRoute(
 
   if (providers.length === 0) return [];
 
-  const results = await Promise.all(
+  const results = await Promise.allSettled(
     providers.map((provider) =>
       provider.findAlongRoute(geometry, options),
     ),
@@ -35,10 +35,17 @@ export async function findChargingSitesAlongRoute(
 
   const byKey = new Map<string, ChargingSite>();
 
-  for (const sites of results) {
-    for (const site of sites) {
-      const key = `${site.network}:${site.id}`;
+  for (const result of results) {
+    if (result.status === "rejected") {
+      console.warn(
+        "[charging] Provider failed while searching along route:",
+        result.reason,
+      );
+      continue;
+    }
 
+    for (const site of result.value) {
+      const key = `${site.network}:${site.id}`;
       if (!byKey.has(key)) {
         byKey.set(key, site);
       }

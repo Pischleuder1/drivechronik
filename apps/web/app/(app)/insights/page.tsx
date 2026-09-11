@@ -14,6 +14,8 @@ import { toIntlLocale } from "../../../lib/i18nLocale";
 import { getInsightsData, type InsightDrive } from "../../../lib/insights";
 import { getVehicles } from "../../../lib/queries";
 import { EmptyState } from "../../../components/ui/EmptyState";
+import { Panel } from "../../../components/ui/Panel";
+import { PageHeader } from "../../../components/ui/PageHeader";
 import {
   MonthChart,
   ScatterBinnedChart,
@@ -34,31 +36,6 @@ const SHORT_TRIP_KM = 5;
 const SHORT_TRIP_MIN_SHARE = 0.1; // Karte nur zeigen, wenn Anteil > 10 %
 
 const MONDAY_UTC_DAY = 5;
-
-/** Card-Rahmen im gleichen Stil wie die übrigen Seiten. */
-function Card({
-  title,
-  subtitle,
-  children,
-}: {
-  title: string;
-  subtitle?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="rounded-2xl border border-neutral-200 bg-white p-4 sm:p-5 dark:border-neutral-800 dark:bg-neutral-900">
-      <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
-        {title}
-      </h2>
-      {subtitle && (
-        <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-          {subtitle}
-        </p>
-      )}
-      <div className="mt-4">{children}</div>
-    </section>
-  );
-}
 
 type Translator = Awaited<ReturnType<typeof getTranslations>>;
 
@@ -129,23 +106,18 @@ export default async function InsightsPage({
   if (vehicles.length === 0) {
     return (
       <div className="mx-auto max-w-4xl">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">
-              {t("title")}
-            </h1>
-            <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-              {t("subtitleNoData")}
-            </p>
-          </div>
-
-          <Link
-            href="/insights/yearly"
-            className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-medium transition hover:border-neutral-300 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700"
-          >
-            {t("yearly.open")}
-          </Link>
-        </div>
+        <PageHeader
+          title={t("title")}
+          subtitle={t("subtitleNoData")}
+          actions={
+            <Link
+              href="/insights/yearly"
+              className="inline-flex items-center rounded-xl border border-neutral-200 bg-white px-3.5 py-2.5 text-sm font-medium transition hover:border-neutral-300 hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:bg-neutral-800"
+            >
+              {t("yearly.open")}
+            </Link>
+          }
+        />
 
         <div className="mt-6">
           <NoVehicleState />
@@ -231,28 +203,34 @@ export default async function InsightsPage({
 
   return (
     <div className="mx-auto max-w-4xl">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
-          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-            {total > 0 && firstDriveDate
-              ? t("subtitleWithData", { count: total, date: formatFirstDate(firstDriveDate, locale) })
-              : t("subtitleNoData")}
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <Link
-            href={`/insights/yearly?vehicle=${current.id}`}
-            className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-medium transition hover:border-neutral-300 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700"
-          >
-            {t("yearly.open")}
-          </Link>
+      <PageHeader
+        title={t("title")}
+        subtitle={
+          total > 0 && firstDriveDate
+            ? t("subtitleWithData", {
+                count: total,
+                date: formatFirstDate(firstDriveDate, locale),
+              })
+            : t("subtitleNoData")
+        }
+        actions={
+          <>
+            <Link
+              href={`/insights/yearly?vehicle=${current.id}`}
+              className="inline-flex items-center rounded-xl border border-neutral-200 bg-white px-3.5 py-2.5 text-sm font-medium transition hover:border-neutral-300 hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:bg-neutral-800"
+            >
+              {t("yearly.open")}
+            </Link>
 
-          {vehicles.length > 1 && (
-            <InsightsVehicleSwitcher vehicles={vehicles} current={current.id} />
-          )}
-        </div>
-      </div>
+            {vehicles.length > 1 && (
+              <InsightsVehicleSwitcher
+                vehicles={vehicles}
+                current={current.id}
+              />
+            )}
+          </>
+        }
+      />
 
       {!enoughForPage && (
         <div className="mt-6">
@@ -266,7 +244,7 @@ export default async function InsightsPage({
 
       <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* 1. Verbrauch vs. Außentemperatur */}
-        <Card
+        <Panel
           title={t("cards.temp.title")}
           subtitle={enoughForPage ? tempSubtitle(tempBins, t) : undefined}
         >
@@ -282,10 +260,10 @@ export default async function InsightsPage({
           ) : (
             <NotEnough />
           )}
-        </Card>
+        </Panel>
 
         {/* 2. Verbrauch vs. Durchschnittstempo */}
-        <Card
+        <Panel
           title={t("cards.speed.title")}
           subtitle={t("cards.speed.subtitle")}
         >
@@ -301,10 +279,10 @@ export default async function InsightsPage({
           ) : (
             <NotEnough />
           )}
-        </Card>
+        </Panel>
 
         {/* 3. Monatsverlauf */}
-        <Card
+        <Panel
           title={t("cards.month.title")}
           subtitle={t("cards.month.subtitle")}
         >
@@ -313,10 +291,10 @@ export default async function InsightsPage({
           ) : (
             <NotEnough />
           )}
-        </Card>
+        </Panel>
 
         {/* 4. Wochentagsmuster */}
-        <Card
+        <Panel
           title={t("cards.weekday.title")}
           subtitle={t("cards.weekday.subtitle")}
         >
@@ -325,11 +303,11 @@ export default async function InsightsPage({
           ) : (
             <NotEnough />
           )}
-        </Card>
+        </Panel>
 
         {/* 5. Kurzstrecken-Anteil (nur bei relevantem Anteil) */}
         {showShortTrip && (
-          <Card
+          <Panel
             title={t("cards.shortTrip.title")}
             subtitle={t("cards.shortTrip.subtitle")}
           >
@@ -340,7 +318,7 @@ export default async function InsightsPage({
               shortMeanConsumption={shortTrip.shortMeanConsumption}
               overallMeanConsumption={shortTrip.overallMeanConsumption}
             />
-          </Card>
+          </Panel>
         )}
       </div>
     </div>

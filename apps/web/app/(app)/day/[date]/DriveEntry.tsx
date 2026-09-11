@@ -162,7 +162,7 @@ export function DriveEntry({
   const active = isActive(row.startTime, row.endTime, now);
   const selected = isSelected(row.id);
 
-  const cardClasses = `rounded-xl border bg-white shadow-sm transition dark:bg-neutral-900 ${
+  const cardClasses = `rounded-2xl border bg-white shadow-sm transition-all hover:shadow-md dark:bg-neutral-900 ${
     selectionMode && selected
       ? "border-neutral-900 ring-1 ring-neutral-900 dark:border-white dark:ring-white"
       : active

@@ -13,6 +13,7 @@ import { getAllTags, getDayTimeline, getVehicles } from "../../../../lib/queries
 import { getParkLossForSessions } from "../../../../lib/parkAnalytics";
 import { buttonClasses } from "../../../../components/ui/Button";
 import { EmptyState } from "../../../../components/ui/EmptyState";
+import { Panel } from "../../../../components/ui/Panel";
 import {
   BulkSelectionProvider,
   SelectionToggle,
@@ -46,14 +47,16 @@ export default async function DayPage({
   if (vehicles.length === 0) {
     return (
       <div className="mx-auto max-w-2xl">
-        <DateNav
-          date={date}
-          longLabel={formatLongDate(date, locale)}
-          prevDate={shiftDate(date, -1)}
-          nextDate={shiftDate(date, 1)}
-          today={today}
-          vehicleQuery=""
-        />
+        <Panel padding="sm">
+          <DateNav
+            date={date}
+            longLabel={formatLongDate(date, locale)}
+            prevDate={shiftDate(date, -1)}
+            nextDate={shiftDate(date, 1)}
+            today={today}
+            vehicleQuery=""
+          />
+        </Panel>
         <div className="mt-6">
           <NoVehicleState />
         </div>
@@ -104,41 +107,44 @@ export default async function DayPage({
 
   return (
     <div className="mx-auto max-w-2xl">
-      <DateNav
-        date={date}
-        longLabel={formatLongDate(date, locale)}
-        prevDate={shiftDate(date, -1)}
-        nextDate={shiftDate(date, 1)}
-        today={today}
-        vehicleQuery={vehicleQuery}
-      />
+      <Panel padding="sm">
+        <DateNav
+          date={date}
+          longLabel={formatLongDate(date, locale)}
+          prevDate={shiftDate(date, -1)}
+          nextDate={shiftDate(date, 1)}
+          today={today}
+          vehicleQuery={vehicleQuery}
+        />
 
-      <div className="mt-2 flex items-center justify-end gap-1.5">
-        <a
-          href={`/api/export/day/${date}?format=csv`}
-          className={buttonClasses("ghost", "sm")}
-        >
-          <Download aria-hidden size={14} />
-          CSV
-        </a>
-        <a
-          href={`/api/export/day/${date}?format=pdf`}
-          className={buttonClasses("ghost", "sm")}
-        >
-          <Download aria-hidden size={14} />
-          PDF
-        </a>
-      </div>
-
-      {vehicles.length > 1 && (
-        <div className="mt-3">
-          <VehicleSwitcher
-            vehicles={vehicles}
-            current={current.id}
-            date={date}
-          />
+        <div className="mt-3 flex items-center justify-end gap-1.5 border-t border-neutral-100 pt-3 dark:border-neutral-800">
+          <a
+            href={`/api/export/day/${date}?format=csv`}
+            className={buttonClasses("ghost", "sm")}
+          >
+            <Download aria-hidden size={14} />
+            CSV
+          </a>
+          <a
+            href={`/api/export/day/${date}?format=pdf`}
+            className={buttonClasses("ghost", "sm")}
+          >
+            <Download aria-hidden size={14} />
+            PDF
+          </a>
         </div>
-      )}
+
+        {vehicles.length > 1 && (
+          <div className="mt-3 border-t border-neutral-100 pt-3 dark:border-neutral-800">
+            <VehicleSwitcher
+              vehicles={vehicles}
+              current={current.id}
+              date={date}
+            />
+          </div>
+        )}
+
+      </Panel>
 
       <div className="mt-6">
         {isEmpty ? (

@@ -154,7 +154,7 @@ function ChargeEntry({ row, tz, t }: { row: ChargeRow; tz: string; t: DayT }) {
   }
 
   return (
-    <li className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm dark:border-emerald-900 dark:bg-emerald-950/40">
+    <li className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm shadow-sm transition-shadow hover:shadow-md dark:border-emerald-900 dark:bg-emerald-950/40">
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-emerald-800 dark:text-emerald-300">
         <Zap aria-hidden size={16} className="shrink-0" />
         <span className="tabular-nums">

@@ -12,6 +12,8 @@ import { getVehicles } from "../../../lib/queries";
 import { getVehicleAnalytics } from "../../../lib/vehicleAnalytics";
 import { getSoftwareUpdates } from "../../../lib/softwareUpdates";
 import { SoftwareTimeline } from "../settings/SoftwareTimeline";
+import { PageHeader } from "../../../components/ui/PageHeader";
+import { Panel } from "../../../components/ui/Panel";
 
 export const dynamic = "force-dynamic";
 
@@ -40,22 +42,20 @@ function MetricCard({
   hint?: string;
 }) {
   return (
-    <section className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+    <Panel>
       <div className="flex items-center gap-2 text-neutral-500 dark:text-neutral-400">
         <Icon aria-hidden size={17} />
         <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
           {title}
         </h2>
       </div>
-
       <div className="mt-4">{children}</div>
-
       {hint && (
         <p className="mt-3 text-xs leading-relaxed text-neutral-500 dark:text-neutral-400">
           {hint}
         </p>
       )}
-    </section>
+    </Panel>
   );
 }
 
@@ -94,12 +94,13 @@ export default async function VehiclePage() {
   if (!vehicle) {
     return (
       <div className="mx-auto max-w-5xl">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {t("title")}
-        </h1>
-        <p className="mt-3 rounded-xl border border-neutral-200 bg-white p-4 text-sm text-neutral-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400">
-          {t("noVehicle")}
-        </p>
+        <PageHeader title={t("title")} />
+
+        <Panel className="mt-6">
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">
+            {t("noVehicle")}
+          </p>
+        </Panel>
       </div>
     );
   }
@@ -120,17 +121,11 @@ export default async function VehiclePage() {
 
   return (
     <div className="mx-auto max-w-5xl">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {t("title")}
-        </h1>
-        <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-          {vehicle.displayName}
-        </p>
-        <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-          {t("subtitle")}
-        </p>
-      </div>
+      <PageHeader
+        eyebrow={vehicle.displayName}
+        title={t("title")}
+        subtitle={t("subtitle")}
+      />
 
       <div className="mt-6 grid gap-3 md:grid-cols-3">
         <MetricCard
@@ -297,7 +292,7 @@ export default async function VehiclePage() {
         </MetricCard>
       </div>
 
-      <section className="mt-6 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+      <Panel className="mt-6">
         <div className="flex items-center gap-2">
           <TrendingUp
             aria-hidden
@@ -368,7 +363,7 @@ export default async function VehiclePage() {
             </div>
           </>
         )}
-      </section>
+      </Panel>
 
       <SoftwareTimeline updates={softwareUpdates} />
     </div>

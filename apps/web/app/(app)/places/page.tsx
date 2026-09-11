@@ -6,6 +6,12 @@ import { getAllPlacesWithUsage } from "../../../lib/queries";
 import { getPlaceDwellStats } from "../../../lib/parkAnalytics";
 import { Button } from "../../../components/ui/Button";
 import { EmptyState } from "../../../components/ui/EmptyState";
+import { PageHeader } from "../../../components/ui/PageHeader";
+import { StatusBadge } from "../../../components/ui/StatusBadge";
+import {
+  MetricGrid,
+  MetricItem,
+} from "../../../components/ui/MetricGrid";
 
 export const dynamic = "force-dynamic";
 
@@ -16,22 +22,20 @@ export default async function PlacesPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
-          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-            {t("description")}
-          </p>
-        </div>
-        <Button
-          href="/places/new"
-          variant="primary"
-          className="shrink-0"
-          icon={<Plus aria-hidden size={16} />}
-        >
-          {t("newPlace")}
-        </Button>
-      </div>
+      <PageHeader
+        title={t("title")}
+        subtitle={t("description")}
+        actions={
+          <Button
+            href="/places/new"
+            variant="primary"
+            className="shrink-0"
+            icon={<Plus aria-hidden size={16} />}
+          >
+            {t("newPlace")}
+          </Button>
+        }
+      />
 
       <div className="mt-6 flex flex-col gap-2">
         {placeRows.length === 0 && (
@@ -54,16 +58,18 @@ export default async function PlacesPage() {
             <Link
               key={place.id}
               href={`/places/${place.id}/edit`}
-              className="rounded-xl border border-neutral-200 bg-white p-4 transition hover:border-neutral-300 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700"
+              className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm transition-all hover:border-neutral-300 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700"
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex min-w-0 items-center gap-2">
                   <span className="truncate font-medium text-neutral-900 dark:text-neutral-100">
                     {place.name}
                   </span>
-                  <span className="shrink-0 rounded-full border border-neutral-300 px-2 py-0.5 text-xs font-medium text-neutral-600 dark:border-neutral-700 dark:text-neutral-300">
+                  <StatusBadge
+                    tone={place.type === "customer" ? "emerald" : "neutral"}
+                  >
                     {t(`placeTypes.${place.type}`)}
-                  </span>
+                  </StatusBadge>
                 </div>
                 <span className="shrink-0 text-xs text-neutral-500 dark:text-neutral-400">
                   {t("list.radius", { radius: place.radiusM })}
@@ -76,48 +82,38 @@ export default async function PlacesPage() {
                 </p>
               )}
 
-              <dl className="mt-3 grid grid-cols-4 gap-2 text-center text-xs text-neutral-500 dark:text-neutral-400">
-                <div>
-                  <dt>{t("list.start")}</dt>
-                  <dd className="mt-0.5 font-medium tabular-nums text-neutral-900 dark:text-neutral-100">
-                    {place.driveStartCount}
-                  </dd>
-                </div>
-                <div>
-                  <dt>{t("list.destination")}</dt>
-                  <dd className="mt-0.5 font-medium tabular-nums text-neutral-900 dark:text-neutral-100">
-                    {place.driveEndCount}
-                  </dd>
-                </div>
-                <div>
-                  <dt>{t("list.charging")}</dt>
-                  <dd className="mt-0.5 font-medium tabular-nums text-neutral-900 dark:text-neutral-100">
-                    {place.chargeCount}
-                  </dd>
-                </div>
-                <div>
-                  <dt>{t("list.parking")}</dt>
-                  <dd className="mt-0.5 font-medium tabular-nums text-neutral-900 dark:text-neutral-100">
-                    {place.parkCount}
-                  </dd>
-                </div>
-              </dl>
+              <MetricGrid columns={4} className="mt-3">
+                <MetricItem
+                  label={t("list.start")}
+                  value={place.driveStartCount}
+                />
+                <MetricItem
+                  label={t("list.destination")}
+                  value={place.driveEndCount}
+                />
+                <MetricItem
+                  label={t("list.charging")}
+                  value={place.chargeCount}
+                />
+                <MetricItem
+                  label={t("list.parking")}
+                  value={place.parkCount}
+                />
+              </MetricGrid>
 
               {dwell && dwell.parkCount > 0 && (
-                <dl className="mt-2 grid grid-cols-1 gap-2 border-t border-neutral-100 pt-2 text-center text-xs text-neutral-500 dark:border-neutral-800 dark:text-neutral-400 sm:grid-cols-2">
-                  <div>
-                    <dt>{t("list.avgDwellTime")}</dt>
-                    <dd className="mt-0.5 font-medium tabular-nums text-neutral-900 dark:text-neutral-100">
-                      {formatDuration(dwell.avgDwellSeconds)}
-                    </dd>
-                  </div>
-                  <div className="hidden sm:block">
-                    <dt>{t("list.totalVampireLoss")}</dt>
-                    <dd className="mt-0.5 font-medium tabular-nums text-neutral-900 dark:text-neutral-100">
-                      {t("list.vampireLoss", { pct: dwell.totalVampireLossPct })}
-                    </dd>
-                  </div>
-                </dl>
+                <MetricGrid columns={2} className="mt-2 border-t border-neutral-100 pt-2 dark:border-neutral-800">
+                  <MetricItem
+                    label={t("list.avgDwellTime")}
+                    value={formatDuration(dwell.avgDwellSeconds)}
+                  />
+                  <MetricItem
+                    label={t("list.totalVampireLoss")}
+                    value={t("list.vampireLoss", {
+                      pct: dwell.totalVampireLossPct,
+                    })}
+                  />
+                </MetricGrid>
               )}
 
               {totalUsage === 0 && (

@@ -7,6 +7,9 @@ import {
 } from "../../../lib/rules";
 import { Button } from "../../../components/ui/Button";
 import { EmptyState } from "../../../components/ui/EmptyState";
+import { PageHeader } from "../../../components/ui/PageHeader";
+import { Panel } from "../../../components/ui/Panel";
+import { SectionHeader } from "../../../components/ui/SectionHeader";
 import { ApplyRulesButton } from "./ApplyRulesButton";
 import { RuleRow } from "./RuleRow";
 
@@ -51,39 +54,46 @@ export default async function RulesPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
-          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-            {t("subtitle")}
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+        actions={
+          <Button
+            href="/rules/new"
+            variant="primary"
+            className="shrink-0"
+            icon={<Plus aria-hidden size={16} />}
+          >
+            {t("newRule")}
+          </Button>
+        }
+      />
 
-      <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
+      <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 shadow-sm dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
         {t("manualUntouchedNotice")}
       </div>
 
       {rules.length > 0 && (
-        <div className="mt-4 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+        <Panel className="mt-4">
           <ApplyRulesButton liveUnclassified={liveUnclassified} />
-        </div>
+        </Panel>
       )}
 
       {suggestions.length > 0 && (
-        <div className="mt-6 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-          <div className="mb-3">
-            <h2 className="font-medium">{t("suggestions.title")}</h2>
-            <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-              {t("suggestions.hint")}
-            </p>
-          </div>
+        <div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+          <SectionHeader
+            title={t("suggestions.title")}
+            subtitle={t("suggestions.hint")}
+            count={suggestions.length}
+            tone="violet"
+            className="mb-3"
+          />
 
           <div className="space-y-3">
             {suggestions.map((suggestion) => (
               <div
                 key={`${suggestion.startPlaceId}:${suggestion.endPlaceId}`}
-                className="flex items-center justify-between gap-4 rounded-lg border border-neutral-200 px-3 py-3 dark:border-neutral-800"
+                className="flex items-center justify-between gap-4 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 dark:border-neutral-800 dark:bg-neutral-800/50"
               >
                 <div>
                   <div className="font-medium">
@@ -151,7 +161,7 @@ export default async function RulesPage() {
             }}
           />
         ) : (
-          <div className="rounded-xl border border-neutral-200 bg-white px-4 dark:border-neutral-800 dark:bg-neutral-900">
+          <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white px-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
             {rules.map((rule) => (
               <RuleRow key={rule.id} rule={rule} />
             ))}

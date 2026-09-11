@@ -16,6 +16,8 @@ import { ReimbursementRateForm } from "./ReimbursementRateForm";
 import { ReportIdentityForm } from "./ReportIdentityForm";
 import { SoftwareTimeline } from "./SoftwareTimeline";
 import { DiagnosticsCard } from "./DiagnosticsCard";
+import { PageHeader } from "../../../components/ui/PageHeader";
+import { Panel } from "../../../components/ui/Panel";
 
 export const dynamic = "force-dynamic";
 
@@ -27,12 +29,9 @@ function Card({
   children: React.ReactNode;
 }) {
   return (
-    <section className="mt-6 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-      <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
-        {title}
-      </h2>
-      <div className="mt-3">{children}</div>
-    </section>
+    <Panel className="mt-6" title={title}>
+      {children}
+    </Panel>
   );
 }
 
@@ -68,16 +67,16 @@ export default async function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
-      <p className="mt-3 text-neutral-500 dark:text-neutral-400">
-        {t("subtitle")}
-      </p>
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+      />
 
       <DiagnosticsCard />
 
       <Link
         href="/rules"
-        className="mt-6 flex items-center gap-3 rounded-xl border border-neutral-200 bg-white p-4 transition hover:border-neutral-300 hover:bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700 dark:hover:bg-neutral-800"
+        className="mt-6 flex items-center gap-3 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm transition-all hover:border-neutral-300 hover:bg-neutral-50 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700 dark:hover:bg-neutral-800"
       >
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300">
           <Wand2 aria-hidden size={20} />
@@ -242,7 +241,7 @@ export default async function SettingsPage() {
         <PasswordChangeForm />
       </Card>
 
-      <div className="mt-6 divide-y divide-neutral-200 rounded-xl border border-neutral-200 bg-white dark:divide-neutral-800 dark:border-neutral-800 dark:bg-neutral-900">
+      <div className="mt-6 overflow-hidden divide-y divide-neutral-200 rounded-2xl border border-neutral-200 bg-white shadow-sm dark:divide-neutral-800 dark:border-neutral-800 dark:bg-neutral-900">
         {links.map((link) => (
           <Link
             key={link.href}

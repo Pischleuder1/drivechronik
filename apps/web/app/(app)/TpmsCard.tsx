@@ -75,7 +75,7 @@ export async function TpmsCard({
   });
 
   return (
-    <section className="rounded-3xl border border-neutral-200/80 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+    <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
           <IconBadge

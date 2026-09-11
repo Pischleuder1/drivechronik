@@ -5,6 +5,7 @@ import { formatKm, formatPlaceLabel } from "@drivechronik/core";
 import { APP_TIMEZONE } from "../../lib/config";
 import type { DriveTrack, RecentDriveRow } from "../../lib/dashboard";
 import { EmptyState } from "../../components/ui/EmptyState";
+import { SectionHeader } from "../../components/ui/SectionHeader";
 import { CLASSIFICATION_DOT, type Classification } from "../../lib/classification";
 import { DashboardMapLoader } from "./DashboardMapLoader";
 
@@ -50,12 +51,14 @@ export async function RecentDrivesCard({
 
   return (
     <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-      <h2 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
-        {t("recentDrives.title")}
-      </h2>
+      <SectionHeader
+        title={t("recentDrives.title")}
+        count={drives.length}
+        tone="blue"
+      />
 
       {orderedTracks.length > 0 && (
-        <div className="mt-3">
+        <div className="mt-4">
           {/* Key = Daten-Fingerprint: Leaflet wird nur einmal initialisiert;
               bei RSC-Refresh mit neuen Fahrten/Position remountet React die
               Karte so, statt sie veralten zu lassen (Codex-Finding). */}

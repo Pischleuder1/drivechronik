@@ -88,7 +88,7 @@ export async function VehicleCard({
   const soc = status.soc;
 
   return (
-    <section className="relative h-full overflow-hidden rounded-3xl border border-neutral-200/80 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+    <section className="relative h-full overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
       <div
         aria-hidden
         className="absolute -right-24 -top-28 h-80 w-80 rounded-full bg-emerald-100/50 blur-3xl dark:bg-emerald-950/20"

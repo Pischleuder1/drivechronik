@@ -17,7 +17,7 @@ export async function WeatherCard({
 
   if (!weather) {
     return (
-      <section className="rounded-3xl border border-neutral-200/80 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+      <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
         <div className="flex items-center gap-3 text-neutral-400">
           <IconBadge tone="neutral">
             <CloudOff aria-hidden size={20} />
@@ -32,7 +32,7 @@ export async function WeatherCard({
   const showColdHint = weather.apparentTemperature < 5;
 
   return (
-    <section className="rounded-3xl border border-neutral-200/80 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+    <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">
           <IconBadge tone={showColdHint ? "cyan" : "amber"} size="lg">

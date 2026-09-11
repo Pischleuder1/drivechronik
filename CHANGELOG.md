@@ -30,9 +30,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Route planning preserves the selected route while charging stops are calculated and displays calculation progress.
 - Dashboard overview modernized with vehicle metadata, localized vehicle label and dynamic vehicle artwork.
 
+- Modernized the application UI across Insights, reports, journeys, calendar, planner, charging, places, rules, search, settings, tags and vehicle views using shared page headers, panels, metric cards, section headers and status badges.
+
 ### Fixed
 
 - Improved charging-stop handling on ferry routes.
+
+- Prevented route-planner delays and hangs when the Bundesnetzagentur charging-station feed times out or its data stream fails; provider refreshes now run non-blocking without preventing other charging providers from returning results.
 
 ## [0.3.2] - 2026-09-05
 

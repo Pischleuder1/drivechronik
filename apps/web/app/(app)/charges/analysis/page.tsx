@@ -13,6 +13,15 @@ import {
 import { APP_TIMEZONE } from "../../../../lib/config";
 import { getVehicles } from "../../../../lib/queries";
 import { getChargingAnalytics } from "../../../../lib/chargeAnalytics";
+import { PageHeader } from "../../../../components/ui/PageHeader";
+import { Panel } from "../../../../components/ui/Panel";
+import { StatCard } from "../../../../components/ui/StatCard";
+import { SectionHeader } from "../../../../components/ui/SectionHeader";
+import { StatusBadge } from "../../../../components/ui/StatusBadge";
+import {
+  MetricGrid,
+  MetricItem,
+} from "../../../../components/ui/MetricGrid";
 
 export const dynamic = "force-dynamic";
 
@@ -72,92 +81,79 @@ export default async function ChargeAnalysisPage({
         {t("analysis.back")}
       </Link>
 
-      <div className="mt-3 flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {t("analysis.title")}
-          </h1>
-          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-            {t("analysis.subtitle")}
-          </p>
-        </div>
+      <PageHeader
+        className="mt-3"
+        title={t("analysis.title")}
+        subtitle={t("analysis.subtitle")}
+        actions={
+          <div className="flex rounded-xl border border-neutral-200 bg-white p-1 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+            <Link
+              href="/charges/analysis?limit=5"
+              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+                limit === 5
+                  ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
+                  : "text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
+              }`}
+            >
+              {t("analysis.lastFive")}
+            </Link>
+            <Link
+              href="/charges/analysis?limit=10"
+              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+                limit === 10
+                  ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
+                  : "text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
+              }`}
+            >
+              {t("analysis.lastTen")}
+            </Link>
+          </div>
+        }
+      />
 
-        <div className="flex rounded-lg border border-neutral-200 p-1 dark:border-neutral-800">
-          <Link
-            href="/charges/analysis?limit=5"
-            className={`rounded-md px-3 py-1.5 text-sm font-medium ${
-              limit === 5
-                ? "bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900"
-                : "text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
-            }`}
-          >
-            {t("analysis.lastFive")}
-          </Link>
-
-          <Link
-            href="/charges/analysis?limit=10"
-            className={`rounded-md px-3 py-1.5 text-sm font-medium ${
-              limit === 10
-                ? "bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900"
-                : "text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
-            }`}
-          >
-            {t("analysis.lastTen")}
-          </Link>
-        </div>
-      </div>
-
-      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-          <p className="text-xs text-neutral-500 dark:text-neutral-400">
-            {t("analysis.sessions")}
-          </p>
-          <p className="mt-1 text-xl font-semibold tabular-nums">
-            {analytics.sessions.length}
-          </p>
-        </div>
-
-        <div className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-          <p className="text-xs text-neutral-500 dark:text-neutral-400">
-            {t("analysis.medianTenToEighty")}
-          </p>
-          <p className="mt-1 text-xl font-semibold tabular-nums">
-            {analytics.medianTenToEightySeconds != null
+      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          label={t("analysis.sessions")}
+          value={String(analytics.sessions.length)}
+          tone="blue"
+        />
+        <StatCard
+          label={t("analysis.medianTenToEighty")}
+          value={
+            analytics.medianTenToEightySeconds != null
               ? formatDuration(
                   Math.round(analytics.medianTenToEightySeconds),
                 )
-              : "—"}
-          </p>
-        </div>
-
-        <div className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-          <p className="text-xs text-neutral-500 dark:text-neutral-400">
-            {t("analysis.medianPeak")}
-          </p>
-          <p className="mt-1 text-xl font-semibold tabular-nums">
-            {formatKw(analytics.medianPeakKw)}
-          </p>
-        </div>
-
-        <div className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-          <p className="text-xs text-neutral-500 dark:text-neutral-400">
-            {t("analysis.slowSessions")}
-          </p>
-          <p className="mt-1 text-xl font-semibold tabular-nums">
-            {analytics.slowAlerts.length}
-          </p>
-        </div>
+              : "—"
+          }
+          tone="violet"
+        />
+        <StatCard
+          label={t("analysis.medianPeak")}
+          value={formatKw(analytics.medianPeakKw)}
+          tone="cyan"
+        />
+        <StatCard
+          label={t("analysis.slowSessions")}
+          value={String(analytics.slowAlerts.length)}
+          tone={analytics.slowAlerts.length > 0 ? "amber" : "emerald"}
+        />
       </div>
 
       <section className="mt-6">
-        <h2 className="text-lg font-semibold">
-          {t("analysis.recentTitle")}
-        </h2>
+        <SectionHeader
+          title={t("analysis.recentTitle")}
+          count={analytics.sessions.length}
+          tone="blue"
+        />
 
         {analytics.sessions.length === 0 ? (
-          <p className="mt-3 rounded-xl border border-neutral-200 bg-white p-4 text-sm text-neutral-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400">
+          <Panel
+            className="mt-3"
+            bodyClassName="text-sm text-neutral-500 dark:text-neutral-400"
+          >
             {t("analysis.noData")}
-          </p>
+          </Panel>
         ) : (
           <div className="mt-3 flex flex-col gap-2">
             {analytics.sessions.map((session) => {
@@ -167,7 +163,7 @@ export default async function ChargeAnalysisPage({
                 <Link
                   key={session.id}
                   href={`/charges/${session.id}`}
-                  className="rounded-xl border border-neutral-200 bg-white p-4 transition hover:border-neutral-300 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700"
+                  className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm transition-all hover:border-neutral-300 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div>
@@ -182,72 +178,58 @@ export default async function ChargeAnalysisPage({
                     </div>
 
                     {slow && (
-                      <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                      <StatusBadge tone="amber">
                         {t("analysis.slowBadge")}
-                      </span>
+                      </StatusBadge>
                     )}
                   </div>
 
-                  <dl className="mt-3 grid grid-cols-2 gap-3 text-sm sm:grid-cols-5">
-                    <div>
-                      <dt className="text-xs text-neutral-500 dark:text-neutral-400">
-                        {t("analysis.tenToEighty")}
-                      </dt>
-                      <dd className="mt-0.5 font-medium tabular-nums">
-                        {session.tenToEightySeconds != null
+                  <MetricGrid columns={5} className="mt-3">
+                    <MetricItem
+                      label={t("analysis.tenToEighty")}
+                      value={
+                        session.tenToEightySeconds != null
                           ? formatDuration(
                               Math.round(session.tenToEightySeconds),
                             )
-                          : "—"}
-                      </dd>
-                    </div>
-
-                    <div>
-                      <dt className="text-xs text-neutral-500 dark:text-neutral-400">
-                        {t("analysis.peak")}
-                      </dt>
-                      <dd className="mt-0.5 font-medium tabular-nums">
-                        {formatKw(session.maxPowerKw)}
-                      </dd>
-                    </div>
-
-                    <div>
-                      <dt className="text-xs text-neutral-500 dark:text-neutral-400">
-                        {t("analysis.energy")}
-                      </dt>
-                      <dd className="mt-0.5 font-medium tabular-nums">
-                        {session.energyAddedKwh != null
+                          : "—"
+                      }
+                    />
+                    <MetricItem
+                      label={t("analysis.peak")}
+                      value={formatKw(session.maxPowerKw)}
+                    />
+                    <MetricItem
+                      label={t("analysis.energy")}
+                      value={
+                        session.energyAddedKwh != null
                           ? formatKwh(session.energyAddedKwh)
-                          : "—"}
-                      </dd>
-                    </div>
-
-                    <div>
-                      <dt className="text-xs text-neutral-500 dark:text-neutral-400">
-                        {t("analysis.soc")}
-                      </dt>
-                      <dd className="mt-0.5 font-medium tabular-nums">
-                        {session.startSoc != null
-                          ? formatSoc(session.startSoc)
-                          : "—"}
-                        {" → "}
-                        {session.endSoc != null
-                          ? formatSoc(session.endSoc)
-                          : "—"}
-                      </dd>
-                    </div>
-
-                    <div>
-                      <dt className="text-xs text-neutral-500 dark:text-neutral-400">
-                        {t("analysis.temperature")}
-                      </dt>
-                      <dd className="mt-0.5 font-medium tabular-nums">
-                        {session.outsideTempAvg != null
+                          : "—"
+                      }
+                    />
+                    <MetricItem
+                      label={t("analysis.soc")}
+                      value={
+                        <>
+                          {session.startSoc != null
+                            ? formatSoc(session.startSoc)
+                            : "—"}
+                          {" → "}
+                          {session.endSoc != null
+                            ? formatSoc(session.endSoc)
+                            : "—"}
+                        </>
+                      }
+                    />
+                    <MetricItem
+                      label={t("analysis.temperature")}
+                      value={
+                        session.outsideTempAvg != null
                           ? formatTemp(session.outsideTempAvg)
-                          : "—"}
-                      </dd>
-                    </div>
-                  </dl>
+                          : "—"
+                      }
+                    />
+                  </MetricGrid>
 
                   {slow && (
                     <p className="mt-3 text-xs text-amber-700 dark:text-amber-300">
@@ -266,11 +248,13 @@ export default async function ChargeAnalysisPage({
 
       {analytics.locationRanking.length > 0 && (
         <section className="mt-6">
-          <h2 className="text-lg font-semibold">
-            {t("analysis.locationsTitle")}
-          </h2>
+          <SectionHeader
+            title={t("analysis.locationsTitle")}
+            count={analytics.locationRanking.length}
+            tone="sky"
+          />
 
-          <div className="mt-3 overflow-hidden rounded-xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
+          <div className="mt-3 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
             {analytics.locationRanking.map((location) => (
               <div
                 key={location.key}

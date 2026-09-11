@@ -6,6 +6,8 @@ import { getAllPlacesWithUsage, getPlaceById } from "../../../../../lib/queries"
 import { PlaceForm } from "../../PlaceForm";
 import { DeletePlaceButton } from "../../DeletePlaceButton";
 import { buttonClasses } from "../../../../../components/ui/Button";
+import { PageHeader } from "../../../../../components/ui/PageHeader";
+import { Panel } from "../../../../../components/ui/Panel";
 
 export const dynamic = "force-dynamic";
 
@@ -51,11 +53,12 @@ export default async function EditPlacePage({
         {tCommon("actions.back")}
       </Link>
 
-      <h1 className="mt-3 text-2xl font-semibold tracking-tight">
-        {t("editTitle", { name: place.name })}
-      </h1>
+      <PageHeader
+        className="mt-3"
+        title={t("editTitle", { name: place.name })}
+      />
 
-      <div className="mt-6 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+      <Panel className="mt-6">
         <PlaceForm
           initial={{
             id: place.id,
@@ -69,24 +72,20 @@ export default async function EditPlacePage({
             electricityPriceCurrency: place.electricityPriceCurrency,
           }}
         />
-      </div>
+      </Panel>
 
-      <div className="mt-6 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
-          {t("autoClassification.title")}
-        </h2>
-
-        <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-          {t("autoClassification.description")}
-        </p>
-
+      <Panel
+        className="mt-6"
+        title={t("autoClassification.title")}
+        subtitle={t("autoClassification.description")}
+      >
         {place.type === "customer" && (
-          <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">
             {t("autoClassification.customerHint")}
           </p>
         )}
 
-        <div className="mt-3">
+        <div className={place.type === "customer" ? "mt-3" : ""}>
           <Link
             href={ruleHref}
             className={buttonClasses("secondary", "sm")}
@@ -94,23 +93,19 @@ export default async function EditPlacePage({
             {t("autoClassification.createRule")}
           </Link>
         </div>
-      </div>
+      </Panel>
 
-      <div className="mt-6 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
-          {t("dangerZone.title")}
-        </h2>
-        <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-          {t("dangerZone.usage", { count: usageCount })}
-        </p>
-        <div className="mt-3">
-          <DeletePlaceButton
-            placeId={place.id}
-            placeName={place.name}
-            usageCount={usageCount}
-          />
-        </div>
-      </div>
+      <Panel
+        className="mt-6"
+        title={t("dangerZone.title")}
+        subtitle={t("dangerZone.usage", { count: usageCount })}
+      >
+        <DeletePlaceButton
+          placeId={place.id}
+          placeName={place.name}
+          usageCount={usageCount}
+        />
+      </Panel>
     </div>
   );
 }

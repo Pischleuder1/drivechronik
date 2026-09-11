@@ -13,6 +13,7 @@ import { buttonClasses } from "../../../components/ui/Button";
 import { StatCard } from "../../../components/ui/StatCard";
 import { DestinationSearch } from "./DestinationSearch";
 import { PlannerMapLoader } from "./PlannerMapLoader";
+import { TeslaSharePanel } from "./TeslaSharePanel";
 
 export interface PlannerProps {
   vehicleId: number;
@@ -147,6 +148,9 @@ export function Planner({
   const [error, setError] = useState<string | null>(null);
   const [plan, setPlan] = useState<PlanResult | null>(null);
   const [plannedWaypoints, setPlannedWaypoints] = useState<Coords[]>([]);
+  const [plannedStartLabel, setPlannedStartLabel] = useState("");
+  const [plannedWaypointLabels, setPlannedWaypointLabels] = useState<string[]>([]);
+  const [plannedDestinationLabel, setPlannedDestinationLabel] = useState("");
   const [planId, setPlanId] = useState(0);
 
   // Die Server-Action liefert keinen echten Zwischenstand. Deshalb zeigt
@@ -274,6 +278,61 @@ export function Planner({
     });
   }
 
+  function resolveStartLabel(): string {
+    if (startMode === "place") {
+      if (startValue === CURRENT_VALUE) {
+        return t("teslaShare.currentPosition");
+      }
+
+      const id = Number(startValue.replace("place:", ""));
+      return (
+        places.find((place) => place.id === id)?.name ??
+        t("teslaShare.start")
+      );
+    }
+
+    return (
+      startAddress?.label ||
+      startQuery.trim() ||
+      t("teslaShare.start")
+    );
+  }
+
+  function resolveDestinationLabel(): string {
+    if (destMode === "place") {
+      const id = Number(destPlaceValue.replace("place:", ""));
+      return (
+        places.find((place) => place.id === id)?.name ??
+        t("teslaShare.destination")
+      );
+    }
+
+    return (
+      destAddress?.label ||
+      destQuery.trim() ||
+      t("teslaShare.destination")
+    );
+  }
+
+  function resolveWaypointLabels(): string[] {
+    return waypoints.map((waypoint, index) => {
+      if (waypoint.mode === "place") {
+        const id = Number(waypoint.placeValue.replace("place:", ""));
+
+        return (
+          places.find((place) => place.id === id)?.name ??
+          t("teslaShare.manualWaypoint", { index: index + 1 })
+        );
+      }
+
+      return (
+        waypoint.address?.label ||
+        waypoint.query.trim() ||
+        t("teslaShare.manualWaypoint", { index: index + 1 })
+      );
+    });
+  }
+
   function resolveWaypoints(): Coords[] | null {
     const resolved: Coords[] = [];
 
@@ -357,6 +416,9 @@ export function Planner({
     }
     setPlan(res.plan);
     setPlannedWaypoints(resolvedWaypoints);
+    setPlannedStartLabel(resolveStartLabel());
+    setPlannedWaypointLabels(resolveWaypointLabels());
+    setPlannedDestinationLabel(resolveDestinationLabel());
     setPlanId((n) => n + 1);
     setProgressStage("Berechnung abgeschlossen");
     setProgress(100);
@@ -752,6 +814,9 @@ export function Planner({
           key={planId}
           plan={plan}
           waypoints={plannedWaypoints}
+          startLabel={plannedStartLabel}
+          waypointLabels={plannedWaypointLabels}
+          destinationLabel={plannedDestinationLabel}
           pending={pending}
           onSelectRoute={handleRouteSelect}
         />
@@ -763,11 +828,17 @@ export function Planner({
 function Result({
   plan,
   waypoints,
+  startLabel,
+  waypointLabels,
+  destinationLabel,
   pending,
   onSelectRoute,
 }: {
   plan: PlanResult;
   waypoints: Coords[];
+  startLabel: string;
+  waypointLabels: string[];
+  destinationLabel: string;
   pending: boolean;
   onSelectRoute: (routeOptionId: string) => Promise<void>;
 }) {
@@ -841,6 +912,15 @@ function Result({
         waypoints={waypoints}
         chargingSites={plan.chargingSites}
         recommendedChargingStops={plan.recommendedChargingStops}
+      />
+
+      <TeslaSharePanel
+        geometry={plan.geometry}
+        waypoints={waypoints}
+        startLabel={startLabel}
+        waypointLabels={waypointLabels}
+        destinationLabel={destinationLabel}
+        chargingStops={plan.recommendedChargingStops}
       />
 
       {selectedRoute?.hasFerry && selectedRoute.ferrySegments.length > 0 && (

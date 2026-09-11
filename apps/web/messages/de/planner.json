@@ -56,6 +56,28 @@
     "arrivalSoc": "Ankunfts-SoC",
     "lowArrivalHint": "Der prognostizierte Ankunfts-SoC ist niedrig — ein Ladestopp ist nötig. DriveChronik plant automatisch einen geeigneten Supercharger entlang der Route."
   },
+  "teslaShare": {
+    "title": "Route an Tesla übergeben",
+    "description": "Ohne Tesla Fleet API: Auf dem Smartphone „An Tesla senden“ wählen und anschließend im Teilen-Menü die Tesla-App auswählen.",
+    "sendTesla": "An Tesla senden",
+    "shareRoute": "Route teilen",
+    "copyStops": "Stopps kopieren",
+    "start": "Start",
+    "currentPosition": "Aktueller Fahrzeugstandort",
+    "nextTarget": "Nächstes Ziel",
+    "manualWaypoint": "Zwischenziel {index}",
+    "manualStop": "Zwischenziel",
+    "chargingStop": "Ladestopp",
+    "destination": "Ziel",
+    "shareStop": "Teilen",
+    "shareTitle": "DriveChronik Route",
+    "routeShareText": "Geplante Route aus DriveChronik",
+    "shared": "Teilen abgeschlossen.",
+    "linkCopied": "Teilen wird auf diesem Gerät nicht unterstützt – der Link wurde kopiert.",
+    "stopsCopied": "Route und Stopps wurden kopiert.",
+    "shareFailed": "Teilen oder Kopieren war auf diesem Gerät nicht möglich.",
+    "hint": "Auf iPhone oder Android im Teilen-Menü die Tesla-App auswählen. Bei Zugriff über normales HTTP steht der System-Teilen-Dialog je nach Browser nicht zur Verfügung; DriveChronik kopiert dann den Link als Fallback."
+  },
   "assumptions": {
     "summary": "Annahmen & Aufschlüsselung",
     "baseConsumption": "Basisverbrauch",

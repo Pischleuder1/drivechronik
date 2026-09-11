@@ -56,6 +56,28 @@
     "arrivalSoc": "Arrival SoC",
     "lowArrivalHint": "The predicted arrival SoC is low — a charging stop is required. Automatic charging-stop planning is coming in a later version."
   },
+  "teslaShare": {
+    "title": "Send route to Tesla",
+    "description": "Without the Tesla Fleet API: on your phone choose “Send to Tesla”, then select the Tesla app from the system share menu.",
+    "sendTesla": "Send to Tesla",
+    "shareRoute": "Share route",
+    "copyStops": "Copy stops",
+    "start": "Start",
+    "currentPosition": "Current vehicle location",
+    "nextTarget": "Next destination",
+    "manualWaypoint": "Waypoint {index}",
+    "manualStop": "Waypoint",
+    "chargingStop": "Charging stop",
+    "destination": "Destination",
+    "shareStop": "Share",
+    "shareTitle": "DriveChronik route",
+    "routeShareText": "Planned route from DriveChronik",
+    "shared": "Sharing completed.",
+    "linkCopied": "Sharing is not supported on this device – the link was copied instead.",
+    "stopsCopied": "Route and stops copied.",
+    "shareFailed": "Sharing or copying was not available on this device.",
+    "hint": "On iPhone or Android, select the Tesla app from the system share menu. When DriveChronik is opened over plain HTTP, the system share dialog may be unavailable depending on the browser; the link is then copied as a fallback."
+  },
   "assumptions": {
     "summary": "Assumptions & breakdown",
     "baseConsumption": "Base consumption",

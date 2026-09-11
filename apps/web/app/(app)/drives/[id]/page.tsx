@@ -27,7 +27,6 @@ import {
 } from "../../../../lib/queries";
 import { getRoutePoints } from "../../../../lib/driveRoute";
 import {
-  CLASSIFICATION_BADGE,
   type Classification,
 } from "../../../../lib/classification";
 import {
@@ -36,6 +35,10 @@ import {
   isLogbookComplete,
 } from "../../../../lib/logbookCompletion";
 import { buttonClasses } from "../../../../components/ui/Button";
+import { PageHeader } from "../../../../components/ui/PageHeader";
+import { StatusBadge } from "../../../../components/ui/StatusBadge";
+import { Panel } from "../../../../components/ui/Panel";
+import { MetricGrid, MetricItem } from "../../../../components/ui/MetricGrid";
 import { AnnotationForm } from "./AnnotationForm";
 import { TagManager } from "./TagManager";
 import { AuditLogList } from "./AuditLogList";
@@ -50,21 +53,20 @@ const MIN_ELEVATION_COVERAGE = 0.6;
 
 export const dynamic = "force-dynamic";
 
-function Card({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="mt-6 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-      <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
-        {title}
-      </h2>
-      <div className="mt-3">{children}</div>
-    </section>
-  );
+function classificationTone(
+  classification: Classification,
+): "blue" | "emerald" | "amber" | "neutral" {
+  switch (classification) {
+    case "business":
+      return "blue";
+    case "private":
+      return "emerald";
+    case "commute":
+      return "amber";
+    case "unclassified":
+    default:
+      return "neutral";
+  }
 }
 
 export default async function DriveDetailPage({
@@ -249,22 +251,20 @@ export default async function DriveDetailPage({
         {tCommon("actions.back")}
       </Link>
 
-      <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">
-            {formatLongDate(dateStr, locale)} ·{" "}
-            {formatTimeRange(drive.startTime, drive.endTime, APP_TIMEZONE)}
-          </p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight">
-            {from} <span className="text-neutral-400">→</span> {to}
-          </h1>
-        </div>
-        <span
-          className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${CLASSIFICATION_BADGE[classification]}`}
-        >
-          {tCommon(`classification.${classification}`)}
-        </span>
-      </div>
+      <PageHeader
+        className="mt-3"
+        title={`${from} → ${to}`}
+        subtitle={`${formatLongDate(dateStr, locale)} · ${formatTimeRange(
+          drive.startTime,
+          drive.endTime,
+          APP_TIMEZONE,
+        )}`}
+        eyebrow={
+          <StatusBadge tone={classificationTone(classification)}>
+            {tCommon(`classification.${classification}`)}
+          </StatusBadge>
+        }
+      />
 
       <Link
         href={`/day/${dateStr}`}
@@ -305,114 +305,107 @@ export default async function DriveDetailPage({
           );
         })()}
 
-      <Card title={t("page.cardMetrics")}>
-        <dl className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
+      <Panel className="mt-6" title={t("page.cardMetrics")}>
+        <MetricGrid columns={2}>
           {kennzahlen.map(([label, value]) => (
-            <div key={label} className="flex justify-between gap-4 text-sm">
-              <dt className="text-neutral-500 dark:text-neutral-400">{label}</dt>
-              <dd className="text-right font-medium tabular-nums">{value}</dd>
-            </div>
+            <MetricItem
+              key={label}
+              label={label}
+              value={value}
+            />
           ))}
-        </dl>
+        </MetricGrid>
         {drive.energyIsEstimated && drive.consumedEnergyKwh != null && (
           <p className="mt-3 text-xs text-neutral-500 dark:text-neutral-400">
             {t("page.estimatedNote")}
           </p>
         )}
-      </Card>
+      </Panel>
 
-      <Card title={t("page.cardRoute")}>
+      <Panel className="mt-6" title={t("page.cardRoute")}>
         {route.points.length >= 2 ? (
           <>
             <DriveMapLoader points={route.points} />
 
-            <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <div className="rounded-lg bg-neutral-50 p-3 dark:bg-neutral-800/60">
-                <dt className="text-xs text-neutral-500 dark:text-neutral-400">
-                  {t("page.gpsDistance")}
-                </dt>
-                <dd className="mt-1 font-medium tabular-nums">
-                  {route.stats.gpsDistanceKm != null
+            <MetricGrid className="mt-4" columns={4}>
+              <MetricItem
+                label={t("page.gpsDistance")}
+                value={
+                  route.stats.gpsDistanceKm != null
                     ? formatKm(route.stats.gpsDistanceKm)
-                    : "—"}
-                </dd>
-              </div>
+                    : "—"
+                }
+              />
 
-              <div className="rounded-lg bg-neutral-50 p-3 dark:bg-neutral-800/60">
-                <dt className="text-xs text-neutral-500 dark:text-neutral-400">
-                  {t("page.gpsPoints")}
-                </dt>
-                <dd className="mt-1 font-medium tabular-nums">
-                  {route.totalCount}
-                </dd>
-              </div>
+              <MetricItem
+                label={t("page.gpsPoints")}
+                value={String(route.totalCount)}
+              />
 
-              <div className="rounded-lg bg-neutral-50 p-3 dark:bg-neutral-800/60">
-                <dt className="text-xs text-neutral-500 dark:text-neutral-400">
-                  {t("page.gpsRecording")}
-                </dt>
-                <dd className="mt-1 font-medium tabular-nums">
-                  {route.stats.recordingDurationSeconds != null
+              <MetricItem
+                label={t("page.gpsRecording")}
+                value={
+                  route.stats.recordingDurationSeconds != null
                     ? formatDuration(
                         Math.round(route.stats.recordingDurationSeconds),
                       )
-                    : "—"}
-                </dd>
-              </div>
+                    : "—"
+                }
+              />
 
-              <div className="rounded-lg bg-neutral-50 p-3 dark:bg-neutral-800/60">
-                <dt className="text-xs text-neutral-500 dark:text-neutral-400">
-                  {t("page.gpsInterval")}
-                </dt>
-                <dd className="mt-1 font-medium tabular-nums">
-                  {route.stats.avgIntervalSeconds != null
+              <MetricItem
+                label={t("page.gpsInterval")}
+                value={
+                  route.stats.avgIntervalSeconds != null
                     ? `${route.stats.avgIntervalSeconds.toFixed(1)} s`
-                    : "—"}
-                </dd>
-              </div>
+                    : "—"
+                }
+              />
 
-              <div className="rounded-lg bg-neutral-50 p-3 dark:bg-neutral-800/60">
-                <dt className="text-xs text-neutral-500 dark:text-neutral-400">
-                  {t("page.gpsAvgSpeed")}
-                </dt>
-                <dd className="mt-1 font-medium tabular-nums">
-                  {route.stats.avgSpeedKmh != null
+              <MetricItem
+                label={t("page.gpsAvgSpeed")}
+                value={
+                  route.stats.avgSpeedKmh != null
                     ? formatSpeed(route.stats.avgSpeedKmh)
-                    : "—"}
-                </dd>
-              </div>
+                    : "—"
+                }
+              />
 
-              <div className="rounded-lg bg-neutral-50 p-3 dark:bg-neutral-800/60">
-                <dt className="text-xs text-neutral-500 dark:text-neutral-400">
-                  {t("page.gpsMaxSpeed")}
-                </dt>
-                <dd className="mt-1 font-medium tabular-nums">
-                  {route.stats.maxSpeedKmh != null
+              <MetricItem
+                label={t("page.gpsMaxSpeed")}
+                value={
+                  route.stats.maxSpeedKmh != null
                     ? formatSpeed(route.stats.maxSpeedKmh)
-                    : "—"}
-                </dd>
-              </div>
+                    : "—"
+                }
+              />
 
-              <div className="rounded-lg bg-neutral-50 p-3 dark:bg-neutral-800/60">
-                <dt className="text-xs text-neutral-500 dark:text-neutral-400">
-                  {t("page.gpsSoc")}
-                </dt>
-                <dd className="mt-1 font-medium tabular-nums">
-                  {route.stats.startSoc != null || route.stats.endSoc != null
-                    ? `${route.stats.startSoc != null ? formatSoc(route.stats.startSoc) : "—"} → ${route.stats.endSoc != null ? formatSoc(route.stats.endSoc) : "—"}`
-                    : "—"}
-                </dd>
-              </div>
+              <MetricItem
+                label={t("page.gpsSoc")}
+                value={
+                  route.stats.startSoc != null || route.stats.endSoc != null
+                    ? `${
+                        route.stats.startSoc != null
+                          ? formatSoc(route.stats.startSoc)
+                          : "—"
+                      } → ${
+                        route.stats.endSoc != null
+                          ? formatSoc(route.stats.endSoc)
+                          : "—"
+                      }`
+                    : "—"
+                }
+              />
 
-              <div className="rounded-lg bg-neutral-50 p-3 dark:bg-neutral-800/60">
-                <dt className="text-xs text-neutral-500 dark:text-neutral-400">
-                  {t("page.gpsCoverage")}
-                </dt>
-                <dd className="mt-1 font-medium tabular-nums">
-                  {gpsCoveragePercent != null ? `${gpsCoveragePercent} %` : "—"}
-                </dd>
-              </div>
-            </dl>
+              <MetricItem
+                label={t("page.gpsCoverage")}
+                value={
+                  gpsCoveragePercent != null
+                    ? `${gpsCoveragePercent} %`
+                    : "—"
+                }
+              />
+            </MetricGrid>
 
             <p className="mt-3 text-xs text-neutral-500 dark:text-neutral-400">
               {t("page.gpsSource")}
@@ -423,10 +416,10 @@ export default async function DriveDetailPage({
             {t("page.noTrackData")}
           </p>
         )}
-      </Card>
+      </Panel>
 
       {route.points.length >= 2 && (
-        <Card title={t("page.cardCourse")}>
+        <Panel className="mt-6" title={t("page.cardCourse")}>
           <DriveChart
             points={route.chartPoints}
             elevationCoverage={route.elevationCoverage}
@@ -438,10 +431,10 @@ export default async function DriveDetailPage({
               {t("page.elevationBackgroundNote")}
             </p>
           )}
-        </Card>
+        </Panel>
       )}
 
-      <Card title={t("page.cardLogbookStatus")}>
+      <Panel className="mt-6" title={t("page.cardLogbookStatus")}>
         <div className="space-y-2">
           <div
             className={
@@ -493,9 +486,9 @@ export default async function DriveDetailPage({
             </p>
           )}
         </div>
-      </Card>
+      </Panel>
 
-      <Card title={t("page.cardPostProcessing")}>
+      <Panel className="mt-6" title={t("page.cardPostProcessing")}>
         <AnnotationForm
           driveId={drive.id}
           classification={classification}
@@ -506,17 +499,17 @@ export default async function DriveDetailPage({
           ruleCreateHref={ruleCreateHref}
         />
 
-      </Card>
+      </Panel>
 
-      <Card title={t("page.cardTags")}>
+      <Panel className="mt-6" title={t("page.cardTags")}>
         <TagManager
           driveId={drive.id}
           initialTags={drive.tags}
           allTagNames={allTags.map((t) => t.name)}
         />
-      </Card>
+      </Panel>
 
-      <Card title={t("page.cardCorrectPlaces")}>
+      <Panel className="mt-6" title={t("page.cardCorrectPlaces")}>
         <PlaceCorrection
           driveId={drive.id}
           start={{
@@ -537,7 +530,7 @@ export default async function DriveDetailPage({
           }}
           allPlaces={allPlaces}
         />
-      </Card>
+      </Panel>
 
       <section className="mt-6 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
         <details>
@@ -550,7 +543,7 @@ export default async function DriveDetailPage({
         </details>
       </section>
 
-      <Card title={t("page.cardExport")}>
+      <Panel className="mt-6" title={t("page.cardExport")}>
         <div className="flex gap-1.5">
           <a
             href={`/api/export/drive/${drive.id}?format=csv`}
@@ -576,7 +569,7 @@ export default async function DriveDetailPage({
             </a>
           )}
         </div>
-      </Card>
+      </Panel>
     </div>
   );
 }

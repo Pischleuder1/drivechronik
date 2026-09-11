@@ -26,7 +26,7 @@ export async function MonthGrid({
 }) {
   const t = await getTranslations("calendar");
   return (
-    <div className="rounded-2xl border border-neutral-200 bg-white p-2 dark:border-neutral-800 dark:bg-neutral-900 sm:p-3">
+    <div className="rounded-2xl border border-neutral-200 bg-white p-2 shadow-sm dark:border-neutral-800 dark:bg-neutral-900 sm:p-3">
       <div className="grid grid-cols-7 gap-1 text-center text-xs font-medium text-neutral-500 dark:text-neutral-400">
         {WEEKDAY_KEYS.map((key) => (
           <div key={key} className="py-1">
@@ -41,7 +41,7 @@ export async function MonthGrid({
             key={cell.date}
             href={`/day/${cell.date}${vehicleQuery}`}
             data-testid="calendar-day-cell"
-            className={`flex aspect-square flex-col items-center justify-start rounded-lg border p-1 text-xs transition hover:border-neutral-400 dark:hover:border-neutral-600 sm:aspect-auto sm:min-h-20 sm:items-start sm:p-2 ${
+            className={`flex aspect-square flex-col items-center justify-start rounded-xl border p-1 text-xs transition-all hover:border-neutral-400 hover:shadow-sm dark:hover:border-neutral-600 sm:aspect-auto sm:min-h-20 sm:items-start sm:p-2 ${
               cell.isToday
                 ? "border-2 border-neutral-900 dark:border-white"
                 : "border-neutral-200 dark:border-neutral-800"

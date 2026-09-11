@@ -7,6 +7,7 @@ import { CalendarVehicleSwitcher } from "./CalendarVehicleSwitcher";
 import { MonthGrid } from "./MonthGrid";
 
 import { NoVehicleState } from "../../../components/NoVehicleState";
+import { Panel } from "../../../components/ui/Panel";
 
 export const dynamic = "force-dynamic";
 
@@ -29,11 +30,13 @@ export default async function CalendarPage({
   if (vehicles.length === 0) {
     return (
       <div className="mx-auto max-w-3xl">
-        <MonthNav
-          month={month}
-          currentMonth={currentMonth}
-          vehicleQuery=""
-        />
+        <Panel padding="sm">
+          <MonthNav
+            month={month}
+            currentMonth={currentMonth}
+            vehicleQuery=""
+          />
+        </Panel>
         <div className="mt-6">
           <NoVehicleState />
         </div>
@@ -52,21 +55,24 @@ export default async function CalendarPage({
 
   return (
     <div className="mx-auto max-w-3xl">
-      <MonthNav
-        month={month}
-        currentMonth={currentMonth}
-        vehicleQuery={vehicleQuery}
-      />
+      <Panel padding="sm">
+        <MonthNav
+          month={month}
+          currentMonth={currentMonth}
+          vehicleQuery={vehicleQuery}
+        />
 
-      {vehicles.length > 1 && (
-        <div className="mt-3">
-          <CalendarVehicleSwitcher
-            vehicles={vehicles}
-            current={current.id}
-            month={month}
-          />
-        </div>
-      )}
+        {vehicles.length > 1 && (
+          <div className="mt-3 border-t border-neutral-100 pt-3 dark:border-neutral-800">
+            <CalendarVehicleSwitcher
+              vehicles={vehicles}
+              current={current.id}
+              month={month}
+            />
+          </div>
+        )}
+
+      </Panel>
 
       <div className="mt-6">
         <MonthGrid cells={cells} vehicleQuery={vehicleQuery} />

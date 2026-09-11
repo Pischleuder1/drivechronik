@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, Download } from "lucide-react";
+import { ArrowLeft, Download, Gauge, ReceiptText, Route } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
 
 import {
@@ -12,6 +12,9 @@ import { todayInAppTz } from "../../../../lib/day";
 import { loadBusinessYearReportData } from "../../../../lib/exports/data";
 import { isValidYearParam } from "../../../../lib/exports/params";
 import { buttonClasses } from "../../../../components/ui/Button";
+import { PageHeader } from "../../../../components/ui/PageHeader";
+import { Panel } from "../../../../components/ui/Panel";
+import { StatCard } from "../../../../components/ui/StatCard";
 import { YearReportFilters } from "./YearReportFilters";
 
 import { NoVehicleState } from "../../../../components/NoVehicleState";
@@ -52,18 +55,15 @@ export default async function BusinessYearReportPage({
           {t("year.backToMonthly")}
         </Link>
 
-        <div className="mt-4">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {t("year.title", { year })}
-          </h1>
-          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-            {t("year.subtitle")}
-          </p>
-        </div>
+        <PageHeader
+          className="mt-4"
+          title={t("year.title", { year })}
+          subtitle={t("year.subtitle")}
+        />
 
-        <div className="mt-6">
+        <Panel className="mt-4" padding="sm">
           <YearReportFilters year={year} />
-        </div>
+        </Panel>
 
         <div className="mt-6">
           <NoVehicleState />
@@ -108,18 +108,15 @@ export default async function BusinessYearReportPage({
         {t("year.backToMonthly")}
       </Link>
 
-      <div className="mt-4">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {t("year.title", { year })}
-        </h1>
-        <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-          {t("year.subtitle")}
-        </p>
-      </div>
+      <PageHeader
+        className="mt-4"
+        title={t("year.title", { year })}
+        subtitle={t("year.subtitle")}
+      />
 
-      <div className="mt-6">
+      <Panel className="mt-4" padding="sm">
         <YearReportFilters year={year} />
-      </div>
+      </Panel>
 
       <div className="mt-4 flex gap-1.5">
         <a
@@ -140,38 +137,38 @@ export default async function BusinessYearReportPage({
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <div className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-          <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
-            {t("year.totalDistance")}
-          </p>
-          <p className="mt-1 text-xl font-semibold tabular-nums">
-            {formatKm(report.totals.distanceKm)}
-          </p>
-          <p className="text-xs text-neutral-500 dark:text-neutral-400">
-            {t("driveCountLabel", { count: report.totals.driveCount })}
-          </p>
-        </div>
+        <StatCard
+          label={t("year.totalDistance")}
+          value={formatKm(report.totals.distanceKm)}
+          tone="blue"
+          icon={<Route aria-hidden size={18} />}
+          footer={
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+              {t("driveCountLabel", { count: report.totals.driveCount })}
+            </p>
+          }
+        />
 
-        <div className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-          <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
-            {t("year.rate")}
-          </p>
-          <p className="mt-1 text-xl font-semibold tabular-nums">
-            {rate}
-            <span className="ml-1 text-sm font-normal text-neutral-500">
-              / km
-            </span>
-          </p>
-        </div>
+        <StatCard
+          label={t("year.rate")}
+          value={
+            <>
+              {rate}
+              <span className="ml-1 text-sm font-normal text-neutral-500 dark:text-neutral-400">
+                / km
+              </span>
+            </>
+          }
+          tone="amber"
+          icon={<Gauge aria-hidden size={18} />}
+        />
 
-        <div className="rounded-xl border border-neutral-300 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800">
-          <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
-            {t("year.totalAmount")}
-          </p>
-          <p className="mt-1 text-xl font-semibold tabular-nums">
-            {currency.format(report.totals.amountEur)}
-          </p>
-        </div>
+        <StatCard
+          label={t("year.totalAmount")}
+          value={currency.format(report.totals.amountEur)}
+          tone="emerald"
+          icon={<ReceiptText aria-hidden size={18} />}
+        />
       </div>
 
       {report.incomplete && (
@@ -180,18 +177,18 @@ export default async function BusinessYearReportPage({
         </p>
       )}
 
-      <div className="mt-6 overflow-x-auto rounded-xl border border-neutral-200 dark:border-neutral-800">
+      <div className="mt-6 overflow-x-auto rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
         <table className="w-full text-sm">
-          <thead className="bg-neutral-50 text-left text-xs font-medium text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
+          <thead className="border-b border-neutral-200 bg-neutral-50 text-left text-xs font-semibold text-neutral-500 dark:border-neutral-800 dark:bg-neutral-800/60 dark:text-neutral-400">
             <tr>
-              <th className="px-3 py-2">{t("year.table.month")}</th>
-              <th className="px-3 py-2 text-right">
+              <th className="px-4 py-3">{t("year.table.month")}</th>
+              <th className="px-4 py-3 text-right">
                 {t("year.table.drives")}
               </th>
-              <th className="px-3 py-2 text-right">
+              <th className="px-4 py-3 text-right">
                 {t("year.table.distance")}
               </th>
-              <th className="px-3 py-2 text-right">
+              <th className="px-4 py-3 text-right">
                 {t("year.table.amount")}
               </th>
             </tr>
@@ -207,7 +204,7 @@ export default async function BusinessYearReportPage({
               return (
                 <tr
                   key={month.month}
-                  className="hover:bg-neutral-50 dark:hover:bg-neutral-900"
+                  className="transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
                 >
                   <td className="px-3 py-2 font-medium">
                     <Link
@@ -243,7 +240,7 @@ export default async function BusinessYearReportPage({
             })}
           </tbody>
 
-          <tfoot className="border-t border-neutral-300 bg-neutral-50 font-semibold dark:border-neutral-700 dark:bg-neutral-900">
+          <tfoot className="border-t border-neutral-200 bg-neutral-50/80 font-semibold dark:border-neutral-800 dark:bg-neutral-800/60">
             <tr>
               <td className="px-3 py-3">{t("total")}</td>
               <td className="px-3 py-3 text-right tabular-nums">

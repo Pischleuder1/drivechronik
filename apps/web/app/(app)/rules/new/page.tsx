@@ -4,6 +4,8 @@ import { ChevronLeft } from "lucide-react";
 import { getAllPlacesLite, getAllTags } from "../../../../lib/queries";
 import { RuleForm } from "../RuleForm";
 import { buildRulePrefill } from "../../../../lib/rulePrefill";
+import { PageHeader } from "../../../../components/ui/PageHeader";
+import { Panel } from "../../../../components/ui/Panel";
 
 export const dynamic = "force-dynamic";
 
@@ -36,15 +38,18 @@ export default async function NewRulePage({
         {tCommon("actions.back")}
       </Link>
 
-      <h1 className="mt-3 text-2xl font-semibold tracking-tight">{t("newTitle")}</h1>
+      <PageHeader
+        className="mt-3"
+        title={t("newTitle")}
+      />
 
-      <div className="mt-6 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+      <Panel className="mt-6">
         <RuleForm
           initial={initial}
           places={places}
           tags={tags.map((t) => ({ id: t.id, name: t.name }))}
         />
-      </div>
+      </Panel>
     </div>
   );
 }

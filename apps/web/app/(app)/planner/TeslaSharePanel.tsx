@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Copy, Navigation, Share2 } from "lucide-react";
+import { Copy, Navigation, QrCode, Share2 } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 
 import { buttonClasses } from "../../../components/ui/Button";
 import { Panel } from "../../../components/ui/Panel";
@@ -128,6 +129,7 @@ export function TeslaSharePanel({
 }) {
   const t = useTranslations("planner.teslaShare");
   const [status, setStatus] = useState<string | null>(null);
+  const [showQr, setShowQr] = useState(false);
 
   const start = useMemo<Coords | null>(() => {
     const first = geometry[0];
@@ -270,6 +272,16 @@ export function TeslaSharePanel({
 
         <button
           type="button"
+          onClick={() => setShowQr((current) => !current)}
+          className={buttonClasses("secondary", "md")}
+          aria-expanded={showQr}
+        >
+          <QrCode aria-hidden size={16} />
+          {showQr ? t("hideQr") : t("openOnPhone")}
+        </button>
+
+        <button
+          type="button"
           onClick={() => void copyStops()}
           className={buttonClasses("secondary", "md")}
         >
@@ -277,6 +289,38 @@ export function TeslaSharePanel({
           {t("copyStops")}
         </button>
       </div>
+
+      {showQr && (
+        <div className="mt-4 rounded-2xl border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-800 dark:bg-neutral-800/40">
+          <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
+            <div className="shrink-0 rounded-2xl bg-white p-3 shadow-sm">
+              <QRCodeSVG
+                value={routeUrl}
+                size={196}
+                level="M"
+              />
+            </div>
+
+            <div className="text-center sm:text-left">
+              <p className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+                {t("qrTitle")}
+              </p>
+
+              <p className="mt-1 max-w-md text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
+                {t("qrDescription")}
+              </p>
+
+              <p className="mt-3 text-xs text-neutral-500 dark:text-neutral-400">
+                {startLabel || t("start")}
+                {" → "}
+                {orderedStops.map((stop) => stop.label).join(" → ")}
+                {orderedStops.length > 0 ? " → " : ""}
+                {destinationLabel || t("destination")}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="mt-4 rounded-xl bg-neutral-50 p-3 dark:bg-neutral-800/50">
         <p className="text-xs font-medium uppercase tracking-wide text-neutral-500 dark:text-neutral-400">

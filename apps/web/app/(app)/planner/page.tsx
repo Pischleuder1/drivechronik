@@ -6,6 +6,8 @@ import { getOsrmUrl } from "../../../lib/config";
 import { Planner } from "./Planner";
 
 import { NoVehicleState } from "../../../components/NoVehicleState";
+import { PageHeader } from "../../../components/ui/PageHeader";
+import { StatusBadge } from "../../../components/ui/StatusBadge";
 
 export const dynamic = "force-dynamic";
 
@@ -20,21 +22,15 @@ export default async function PlannerPage() {
   if (vehicles.length === 0) {
     return (
       <div className="mx-auto max-w-3xl">
-        <div className="flex items-start gap-3">
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-semibold tracking-tight">
-                {t("title")}
-              </h1>
-              <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-400">
-                {t("experimentalBadge")}
-              </span>
-            </div>
-            <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-              {t("subtitle")}
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          title={t("title")}
+          subtitle={t("subtitle")}
+          eyebrow={
+            <StatusBadge tone="amber">
+              {t("experimentalBadge")}
+            </StatusBadge>
+          }
+        />
 
         <div className="mt-6">
           <NoVehicleState />
@@ -64,21 +60,15 @@ export default async function PlannerPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <div className="flex items-start gap-3">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-semibold tracking-tight">
-              {t("title")}
-            </h1>
-            <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-400">
-              {t("experimentalBadge")}
-            </span>
-          </div>
-          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-            {t("subtitle")}
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+        eyebrow={
+          <StatusBadge tone="amber">
+            {t("experimentalBadge")}
+          </StatusBadge>
+        }
+      />
 
       <div className="mt-6">
         <Planner

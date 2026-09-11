@@ -10,6 +10,7 @@ import {
 } from "../../../lib/actions/planner";
 import type { AddressSearchResult } from "../../../lib/actions/places";
 import { buttonClasses } from "../../../components/ui/Button";
+import { StatCard } from "../../../components/ui/StatCard";
 import { DestinationSearch } from "./DestinationSearch";
 import { PlannerMapLoader } from "./PlannerMapLoader";
 
@@ -866,70 +867,82 @@ function Result({
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <Metric label={t("result.distance")} value={formatKm(plan.distanceKm)} />
-        <Metric
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <StatCard
+          label={t("result.distance")}
+          value={formatKm(plan.distanceKm)}
+          tone="blue"
+        />
+
+        <StatCard
           label="Reisezeit ohne Laden"
           value={formatDuration(plan.durationSeconds)}
-          sub="inklusive möglicher Fährpassagen"
+          hint="inklusive möglicher Fährpassagen"
+          tone="violet"
         />
-        <Metric
+
+        <StatCard
           label="Ladezeit"
           value={
             totalChargingMinutes > 0
               ? formatDuration(totalChargingMinutes * 60)
               : "0 min"
           }
-          sub={
+          hint={
             plan.recommendedChargingStops.length > 0
               ? plan.recommendedChargingStops.length + " geplante Ladestopps"
               : "keine Ladestopps nötig"
           }
+          tone="amber"
         />
-        <Metric
+
+        <StatCard
           label="Gesamtreisezeit"
           value={formatDuration(totalTravelSeconds)}
-          sub={
+          hint={
             totalChargingMinutes > 0
               ? "Fahrt, Fähre und Laden"
               : "ohne zusätzliche Pausen"
           }
+          tone="indigo"
         />
-        <Metric
+
+        <StatCard
           label={t("result.avgSpeed")}
           value={`${Math.round(plan.avgSpeedKmh)} km/h`}
+          tone="sky"
         />
-        <Metric
+
+        <StatCard
           label={t("result.consumption")}
           value={`${plan.energyKwh.toFixed(1)} kWh`}
-          sub={`${Math.round(plan.whPerKm)} Wh/km`}
+          hint={`${Math.round(plan.whPerKm)} Wh/km`}
+          tone="cyan"
         />
-        <div
-          className={"col-span-2 rounded-xl border p-3 sm:col-span-1 " + tone.card}
-        >
-          <p className="text-xs text-neutral-600 dark:text-neutral-400">
-            Ankunft ohne Laden
-          </p>
-          <p
-            className={"mt-0.5 text-xl font-semibold tabular-nums " + tone.value}
-          >
-            {displaySoc} %
-          </p>
-          <p className={"text-xs font-medium " + tone.value}>{toneLabel}</p>
-        </div>
-        <div className="col-span-2 rounded-xl border border-neutral-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-900 sm:col-span-1">
-          <p className="text-xs text-neutral-500 dark:text-neutral-400">
-            Geplante Ankunft
-          </p>
-          <p className="mt-0.5 text-xl font-semibold tabular-nums text-neutral-900 dark:text-neutral-100">
-            {plan.plannedArrivalSoc != null
+
+        <StatCard
+          label="Ankunft ohne Laden"
+          value={`${displaySoc} %`}
+          hint={toneLabel}
+          tone={
+            tone.labelKey === "comfortable"
+              ? "emerald"
+              : tone.labelKey === "tight"
+                ? "amber"
+                : "rose"
+          }
+        />
+
+        <StatCard
+          label="Geplante Ankunft"
+          value={
+            plan.plannedArrivalSoc != null
               ? Math.max(0, Math.round(plan.plannedArrivalSoc)) + " %"
-              : "–"}
-          </p>
-          <p className="text-xs text-neutral-500 dark:text-neutral-400">
-            inklusive geplanter Ladestopps
-          </p>
-        </div>
+              : "–"
+          }
+          hint="inklusive geplanter Ladestopps"
+          tone="emerald"
+        />
       </div>
 
       {plan.arrivalSoc < 10 && !plan.chargingPlanComplete && (
@@ -937,14 +950,11 @@ function Result({
           {t("result.lowArrivalHint")}
         </p>
       )}
-      <div className="rounded-xl border border-neutral-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-900">
-        <p className="text-xs text-neutral-500 dark:text-neutral-400">
-          Schnelllader im 15-km-Suchkorridor
-        </p>
-        <p className="mt-0.5 text-xl font-semibold tabular-nums text-neutral-900 dark:text-neutral-100">
-          {plan.chargingSiteCount}
-        </p>
-      </div>
+      <StatCard
+        label="Schnelllader im 15-km-Suchkorridor"
+        value={String(plan.chargingSiteCount)}
+        tone="sky"
+      />
 
       {plan.recommendedChargingStops.length > 0 && (
         <div className="flex flex-col gap-3">

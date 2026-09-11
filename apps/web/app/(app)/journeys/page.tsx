@@ -6,6 +6,8 @@ import { APP_TIMEZONE } from "../../../lib/config";
 import { getJourneys } from "../../../lib/journeys";
 import { Button } from "../../../components/ui/Button";
 import { EmptyState } from "../../../components/ui/EmptyState";
+import { PageHeader } from "../../../components/ui/PageHeader";
+import { StatusBadge } from "../../../components/ui/StatusBadge";
 
 export const dynamic = "force-dynamic";
 
@@ -20,24 +22,26 @@ function formatRange(start: Date, end: Date): string {
   return `${dateFmt.format(start)} – ${dateFmt.format(end)}`;
 }
 
-const TYPE_BADGE_CLASSES =
-  "inline-flex items-center rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300";
-
 export default async function JourneysPage() {
   const t = await getTranslations("journeys");
   const journeys = await getJourneys();
 
   return (
     <div className="mx-auto max-w-2xl">
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("list.title")}</h1>
-        <Button href="/journeys/new" variant="primary" size="sm" icon={<Plus aria-hidden size={16} />}>
-          {t("list.newJourney")}
-        </Button>
-      </div>
-      <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-        {t("list.subtitle")}
-      </p>
+      <PageHeader
+        title={t("list.title")}
+        subtitle={t("list.subtitle")}
+        actions={
+          <Button
+            href="/journeys/new"
+            variant="primary"
+            size="sm"
+            icon={<Plus aria-hidden size={16} />}
+          >
+            {t("list.newJourney")}
+          </Button>
+        }
+      />
 
       {journeys.length === 0 ? (
         <div className="mt-8">
@@ -58,7 +62,7 @@ export default async function JourneysPage() {
             <Link
               key={j.id}
               href={`/journeys/${j.id}`}
-              className="rounded-xl border border-neutral-200 bg-white p-4 transition hover:border-neutral-300 hover:bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700 dark:hover:bg-neutral-800/50"
+              className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm transition hover:border-neutral-300 hover:bg-neutral-50 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700 dark:hover:bg-neutral-800/50"
             >
               <div className="flex items-start gap-3">
                 <span
@@ -71,9 +75,9 @@ export default async function JourneysPage() {
                     <span className="font-medium text-neutral-900 dark:text-neutral-100">
                       {j.name}
                     </span>
-                    <span className={TYPE_BADGE_CLASSES}>
+                    <StatusBadge tone="neutral">
                       {t(`type.${j.type}`)}
-                    </span>
+                    </StatusBadge>
                   </div>
                   <p className="mt-1 text-xs tabular-nums text-neutral-500 dark:text-neutral-400">
                     {formatRange(j.startTime, j.endTime)}

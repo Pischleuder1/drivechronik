@@ -35,14 +35,16 @@ function installDuration(
 
 export function SoftwareTimeline({
   updates,
+  embedded = false,
 }: {
   updates: SoftwareUpdateRow[];
+  embedded?: boolean;
 }) {
   const t = useTranslations("settings");
 
   if (updates.length === 0) {
     return (
-      <section className="mt-6 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+      <section className={embedded ? "mt-4 border-t border-neutral-200 pt-4 dark:border-neutral-800" : "mt-6 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900"}>
         <div className="flex items-center gap-2 text-neutral-500 dark:text-neutral-400">
           <Cpu aria-hidden size={16} />
           <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
@@ -62,7 +64,7 @@ export function SoftwareTimeline({
   const currentId = updates[0]!.id;
 
   return (
-    <section className="mt-6 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+    <section className={embedded ? "mt-4 border-t border-neutral-200 pt-4 dark:border-neutral-800" : "mt-6 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900"}>
       <div className="flex items-center gap-2 text-neutral-500 dark:text-neutral-400">
         <Cpu aria-hidden size={16} />
         <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">

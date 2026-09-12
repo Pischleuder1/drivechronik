@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Route planner handoff for Tesla without the Fleet API, including system sharing, ordered manual and charging stops, Google Maps multi-stop routes, QR-code transfer to smartphones and clipboard fallback.
+- Route planner handoff for Tesla without the Fleet API, including ordered manual and charging stops, Tesla handoff mode, automatic route splitting at a maximum of 9 intermediate points per handoff, Google Maps multi-stop routes, QR-code transfer to smartphones, route sharing/copying and visible success feedback.
 
 - Installable Progressive Web App (PWA) with offline fallback for the application shell.
 - Tesla Supercharger CSV import with preview, duplicate-safe updates and automatic matching to charging sessions.

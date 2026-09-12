@@ -43,6 +43,7 @@ Tessie & Co. sind gut, aber: Abo-Kosten, Feature-Überschneidung mit der Tesla-A
 - **Jahresanalyse & Abrechnung** — Monatsverlauf nach geschäftlich / privat / Arbeitsweg / unklassifiziert, geschäftliche Jahreskilometer, konfigurierbare Kilometererstattung, direkter Jahresbericht sowie CSV-/PDF-Export
 - **Standzeit-Analytics** — Vampir-Verlust pro Parkvorgang, Standzeiten pro Ort
 - **Routenplaner (experimentell)** — Reichweiten-Check mit echter Route (OSRM), Höhenprofil und deinem persönlichen Verbrauchsprofil aus der eigenen Historie; automatische Ladeplanung mit Tesla-Superchargern und öffentlichen HPC-Ladern entlang der Route, mehreren Ladestopps, Ankunfts-SoC, Ladeziel und geschätzter Ladezeit; alternative Routen und fährenbewusste Streckenführung einschließlich Sassnitz–Rønne; alle Annahmen offengelegt
+- **Routenübergabe ohne Tesla Fleet API** — geplante Zwischen- und Ladestopps können als Google-Maps-Mehrzielroute geteilt oder per QR-Code auf ein Smartphone übertragen werden; zusätzlich steht eine Tesla-Übergabe der Ziele zur Verfügung. Längere Google-Maps-Routen werden automatisch in Teilrouten aufgeteilt.
 
 **Cockpit & Fahrzeug**
 - **Start-Dashboard** — SoC + Reichweite, Standort, Status, Wetter, Reifendruck mit Warnung und letzte Fahrten als Karte + Liste; zusätzlich Fahrzeugmetadaten, lokalisierte Modellbezeichnung und dynamische Fahrzeugdarstellung
@@ -57,7 +58,9 @@ Tessie & Co. sind gut, aber: Abo-Kosten, Feature-Überschneidung mit der Tesla-A
 
 **Daten**
 - **Datenhoheit** — eigene PostgreSQL-DB, quellen-agnostisches Schema (`source`/`source_id`), Annotationen überleben strukturell jeden Re-Sync
-- **Tessie-Import** — rekonstruiert Fahrten/Ladungen aus einem Tessie-Rohdaten-Export (`import-tessie`-CLI), inkl. echter Energiewerte per Fahrzeug-Zähler
+- **Tessie-Import** — rekonstruiert Fahrten und Ladevorgänge aus einem Tessie-Rohdaten-Export; vorhandene TeslaMate-Zeiträume werden geschützt
+- **Tesla-Ladehistorie** — CSV-Import mit Vorschau, automatischer Zuordnung zu vorhandenen Ladevorgängen und dublettensicheren Aktualisierungen
+- **TRONITY-Ladeimport** — XLSX-Import mit Fahrzeugauswahl und Vorschau; vorhandene TeslaMate-/Tessie-Ladungen werden erkannt und sicher ergänzt, während manuelle Kosten, Notizen und gelockte Orte geschützt bleiben
 - **Energie ehrlich** — echte Zählerwerte wo verfügbar, sonst gekennzeichnete Schätzung; Effizienz-Fallback in den Settings, bis TeslaMate den Fahrzeugwert gelernt hat
 
 ## Hinweis zu Fahrtenbuch und Abrechnung
@@ -345,16 +348,32 @@ docker compose up -d backup web worker
 Die TeslaMate-Datenbank wird bei Backup und Restore nicht verändert.
 
 
-### Historie importieren (Tessie)
+### Historische Daten importieren
 
-Wer vorher Tessie genutzt hat, kann den Rohdaten-Export (CSV-Zeitreihen) importieren — DriveChronik rekonstruiert daraus Fahrten, Park- und Ladesessions:
+Unter **Mehr → Datenimport** stehen mehrere Importwege für vorhandene historische Lade- und Fahrdaten zur Verfügung.
+
+**Tesla-Ladehistorie**
+
+Der CSV-Export aus der Tesla-App kann zunächst geprüft und anschließend importiert werden. DriveChronik ordnet passende Einträge vorhandenen Ladevorgängen zu und führt Aktualisierungen dublettensicher aus.
+
+**TRONITY-Ladungen**
+
+TRONITY-Ladevorgänge können aus einem XLSX-Export mit dem Tabellenblatt `Ladungen` übernommen werden. Bei mehreren Fahrzeugen wird das Ziel-Fahrzeug ausgewählt; bei nur einem Fahrzeug erfolgt die Vorauswahl automatisch.
+
+Vor dem Import zeigt DriveChronik eine Vorschau mit zugeordneten, neuen, zu ergänzenden, unveränderten und mehrdeutigen Ladevorgängen. Vorhandene TeslaMate- oder Tessie-Ladungen werden nicht dupliziert, sondern nur um fehlende TRONITY-Daten ergänzt.
+
+Tatsächliche TRONITY-Kosten dürfen automatische Kostenschätzungen ersetzen. Manuelle Kosten, vorhandene Notizen und gelockte Ortszuordnungen bleiben geschützt. Mehrdeutige Treffer werden nicht automatisch verändert.
+
+**Tessie**
+
+Ein vorhandener Tessie-Rohdatenexport kann weiterhin über den CLI-Importer übernommen werden:
 
 ```bash
 docker compose run --rm -v /pfad/zum/tessie-export:/import:ro worker \
   node dist/cli.js import-tessie /import
 ```
 
-Idempotent (mehrfacher Lauf unschädlich), kollidiert nicht mit TeslaMate-Daten.
+Der Tessie-Import rekonstruiert Fahrten und Ladevorgänge und schützt bereits vorhandene TeslaMate-Zeiträume.
 
 ## Grenzen (ehrlich)
 

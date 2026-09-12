@@ -118,5 +118,47 @@
       "noVehicles": "Für den TRONITY-Import ist noch kein Fahrzeug in DriveChronik vorhanden.",
       "unknown": "Der TRONITY-XLSX-Export konnte nicht verarbeitet werden."
     }
+  },
+  "history": {
+    "title": "Import-Historie",
+    "description": "Die zuletzt ausgeführten Datenimporte und ihr aktueller Rollback-Status.",
+    "empty": "Noch keine protokollierten Importe vorhanden.",
+    "fileUnknown": "Keine Dateiangabe",
+    "createdBy": "von {name}",
+    "vehicle": "Fahrzeug: {name}",
+    "source": {
+      "tronity": "TRONITY Ladungen",
+      "teslaCharging": "Tesla Supercharger",
+      "tessie": "Tessie"
+    },
+    "status": {
+      "running": "Läuft",
+      "completed": "Abgeschlossen",
+      "failed": "Fehlgeschlagen",
+      "rollbackPartial": "Teilweise zurückgesetzt",
+      "rolledBack": "Zurückgesetzt"
+    },
+    "result": {
+      "tronity": "{inserted} neu · {updated} ergänzt · {unchanged} unverändert",
+      "changes": "{count} Änderungen",
+      "none": "Keine Daten geändert"
+    },
+    "undo": "Import rückgängig machen",
+    "checking": "Prüfen …",
+    "previewTitle": "Rollback-Vorschau",
+    "previewDelete": "{count, plural, one {# Datensatz wird entfernt.} other {# Datensätze werden entfernt.}}",
+    "previewRestore": "{count, plural, one {# Datensatz wird wiederhergestellt.} other {# Datensätze werden wiederhergestellt.}}",
+    "previewAlready": "{count, plural, one {# Änderung ist bereits zurückgesetzt.} other {# Änderungen sind bereits zurückgesetzt.}}",
+    "previewConflicts": "{count, plural, one {# Konflikt: nachträglich geänderte oder verknüpfte Daten bleiben geschützt.} other {# Konflikte: nachträglich geänderte oder verknüpfte Daten bleiben geschützt.}}",
+    "previewNothing": "Für diesen Import sind keine Änderungen zurückzusetzen.",
+    "cancel": "Abbrechen",
+    "confirm": "Jetzt rückgängig machen",
+    "rollingBack": "Rollback läuft …",
+    "rollbackDone": "Der Import wurde vollständig zurückgesetzt.",
+    "rollbackPartial": "Rollback teilweise ausgeführt. {count, plural, one {# Konflikt bleibt geschützt.} other {# Konflikte bleiben geschützt.}}",
+    "errors": {
+      "preview": "Die Rollback-Vorschau konnte nicht geladen werden.",
+      "rollback": "Der Import konnte nicht zurückgesetzt werden."
+    }
   }
 }

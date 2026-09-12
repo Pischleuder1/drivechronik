@@ -1,14 +1,97 @@
 import { BatteryCharging, DatabaseZap, ReceiptText } from "lucide-react";
+import { desc, eq } from "drizzle-orm";
 import { getTranslations } from "next-intl/server";
+import {
+  importRuns,
+  vehicles as vehicleTable,
+} from "@drivechronik/db";
 
 import { TessieImport } from "./TessieImport";
 import { TeslaChargingImport } from "./TeslaChargingImport";
 import { TronityChargingImport } from "./TronityChargingImport";
+import {
+  ImportHistory,
+  type ImportHistoryRun,
+} from "./ImportHistory";
+import { db } from "../../../lib/db";
 import { getVehicles } from "../../../lib/queries";
 
 export default async function ImportPage() {
   const t = await getTranslations("import");
-  const vehicles = await getVehicles();
+
+  const [vehicles, historyRows] =
+    await Promise.all([
+      getVehicles(),
+      db
+        .select({
+          id: importRuns.id,
+          source: importRuns.source,
+          status: importRuns.status,
+          vehicleName:
+            vehicleTable.displayName,
+          fileName:
+            importRuns.fileName,
+          createdBy:
+            importRuns.createdBy,
+          summary:
+            importRuns.summary,
+          rollbackSummary:
+            importRuns.rollbackSummary,
+          startedAt:
+            importRuns.startedAt,
+          finishedAt:
+            importRuns.finishedAt,
+          rolledBackAt:
+            importRuns.rolledBackAt,
+        })
+        .from(importRuns)
+        .leftJoin(
+          vehicleTable,
+          eq(
+            importRuns.vehicleId,
+            vehicleTable.id,
+          ),
+        )
+        .orderBy(
+          desc(importRuns.startedAt),
+          desc(importRuns.id),
+        )
+        .limit(20),
+    ]);
+
+  const historyRuns: ImportHistoryRun[] =
+    historyRows.map((run) => ({
+      ...run,
+      summary:
+        run.summary &&
+        typeof run.summary === "object" &&
+        !Array.isArray(run.summary)
+          ? run.summary as Record<
+              string,
+              unknown
+            >
+          : null,
+      rollbackSummary:
+        run.rollbackSummary &&
+        typeof run.rollbackSummary ===
+          "object" &&
+        !Array.isArray(
+          run.rollbackSummary,
+        )
+          ? run.rollbackSummary as Record<
+              string,
+              unknown
+            >
+          : null,
+      startedAt:
+        run.startedAt.toISOString(),
+      finishedAt:
+        run.finishedAt?.toISOString() ??
+        null,
+      rolledBackAt:
+        run.rolledBackAt?.toISOString() ??
+        null,
+    }));
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -91,6 +174,8 @@ export default async function ImportPage() {
 
         <TronityChargingImport vehicles={vehicles} />
       </section>
+
+      <ImportHistory runs={historyRuns} />
     </div>
   );
 }

@@ -118,5 +118,47 @@
       "noVehicles": "No vehicle is available in DriveChronik for the TRONITY import.",
       "unknown": "The TRONITY XLSX export could not be processed."
     }
+  },
+  "history": {
+    "title": "Import history",
+    "description": "The most recent data imports and their current rollback status.",
+    "empty": "No tracked imports are available yet.",
+    "fileUnknown": "No file information",
+    "createdBy": "by {name}",
+    "vehicle": "Vehicle: {name}",
+    "source": {
+      "tronity": "TRONITY charging",
+      "teslaCharging": "Tesla Supercharger",
+      "tessie": "Tessie"
+    },
+    "status": {
+      "running": "Running",
+      "completed": "Completed",
+      "failed": "Failed",
+      "rollbackPartial": "Partially rolled back",
+      "rolledBack": "Rolled back"
+    },
+    "result": {
+      "tronity": "{inserted} new · {updated} enriched · {unchanged} unchanged",
+      "changes": "{count} changes",
+      "none": "No data changed"
+    },
+    "undo": "Undo import",
+    "checking": "Checking …",
+    "previewTitle": "Rollback preview",
+    "previewDelete": "{count, plural, one {# record will be removed.} other {# records will be removed.}}",
+    "previewRestore": "{count, plural, one {# record will be restored.} other {# records will be restored.}}",
+    "previewAlready": "{count, plural, one {# change is already rolled back.} other {# changes are already rolled back.}}",
+    "previewConflicts": "{count, plural, one {# conflict: subsequently changed or linked data remains protected.} other {# conflicts: subsequently changed or linked data remains protected.}}",
+    "previewNothing": "There are no changes to roll back for this import.",
+    "cancel": "Cancel",
+    "confirm": "Undo now",
+    "rollingBack": "Rolling back …",
+    "rollbackDone": "The import was rolled back completely.",
+    "rollbackPartial": "Rollback partially completed. {count, plural, one {# conflict remains protected.} other {# conflicts remain protected.}}",
+    "errors": {
+      "preview": "The rollback preview could not be loaded.",
+      "rollback": "The import could not be rolled back."
+    }
   }
 }

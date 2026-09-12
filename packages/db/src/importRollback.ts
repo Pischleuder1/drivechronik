@@ -200,6 +200,17 @@ export function planUpdateRollback(
       );
     }
 
+    // Felder, die der Import selbst nicht verändert hat,
+    // gehören nicht zum Rollback.
+    if (
+      importJsonEqual(
+        before[key] ?? null,
+        after[key],
+      )
+    ) {
+      continue;
+    }
+
     if (
       importJsonEqual(
         current[key] ?? null,

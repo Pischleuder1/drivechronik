@@ -6,11 +6,15 @@ import {
   gte,
   inArray,
   lte,
+  sql,
 } from "drizzle-orm";
 
 import {
   chargeSessions,
+  completeImportRun,
+  createImportRun,
   places,
+  recordImportChange,
   teslaChargingRecords,
   vehicles,
 } from "@drivechronik/db";
@@ -210,10 +214,61 @@ function numericString(
   return value == null ? null : value.toFixed(2);
 }
 
+const TESLA_ROLLBACK_FIELDS = [
+  "chargeSessionId",
+  "chargeStartTime",
+  "name",
+  "vin",
+  "model",
+  "country",
+  "siteLocationName",
+  "description",
+  "quantityBaseRaw",
+  "energyKwh",
+  "unitCostBaseRaw",
+  "vatRaw",
+  "totalExVat",
+  "totalIncVat",
+  "currency",
+  "invoiceNumber",
+  "status",
+  "invoiceUrl",
+  "sourceHash",
+  "rawData",
+] as const;
+
+function snapshotTeslaChargingRecord(
+  value: Record<string, unknown>,
+): Record<string, unknown> {
+  return Object.fromEntries(
+    TESLA_ROLLBACK_FIELDS.map(
+      (field) => [
+        field,
+        value[field] ?? null,
+      ],
+    ),
+  );
+}
+
+function snapshotsEqual(
+  left: Record<string, unknown>,
+  right: Record<string, unknown>,
+): boolean {
+  return (
+    JSON.stringify(left) ===
+    JSON.stringify(right)
+  );
+}
+
 async function parseRequestFile(
   request: Request,
-): Promise<TeslaChargingCsvRow[]> {
-  const formData = await request.formData();
+): Promise<{
+  rows: TeslaChargingCsvRow[];
+  fileName: string | null;
+}> {
+  const formData =
+    await request.formData();
+
   const file = formData.get("file");
 
   if (
@@ -227,7 +282,8 @@ async function parseRequestFile(
   }
 
   const size =
-    "size" in file && typeof file.size === "number"
+    "size" in file &&
+    typeof file.size === "number"
       ? file.size
       : 0;
 
@@ -237,10 +293,20 @@ async function parseRequestFile(
     );
   }
 
-  const bytes = await file.arrayBuffer();
-  const text = Buffer.from(bytes).toString("utf8");
+  const fileName =
+    "name" in file &&
+    typeof file.name === "string"
+      ? file.name
+      : null;
 
-  const rows = parseTeslaChargingCsv(text);
+  const bytes =
+    await file.arrayBuffer();
+
+  const csvText =
+    Buffer.from(bytes).toString("utf8");
+
+  const rows =
+    parseTeslaChargingCsv(csvText);
 
   if (rows.length > MAX_ROWS) {
     throw new Error(
@@ -248,7 +314,10 @@ async function parseRequestFile(
     );
   }
 
-  return rows;
+  return {
+    rows,
+    fileName,
+  };
 }
 
 export async function POST(request: Request) {
@@ -262,7 +331,10 @@ export async function POST(request: Request) {
   }
 
   try {
-    const rows = await parseRequestFile(request);
+    const {
+      rows,
+      fileName,
+    } = await parseRequestFile(request);
 
     const vehicleRows = await db
       .select({
@@ -466,76 +538,268 @@ export async function POST(request: Request) {
       });
     }
 
-    for (
-      let index = 0;
-      index < rows.length;
-      index += 1
-    ) {
-      const row = rows[index]!;
-      const match = matches[index]!;
+    let inserted = 0;
+    let updated = 0;
+    let unchanged = 0;
 
-      const values = {
-        chargeSessionId:
-          match.status === "matched"
-            ? match.chargeSessionId
-            : null,
+    const importedVehicleIds =
+      [...rowsByVehicle.keys()];
 
-        chargeStartTime:
-          row.chargeStartTime,
+    const importVehicleId =
+      importedVehicleIds.length === 1
+        ? importedVehicleIds[0]!
+        : null;
 
-        name: row.name,
-        vin: row.vin,
-        model: row.model,
-        country: row.country,
-        siteLocationName:
-          row.siteLocationName,
-        description: row.description,
+    const importRunId =
+      await db.transaction(
+        async (tx) => {
+          /*
+           * Manuelle Tesla-CSV-Importe werden
+           * serialisiert. So kann zwischen dem
+           * Before-Snapshot und dem Upsert kein
+           * zweiter Tesla-Import denselben
+           * source_hash verändern.
+           */
+          await tx.execute(sql`
+            select pg_advisory_xact_lock(
+              441726382
+            )
+          `);
 
-        quantityBaseRaw:
-          row.quantityBaseRaw,
-        energyKwh: row.energyKwh,
-        unitCostBaseRaw:
-          row.unitCostBaseRaw,
+          const runId =
+            await createImportRun(
+              tx,
+              {
+                source:
+                  "tesla_charging",
+                vehicleId:
+                  importVehicleId,
+                fileName,
+                createdBy:
+                  user.username,
+              },
+            );
 
-        vatRaw: row.vatRaw,
-        totalExVat:
-          numericString(row.totalExVat),
-        totalIncVat:
-          numericString(row.totalIncVat),
-        currency: row.currency,
+          for (
+            let index = 0;
+            index < rows.length;
+            index += 1
+          ) {
+            const row = rows[index]!;
+            const match =
+              matches[index]!;
 
-        invoiceNumber:
-          row.invoiceNumber,
-        status: row.status,
-        invoiceUrl: row.invoiceUrl,
+            const values = {
+              chargeSessionId:
+                match.status ===
+                "matched"
+                  ? match
+                      .chargeSessionId
+                  : null,
+              chargeStartTime:
+                row.chargeStartTime,
+              name: row.name,
+              vin: row.vin,
+              model: row.model,
+              country: row.country,
+              siteLocationName:
+                row.siteLocationName,
+              description:
+                row.description,
+              quantityBaseRaw:
+                row.quantityBaseRaw,
+              energyKwh:
+                row.energyKwh,
+              unitCostBaseRaw:
+                row.unitCostBaseRaw,
+              vatRaw: row.vatRaw,
+              totalExVat:
+                numericString(
+                  row.totalExVat,
+                ),
+              totalIncVat:
+                numericString(
+                  row.totalIncVat,
+                ),
+              currency:
+                row.currency,
+              invoiceNumber:
+                row.invoiceNumber,
+              status: row.status,
+              invoiceUrl:
+                row.invoiceUrl,
+              sourceHash:
+                row.sourceHash,
+              rawData:
+                JSON.stringify(
+                  row.raw,
+                ),
+            };
 
-        sourceHash: row.sourceHash,
-        rawData: JSON.stringify(row.raw),
+            const existing =
+              await tx
+                .select()
+                .from(
+                  teslaChargingRecords,
+                )
+                .where(
+                  eq(
+                    teslaChargingRecords
+                      .sourceHash,
+                    row.sourceHash,
+                  ),
+                )
+                .limit(1);
 
-        updatedAt: new Date(),
-      };
+            const after =
+              snapshotTeslaChargingRecord(
+                values as unknown as
+                  Record<
+                    string,
+                    unknown
+                  >,
+              );
 
-      await db
-        .insert(teslaChargingRecords)
-        .values(values)
-        .onConflictDoUpdate({
-          target:
-            teslaChargingRecords.sourceHash,
-          set: values,
-        });
-    }
+            if (existing.length > 0) {
+              const current =
+                existing[0]!;
+
+              const before =
+                snapshotTeslaChargingRecord(
+                  current as unknown as
+                    Record<
+                      string,
+                      unknown
+                    >,
+                );
+
+              if (
+                snapshotsEqual(
+                  before,
+                  after,
+                )
+              ) {
+                unchanged++;
+                continue;
+              }
+
+              await tx
+                .update(
+                  teslaChargingRecords,
+                )
+                .set({
+                  ...values,
+                  updatedAt:
+                    new Date(),
+                })
+                .where(
+                  eq(
+                    teslaChargingRecords.id,
+                    current.id,
+                  ),
+                );
+
+              await recordImportChange(
+                tx,
+                {
+                  importRunId:
+                    runId,
+                  entityType:
+                    "tesla_charging_record",
+                  entityId:
+                    current.id,
+                  action:
+                    "update",
+                  before,
+                  after,
+                  metadata: {
+                    source:
+                      "tesla_charging",
+                  },
+                },
+              );
+
+              updated++;
+              continue;
+            }
+
+            const insertedRows =
+              await tx
+                .insert(
+                  teslaChargingRecords,
+                )
+                .values({
+                  ...values,
+                  updatedAt:
+                    new Date(),
+                })
+                .returning({
+                  id:
+                    teslaChargingRecords.id,
+                });
+
+            const insertedRow =
+              insertedRows[0];
+
+            if (!insertedRow) {
+              throw new Error(
+                "Tesla-Ladedatensatz konnte nicht angelegt werden.",
+              );
+            }
+
+            await recordImportChange(
+              tx,
+              {
+                importRunId:
+                  runId,
+                entityType:
+                  "tesla_charging_record",
+                entityId:
+                  insertedRow.id,
+                action: "insert",
+                after,
+                metadata: {
+                  source:
+                    "tesla_charging",
+                },
+              },
+            );
+
+            inserted++;
+          }
+
+          await completeImportRun(
+            tx,
+            runId,
+            {
+              ...summary,
+              inserted,
+              updated,
+              unchanged,
+              newRecords:
+                inserted,
+              updatedRecords:
+                updated,
+            },
+          );
+
+          return runId;
+        },
+      );
 
     return NextResponse.json({
       mode: "import",
+      importRunId,
       summary: {
         ...summary,
-        newRecords:
-          rows.length -
-          existingHashes.size,
-        updatedRecords:
-          existingHashes.size,
+        inserted,
+        updated,
+        unchanged,
+        newRecords: inserted,
+        updatedRecords: updated,
       },
     });
+
   } catch (error) {
     return NextResponse.json(
       {

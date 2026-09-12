@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   CheckCircle2,
@@ -57,6 +58,7 @@ type ImportResponse = {
 
 export function TeslaChargingImport() {
   const t = useTranslations("import");
+  const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] =
     useState<PreviewResponse | null>(null);
@@ -106,6 +108,7 @@ export function TeslaChargingImport() {
         setResult(null);
       } else {
         setResult(body);
+        router.refresh();
       }
     } catch (err) {
       setError(

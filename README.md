@@ -61,7 +61,7 @@ Tessie & Co. sind gut, aber: Abo-Kosten, Feature-Überschneidung mit der Tesla-A
 - **Tessie-Import** — rekonstruiert Fahrten und Ladevorgänge aus einem Tessie-Rohdaten-Export; vorhandene TeslaMate-Zeiträume werden geschützt
 - **Tesla-Ladehistorie** — CSV-Import mit Vorschau, automatischer Zuordnung zu vorhandenen Ladevorgängen und dublettensicheren Aktualisierungen
 - **TRONITY-Ladeimport** — XLSX-Import mit Fahrzeugauswahl und Vorschau; vorhandene TeslaMate-/Tessie-Ladungen werden erkannt und sicher ergänzt, während manuelle Kosten, Notizen und gelockte Orte geschützt bleiben
-- **Import-Historie & sicherer Rollback** — protokollierte TRONITY-Importe können vor dem Zurücksetzen geprüft und anschließend gezielt rückgängig gemacht werden. Spätere manuelle Änderungen und verknüpfte Daten werden als Konflikte erkannt und bleiben geschützt; vollständige und teilweise Rollbacks werden nachvollziehbar protokolliert.
+- **Import-Historie & sicherer Rollback** — protokollierte TRONITY- und Tesla-Ladehistorienimporte können vor dem Zurücksetzen geprüft und anschließend gezielt rückgängig gemacht werden. Spätere manuelle Änderungen werden erkannt und bleiben geschützt; vollständige und teilweise Rollbacks werden nachvollziehbar protokolliert.
 - **Energie ehrlich** — echte Zählerwerte wo verfügbar, sonst gekennzeichnete Schätzung; Effizienz-Fallback in den Settings, bis TeslaMate den Fahrzeugwert gelernt hat
 
 ## Hinweis zu Fahrtenbuch und Abrechnung
@@ -365,9 +365,9 @@ Vor dem Import zeigt DriveChronik eine Vorschau mit zugeordneten, neuen, zu erg�
 
 **Import-Historie und Rückgängig-Funktion**
 
-Ausgeführte TRONITY-Importe werden unter **Mehr → Datenimport** in einer Import-Historie angezeigt. Vor einem Rollback prüft DriveChronik, welche Änderungen sicher zurückgenommen werden können. Nachträglich manuell geänderte Ladevorgänge sowie Datensätze mit abhängigen Ladepunkten, Tags oder Tesla-Ladeverknüpfungen werden geschützt und als Konflikt ausgewiesen. Ein Rollback kann deshalb vollständig oder teilweise erfolgen; das Ergebnis wird zusätzlich in der manipulationserschwerenden Audit-Kette protokolliert.
+Ausgeführte TRONITY- und Tesla-Ladehistorienimporte werden unter **Mehr → Datenimport** in einer Import-Historie angezeigt. Vor einem Rollback prüft DriveChronik, welche Änderungen sicher zurückgenommen werden können. Nachträglich manuell geänderte Felder werden geschützt und als Konflikt ausgewiesen; bei TRONITY werden zusätzlich abhängige Ladepunkte, Tags und Tesla-Ladeverknüpfungen berücksichtigt. Ein Rollback kann deshalb vollständig oder teilweise erfolgen; das Ergebnis wird zusätzlich in der manipulationserschwerenden Audit-Kette protokolliert.
 
-Die Rückgängig-Funktion gilt derzeit für TRONITY-Importe. Tesla-Ladehistorie und Tessie-Importe werden noch nicht über diese Funktion zurückgesetzt.
+Die Rückgängig-Funktion gilt derzeit für TRONITY-Importe und die Tesla-Ladehistorie. Tessie-Importe werden noch nicht über diese Funktion zurückgesetzt.
 
 Tatsächliche TRONITY-Kosten dürfen automatische Kostenschätzungen ersetzen. Manuelle Kosten, vorhandene Notizen und gelockte Ortszuordnungen bleiben geschützt. Mehrdeutige Treffer werden nicht automatisch verändert.
 

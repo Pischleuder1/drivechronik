@@ -64,6 +64,33 @@ describe("import rollback helpers", () => {
     ]);
   });
 
+  it("ignores fields that were not changed by the import", () => {
+    const result = planUpdateRollback(
+      {
+        cost: "4.00",
+        notes: null,
+        source: "tesla",
+      },
+      {
+        cost: "5.00",
+        notes: null,
+        source: "tesla",
+      },
+      {
+        cost: "5.00",
+        notes: "manuell geändert",
+        source: "tesla",
+      },
+    );
+
+    expect(result.restore).toEqual({
+      cost: "4.00",
+    });
+
+    expect(result.alreadyRestored).toEqual([]);
+    expect(result.conflicts).toEqual([]);
+  });
+
   it("recognizes fields that are already restored", () => {
     const result = planUpdateRollback(
       {

@@ -229,7 +229,8 @@ export function ImportHistory({
     run: ImportHistoryRun,
   ): boolean {
     if (
-      run.source !== "tronity"
+      run.source !== "tronity" &&
+      run.source !== "tesla_charging"
     ) {
       return false;
     }

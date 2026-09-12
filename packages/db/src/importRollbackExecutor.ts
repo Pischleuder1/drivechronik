@@ -32,6 +32,9 @@ type StoredImportChange =
 type ChargeSessionPatch =
   Partial<typeof chargeSessions.$inferInsert>;
 
+type TeslaChargingRecordPatch =
+  Partial<typeof teslaChargingRecords.$inferInsert>;
+
 export type RollbackOutcome =
   | "delete"
   | "restore"
@@ -97,6 +100,45 @@ const chargeSessionSelection = {
   notes: chargeSessions.notes,
   source: chargeSessions.source,
   sourceId: chargeSessions.sourceId,
+};
+
+const teslaChargingRecordSelection = {
+  chargeSessionId:
+    teslaChargingRecords.chargeSessionId,
+  chargeStartTime:
+    teslaChargingRecords.chargeStartTime,
+  name: teslaChargingRecords.name,
+  vin: teslaChargingRecords.vin,
+  model: teslaChargingRecords.model,
+  country: teslaChargingRecords.country,
+  siteLocationName:
+    teslaChargingRecords.siteLocationName,
+  description:
+    teslaChargingRecords.description,
+  quantityBaseRaw:
+    teslaChargingRecords.quantityBaseRaw,
+  energyKwh:
+    teslaChargingRecords.energyKwh,
+  unitCostBaseRaw:
+    teslaChargingRecords.unitCostBaseRaw,
+  vatRaw:
+    teslaChargingRecords.vatRaw,
+  totalExVat:
+    teslaChargingRecords.totalExVat,
+  totalIncVat:
+    teslaChargingRecords.totalIncVat,
+  currency:
+    teslaChargingRecords.currency,
+  invoiceNumber:
+    teslaChargingRecords.invoiceNumber,
+  status:
+    teslaChargingRecords.status,
+  invoiceUrl:
+    teslaChargingRecords.invoiceUrl,
+  sourceHash:
+    teslaChargingRecords.sourceHash,
+  rawData:
+    teslaChargingRecords.rawData,
 };
 
 function jsonDate(
@@ -193,6 +235,58 @@ function chargeSessionRestorePatch(
   return result as ChargeSessionPatch;
 }
 
+function teslaChargingRecordRestorePatch(
+  snapshot: ImportSnapshot,
+): TeslaChargingRecordPatch {
+  const result: Record<string, unknown> = {};
+
+  const allowed = new Set([
+    "chargeSessionId",
+    "chargeStartTime",
+    "name",
+    "vin",
+    "model",
+    "country",
+    "siteLocationName",
+    "description",
+    "quantityBaseRaw",
+    "energyKwh",
+    "unitCostBaseRaw",
+    "vatRaw",
+    "totalExVat",
+    "totalIncVat",
+    "currency",
+    "invoiceNumber",
+    "status",
+    "invoiceUrl",
+    "sourceHash",
+    "rawData",
+  ]);
+
+  for (const [key, value] of Object.entries(
+    snapshot,
+  )) {
+    if (!allowed.has(key)) {
+      throw new Error(
+        `Nicht unterstütztes tesla_charging_record-Feld: ${key}`,
+      );
+    }
+
+    if (key === "chargeStartTime") {
+      result[key] = jsonDate(
+        value,
+        key,
+        false,
+      );
+      continue;
+    }
+
+    result[key] = value;
+  }
+
+  return result as TeslaChargingRecordPatch;
+}
+
 async function chargeSessionBlockers(
   db: ImportDb,
   chargeSessionId: number,
@@ -253,7 +347,7 @@ async function chargeSessionBlockers(
   return blockers;
 }
 
-async function evaluateChange(
+async function evaluateChargeSessionChange(
   db: ImportDb,
   change: StoredImportChange,
   lockRow = false,
@@ -466,6 +560,204 @@ async function evaluateChange(
   }
 }
 
+async function evaluateTeslaChargingRecordChange(
+  db: ImportDb,
+  change: StoredImportChange,
+  lockRow = false,
+): Promise<ImportRollbackDetail> {
+  const base = {
+    changeId: change.id,
+    entityType: change.entityType,
+    entityId: change.entityId,
+    action: change.action,
+    restoreFields: [] as string[],
+    alreadyRestoredFields: [] as string[],
+  };
+
+  if (
+    change.action !== "insert" &&
+    change.action !== "update"
+  ) {
+    return {
+      ...base,
+      outcome: "conflict",
+      conflicts: ["unsupported_action"],
+    };
+  }
+
+  if (lockRow) {
+    await db.execute(sql`
+      select id
+      from tesla_charging_records
+      where id = ${change.entityId}
+      for update
+    `);
+  }
+
+  const rows = await db
+    .select(teslaChargingRecordSelection)
+    .from(teslaChargingRecords)
+    .where(
+      eq(
+        teslaChargingRecords.id,
+        change.entityId,
+      ),
+    )
+    .limit(1);
+
+  const current = rows[0];
+
+  if (!current) {
+    if (change.action === "insert") {
+      return {
+        ...base,
+        outcome: "already_deleted",
+        conflicts: [],
+      };
+    }
+
+    return {
+      ...base,
+      outcome: "conflict",
+      conflicts: ["row_missing"],
+    };
+  }
+
+  if (change.action === "insert") {
+    if (change.after == null) {
+      return {
+        ...base,
+        outcome: "conflict",
+        conflicts: [
+          "invalid_after_snapshot",
+        ],
+      };
+    }
+
+    try {
+      if (
+        !canRollbackInsert(
+          change.after,
+          current,
+        )
+      ) {
+        return {
+          ...base,
+          outcome: "conflict",
+          conflicts: ["row_changed"],
+        };
+      }
+    } catch {
+      return {
+        ...base,
+        outcome: "conflict",
+        conflicts: [
+          "invalid_after_snapshot",
+        ],
+      };
+    }
+
+    return {
+      ...base,
+      outcome: "delete",
+      conflicts: [],
+    };
+  }
+
+  if (
+    change.before == null ||
+    change.after == null
+  ) {
+    return {
+      ...base,
+      outcome: "conflict",
+      conflicts: [
+        "invalid_update_snapshot",
+      ],
+    };
+  }
+
+  try {
+    const plan = planUpdateRollback(
+      change.before,
+      change.after,
+      current,
+    );
+
+    const restoreFields =
+      Object.keys(plan.restore);
+
+    if (restoreFields.length > 0) {
+      return {
+        ...base,
+        outcome: "restore",
+        conflicts:
+          plan.conflicts.map(
+            (field) =>
+              `field_changed:${field}`,
+          ),
+        restoreFields,
+        alreadyRestoredFields:
+          plan.alreadyRestored,
+        restore: plan.restore,
+      };
+    }
+
+    if (plan.conflicts.length > 0) {
+      return {
+        ...base,
+        outcome: "conflict",
+        conflicts:
+          plan.conflicts.map(
+            (field) =>
+              `field_changed:${field}`,
+          ),
+        alreadyRestoredFields:
+          plan.alreadyRestored,
+      };
+    }
+
+    return {
+      ...base,
+      outcome: "already_restored",
+      conflicts: [],
+      alreadyRestoredFields:
+        plan.alreadyRestored,
+    };
+  } catch {
+    return {
+      ...base,
+      outcome: "conflict",
+      conflicts: [
+        "invalid_update_snapshot",
+      ],
+    };
+  }
+}
+
+async function evaluateChange(
+  db: ImportDb,
+  change: StoredImportChange,
+  lockRow = false,
+): Promise<ImportRollbackDetail> {
+  if (
+    change.entityType ===
+    "tesla_charging_record"
+  ) {
+    return evaluateTeslaChargingRecordChange(
+      db,
+      change,
+      lockRow,
+    );
+  }
+
+  return evaluateChargeSessionChange(
+    db,
+    change,
+    lockRow,
+  );
+}
+
 async function buildPreview(
   db: ImportDb,
   importRunId: number,
@@ -595,7 +887,7 @@ export async function rollbackImportRun(
 
       /*
        * Beim echten Rollback werden zusätzlich die
-       * betroffenen charge_sessions gesperrt.
+       * betroffenen Import-Datensätze gesperrt.
        * Dadurch kann sich ihr gespeicherter Zustand
        * zwischen Sicherheitsprüfung und Mutation
        * nicht verändern.
@@ -611,51 +903,122 @@ export async function rollbackImportRun(
       let restored = 0;
 
       for (const detail of preview.details) {
-        if (
-          detail.outcome === "delete"
-        ) {
-          const rows = await tx
-            .delete(chargeSessions)
-            .where(
-              eq(
-                chargeSessions.id,
-                detail.entityId,
-              ),
-            )
-            .returning({
-              id: chargeSessions.id,
-            });
+        if (detail.outcome === "delete") {
+          if (
+            detail.entityType ===
+            "charge_session"
+          ) {
+            const rows = await tx
+              .delete(chargeSessions)
+              .where(
+                eq(
+                  chargeSessions.id,
+                  detail.entityId,
+                ),
+              )
+              .returning({
+                id: chargeSessions.id,
+              });
 
-          if (rows.length > 0) {
-            deleted++;
+            if (rows.length > 0) {
+              deleted++;
+            }
+
+            continue;
           }
 
-          continue;
+          if (
+            detail.entityType ===
+            "tesla_charging_record"
+          ) {
+            const rows = await tx
+              .delete(
+                teslaChargingRecords,
+              )
+              .where(
+                eq(
+                  teslaChargingRecords.id,
+                  detail.entityId,
+                ),
+              )
+              .returning({
+                id:
+                  teslaChargingRecords.id,
+              });
+
+            if (rows.length > 0) {
+              deleted++;
+            }
+
+            continue;
+          }
+
+          throw new Error(
+            `Nicht unterstützter Rollback-Typ: ${detail.entityType}`,
+          );
         }
 
         if (
           detail.outcome === "restore" &&
           detail.restore
         ) {
-          const patch =
-            chargeSessionRestorePatch(
-              detail.restore,
-            );
+          if (
+            detail.entityType ===
+            "charge_session"
+          ) {
+            const patch =
+              chargeSessionRestorePatch(
+                detail.restore,
+              );
 
-          await tx
-            .update(chargeSessions)
-            .set({
-              ...patch,
-              updatedAt: new Date(),
-            })
-            .where(
-              eq(
-                chargeSessions.id,
-                detail.entityId,
-              ),
-            );
+            await tx
+              .update(chargeSessions)
+              .set({
+                ...patch,
+                updatedAt: new Date(),
+              })
+              .where(
+                eq(
+                  chargeSessions.id,
+                  detail.entityId,
+                ),
+              );
 
-          restored++;
+            restored++;
+            continue;
+          }
+
+          if (
+            detail.entityType ===
+            "tesla_charging_record"
+          ) {
+            const patch =
+              teslaChargingRecordRestorePatch(
+                detail.restore,
+              );
+
+            await tx
+              .update(
+                teslaChargingRecords,
+              )
+              .set({
+                ...patch,
+                updatedAt: new Date(),
+              })
+              .where(
+                eq(
+                  teslaChargingRecords.id,
+                  detail.entityId,
+                ),
+              );
+
+            restored++;
+            continue;
+          }
+
+          throw new Error(
+            `Nicht unterstützter Rollback-Typ: ${detail.entityType}`,
+          );
         }
       }
 

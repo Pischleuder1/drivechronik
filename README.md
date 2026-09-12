@@ -62,6 +62,7 @@ Tessie & Co. sind gut, aber: Abo-Kosten, Feature-Überschneidung mit der Tesla-A
 - **Tesla-Ladehistorie** — CSV-Import mit Vorschau, automatischer Zuordnung zu vorhandenen Ladevorgängen und dublettensicheren Aktualisierungen
 - **TRONITY-Ladeimport** — XLSX-Import mit Fahrzeugauswahl und Vorschau; vorhandene TeslaMate-/Tessie-Ladungen werden erkannt und sicher ergänzt, während manuelle Kosten, Notizen und gelockte Orte geschützt bleiben
 - **Import-Historie & sicherer Rollback** — protokollierte TRONITY- und Tesla-Ladehistorienimporte können vor dem Zurücksetzen geprüft und anschließend gezielt rückgängig gemacht werden. Spätere manuelle Änderungen werden erkannt und bleiben geschützt; vollständige und teilweise Rollbacks werden nachvollziehbar protokolliert.
+- **Vollständiger Datenexport** — portables ZIP-Archiv aller fachlichen DriveChronik-Daten als JSON und CSV. Ein Manifest dokumentiert Tabellenstruktur, Datensatzanzahlen und SHA-256-Prüfsummen. Passwort-Hashes, Sessions, Secrets, technische Synchronisationszustände und temporäre Import-Jobs werden bewusst nicht exportiert.
 - **Energie ehrlich** — echte Zählerwerte wo verfügbar, sonst gekennzeichnete Schätzung; Effizienz-Fallback in den Settings, bis TeslaMate den Fahrzeugwert gelernt hat
 
 ## Hinweis zu Fahrtenbuch und Abrechnung
@@ -262,6 +263,11 @@ Der Proof kann unabhängig von Webserver und Datenbank mit `node scripts/verify-
 Der Abschluss ist ein manipulationserschwerender und nachvollziehbarer Anwendungsmechanismus, keine behördliche Zertifizierung oder Garantie einer steuerlichen Anerkennung.
 
 ### Backup & Restore
+
+Der vollständige Datenexport unter **Mehr → Datenexport** ist eine portable,
+menschenlesbare Sicherung der fachlichen DriveChronik-Daten in JSON und CSV.
+Für eine vollständige 1:1-Wiederherstellung der Anwendung bleibt das
+PostgreSQL-Backup im Custom-Format (`.dump`) der maßgebliche Sicherungsweg.
 
 DriveChronik sichert seine eigene PostgreSQL-Datenbank automatisch über den
 `backup`-Service. TeslaMate selbst ist nicht Bestandteil dieses Backups.

@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - TRONITY XLSX charging import with vehicle selection, preview, duplicate-safe matching and merging into existing charging sessions while protecting manual costs, notes and locked place assignments.
 - Import history with safe rollback support for TRONITY and Tesla charging-history imports, including rollback preview, conflict protection for later manual changes, partial rollback handling, transaction locking and tamper-evident audit logging.
+- Complete portable data export as a ZIP archive with JSON and CSV representations of DriveChronik application data, table metadata, row counts and SHA-256 checksums while excluding authentication, session, secret and temporary runtime data.
 
 - Route planner handoff for Tesla without the Fleet API, including ordered manual and charging stops, Tesla handoff mode, automatic route splitting at a maximum of 9 intermediate points per handoff, Google Maps multi-stop routes, QR-code transfer to smartphones, route sharing/copying and visible success feedback.
 - Improved route planner input layout with repositioned waypoint creation, clearer waypoint action styling, card-based start/destination selection and compact cards for SoC, outside temperature and battery capacity.

@@ -74,7 +74,8 @@
     "insights": "Insights",
     "vehicle": "Vehicle",
     "planner": "Route planner",
-    "import": "Data import"
+    "import": "Data import",
+    "export": "Data export"
   },
   "logout": "Log out",
   "loggingOut": "Logging out…",
@@ -159,5 +160,18 @@
     "saving": "Saving…",
     "saved": "Saved.",
     "hint": "Used to calculate business mileage reimbursement in reports, CSV and PDF. Default: €0.30/km."
+  },
+  "dataExport": {
+    "title": "Data export",
+    "subtitle": "Save all application data stored in DriveChronik as a portable archive.",
+    "full": {
+      "title": "Complete data export",
+      "description": "Creates a ZIP archive containing the complete DriveChronik data in JSON and CSV format.",
+      "contents": "Includes vehicles, drives, charging and parking sessions, GPS routes, places, journeys, tags, Tesla charging history, audit history and import history.",
+      "security": "Password hashes, sessions, secrets, technical sync state and temporary import jobs are not exported.",
+      "download": "Download complete data export",
+      "hint": "The archive also contains a manifest with table structure, row counts and SHA-256 checksums."
+    },
+    "back": "Back to More"
   }
 }

@@ -74,7 +74,8 @@
     "insights": "Auswertungen",
     "vehicle": "Fahrzeug",
     "planner": "Routenplaner",
-    "import": "Datenimport"
+    "import": "Datenimport",
+    "export": "Datenexport"
   },
   "logout": "Abmelden",
   "loggingOut": "Abmelden…",
@@ -159,5 +160,18 @@
     "saving": "Speichert…",
     "saved": "Gespeichert.",
     "hint": "Wird für die Abrechnung geschäftlicher Fahrten in Berichten, CSV und PDF verwendet. Standardwert: 0,30 €/km."
+  },
+  "dataExport": {
+    "title": "Datenexport",
+    "subtitle": "Alle in DriveChronik gespeicherten fachlichen Daten als portables Archiv sichern.",
+    "full": {
+      "title": "Vollständiger Datenexport",
+      "description": "Erstellt ein ZIP-Archiv mit den vollständigen DriveChronik-Daten in JSON- und CSV-Form.",
+      "contents": "Enthalten sind unter anderem Fahrzeuge, Fahrten, Lade- und Parkvorgänge, GPS-Routen, Orte, Reisen, Tags, Tesla-Ladehistorie, Audit- und Import-Historie.",
+      "security": "Passwort-Hashes, Sitzungen, Secrets, technische Synchronisationszustände und temporäre Import-Jobs werden nicht exportiert.",
+      "download": "Vollständigen Datenexport herunterladen",
+      "hint": "Das Archiv enthält zusätzlich ein Manifest mit Tabellenstruktur, Datensatzanzahlen und SHA-256-Prüfsummen."
+    },
+    "back": "Zurück zu Mehr"
   }
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   CheckCircle2,
@@ -95,6 +96,7 @@ export function TronityChargingImport({
   vehicles,
 }: Props) {
   const t = useTranslations("import");
+  const router = useRouter();
 
   const [vehicleId, setVehicleId] =
     useState(
@@ -178,6 +180,7 @@ export function TronityChargingImport({
         setResult(
           body as ImportResponse,
         );
+        router.refresh();
       }
     } catch (err) {
       setError(

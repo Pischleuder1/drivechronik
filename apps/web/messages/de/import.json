@@ -66,5 +66,57 @@
     "errors": {
       "unknown": "Die Tesla-CSV konnte nicht verarbeitet werden."
     }
+  },
+  "tronityCharging": {
+    "title": "TRONITY Ladungen",
+    "description": "Ladevorgänge aus einem TRONITY-XLSX-Export importieren und mit vorhandenen DriveChronik-Ladungen abgleichen.",
+    "details": "DriveChronik prüft Start- und Endzeit, Energie und Standort. Bestehende TeslaMate- oder Tessie-Ladungen werden ergänzt statt dupliziert. Manuelle Kosten, Notizen und gelockte Orte bleiben geschützt.",
+    "vehicle": "Fahrzeug",
+    "vehiclePlaceholder": "Fahrzeug auswählen",
+    "selectFile": "TRONITY-XLSX auswählen",
+    "fileHint": "XLSX-Export mit dem Tabellenblatt „Ladungen“",
+    "selected": "Ausgewählt · ca. {size} KB",
+    "check": "XLSX prüfen",
+    "import": "TRONITY-Daten importieren",
+    "reset": "Neuen Import vorbereiten",
+    "changes": "Geplante Ergänzungen",
+    "reviewHint": "{count} mehrdeutige Ladevorgänge werden aus Sicherheitsgründen nicht automatisch verändert.",
+    "previewTruncated": "Die Vorschau zeigt maximal 100 Ladevorgänge. Beim Import werden alle Datensätze verarbeitet.",
+    "completed": "Import abgeschlossen · {inserted} neu · {updated} ergänzt · {unchanged} unverändert · {skipped} mehrdeutig übersprungen.",
+    "summary": {
+      "total": "Ladungen",
+      "matched": "Zugeordnet",
+      "new": "Neu",
+      "toUpdate": "Zu ergänzen",
+      "unchanged": "Unverändert",
+      "ambiguous": "Mehrdeutig"
+    },
+    "match": {
+      "matched": "Zugeordnet",
+      "ambiguous": "Mehrdeutig",
+      "unmatched": "Neu"
+    },
+    "actions": {
+      "newRecord": "Wird als neuer Ladevorgang angelegt.",
+      "skipped": "Wird beim Import nicht automatisch verändert.",
+      "noChange": "Vorhandener Ladevorgang ist bereits vollständig."
+    },
+    "fields": {
+      "endTime": "Endzeit",
+      "position": "Position",
+      "address": "Adresse",
+      "startSoc": "Start-SoC",
+      "endSoc": "End-SoC",
+      "energy": "Energie",
+      "maxPower": "Max. Leistung",
+      "chargerType": "Ladeart",
+      "duration": "Dauer",
+      "cost": "Kosten",
+      "notes": "Notiz"
+    },
+    "errors": {
+      "noVehicles": "Für den TRONITY-Import ist noch kein Fahrzeug in DriveChronik vorhanden.",
+      "unknown": "Der TRONITY-XLSX-Export konnte nicht verarbeitet werden."
+    }
   }
 }

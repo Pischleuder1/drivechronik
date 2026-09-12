@@ -66,5 +66,57 @@
     "errors": {
       "unknown": "The Tesla CSV could not be processed."
     }
+  },
+  "tronityCharging": {
+    "title": "TRONITY charging",
+    "description": "Import charging sessions from a TRONITY XLSX export and match them to existing DriveChronik charging sessions.",
+    "details": "DriveChronik checks start and end times, energy and location. Existing TeslaMate or Tessie charging sessions are enriched instead of duplicated. Manual costs, notes and locked places remain protected.",
+    "vehicle": "Vehicle",
+    "vehiclePlaceholder": "Select vehicle",
+    "selectFile": "Select TRONITY XLSX",
+    "fileHint": "XLSX export containing the “Ladungen” worksheet",
+    "selected": "Selected · approx. {size} KB",
+    "check": "Check XLSX",
+    "import": "Import TRONITY data",
+    "reset": "Prepare new import",
+    "changes": "Planned additions",
+    "reviewHint": "{count} ambiguous charging sessions will not be changed automatically for safety.",
+    "previewTruncated": "The preview shows at most 100 charging sessions. All records are processed during import.",
+    "completed": "Import completed · {inserted} new · {updated} enriched · {unchanged} unchanged · {skipped} ambiguous skipped.",
+    "summary": {
+      "total": "Charges",
+      "matched": "Matched",
+      "new": "New",
+      "toUpdate": "To enrich",
+      "unchanged": "Unchanged",
+      "ambiguous": "Ambiguous"
+    },
+    "match": {
+      "matched": "Matched",
+      "ambiguous": "Ambiguous",
+      "unmatched": "New"
+    },
+    "actions": {
+      "newRecord": "Will be created as a new charging session.",
+      "skipped": "Will not be changed automatically during import.",
+      "noChange": "Existing charging session is already complete."
+    },
+    "fields": {
+      "endTime": "End time",
+      "position": "Position",
+      "address": "Address",
+      "startSoc": "Start SoC",
+      "endSoc": "End SoC",
+      "energy": "Energy",
+      "maxPower": "Max. power",
+      "chargerType": "Charging type",
+      "duration": "Duration",
+      "cost": "Cost",
+      "notes": "Note"
+    },
+    "errors": {
+      "noVehicles": "No vehicle is available in DriveChronik for the TRONITY import.",
+      "unknown": "The TRONITY XLSX export could not be processed."
+    }
   }
 }

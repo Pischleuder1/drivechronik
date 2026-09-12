@@ -1,11 +1,14 @@
-import { DatabaseZap, ReceiptText } from "lucide-react";
+import { BatteryCharging, DatabaseZap, ReceiptText } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
 import { TessieImport } from "./TessieImport";
 import { TeslaChargingImport } from "./TeslaChargingImport";
+import { TronityChargingImport } from "./TronityChargingImport";
+import { getVehicles } from "../../../lib/queries";
 
 export default async function ImportPage() {
   const t = await getTranslations("import");
+  const vehicles = await getVehicles();
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -63,6 +66,30 @@ export default async function ImportPage() {
         </div>
 
         <TeslaChargingImport />
+      </section>
+
+      <section className="mt-6 rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+        <div className="flex items-start gap-4">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+            <BatteryCharging aria-hidden size={21} />
+          </span>
+
+          <div className="min-w-0 flex-1">
+            <h2 className="font-semibold text-neutral-900 dark:text-neutral-100">
+              {t("tronityCharging.title")}
+            </h2>
+
+            <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
+              {t("tronityCharging.description")}
+            </p>
+
+            <p className="mt-3 text-sm text-neutral-500 dark:text-neutral-400">
+              {t("tronityCharging.details")}
+            </p>
+          </div>
+        </div>
+
+        <TronityChargingImport vehicles={vehicles} />
       </section>
     </div>
   );

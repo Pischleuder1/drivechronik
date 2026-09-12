@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { MapPin, Navigation, TriangleAlert } from "lucide-react";
+import { MapPin, Navigation, Plus, TriangleAlert } from "lucide-react";
 import { formatDuration } from "@drivechronik/core";
 import type { PlannerPlace, PlannerStatus } from "../../../lib/planner";
 import {
@@ -440,28 +440,38 @@ export function Planner({
       >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {/* Start */}
-          <div>
-            <div className="flex items-center justify-between">
-              <span className={labelClasses}>{t("form.start")}</span>
-              <div className="flex gap-1 text-xs">
+          <div className="rounded-2xl border border-t-4 border-neutral-200 border-t-blue-500 bg-white p-4 shadow-sm dark:border-neutral-800 dark:border-t-blue-500 dark:bg-neutral-900">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
+                  <MapPin aria-hidden size={17} />
+                </span>
+
+                <span className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+                  {t("form.start")}
+                </span>
+              </div>
+
+              <div className="inline-flex self-start rounded-lg border border-neutral-200 bg-neutral-50 p-0.5 text-xs dark:border-neutral-700 dark:bg-neutral-950">
                 <button
                   type="button"
                   onClick={() => setStartMode("place")}
-                  className={`rounded px-1.5 py-0.5 ${
+                  className={`rounded-md px-2.5 py-1.5 transition ${
                     startMode === "place"
-                      ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
-                      : "text-neutral-500 hover:text-neutral-900 dark:hover:text-white"
+                      ? "bg-blue-600 font-medium text-white shadow-sm"
+                      : "text-neutral-500 hover:bg-white hover:text-neutral-900 dark:hover:bg-neutral-800 dark:hover:text-white"
                   }`}
                 >
                   {t("form.destModePlace")}
                 </button>
+
                 <button
                   type="button"
                   onClick={() => setStartMode("address")}
-                  className={`rounded px-1.5 py-0.5 ${
+                  className={`rounded-md px-2.5 py-1.5 transition ${
                     startMode === "address"
-                      ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
-                      : "text-neutral-500 hover:text-neutral-900 dark:hover:text-white"
+                      ? "bg-blue-600 font-medium text-white shadow-sm"
+                      : "text-neutral-500 hover:bg-white hover:text-neutral-900 dark:hover:bg-neutral-800 dark:hover:text-white"
                   }`}
                 >
                   {t("form.destModeAddress")}
@@ -469,7 +479,7 @@ export function Planner({
               </div>
             </div>
 
-            <div className="mt-1">
+            <div className="mt-3">
               {startMode === "place" ? (
                 <select
                   id="planner-start"
@@ -482,9 +492,11 @@ export function Planner({
                       {t("form.currentPosition")}
                     </option>
                   )}
+
                   {places.length === 0 && !hasCurrentPosition && (
                     <option value="">{t("form.noPlaces")}</option>
                   )}
+
                   {places.map((p) => (
                     <option key={p.id} value={`place:${p.id}`}>
                       {p.name}
@@ -505,35 +517,46 @@ export function Planner({
           </div>
 
           {/* Ziel */}
-          <div>
-            <div className="flex items-center justify-between">
-              <span className={labelClasses}>{t("form.destination")}</span>
-              <div className="flex gap-1 text-xs">
+          <div className="rounded-2xl border border-t-4 border-neutral-200 border-t-emerald-500 bg-white p-4 shadow-sm dark:border-neutral-800 dark:border-t-emerald-500 dark:bg-neutral-900">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400">
+                  <Navigation aria-hidden size={17} />
+                </span>
+
+                <span className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+                  {t("form.destination")}
+                </span>
+              </div>
+
+              <div className="inline-flex self-start rounded-lg border border-neutral-200 bg-neutral-50 p-0.5 text-xs dark:border-neutral-700 dark:bg-neutral-950">
                 <button
                   type="button"
                   onClick={() => setDestMode("place")}
-                  className={`rounded px-1.5 py-0.5 ${
+                  className={`rounded-md px-2.5 py-1.5 transition ${
                     destMode === "place"
-                      ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
-                      : "text-neutral-500 hover:text-neutral-900 dark:hover:text-white"
+                      ? "bg-emerald-600 font-medium text-white shadow-sm"
+                      : "text-neutral-500 hover:bg-white hover:text-neutral-900 dark:hover:bg-neutral-800 dark:hover:text-white"
                   }`}
                 >
                   {t("form.destModePlace")}
                 </button>
+
                 <button
                   type="button"
                   onClick={() => setDestMode("address")}
-                  className={`rounded px-1.5 py-0.5 ${
+                  className={`rounded-md px-2.5 py-1.5 transition ${
                     destMode === "address"
-                      ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
-                      : "text-neutral-500 hover:text-neutral-900 dark:hover:text-white"
+                      ? "bg-emerald-600 font-medium text-white shadow-sm"
+                      : "text-neutral-500 hover:bg-white hover:text-neutral-900 dark:hover:bg-neutral-800 dark:hover:text-white"
                   }`}
                 >
                   {t("form.destModeAddress")}
                 </button>
               </div>
             </div>
-            <div className="mt-1">
+
+            <div className="mt-3">
               {destMode === "place" ? (
                 <select
                   aria-label={t("form.destPlaceAriaLabel")}
@@ -544,6 +567,7 @@ export function Planner({
                   {places.length === 0 && (
                     <option value="">{t("form.noPlaces")}</option>
                   )}
+
                   {places.map((p) => (
                     <option key={p.id} value={`place:${p.id}`}>
                       {p.name}
@@ -565,17 +589,7 @@ export function Planner({
 
           {/* Zwischenziele */}
           <div className="sm:col-span-2">
-            <div className="flex items-center justify-between">
-              <span className={labelClasses}>Zwischenziele</span>
-              <button
-                type="button"
-                onClick={addWaypoint}
-                disabled={waypoints.length >= 10}
-                className="text-xs font-medium text-neutral-600 hover:text-neutral-900 disabled:cursor-not-allowed disabled:opacity-40 dark:text-neutral-400 dark:hover:text-white"
-              >
-                + Zwischenziel hinzufügen
-              </button>
-            </div>
+            <span className={labelClasses}>Zwischenziele</span>
 
             {waypoints.length > 0 && (
               <div className="mt-2 flex flex-col gap-3">
@@ -693,60 +707,87 @@ export function Planner({
                 ))}
               </div>
             )}
+
+            <button
+              type="button"
+              onClick={addWaypoint}
+              disabled={waypoints.length >= 10}
+              className={buttonClasses(
+                "secondary",
+                "sm",
+                "mt-3 !text-red-600 hover:!text-red-700 dark:!text-red-400 dark:hover:!text-red-300",
+              )}
+            >
+              <Plus aria-hidden size={15} />
+              Zwischenziel hinzufügen
+            </button>
           </div>
 
-          {/* Start-SoC */}
-          <div>
-            <label htmlFor="planner-soc" className={labelClasses}>
-              {t("form.startSoc")}
-            </label>
-            <input
-              id="planner-soc"
-              type="number"
-              inputMode="numeric"
-              min={0}
-              max={100}
-              value={soc}
-              onChange={(e) => setSoc(e.target.value)}
-              className={`mt-1 ${inputClasses}`}
-            />
-          </div>
+          {/* Fahrparameter */}
+          <div className="grid grid-cols-1 gap-3 sm:col-span-2 sm:grid-cols-3">
+            <div className="rounded-2xl border border-t-4 border-neutral-200 border-t-blue-500 bg-white p-4 shadow-sm dark:border-neutral-800 dark:border-t-blue-500 dark:bg-neutral-900">
+              <label
+                htmlFor="planner-soc"
+                className="block text-xs font-medium text-neutral-500 dark:text-neutral-400"
+              >
+                {t("form.startSoc")}
+              </label>
 
-          {/* Außentemperatur */}
-          <div>
-            <label htmlFor="planner-temp" className={labelClasses}>
-              {t("form.expectedTemp")}
-            </label>
-            <input
-              id="planner-temp"
-              type="number"
-              inputMode="numeric"
-              value={tempC}
-              onChange={(e) => setTempC(e.target.value)}
-              className={`mt-1 ${inputClasses}`}
-            />
-          </div>
+              <input
+                id="planner-soc"
+                type="number"
+                inputMode="numeric"
+                min={0}
+                max={100}
+                value={soc}
+                onChange={(e) => setSoc(e.target.value)}
+                className="mt-2 w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xl font-semibold tabular-nums text-neutral-900 outline-none transition focus:border-blue-500 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100"
+              />
+            </div>
 
-          {/* Batteriekapazität */}
-          <div className="sm:col-span-2">
-            <label htmlFor="planner-capacity" className={labelClasses}>
-              {t("form.batteryCapacity")}
-            </label>
-            <input
-              id="planner-capacity"
-              type="number"
-              inputMode="numeric"
-              min={5}
-              max={250}
-              value={capacityKwh}
-              onChange={(e) => setCapacityKwh(e.target.value)}
-              className={`mt-1 ${inputClasses}`}
-            />
-            <p className="mt-1 text-xs text-neutral-400 dark:text-neutral-500">
-              {capacityIsDerived
-                ? t("form.capacityHintDerived")
-                : t("form.capacityHintDefault")}
-            </p>
+            <div className="rounded-2xl border border-t-4 border-neutral-200 border-t-amber-500 bg-white p-4 shadow-sm dark:border-neutral-800 dark:border-t-amber-500 dark:bg-neutral-900">
+              <label
+                htmlFor="planner-temp"
+                className="block text-xs font-medium text-neutral-500 dark:text-neutral-400"
+              >
+                {t("form.expectedTemp")}
+              </label>
+
+              <input
+                id="planner-temp"
+                type="number"
+                inputMode="numeric"
+                value={tempC}
+                onChange={(e) => setTempC(e.target.value)}
+                className="mt-2 w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xl font-semibold tabular-nums text-neutral-900 outline-none transition focus:border-amber-500 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100"
+              />
+            </div>
+
+            <div className="rounded-2xl border border-t-4 border-neutral-200 border-t-emerald-500 bg-white p-4 shadow-sm dark:border-neutral-800 dark:border-t-emerald-500 dark:bg-neutral-900">
+              <label
+                htmlFor="planner-capacity"
+                className="block text-xs font-medium text-neutral-500 dark:text-neutral-400"
+              >
+                {t("form.batteryCapacity")}
+              </label>
+
+              <input
+                id="planner-capacity"
+                type="number"
+                inputMode="numeric"
+                min={5}
+                max={250}
+                value={capacityKwh}
+                onChange={(e) => setCapacityKwh(e.target.value)}
+                className="mt-2 w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xl font-semibold tabular-nums text-neutral-900 outline-none transition focus:border-emerald-500 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100"
+              />
+
+              <p className="mt-2 text-xs leading-relaxed text-neutral-400 dark:text-neutral-500">
+                {capacityIsDerived
+                  ? t("form.capacityHintDerived")
+                  : t("form.capacityHintDefault")}
+              </p>
+            </div>
           </div>
         </div>
 

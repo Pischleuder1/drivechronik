@@ -625,6 +625,81 @@ export const importJobs = pgTable(
   ],
 );
 
+
+export const importRuns = pgTable(
+  "import_runs",
+  {
+    id: id(),
+
+    // tronity | tesla_charging | tessie
+    source: text("source").notNull(),
+
+    // running | completed | failed | rollback_partial | rolled_back
+    status: text("status").notNull().default("running"),
+
+    vehicleId: bigint("vehicle_id", { mode: "number" }).references(
+      () => vehicles.id,
+      { onDelete: "set null" },
+    ),
+
+    // Bei Tessie kann der Lauf dem vorhandenen Worker-Job zugeordnet werden.
+    importJobId: bigint("import_job_id", { mode: "number" }).references(
+      () => importJobs.id,
+      { onDelete: "set null" },
+    ),
+
+    fileName: text("file_name"),
+    createdBy: text("created_by").notNull().default("system"),
+
+    summary: jsonb("summary"),
+    rollbackSummary: jsonb("rollback_summary"),
+
+    startedAt: timestamp("started_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    finishedAt: timestamp("finished_at", { withTimezone: true }),
+    rolledBackAt: timestamp("rolled_back_at", { withTimezone: true }),
+
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    index("import_runs_source_idx").on(t.source),
+    index("import_runs_status_idx").on(t.status),
+    index("import_runs_started_at_idx").on(t.startedAt),
+  ],
+);
+
+export const importChanges = pgTable(
+  "import_changes",
+  {
+    id: id(),
+
+    importRunId: bigint("import_run_id", { mode: "number" })
+      .notNull()
+      .references(() => importRuns.id, { onDelete: "cascade" }),
+
+    // charge_session | tesla_charging_record | drive |
+    // route_points | charge_points
+    entityType: text("entity_type").notNull(),
+
+    // ID des Datensatzes bzw. bei Punkt-Snapshots die Parent-ID.
+    entityId: bigint("entity_id", { mode: "number" }).notNull(),
+
+    // insert | update | replace_children
+    action: text("action").notNull(),
+
+    // Es werden nur die für den Rollback relevanten Werte gespeichert.
+    before: jsonb("before"),
+    after: jsonb("after"),
+    metadata: jsonb("metadata"),
+
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index("import_changes_run_idx").on(t.importRunId),
+    index("import_changes_entity_idx").on(t.entityType, t.entityId),
+  ],
+);
 export const settings = pgTable("settings", {
   key: text("key").primaryKey(),
   value: jsonb("value").notNull(),

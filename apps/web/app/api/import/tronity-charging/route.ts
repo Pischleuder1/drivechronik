@@ -8,7 +8,10 @@ import {
 } from "drizzle-orm";
 import {
   chargeSessions,
+  completeImportRun,
+  createImportRun,
   places,
+  recordImportChange,
   vehicles,
 } from "@drivechronik/db";
 import { matchPlace } from "@drivechronik/core";
@@ -262,6 +265,8 @@ export async function POST(request: Request) {
 
         sourceId:
           chargeSessions.sourceId,
+        syncedAt:
+          chargeSessions.syncedAt,
       })
       .from(chargeSessions)
       .where(
@@ -502,8 +507,18 @@ export async function POST(request: Request) {
         })
         .from(places);
 
-    await db.transaction(
+    const importRunId = await db.transaction(
       async (tx) => {
+        const runId = await createImportRun(
+          tx,
+          {
+            source: "tronity",
+            vehicleId: vehicle.id,
+            fileName: fileName || null,
+            createdBy: user.username,
+          },
+        );
+
         for (const decision of decisions) {
           const {
             row,
@@ -543,6 +558,31 @@ export async function POST(request: Request) {
               continue;
             }
 
+            const candidateValues =
+              candidate as unknown as
+                Record<string, unknown>;
+
+            const rollbackPatch =
+              Object.fromEntries(
+                Object.entries(patch).filter(
+                  ([key]) =>
+                    key !== "syncedAt",
+                ),
+              );
+
+            const before =
+              Object.fromEntries(
+                Object.keys(
+                  rollbackPatch,
+                ).map(
+                  (key) => [
+                    key,
+                    candidateValues[key] ??
+                      null,
+                  ],
+                ),
+              );
+
             await tx
               .update(chargeSessions)
               .set({
@@ -556,6 +596,25 @@ export async function POST(request: Request) {
                   candidate.id,
                 ),
               );
+
+            await recordImportChange(
+              tx,
+              {
+                importRunId: runId,
+                entityType:
+                  "charge_session",
+                entityId:
+                  candidate.id,
+                action: "update",
+                before,
+                after:
+                  rollbackPatch,
+                metadata: {
+                  source:
+                    "tronity",
+                },
+              },
+            );
 
             updated++;
             continue;
@@ -571,81 +630,81 @@ export async function POST(request: Request) {
               matchablePlaces,
             );
 
+          const insertValues = {
+            vehicleId:
+              vehicle.id,
+
+            startTime:
+              row.startTime,
+
+            endTime:
+              row.endTime,
+
+            lat: row.lat,
+            lon: row.lon,
+
+            placeId,
+            placeLocked: false,
+
+            address:
+              row.address,
+
+            startSoc:
+              row.startSoc,
+
+            endSoc:
+              row.endSoc,
+
+            energyAddedKwh:
+              energy,
+
+            energyUsedKwh: null,
+
+            maxPowerKw:
+              row.maxPowerKw,
+
+            avgPowerKw: null,
+
+            chargerType:
+              row.chargerType,
+
+            outsideTempAvg: null,
+
+            durationSeconds:
+              row.durationSeconds,
+
+            cost:
+              row.cost != null
+                ? row.cost.toFixed(2)
+                : null,
+
+            currency:
+              row.cost != null
+                ? "EUR"
+                : null,
+
+            costSource:
+              row.cost != null
+                ? "synced"
+                : null,
+
+            notes: row.notes,
+
+            source: "tronity",
+
+            sourceId: sourceId(
+              vehicle.id,
+              row,
+            ),
+
+            syncedAt:
+              new Date(),
+          };
+
           const insertedRows =
             await tx
               .insert(chargeSessions)
-              .values({
-                vehicleId:
-                  vehicle.id,
-
-                startTime:
-                  row.startTime,
-
-                endTime:
-                  row.endTime,
-
-                lat: row.lat,
-                lon: row.lon,
-
-                placeId,
-                placeLocked: false,
-
-                address:
-                  row.address,
-
-                startSoc:
-                  row.startSoc,
-
-                endSoc:
-                  row.endSoc,
-
-                energyAddedKwh:
-                  energy,
-
-                energyUsedKwh: null,
-
-                maxPowerKw:
-                  row.maxPowerKw,
-
-                avgPowerKw: null,
-
-                chargerType:
-                  row.chargerType,
-
-                outsideTempAvg: null,
-
-                durationSeconds:
-                  row.durationSeconds,
-
-                cost:
-                  row.cost != null
-                    ? row.cost.toFixed(
-                        2,
-                      )
-                    : null,
-
-                currency:
-                  row.cost != null
-                    ? "EUR"
-                    : null,
-
-                costSource:
-                  row.cost != null
-                    ? "synced"
-                    : null,
-
-                notes: row.notes,
-
-                source: "tronity",
-
-                sourceId: sourceId(
-                  vehicle.id,
-                  row,
-                ),
-
-                syncedAt:
-                  new Date(),
-              })
+              .values(insertValues)
               .onConflictDoNothing({
                 target: [
                   chargeSessions.source,
@@ -659,11 +718,53 @@ export async function POST(request: Request) {
           if (
             insertedRows.length > 0
           ) {
+            const insertedRow =
+              insertedRows[0]!;
+
+            await recordImportChange(
+              tx,
+              {
+                importRunId: runId,
+                entityType:
+                  "charge_session",
+                entityId:
+                  insertedRow.id,
+                action: "insert",
+                after:
+                  Object.fromEntries(
+                    Object.entries(
+                      insertValues,
+                    ).filter(
+                      ([key]) =>
+                        key !== "syncedAt",
+                    ),
+                  ),
+                metadata: {
+                  source:
+                    "tronity",
+                },
+              },
+            );
+
             inserted++;
           } else {
             unchanged++;
           }
         }
+
+        await completeImportRun(
+          tx,
+          runId,
+          {
+            ...summary,
+            inserted,
+            updated,
+            skippedAmbiguous,
+            unchanged,
+          },
+        );
+
+        return runId;
       },
     );
 
@@ -675,6 +776,8 @@ export async function POST(request: Request) {
         displayName:
           vehicle.displayName,
       },
+
+      importRunId,
 
       summary: {
         ...summary,

@@ -57,6 +57,7 @@ export default async function SettingsPage() {
 
   const links = [
     { href: "/vehicle", label: t("links.vehicle") },
+      { href: "/planner", label: t("links.planner") },
     { href: "/import", label: t("links.import") },
     { href: "/tags", label: t("links.tags") },
     { href: "/journeys", label: t("links.journeys") },

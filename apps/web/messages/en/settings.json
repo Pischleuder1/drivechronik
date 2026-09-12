@@ -73,6 +73,7 @@
     "reports": "Reports",
     "insights": "Insights",
     "vehicle": "Vehicle",
+    "planner": "Route planner",
     "import": "Data import"
   },
   "logout": "Log out",

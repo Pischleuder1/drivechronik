@@ -21,6 +21,7 @@ export function StatCard({
   tone = "neutral",
   footer,
   className = "",
+  valueClassName = "mt-2 text-2xl font-semibold tabular-nums",
 }: {
   label: ReactNode;
   value: ReactNode;
@@ -29,6 +30,7 @@ export function StatCard({
   tone?: IconBadgeTone;
   footer?: ReactNode;
   className?: string;
+  valueClassName?: string;
 }) {
   return (
     <div
@@ -40,7 +42,7 @@ export function StatCard({
             {label}
           </p>
 
-          <div className="mt-2 text-2xl font-semibold tabular-nums">
+          <div className={valueClassName}>
             {value}
           </div>
 

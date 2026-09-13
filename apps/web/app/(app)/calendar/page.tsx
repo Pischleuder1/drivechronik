@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { getCalendarMonthStats } from "../../../lib/calendar";
 import { buildCalendarGrid, isValidMonthParam } from "../../../lib/calendarGrid";
 import { todayInAppTz } from "../../../lib/day";
@@ -8,6 +9,7 @@ import { MonthGrid } from "./MonthGrid";
 
 import { NoVehicleState } from "../../../components/NoVehicleState";
 import { Panel } from "../../../components/ui/Panel";
+import { PageHeader } from "../../../components/ui/PageHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +24,7 @@ export default async function CalendarPage({
 }) {
   const { month: monthParam, vehicle } = await searchParams;
   const currentMonth = currentMonthInAppTz();
+  const t = await getTranslations("calendar");
   const month =
     monthParam && isValidMonthParam(monthParam) ? monthParam : currentMonth;
 
@@ -30,6 +33,11 @@ export default async function CalendarPage({
   if (vehicles.length === 0) {
     return (
       <div className="mx-auto max-w-3xl">
+        <PageHeader
+          visual="calendar"
+          title={t("pageTitle")}
+          className="mb-4"
+        />
         <Panel padding="sm">
           <MonthNav
             month={month}
@@ -55,6 +63,11 @@ export default async function CalendarPage({
 
   return (
     <div className="mx-auto max-w-3xl">
+      <PageHeader
+        visual="calendar"
+        title={t("pageTitle")}
+        className="mb-4"
+      />
       <Panel padding="sm">
         <MonthNav
           month={month}

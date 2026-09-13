@@ -56,6 +56,7 @@ export default async function BusinessYearReportPage({
         </Link>
 
         <PageHeader
+          visual="document"
           className="mt-4"
           title={t("year.title", { year })}
           subtitle={t("year.subtitle")}
@@ -109,6 +110,7 @@ export default async function BusinessYearReportPage({
       </Link>
 
       <PageHeader
+        visual="document"
         className="mt-4"
         title={t("year.title", { year })}
         subtitle={t("year.subtitle")}

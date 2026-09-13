@@ -23,6 +23,7 @@ export default async function PlacesPage() {
   return (
     <div className="mx-auto max-w-2xl">
       <PageHeader
+        visual="places"
         title={t("title")}
         subtitle={t("description")}
         actions={

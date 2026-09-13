@@ -29,6 +29,7 @@ export default async function JourneysPage() {
   return (
     <div className="mx-auto max-w-2xl">
       <PageHeader
+        visual="route"
         title={t("list.title")}
         subtitle={t("list.subtitle")}
         actions={

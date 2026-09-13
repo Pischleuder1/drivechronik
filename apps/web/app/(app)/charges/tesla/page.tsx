@@ -202,6 +202,7 @@ export default async function TeslaInvoicesPage({
       </Link>
 
       <PageHeader
+        visual="charge"
         className="mt-4"
         title={t("teslaOverview.title")}
         subtitle={t("teslaOverview.subtitle")}

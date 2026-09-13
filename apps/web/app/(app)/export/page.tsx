@@ -16,6 +16,7 @@ export default async function DataExportPage() {
   return (
     <div className="mx-auto max-w-2xl">
       <PageHeader
+        visual="document"
         title={t("dataExport.title")}
         subtitle={t("dataExport.subtitle")}
       />

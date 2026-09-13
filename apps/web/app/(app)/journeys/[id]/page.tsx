@@ -113,6 +113,7 @@ export default async function JourneyDetailPage({
       </Link>
 
       <PageHeader
+        visual="route"
         className="mt-3"
         title={journey.name}
         subtitle={formatRange(journey.startTime, journey.endTime)}

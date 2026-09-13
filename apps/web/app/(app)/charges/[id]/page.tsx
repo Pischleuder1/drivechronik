@@ -250,6 +250,7 @@ export default async function ChargeDetailPage({
       </Link>
 
       <PageHeader
+        visual="charge"
         className="mt-3"
         title={placeLabel}
         subtitle={

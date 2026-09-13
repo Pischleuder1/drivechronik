@@ -39,6 +39,7 @@ export default async function NewRulePage({
       </Link>
 
       <PageHeader
+        visual="tools"
         className="mt-3"
         title={t("newTitle")}
       />

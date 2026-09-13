@@ -33,7 +33,7 @@ export function DateNav({
   const suffix = vehicleQuery;
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
       <div className="flex items-center gap-1">
         <Link
           href={`/day/${prevDate}${suffix}`}
@@ -51,9 +51,9 @@ export function DateNav({
         </Link>
       </div>
 
-      <h1 className="min-w-0 text-xl font-semibold tracking-tight md:text-2xl">
+      <div className="min-w-0 text-xl font-semibold tracking-tight md:text-2xl">
         {longLabel}
-      </h1>
+      </div>
 
       <div className="ml-auto flex items-center gap-2">
         {date !== today && (

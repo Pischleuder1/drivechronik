@@ -140,6 +140,7 @@ export default async function ImportPage() {
   return (
     <div className="mx-auto max-w-2xl">
       <PageHeader
+        visual="document"
         title={t("title")}
         subtitle={t("subtitle")}
       />

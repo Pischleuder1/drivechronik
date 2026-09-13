@@ -23,6 +23,7 @@ export default async function PlannerPage() {
     return (
       <div className="mx-auto max-w-3xl">
         <PageHeader
+          visual="route"
           title={t("title")}
           subtitle={t("subtitle")}
           eyebrow={
@@ -61,6 +62,7 @@ export default async function PlannerPage() {
   return (
     <div className="mx-auto max-w-3xl">
       <PageHeader
+        visual="route"
         title={t("title")}
         subtitle={t("subtitle")}
         eyebrow={

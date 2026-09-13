@@ -21,6 +21,7 @@ export default async function NewJourneyPage() {
       </Link>
 
       <PageHeader
+        visual="route"
         className="mt-3"
         title={t("list.newJourney")}
       />

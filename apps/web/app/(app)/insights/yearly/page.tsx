@@ -20,6 +20,7 @@ import { InsightsVehicleSwitcher } from "../InsightsVehicleSwitcher";
 import { YearlyDestinationMapLoader } from "./YearlyDestinationMapLoader";
 
 import { NoVehicleState } from "../../../../components/NoVehicleState";
+import { PageHeaderVisual } from "../../../../components/ui/PageHeaderVisual";
 import { PageHeader } from "../../../../components/ui/PageHeader";
 import { StatCard } from "../../../../components/ui/StatCard";
 import { Panel } from "../../../../components/ui/Panel";
@@ -111,6 +112,8 @@ export default async function YearlyInsightsPage({
         </Link>
 
         <PageHeader
+          visual="year"
+          visualText={year}
           className="mt-3"
           title={t("yearly.title", { year })}
           subtitle={t("yearly.subtitle")}
@@ -274,6 +277,8 @@ export default async function YearlyInsightsPage({
       </Link>
 
       <PageHeader
+          visual="year"
+          visualText={year}
         className="mt-3"
         title={t("yearly.title", { year })}
         subtitle={t("yearly.subtitle")}
@@ -330,26 +335,31 @@ export default async function YearlyInsightsPage({
           label={t("yearly.kpi.distance")}
           value={formatKm(result.distanceKm)}
           tone="blue"
+        valueClassName="mt-1 text-base font-semibold tabular-nums"
         />
         <StatCard
           label={t("yearly.kpi.drives")}
           value={String(result.driveCount)}
           tone="sky"
+        valueClassName="mt-1 text-base font-semibold tabular-nums"
         />
         <StatCard
           label={t("yearly.kpi.duration")}
           value={formatDuration(Math.round(result.durationSeconds))}
           tone="violet"
+        valueClassName="mt-1 text-base font-semibold tabular-nums"
         />
         <StatCard
           label={t("yearly.kpi.classified")}
           value={`${Math.round(classifiedShare * 100)} %`}
           tone="indigo"
+        valueClassName="mt-1 text-base font-semibold tabular-nums"
         />
         <StatCard
           label={t("yearly.kpi.businessDistance")}
           value={formatKm(businessDistanceKm)}
           tone="cyan"
+        valueClassName="mt-1 text-base font-semibold tabular-nums"
         />
         <StatCard
           label={t("yearly.kpi.reimbursement")}
@@ -358,11 +368,13 @@ export default async function YearlyInsightsPage({
             rate: currencyFormatter.format(reimbursementRateEurPerKm),
           })}
           tone="emerald"
+        valueClassName="mt-1 text-base font-semibold tabular-nums"
         />
         <StatCard
           label={t("yearly.kpi.averageDrive")}
           value={formatKm(averageDriveDistanceKm)}
           tone="neutral"
+        valueClassName="mt-1 text-base font-semibold tabular-nums"
         />
         <StatCard
           label={t("yearly.kpi.customerVisits")}
@@ -371,6 +383,7 @@ export default async function YearlyInsightsPage({
             count: customerDestinations.length,
           })}
           tone="amber"
+        valueClassName="mt-1 text-base font-semibold tabular-nums"
         />
       </div>
 
@@ -402,6 +415,7 @@ export default async function YearlyInsightsPage({
                     : "—"
                 }
                 tone="blue"
+                valueClassName="mt-1 text-base font-semibold tabular-nums"
               />
 
               <StatCard
@@ -417,6 +431,7 @@ export default async function YearlyInsightsPage({
                     : undefined
                 }
                 tone="violet"
+                valueClassName="mt-1 text-base font-semibold tabular-nums"
               />
 
               <StatCard
@@ -432,6 +447,7 @@ export default async function YearlyInsightsPage({
                     : undefined
                 }
                 tone="cyan"
+                valueClassName="mt-1 text-base font-semibold tabular-nums"
               />
 
               <StatCard
@@ -445,6 +461,7 @@ export default async function YearlyInsightsPage({
                     : undefined
                 }
                 tone="amber"
+                valueClassName="mt-1 text-base font-semibold tabular-nums"
               />
             </div>
           </section>
@@ -635,6 +652,7 @@ export default async function YearlyInsightsPage({
                           ? "amber"
                           : "neutral"
                   }
+                  valueClassName="mt-1 text-base font-semibold tabular-nums"
                 />
               ))}
             </div>
@@ -754,12 +772,18 @@ export default async function YearlyInsightsPage({
 
       {destinationMapPoints.length > 0 && (
         <section className="mt-6">
-          <SectionHeader
-            title={t("yearly.map.title")}
-            subtitle={t("yearly.map.subtitle")}
-            count={destinationMapPoints.length}
-            tone="emerald"
-          />
+          <div className="relative overflow-hidden rounded-2xl border border-neutral-200 bg-gradient-to-br from-white to-neutral-50 p-5 shadow-sm dark:border-neutral-800 dark:from-neutral-900 dark:to-neutral-950">
+            <PageHeaderVisual variant="heatmap" compact />
+
+            <div className="relative z-10">
+              <SectionHeader
+                title={t("yearly.map.title")}
+                subtitle={t("yearly.map.subtitle")}
+                count={destinationMapPoints.length}
+                tone="emerald"
+              />
+            </div>
+          </div>
 
           <div className="mt-3 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
             <YearlyDestinationMapLoader

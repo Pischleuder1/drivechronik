@@ -1,4 +1,6 @@
 {
+  "title": "Dashboard",
+  "subtitle": "Alles auf einen Blick.",
   "onboarding": {
     "title": "DriveChronik wartet auf den ersten Sync",
     "description": "Sobald der Sync-Worker die erste Fahrt aus TeslaMate übernommen hat, erscheint hier deine Startseite.",

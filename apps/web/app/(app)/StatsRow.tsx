@@ -44,6 +44,7 @@ export async function StatsRow({
         label={t("stats.today")}
         value={formatKm(today.distanceKm)}
         tone="blue"
+        valueClassName="mt-1 text-base font-semibold tabular-nums"
         icon={<CalendarDays aria-hidden size={18} />}
         footer={
           <p className="text-xs text-neutral-500 dark:text-neutral-400">
@@ -56,6 +57,7 @@ export async function StatsRow({
         label={t("stats.thisWeek")}
         value={formatKm(week.distanceKm)}
         tone="violet"
+        valueClassName="mt-1 text-base font-semibold tabular-nums"
         icon={<CalendarRange aria-hidden size={18} />}
         footer={
           <p className="text-xs text-neutral-500 dark:text-neutral-400">
@@ -74,6 +76,7 @@ export async function StatsRow({
             : t("stats.noData")
         }
         tone="emerald"
+        valueClassName="mt-1 text-base font-semibold tabular-nums"
         icon={<Zap aria-hidden size={18} />}
         footer={
           lastCharge ? (
@@ -96,6 +99,7 @@ export async function StatsRow({
         label={t("stats.unclassified")}
         value={unclassifiedCount.live}
         tone="amber"
+        valueClassName="mt-1 text-base font-semibold tabular-nums"
         icon={<HelpCircle aria-hidden size={18} />}
         footer={
           <>

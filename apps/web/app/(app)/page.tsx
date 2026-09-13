@@ -12,12 +12,11 @@ import {
 import { getCurrentWeather, type WeatherResult } from "../../lib/weather";
 import { getDefaultVehicleId } from "../../lib/search";
 import { VehicleCard } from "./VehicleCard";
-import { WeatherCard } from "./WeatherCard";
-import { TpmsCard } from "./TpmsCard";
 import { RecentDrivesCard } from "./RecentDrivesCard";
 import { StatsRow } from "./StatsRow";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { Button } from "../../components/ui/Button";
+import { PageHeader } from "../../components/ui/PageHeader";
 import { Car, Rocket, Stethoscope } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -131,17 +130,24 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-5 md:grid md:grid-cols-12 md:gap-5">
-      <div className="md:col-span-8 md:h-full">
+      <div className="md:col-span-12">
+        <PageHeader
+          visual="route"
+          title={t("title")}
+          subtitle={t("subtitle")}
+        />
+      </div>
+
+      <div className="md:col-span-12">
         {status ? (
-          <VehicleCard status={status} openSession={openSession} />
+          <VehicleCard
+            status={status}
+            openSession={openSession}
+            weather={weather}
+          />
         ) : (
           <EmptyState icon={Car} title={t("vehicleStatusEmpty")} />
         )}
-      </div>
-
-      <div className="flex flex-col gap-5 md:col-span-4">
-        <WeatherCard weather={weather} />
-        {status && <TpmsCard status={status} />}
       </div>
 
       <div className="md:col-span-12">

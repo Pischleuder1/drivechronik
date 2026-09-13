@@ -89,6 +89,7 @@ export default async function SearchPage({
   return (
     <div className="mx-auto max-w-2xl">
       <PageHeader
+        visual="tools"
         title={t("title")}
         subtitle={t("subtitle")}
       />

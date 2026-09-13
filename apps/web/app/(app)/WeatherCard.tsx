@@ -40,7 +40,7 @@ export async function WeatherCard({
           </IconBadge>
 
           <div>
-            <p className="text-3xl font-semibold tracking-tight tabular-nums text-neutral-950 dark:text-neutral-50">
+            <p className="text-base font-semibold tabular-nums text-neutral-950 dark:text-neutral-50">
               {formatTemp(weather.temperature)}
             </p>
             <p className="mt-0.5 text-sm text-neutral-500 dark:text-neutral-400">

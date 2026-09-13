@@ -1,4 +1,6 @@
 {
+  "title": "Dashboard",
+  "subtitle": "Everything at a glance.",
   "onboarding": {
     "title": "DriveChronik is waiting for the first sync",
     "description": "As soon as the sync worker pulls in the first drive from TeslaMate, your home screen will appear here.",

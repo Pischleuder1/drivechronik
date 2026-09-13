@@ -1,4 +1,5 @@
 {
+  "pageTitle": "Tag",
   "emptyTitle": "Keine Fahrten an diesem Tag.",
   "emptyHint": "An diesem Tag wurden keine Fahrten, Park- oder Ladevorgänge aufgezeichnet.",
   "driveCount": "{count, plural, one {# Fahrt} other {# Fahrten}}",

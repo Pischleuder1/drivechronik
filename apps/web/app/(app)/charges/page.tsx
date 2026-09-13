@@ -116,6 +116,7 @@ export default async function ChargesPage({
     <div className="mx-auto max-w-6xl">
       {/* Header */}
       <PageHeader
+        visual="charge"
         title={t("page.title")}
         subtitle={t("page.subtitle")}
         actions={

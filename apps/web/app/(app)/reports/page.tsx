@@ -94,6 +94,7 @@ export default async function ReportsPage({
     return (
       <div className="mx-auto max-w-4xl">
         <PageHeader
+          visual="document"
           title={t("title")}
           subtitle={t("subtitle")}
           actions={
@@ -147,6 +148,7 @@ export default async function ReportsPage({
   return (
     <div className="mx-auto max-w-4xl">
       <PageHeader
+        visual="document"
         title={t("title")}
         subtitle={t("subtitle")}
         actions={

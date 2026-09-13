@@ -15,6 +15,7 @@ export default async function TagsPage() {
   return (
     <div className="mx-auto max-w-2xl">
       <PageHeader
+        visual="tools"
         title={t("title")}
         subtitle={t("description")}
       />

@@ -65,6 +65,7 @@ export default async function EditRulePage({
       </Link>
 
       <PageHeader
+        visual="tools"
         className="mt-3"
         title={t("editTitle")}
       />

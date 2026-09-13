@@ -252,6 +252,7 @@ export default async function DriveDetailPage({
       </Link>
 
       <PageHeader
+        visual="gps"
         className="mt-3"
         title={`${from} → ${to}`}
         subtitle={`${formatLongDate(dateStr, locale)} · ${formatTimeRange(

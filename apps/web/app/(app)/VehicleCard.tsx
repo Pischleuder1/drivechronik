@@ -1,14 +1,17 @@
 import {
-  BatteryCharging,
   Car as CarIcon,
+  BatteryCharging,
+  Gauge,
   MapPin,
 } from "lucide-react";
+import { TeslaTopViewTpmsGraphic } from "./TeslaTopViewTpmsGraphic";
+import { VehicleWeather } from "./VehicleWeather";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatKwh, formatOdometer, formatTime } from "@drivechronik/core";
 import { APP_TIMEZONE } from "../../lib/config";
 import { formatRelativeTime } from "../../lib/day";
 import type { OpenSessionStatus, VehicleStatusRow } from "../../lib/dashboard";
-import { VehicleArtwork } from "./VehicleArtwork";
+import type { WeatherResult } from "../../lib/weather";
 import { IconBadge } from "../../components/ui/IconBadge";
 
 type VehicleCardTranslator = Awaited<ReturnType<typeof getTranslations>>;
@@ -76,9 +79,11 @@ function statusLine(
 export async function VehicleCard({
   status,
   openSession,
+  weather,
 }: {
   status: VehicleStatusRow;
   openSession: OpenSessionStatus | null;
+  weather: WeatherResult | null;
 }) {
   const [t, locale] = await Promise.all([
     getTranslations("dashboard"),
@@ -94,7 +99,7 @@ export async function VehicleCard({
         className="absolute -right-24 -top-28 h-80 w-80 rounded-full bg-emerald-100/50 blur-3xl dark:bg-emerald-950/20"
       />
 
-      <div className="relative grid h-full min-h-[255px] gap-6 p-5 sm:p-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+      <div className="relative grid h-full min-h-[255px] gap-6 p-5 sm:p-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="flex min-w-0 flex-col">
           <div className="flex items-center gap-2">
             <IconBadge tone="indigo" size="sm">
@@ -173,9 +178,17 @@ export async function VehicleCard({
               </span>
             </div>
           </div>
+          <VehicleWeather weather={weather} />
+
 
           <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-neutral-100 pt-4 text-xs text-neutral-500 dark:border-neutral-800 dark:text-neutral-400">
-            <span className="font-medium tabular-nums">
+            <span className="flex items-center gap-1.5 font-medium tabular-nums">
+              <Gauge
+                aria-hidden
+                size={14}
+                strokeWidth={1.8}
+                className="text-neutral-400 dark:text-neutral-500"
+              />
               {status.odometerKm != null
                 ? formatOdometer(status.odometerKm)
                 : t("vehicleCard.odometerUnknown")}
@@ -191,11 +204,15 @@ export async function VehicleCard({
           </div>
         </div>
 
-        <VehicleArtwork
-          vin={status.vin}
-          model={status.model}
-          trimBadging={status.trimBadging}
-        />
+        <div className="relative flex items-center justify-center">
+          <TeslaTopViewTpmsGraphic
+            model={status.model}
+            fl={status.tpmsFlBar}
+            fr={status.tpmsFrBar}
+            rl={status.tpmsRlBar}
+            rr={status.tpmsRrBar}
+          />
+        </div>
       </div>
     </section>
   );

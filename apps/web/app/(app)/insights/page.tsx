@@ -107,6 +107,7 @@ export default async function InsightsPage({
     return (
       <div className="mx-auto max-w-4xl">
         <PageHeader
+          visual="stats"
           title={t("title")}
           subtitle={t("subtitleNoData")}
           actions={
@@ -204,6 +205,7 @@ export default async function InsightsPage({
   return (
     <div className="mx-auto max-w-4xl">
       <PageHeader
+        visual="stats"
         title={t("title")}
         subtitle={
           total > 0 && firstDriveDate

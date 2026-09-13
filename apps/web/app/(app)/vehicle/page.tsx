@@ -94,7 +94,10 @@ export default async function VehiclePage() {
   if (!vehicle) {
     return (
       <div className="mx-auto max-w-5xl">
-        <PageHeader title={t("title")} />
+        <PageHeader
+          visual="vehicle"
+          title={t("title")}
+        />
 
         <Panel className="mt-6">
           <p className="text-sm text-neutral-500 dark:text-neutral-400">
@@ -122,6 +125,7 @@ export default async function VehiclePage() {
   return (
     <div className="mx-auto max-w-5xl">
       <PageHeader
+        visual="vehicle"
         eyebrow={vehicle.displayName}
         title={t("title")}
         subtitle={t("subtitle")}

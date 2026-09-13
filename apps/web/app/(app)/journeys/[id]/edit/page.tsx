@@ -45,6 +45,7 @@ export default async function EditJourneyPage({
       </Link>
 
       <PageHeader
+        visual="route"
         className="mt-3"
         title={t("editTitle")}
       />

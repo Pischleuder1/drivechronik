@@ -30,6 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Added contextual SVG artwork to Dashboard, Fahrten, yearly Wrapped and destination heatmap headers.
+
 - Renamed remaining internal TripAtlas identifiers to DriveChronik across PostgreSQL, Docker images and volumes, container users, session cookie, demo/dev configuration, backup defaults, release workflow and documentation.
 - Refined sidebar branding and navigation spacing.
 

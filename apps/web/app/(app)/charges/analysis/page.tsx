@@ -82,6 +82,7 @@ export default async function ChargeAnalysisPage({
       </Link>
 
       <PageHeader
+        visual="charge"
         className="mt-3"
         title={t("analysis.title")}
         subtitle={t("analysis.subtitle")}

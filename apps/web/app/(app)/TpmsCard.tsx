@@ -24,7 +24,7 @@ function Tire({
 }) {
   return (
     <div
-      className={`rounded-2xl border border-transparent p-3 ${
+      className={`rounded-xl border border-transparent px-3 py-1.5 ${
         align === "right" ? "text-right" : "text-left"
       } ${
         tire.warn
@@ -75,7 +75,7 @@ export async function TpmsCard({
   });
 
   return (
-    <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+    <section className="rounded-2xl border border-neutral-200 bg-white px-4 py-[18px] shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
           <IconBadge
@@ -99,7 +99,7 @@ export async function TpmsCard({
         )}
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-2">
+      <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
         <Tire label={t("tpms.fl")} tire={assessment.fl} align="left" />
         <Tire label={t("tpms.fr")} tire={assessment.fr} align="right" />
         <Tire label={t("tpms.rl")} tire={assessment.rl} align="left" />

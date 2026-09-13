@@ -54,6 +54,7 @@ export default async function EditPlacePage({
       </Link>
 
       <PageHeader
+        visual="places"
         className="mt-3"
         title={t("editTitle", { name: place.name })}
       />

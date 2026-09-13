@@ -1,4 +1,5 @@
 {
+  "pageTitle": "Day",
   "emptyTitle": "No drives on this day.",
   "emptyHint": "No drives, parks, or charging sessions were recorded on this day.",
   "driveCount": "{count, plural, one {# drive} other {# drives}}",

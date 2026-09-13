@@ -48,6 +48,7 @@ export default async function NewPlacePage({
       </Link>
 
       <PageHeader
+        visual="places"
         className="mt-3"
         title={t("newPlace")}
       />

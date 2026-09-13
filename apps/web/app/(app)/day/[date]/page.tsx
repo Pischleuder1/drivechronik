@@ -13,6 +13,7 @@ import { getAllTags, getDayTimeline, getVehicles } from "../../../../lib/queries
 import { getParkLossForSessions } from "../../../../lib/parkAnalytics";
 import { buttonClasses } from "../../../../components/ui/Button";
 import { EmptyState } from "../../../../components/ui/EmptyState";
+import { PageHeader } from "../../../../components/ui/PageHeader";
 import { Panel } from "../../../../components/ui/Panel";
 import {
   BulkSelectionProvider,
@@ -48,6 +49,11 @@ export default async function DayPage({
     return (
       <div className="mx-auto max-w-2xl">
         <Panel padding="sm">
+          <PageHeader
+            visual="gps"
+            title={t("pageTitle")}
+            className="mb-4"
+          />
           <DateNav
             date={date}
             longLabel={formatLongDate(date, locale)}
@@ -108,6 +114,11 @@ export default async function DayPage({
   return (
     <div className="mx-auto max-w-2xl">
       <Panel padding="sm">
+        <PageHeader
+          visual="gps"
+          title={t("pageTitle")}
+          className="mb-4"
+        />
         <DateNav
           date={date}
           longLabel={formatLongDate(date, locale)}

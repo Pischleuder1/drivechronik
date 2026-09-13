@@ -36,17 +36,18 @@ export default async function PlacesPage() {
         visual="places"
         title={t("title")}
         subtitle={t("description")}
-        actions={
-          <Button
-            href="/places/new"
-            variant="primary"
-            className="shrink-0"
-            icon={<Plus aria-hidden size={16} />}
-          >
-            {t("newPlace")}
-          </Button>
-        }
       />
+
+      <div className="mt-4 flex justify-end">
+        <Button
+          href="/places/new"
+          variant="primary"
+          className="shrink-0"
+          icon={<Plus aria-hidden size={16} />}
+        >
+          {t("newPlace")}
+        </Button>
+      </div>
 
       <div className="mt-6 flex flex-col gap-4">
         {placeRows.length === 0 && (

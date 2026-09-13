@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Lightbulb } from "lucide-react";
+import { CalendarRange, Lightbulb } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
 import {
   MIN_DRIVES_TOTAL,
@@ -110,15 +110,17 @@ export default async function InsightsPage({
           visual="stats"
           title={t("title")}
           subtitle={t("subtitleNoData")}
-          actions={
-            <Link
-              href="/insights/yearly"
-              className="inline-flex items-center rounded-xl border border-neutral-200 bg-white px-3.5 py-2.5 text-sm font-medium transition hover:border-neutral-300 hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:bg-neutral-800"
-            >
-              {t("yearly.open")}
-            </Link>
-          }
         />
+
+        <div className="mt-4 flex justify-end">
+          <Link
+            href="/insights/yearly"
+            className="inline-flex items-center gap-2 rounded-xl border border-red-600 bg-red-600 px-3.5 py-2 text-sm font-medium text-white shadow-sm transition hover:border-red-700 hover:bg-red-700 hover:shadow-md dark:border-red-500 dark:bg-red-600 dark:text-white dark:hover:border-red-500 dark:hover:bg-red-500"
+          >
+            <CalendarRange aria-hidden size={15} />
+            {t("yearly.open")}
+          </Link>
+        </div>
 
         <div className="mt-6">
           <NoVehicleState />
@@ -217,12 +219,6 @@ export default async function InsightsPage({
         }
         actions={
           <>
-            <Link
-              href={`/insights/yearly?vehicle=${current.id}`}
-              className="inline-flex items-center rounded-xl border border-neutral-200 bg-white px-3.5 py-2.5 text-sm font-medium transition hover:border-neutral-300 hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:bg-neutral-800"
-            >
-              {t("yearly.open")}
-            </Link>
 
             {vehicles.length > 1 && (
               <InsightsVehicleSwitcher
@@ -234,6 +230,16 @@ export default async function InsightsPage({
         }
       />
 
+      <div className="mt-4 flex justify-end">
+        <Link
+          href={`/insights/yearly?vehicle=${current.id}`}
+          className="inline-flex items-center gap-2 rounded-xl border border-red-600 bg-red-600 px-3.5 py-2 text-sm font-medium text-white shadow-sm transition hover:border-red-700 hover:bg-red-700 hover:shadow-md dark:border-red-500 dark:bg-red-600 dark:text-white dark:hover:border-red-500 dark:hover:bg-red-500"
+        >
+          <CalendarRange aria-hidden size={15} />
+            {t("yearly.open")}
+        </Link>
+      </div>
+
       {!enoughForPage && (
         <div className="mt-6">
           <EmptyState
@@ -244,9 +250,10 @@ export default async function InsightsPage({
         </div>
       )}
 
-      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-2">
         {/* 1. Verbrauch vs. Außentemperatur */}
         <Panel
+          className="relative overflow-hidden rounded-3xl transition-all hover:-translate-y-0.5 hover:shadow-md before:absolute before:inset-x-0 before:top-0 before:h-1 before:bg-sky-500"
           title={t("cards.temp.title")}
           subtitle={enoughForPage ? tempSubtitle(tempBins, t) : undefined}
         >
@@ -266,6 +273,7 @@ export default async function InsightsPage({
 
         {/* 2. Verbrauch vs. Durchschnittstempo */}
         <Panel
+          className="relative overflow-hidden rounded-3xl transition-all hover:-translate-y-0.5 hover:shadow-md before:absolute before:inset-x-0 before:top-0 before:h-1 before:bg-indigo-500"
           title={t("cards.speed.title")}
           subtitle={t("cards.speed.subtitle")}
         >
@@ -285,6 +293,7 @@ export default async function InsightsPage({
 
         {/* 3. Monatsverlauf */}
         <Panel
+          className="relative overflow-hidden rounded-3xl transition-all hover:-translate-y-0.5 hover:shadow-md before:absolute before:inset-x-0 before:top-0 before:h-1 before:bg-emerald-500"
           title={t("cards.month.title")}
           subtitle={t("cards.month.subtitle")}
         >
@@ -297,6 +306,7 @@ export default async function InsightsPage({
 
         {/* 4. Wochentagsmuster */}
         <Panel
+          className="relative overflow-hidden rounded-3xl transition-all hover:-translate-y-0.5 hover:shadow-md before:absolute before:inset-x-0 before:top-0 before:h-1 before:bg-amber-500"
           title={t("cards.weekday.title")}
           subtitle={t("cards.weekday.subtitle")}
         >
@@ -310,6 +320,7 @@ export default async function InsightsPage({
         {/* 5. Kurzstrecken-Anteil (nur bei relevantem Anteil) */}
         {showShortTrip && (
           <Panel
+            className="relative overflow-hidden rounded-3xl transition-all hover:-translate-y-0.5 hover:shadow-md before:absolute before:inset-x-0 before:top-0 before:h-1 before:bg-orange-500"
             title={t("cards.shortTrip.title")}
             subtitle={t("cards.shortTrip.subtitle")}
           >

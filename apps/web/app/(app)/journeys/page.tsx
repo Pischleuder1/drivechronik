@@ -32,17 +32,18 @@ export default async function JourneysPage() {
         visual="route"
         title={t("list.title")}
         subtitle={t("list.subtitle")}
-        actions={
-          <Button
-            href="/journeys/new"
-            variant="primary"
-            size="sm"
-            icon={<Plus aria-hidden size={16} />}
-          >
-            {t("list.newJourney")}
-          </Button>
-        }
       />
+
+      <div className="mt-4 flex justify-end">
+        <Button
+          href="/journeys/new"
+          variant="primary"
+          size="sm"
+          icon={<Plus aria-hidden size={16} />}
+        >
+          {t("list.newJourney")}
+        </Button>
+      </div>
 
       {journeys.length === 0 ? (
         <div className="mt-8">

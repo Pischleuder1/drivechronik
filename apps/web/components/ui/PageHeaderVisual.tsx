@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 export type PageHeaderVisualVariant =
   | "route"
   | "gps"
@@ -237,62 +239,16 @@ export function PageHeaderVisual({
   if (variant === "vehicle") {
     return (
       <div aria-hidden className={common}>
-        <div className="absolute inset-0 bg-gradient-to-l from-sky-50/60 via-transparent to-transparent dark:from-sky-950/20" />
-        <svg
-          viewBox="0 0 760 180"
-          className="h-full w-full"
-          preserveAspectRatio="none"
-        >
-          <path
-            d="M325 125
-               C348 90 384 64 438 53
-               C478 45 557 45 598 55
-               C630 63 657 83 684 116
-               L704 123
-               C716 127 724 138 724 150
-               L724 155
-               L310 155
-               C310 143 315 134 325 125 Z"
-            fill="currentColor"
-            opacity=".12"
-            stroke="currentColor"
-            strokeWidth="2.7"
-          />
+        <div className="absolute inset-0 bg-gradient-to-l from-sky-50/70 via-sky-50/15 to-transparent dark:from-sky-950/25 dark:via-transparent" />
 
-          <path
-            d="M401 61 L445 58 C482 54 548 54 580 61 L616 99 L371 99 Z"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            opacity=".65"
-          />
-
-          <circle
-            cx="390"
-            cy="151"
-            r="19"
-            fill="white"
-            stroke="currentColor"
-            strokeWidth="3"
-          />
-          <circle
-            cx="647"
-            cy="151"
-            r="19"
-            fill="white"
-            stroke="currentColor"
-            strokeWidth="3"
-          />
-
-          <path
-            d="M92 136 C176 106 237 127 310 111"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            opacity=".5"
-          />
-        </svg>
+        <Image
+          src="/visuals/vehicle-tesla-header.png"
+          alt=""
+          width={2172}
+          height={724}
+          priority
+          className="absolute right-2 top-1/2 h-[92%] w-auto -translate-y-1/2 object-contain opacity-70 sm:right-5 dark:opacity-45"
+        />
       </div>
     );
   }

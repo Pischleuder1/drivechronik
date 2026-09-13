@@ -129,18 +129,9 @@ export default async function JourneyDetailPage({
             </StatusBadge>
           </div>
         }
-        actions={
-          <div className="flex flex-wrap items-center gap-2">
-            <Link
-              href={`/journeys/${journey.id}/edit`}
-              className={buttonClasses("secondary", "md")}
-            >
-              {tCommon("actions.edit")}
-            </Link>
-            <DeleteJourneyButton journeyId={journey.id} name={journey.name} />
-          </div>
-        }
       />
+
+
 
       {journey.description && (
         <p className="mt-3 text-sm text-neutral-600 dark:text-neutral-300">
@@ -148,34 +139,59 @@ export default async function JourneyDetailPage({
         </p>
       )}
 
-      {/* Export (vision.md §20.4) */}
-      <div className="mt-4 flex items-center gap-1.5">
-        <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
-          {t("detail.export")}
-        </span>
-        <a
-          href={`/api/export/journey/${journey.id}?format=csv`}
-          className={buttonClasses("ghost", "sm")}
-        >
-          <Download aria-hidden size={14} />
-          CSV
-        </a>
-        <a
-          href={`/api/export/journey/${journey.id}?format=pdf`}
-          className={buttonClasses("ghost", "sm")}
-        >
-          <Download aria-hidden size={14} />
-          PDF
-        </a>
-        {hasRouteData && (
+      {/* Export + Aktionen */}
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
+            {t("detail.export")}
+          </span>
+
           <a
-            href={`/api/export/journey/${journey.id}?format=gpx`}
+            href={`/api/export/journey/${journey.id}?format=csv`}
             className={buttonClasses("ghost", "sm")}
           >
             <Download aria-hidden size={14} />
-            GPX
+            CSV
           </a>
-        )}
+
+          <a
+            href={`/api/export/journey/${journey.id}?format=pdf`}
+            className={buttonClasses("ghost", "sm")}
+          >
+            <Download aria-hidden size={14} />
+            PDF
+          </a>
+
+          {hasRouteData && (
+            <a
+              href={`/api/export/journey/${journey.id}?format=gpx`}
+              className={buttonClasses("ghost", "sm")}
+            >
+              <Download aria-hidden size={14} />
+              GPX
+            </a>
+          )}
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          <Link
+            href={`/journeys/${journey.id}/edit`}
+            className={buttonClasses(
+              "secondary",
+              "sm",
+              "w-24 justify-center",
+            )}
+          >
+            {tCommon("actions.edit")}
+          </Link>
+
+          <div className="w-24 [&_button]:w-full [&_button]:justify-center">
+            <DeleteJourneyButton
+              journeyId={journey.id}
+              name={journey.name}
+            />
+          </div>
+        </div>
       </div>
 
       {hasRouteData && (
@@ -192,6 +208,7 @@ export default async function JourneyDetailPage({
       {/* KPI grid */}
       <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard
+          valueClassName="mt-1 text-base font-semibold tabular-nums"
           label={t("detail.kpi.totalDistance")}
           value={formatKm(kpis.totalDistanceKm)}
           tone="blue"
@@ -199,6 +216,8 @@ export default async function JourneyDetailPage({
         />
 
         <StatCard
+
+          valueClassName="mt-1 text-base font-semibold tabular-nums"
           label={t("detail.kpi.driveTime")}
           value={formatDuration(kpis.driveTimeSeconds)}
           tone="violet"
@@ -206,6 +225,8 @@ export default async function JourneyDetailPage({
         />
 
         <StatCard
+
+          valueClassName="mt-1 text-base font-semibold tabular-nums"
           label={t("detail.kpi.chargeTime")}
           value={formatDuration(kpis.chargeTimeSeconds)}
           tone="amber"
@@ -213,6 +234,8 @@ export default async function JourneyDetailPage({
         />
 
         <StatCard
+
+          valueClassName="mt-1 text-base font-semibold tabular-nums"
           label={t("detail.kpi.avgConsumption")}
           value={
             kpis.avgConsumptionWhKm != null
@@ -224,6 +247,8 @@ export default async function JourneyDetailPage({
         />
 
         <StatCard
+
+          valueClassName="mt-1 text-base font-semibold tabular-nums"
           label={t("detail.kpi.consumedEnergy")}
           value={formatKwh(kpis.consumedEnergyKwh)}
           hint={kpis.anyEstimated ? t("detail.kpi.partiallyEstimated") : undefined}
@@ -232,6 +257,8 @@ export default async function JourneyDetailPage({
         />
 
         <StatCard
+
+          valueClassName="mt-1 text-base font-semibold tabular-nums"
           label={t("detail.kpi.chargedEnergy")}
           value={formatKwh(kpis.chargedEnergyKwh)}
           tone="emerald"
@@ -239,6 +266,8 @@ export default async function JourneyDetailPage({
         />
 
         <StatCard
+
+          valueClassName="mt-1 text-base font-semibold tabular-nums"
           label={t("detail.kpi.chargeStops")}
           value={String(kpis.chargeStopCount)}
           tone="amber"
@@ -246,6 +275,8 @@ export default async function JourneyDetailPage({
         />
 
         <StatCard
+
+          valueClassName="mt-1 text-base font-semibold tabular-nums"
           label={t("detail.kpi.socMinMax")}
           value={socValue}
           hint={socSub}
@@ -254,6 +285,8 @@ export default async function JourneyDetailPage({
         />
 
         <StatCard
+
+          valueClassName="mt-1 text-base font-semibold tabular-nums"
           label={t("detail.kpi.cost")}
           value={kpis.totalCost != null ? formatEur(kpis.totalCost) : "–"}
           hint={

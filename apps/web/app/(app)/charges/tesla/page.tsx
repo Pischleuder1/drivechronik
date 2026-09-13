@@ -282,26 +282,31 @@ export default async function TeslaInvoicesPage({
 
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-5">
         <StatCard
+          valueClassName="mt-1 text-base font-semibold tabular-nums"
           label={t("teslaOverview.stats.entries")}
           value={String(filteredRows.length)}
           tone="blue"
         />
         <StatCard
+          valueClassName="mt-1 text-base font-semibold tabular-nums"
           label={t("teslaOverview.stats.invoices")}
           value={String(invoiceCount)}
           tone="violet"
         />
         <StatCard
+          valueClassName="mt-1 text-base font-semibold tabular-nums"
           label={t("teslaOverview.stats.energy")}
           value={formatKwh(totalEnergy)}
           tone="cyan"
         />
         <StatCard
+          valueClassName="mt-1 text-base font-semibold tabular-nums"
           label={t("teslaOverview.stats.total")}
           value={formatTotals(totalsByCurrency, locale)}
           tone="emerald"
         />
         <StatCard
+          valueClassName="mt-1 text-base font-semibold tabular-nums"
           label={t("teslaOverview.stats.matched")}
           value={`${matchedCount} / ${filteredRows.length}`}
           tone="sky"

@@ -114,11 +114,13 @@ export default async function ChargeAnalysisPage({
 
       <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
+          valueClassName="mt-1 text-base font-semibold tabular-nums"
           label={t("analysis.sessions")}
           value={String(analytics.sessions.length)}
           tone="blue"
         />
         <StatCard
+          valueClassName="mt-1 text-base font-semibold tabular-nums"
           label={t("analysis.medianTenToEighty")}
           value={
             analytics.medianTenToEightySeconds != null
@@ -130,11 +132,13 @@ export default async function ChargeAnalysisPage({
           tone="violet"
         />
         <StatCard
+          valueClassName="mt-1 text-base font-semibold tabular-nums"
           label={t("analysis.medianPeak")}
           value={formatKw(analytics.medianPeakKw)}
           tone="cyan"
         />
         <StatCard
+          valueClassName="mt-1 text-base font-semibold tabular-nums"
           label={t("analysis.slowSessions")}
           value={String(analytics.slowAlerts.length)}
           tone={analytics.slowAlerts.length > 0 ? "amber" : "emerald"}

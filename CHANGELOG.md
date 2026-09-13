@@ -42,6 +42,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modernized the application UI across Insights, reports, journeys, calendar, planner, charging, places, rules, search, settings, tags and vehicle views using shared page headers, panels, metric cards, section headers and status badges.
 - Modernized the data import page and import history using the shared PageHeader, Panel and StatusBadge components without changing import or rollback behavior.
 
+- Yearly reports can now switch between business drives and all drives while preserving the selected scope across year navigation and CSV/PDF exports; kilometre reimbursement continues to use business distance only.
+
+- Yearly PDF reports now include the actual vehicle model and license plate when available.
+
+- Refined Insights with more compact metric presentation, clearer panel styling and a dedicated annual-report action.
+
+- Moved page-level actions out of decorative page headers across Insights, charging, places and journeys for a more consistent layout.
+
+- Standardized compact metric typography in charging analysis, Tesla invoice statistics and journey details.
+
+- Replaced the generic vehicle header drawing with a dedicated transparent Tesla-style vehicle illustration.
+
 ### Fixed
 
 - Improved charging-stop handling on ferry routes.

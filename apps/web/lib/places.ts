@@ -1,4 +1,13 @@
-export type PlaceType = "home" | "work" | "customer" | "charger" | "other";
+export type PlaceType =
+  | "home"
+  | "work"
+  | "customer"
+  | "site"
+  | "supplier"
+  | "hotel"
+  | "charger"
+  | "parking"
+  | "other";
 
 // Labels for PlaceType live in messages/{de,en}/places.json under
 // "placeTypes.<type>" — look them up via t(`placeTypes.${type}`) rather than
@@ -8,7 +17,11 @@ export const PLACE_TYPE_OPTIONS: PlaceType[] = [
   "home",
   "work",
   "customer",
+  "site",
+  "supplier",
+  "hotel",
   "charger",
+  "parking",
   "other",
 ];
 

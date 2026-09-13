@@ -11,7 +11,11 @@
     "home": "Home",
     "work": "Work",
     "customer": "Customer",
+    "site": "Site / Branch",
+    "supplier": "Supplier",
+    "hotel": "Hotel",
     "charger": "Charger",
+    "parking": "Parking",
     "other": "Other"
   },
   "list": {

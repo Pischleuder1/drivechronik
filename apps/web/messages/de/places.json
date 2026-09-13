@@ -11,7 +11,11 @@
     "home": "Zuhause",
     "work": "Arbeit",
     "customer": "Kunde",
+    "site": "Werk / Niederlassung",
+    "supplier": "Lieferant",
+    "hotel": "Hotel",
     "charger": "Lader",
+    "parking": "Parkplatz",
     "other": "Sonstiges"
   },
   "list": {

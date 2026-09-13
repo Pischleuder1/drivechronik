@@ -441,7 +441,7 @@ export async function getAuditLogFor(
 export interface PlaceRow {
   id: number;
   name: string;
-  type: "home" | "work" | "customer" | "charger" | "other";
+  type: "home" | "work" | "customer" | "site" | "supplier" | "hotel" | "charger" | "parking" | "other";
   lat: number;
   lon: number;
   radiusM: number;
@@ -532,7 +532,7 @@ export async function getPlaceById(id: number) {
 export interface PlaceLite {
   id: number;
   name: string;
-  type: "home" | "work" | "customer" | "charger" | "other";
+  type: "home" | "work" | "customer" | "site" | "supplier" | "hotel" | "charger" | "parking" | "other";
 }
 
 /** All places, id+name+type only — for select dropdowns. */

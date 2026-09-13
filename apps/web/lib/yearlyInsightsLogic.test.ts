@@ -15,7 +15,7 @@ function drive(
     classification?: YearlyClassification;
     placeId?: number | null;
     placeName?: string | null;
-    placeType?: "home" | "work" | "customer" | "charger" | "other" | null;
+    placeType?: "home" | "work" | "customer" | "site" | "supplier" | "hotel" | "charger" | "parking" | "other" | null;
     address?: string | null;
     lat?: number | null;
     lon?: number | null;

@@ -12,7 +12,17 @@ import { MAX_RADIUS_M, MIN_RADIUS_M } from "../places";
 
 type Translator = Awaited<ReturnType<typeof getTranslations>>;
 
-const placeTypeSchema = z.enum(["home", "work", "customer", "charger", "other"]);
+const placeTypeSchema = z.enum([
+  "home",
+  "work",
+  "customer",
+  "site",
+  "supplier",
+  "hotel",
+  "charger",
+  "parking",
+  "other",
+]);
 
 /**
  * Builds the place input schema with locale-aware validation messages. Built

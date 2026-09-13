@@ -38,7 +38,11 @@ export const placeType = pgEnum("place_type", [
   "home",
   "work",
   "customer",
+  "site",
+  "supplier",
+  "hotel",
   "charger",
+  "parking",
   "other",
 ]);
 

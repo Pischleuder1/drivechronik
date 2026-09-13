@@ -211,7 +211,16 @@ async function loadVehicleEfficiencyKwhPerKm(
 export interface PlannerPlace {
   id: number;
   name: string;
-  type: "home" | "work" | "customer" | "charger" | "other";
+  type:
+    | "home"
+    | "work"
+    | "customer"
+    | "site"
+    | "supplier"
+    | "hotel"
+    | "charger"
+    | "parking"
+    | "other";
   lat: number;
   lon: number;
 }

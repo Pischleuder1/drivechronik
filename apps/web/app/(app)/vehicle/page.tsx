@@ -15,6 +15,8 @@ import { SoftwareTimeline } from "../settings/SoftwareTimeline";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Panel } from "../../../components/ui/Panel";
 
+import { IconBadge, type IconBadgeTone } from "../../../components/ui/IconBadge";
+
 export const dynamic = "force-dynamic";
 
 function valueOrDash(
@@ -33,18 +35,22 @@ function valueOrDash(
 function MetricCard({
   title,
   icon: Icon,
+  tone = "neutral",
   children,
   hint,
 }: {
   title: string;
   icon: typeof Battery;
+  tone?: IconBadgeTone;
   children: React.ReactNode;
   hint?: string;
 }) {
   return (
     <Panel>
-      <div className="flex items-center gap-2 text-neutral-500 dark:text-neutral-400">
-        <Icon aria-hidden size={17} />
+      <div className="flex items-center gap-2.5">
+        <IconBadge tone={tone} size="sm">
+          <Icon aria-hidden size={18} />
+        </IconBadge>
         <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
           {title}
         </h2>
@@ -135,6 +141,7 @@ export default async function VehiclePage() {
         <MetricCard
           title={t("battery.title")}
           icon={Battery}
+          tone="emerald"
           hint={t("battery.estimated")}
         >
           <div className="grid gap-4">
@@ -169,6 +176,7 @@ export default async function VehiclePage() {
         <MetricCard
           title={t("range.title")}
           icon={Gauge}
+          tone="blue"
           hint={t("range.hint")}
         >
           <div className="grid gap-4">
@@ -194,6 +202,7 @@ export default async function VehiclePage() {
         <MetricCard
           title={t("odometer.title")}
           icon={Milestone}
+          tone="indigo"
         >
           <div className="grid gap-4">
             <DataValue
@@ -220,6 +229,7 @@ export default async function VehiclePage() {
         <MetricCard
           title={t("charging.title")}
           icon={PlugZap}
+          tone="cyan"
           hint={t("charging.hint")}
         >
           <div className="grid grid-cols-2 gap-x-6 gap-y-4">
@@ -264,6 +274,7 @@ export default async function VehiclePage() {
         <MetricCard
           title={t("drain.title")}
           icon={Moon}
+          tone="violet"
           hint={t("drain.hint")}
         >
           <div className="grid grid-cols-2 gap-x-6 gap-y-4">

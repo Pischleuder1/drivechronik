@@ -1,20 +1,64 @@
-import { BatteryCharging, DatabaseZap, ReceiptText } from "lucide-react";
+import {
+  BatteryCharging,
+  DatabaseZap,
+  ReceiptText,
+} from "lucide-react";
 import { desc, eq } from "drizzle-orm";
 import { getTranslations } from "next-intl/server";
+
 import {
   importRuns,
   vehicles as vehicleTable,
 } from "@drivechronik/db";
 
-import { TessieImport } from "./TessieImport";
-import { TeslaChargingImport } from "./TeslaChargingImport";
-import { TronityChargingImport } from "./TronityChargingImport";
+import { PageHeader } from "../../../components/ui/PageHeader";
+import { Panel } from "../../../components/ui/Panel";
+import { db } from "../../../lib/db";
+import { getVehicles } from "../../../lib/queries";
+
 import {
   ImportHistory,
   type ImportHistoryRun,
 } from "./ImportHistory";
-import { db } from "../../../lib/db";
-import { getVehicles } from "../../../lib/queries";
+import { TeslaChargingImport } from "./TeslaChargingImport";
+import { TessieImport } from "./TessieImport";
+import { TronityChargingImport } from "./TronityChargingImport";
+
+function ImportPanelTitle({
+  icon,
+  title,
+  tone,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  tone:
+    | "sky"
+    | "emerald"
+    | "blue";
+}) {
+  const toneClasses = {
+    sky:
+      "bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300",
+    emerald:
+      "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
+    blue:
+      "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
+  };
+
+  return (
+    <div className="flex items-center gap-3">
+      <span
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${toneClasses[tone]}`}
+      >
+        {icon}
+      </span>
+
+      <span className="text-base">
+        {title}
+      </span>
+    </div>
+  );
+}
 
 export default async function ImportPage() {
   const t = await getTranslations("import");
@@ -95,87 +139,94 @@ export default async function ImportPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="text-2xl font-semibold tracking-tight">
-        {t("title")}
-      </h1>
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+      />
 
-      <p className="mt-3 text-neutral-500 dark:text-neutral-400">
-        {t("subtitle")}
-      </p>
+      <div className="mt-6 space-y-6">
+        <Panel
+          title={
+            <ImportPanelTitle
+              icon={
+                <DatabaseZap
+                  aria-hidden
+                  size={20}
+                />
+              }
+              title={t("tessie.title")}
+              tone="sky"
+            />
+          }
+          subtitle={t(
+            "tessie.description",
+          )}
+        >
+          <p className="mb-5 text-sm leading-relaxed text-neutral-500 dark:text-neutral-400">
+            {t("tessie.details")}
+          </p>
 
-      <section className="mt-6 rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
-        <div className="flex items-start gap-4">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300">
-            <DatabaseZap aria-hidden size={21} />
-          </span>
+          <TessieImport />
+        </Panel>
 
-          <div className="min-w-0 flex-1">
-            <h2 className="font-semibold text-neutral-900 dark:text-neutral-100">
-              {t("tessie.title")}
-            </h2>
+        <Panel
+          title={
+            <ImportPanelTitle
+              icon={
+                <ReceiptText
+                  aria-hidden
+                  size={20}
+                />
+              }
+              title={t(
+                "teslaCharging.title",
+              )}
+              tone="emerald"
+            />
+          }
+          subtitle={t(
+            "teslaCharging.description",
+          )}
+        >
+          <p className="mb-5 text-sm leading-relaxed text-neutral-500 dark:text-neutral-400">
+            {t("teslaCharging.details")}
+          </p>
 
-            <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
-              {t("tessie.description")}
-            </p>
+          <TeslaChargingImport />
+        </Panel>
 
-            <p className="mt-3 text-sm text-neutral-500 dark:text-neutral-400">
-              {t("tessie.details")}
-            </p>
-          </div>
-        </div>
+        <Panel
+          title={
+            <ImportPanelTitle
+              icon={
+                <BatteryCharging
+                  aria-hidden
+                  size={20}
+                />
+              }
+              title={t(
+                "tronityCharging.title",
+              )}
+              tone="blue"
+            />
+          }
+          subtitle={t(
+            "tronityCharging.description",
+          )}
+        >
+          <p className="mb-5 text-sm leading-relaxed text-neutral-500 dark:text-neutral-400">
+            {t("tronityCharging.details")}
+          </p>
 
-        <TessieImport />
-      </section>
+          <TronityChargingImport
+            vehicles={vehicles}
+          />
+        </Panel>
 
-      <section className="mt-6 rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
-        <div className="flex items-start gap-4">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
-            <ReceiptText aria-hidden size={21} />
-          </span>
-
-          <div className="min-w-0 flex-1">
-            <h2 className="font-semibold text-neutral-900 dark:text-neutral-100">
-              {t("teslaCharging.title")}
-            </h2>
-
-            <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
-              {t("teslaCharging.description")}
-            </p>
-
-            <p className="mt-3 text-sm text-neutral-500 dark:text-neutral-400">
-              {t("teslaCharging.details")}
-            </p>
-          </div>
-        </div>
-
-        <TeslaChargingImport />
-      </section>
-
-      <section className="mt-6 rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
-        <div className="flex items-start gap-4">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
-            <BatteryCharging aria-hidden size={21} />
-          </span>
-
-          <div className="min-w-0 flex-1">
-            <h2 className="font-semibold text-neutral-900 dark:text-neutral-100">
-              {t("tronityCharging.title")}
-            </h2>
-
-            <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
-              {t("tronityCharging.description")}
-            </p>
-
-            <p className="mt-3 text-sm text-neutral-500 dark:text-neutral-400">
-              {t("tronityCharging.details")}
-            </p>
-          </div>
-        </div>
-
-        <TronityChargingImport vehicles={vehicles} />
-      </section>
-
-      <ImportHistory runs={historyRuns} />
+        <ImportHistory
+          runs={historyRuns}
+        />
+      </div>
     </div>
   );
 }

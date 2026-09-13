@@ -12,6 +12,11 @@ import {
 } from "lucide-react";
 
 import { buttonClasses } from "../../../components/ui/Button";
+import { Panel } from "../../../components/ui/Panel";
+import {
+  StatusBadge,
+  type StatusBadgeTone,
+} from "../../../components/ui/StatusBadge";
 
 export type ImportHistoryRun = {
   id: number;
@@ -74,22 +79,22 @@ function numericValue(
     : 0;
 }
 
-function statusClasses(
+function statusTone(
   status: string,
-): string {
+): StatusBadgeTone {
   switch (status) {
     case "completed":
-      return "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300";
+      return "emerald";
     case "rollback_partial":
-      return "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300";
+      return "amber";
     case "rolled_back":
-      return "bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300";
+      return "neutral";
     case "failed":
-      return "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300";
+      return "rose";
     case "running":
-      return "bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300";
+      return "sky";
     default:
-      return "bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300";
+      return "neutral";
   }
 }
 
@@ -396,30 +401,25 @@ export function ImportHistory({
   }
 
   return (
-    <section className="mt-6 rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
-      <div className="flex items-start gap-4">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300">
-          <History
-            aria-hidden
-            size={21}
-          />
-        </span>
+    <Panel
+      title={
+        <div className="flex items-center gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300">
+            <History
+              aria-hidden
+              size={20}
+            />
+          </span>
 
-        <div className="min-w-0 flex-1">
-          <h2 className="font-semibold text-neutral-900 dark:text-neutral-100">
+          <span className="text-base">
             {t("history.title")}
-          </h2>
-
-          <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
-            {t(
-              "history.description",
-            )}
-          </p>
+          </span>
         </div>
-      </div>
-
+      }
+      subtitle={t("history.description")}
+    >
       {message && (
-        <div className="mt-5 flex gap-2 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">
+        <div className="mb-4 flex gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300">
           <CheckCircle2
             aria-hidden
             size={18}
@@ -430,7 +430,7 @@ export function ImportHistory({
       )}
 
       {error && (
-        <div className="mt-5 flex gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-800 dark:bg-red-950/50 dark:text-red-300">
+        <div className="mb-4 flex gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300">
           <AlertTriangle
             aria-hidden
             size={18}
@@ -441,43 +441,40 @@ export function ImportHistory({
       )}
 
       {runs.length === 0 ? (
-        <p className="mt-5 text-sm text-neutral-500 dark:text-neutral-400">
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">
           {t("history.empty")}
         </p>
       ) : (
-        <div className="mt-5 space-y-3">
+        <div className="space-y-3">
           {runs.map((run) => {
             const selected =
-              preview?.runId ===
-              run.id;
-
+              preview?.runId === run.id;
             const busy =
-              busyRunId ===
-              run.id;
+              busyRunId === run.id;
 
             return (
               <div
                 key={run.id}
-                className="rounded-xl border border-neutral-200 p-4 dark:border-neutral-800"
+                className="rounded-xl border border-neutral-200 bg-neutral-50/60 p-4 transition-colors dark:border-neutral-800 dark:bg-neutral-950/30"
               >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-0">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-medium text-neutral-900 dark:text-neutral-100">
+                      <p className="font-semibold text-neutral-900 dark:text-neutral-100">
                         {sourceLabel(
                           run.source,
                         )}
                       </p>
 
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusClasses(
+                      <StatusBadge
+                        tone={statusTone(
                           run.status,
-                        )}`}
+                        )}
                       >
                         {statusLabel(
                           run.status,
                         )}
-                      </span>
+                      </StatusBadge>
                     </div>
 
                     <p className="mt-1 truncate text-sm text-neutral-600 dark:text-neutral-400">
@@ -487,7 +484,7 @@ export function ImportHistory({
                         )}
                     </p>
 
-                    <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                    <p className="mt-1 text-xs leading-relaxed text-neutral-500 dark:text-neutral-400">
                       {new Date(
                         run.startedAt,
                       ).toLocaleString(
@@ -497,15 +494,15 @@ export function ImportHistory({
                             "numeric",
                           month:
                             "2-digit",
-                          day: "2-digit",
-                          hour: "2-digit",
+                          day:
+                            "2-digit",
+                          hour:
+                            "2-digit",
                           minute:
                             "2-digit",
                         },
                       )}
-
                       {" · "}
-
                       {t(
                         "history.createdBy",
                         {
@@ -513,7 +510,6 @@ export function ImportHistory({
                             run.createdBy,
                         },
                       )}
-
                       {run.vehicleName
                         ? ` · ${t(
                             "history.vehicle",
@@ -525,7 +521,7 @@ export function ImportHistory({
                         : ""}
                     </p>
 
-                    <p className="mt-2 text-sm text-neutral-700 dark:text-neutral-300">
+                    <p className="mt-3 inline-flex rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-sm text-neutral-700 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300">
                       {summaryText(run)}
                     </p>
                   </div>
@@ -569,8 +565,8 @@ export function ImportHistory({
                 </div>
 
                 {selected && preview && (
-                  <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/40">
-                    <div className="flex gap-2">
+                  <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/40">
+                    <div className="flex gap-3">
                       <AlertTriangle
                         aria-hidden
                         size={18}
@@ -578,7 +574,7 @@ export function ImportHistory({
                       />
 
                       <div className="min-w-0 flex-1">
-                        <p className="font-medium text-amber-900 dark:text-amber-200">
+                        <p className="font-semibold text-amber-900 dark:text-amber-200">
                           {t(
                             "history.previewTitle",
                           )}
@@ -703,13 +699,17 @@ export function ImportHistory({
                               {busy ? (
                                 <Loader2
                                   aria-hidden
-                                  size={14}
+                                  size={
+                                    14
+                                  }
                                   className="animate-spin"
                                 />
                               ) : (
                                 <RotateCcw
                                   aria-hidden
-                                  size={14}
+                                  size={
+                                    14
+                                  }
                                 />
                               )}
 
@@ -732,6 +732,6 @@ export function ImportHistory({
           })}
         </div>
       )}
-    </section>
+    </Panel>
   );
 }

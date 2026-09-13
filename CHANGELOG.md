@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dashboard overview modernized with vehicle metadata, localized vehicle label and dynamic vehicle artwork.
 
 - Modernized the application UI across Insights, reports, journeys, calendar, planner, charging, places, rules, search, settings, tags and vehicle views using shared page headers, panels, metric cards, section headers and status badges.
+- Modernized the data import page and import history using the shared PageHeader, Panel and StatusBadge components without changing import or rollback behavior.
 
 ### Fixed
 

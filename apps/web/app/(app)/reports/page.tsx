@@ -1,5 +1,13 @@
 import Link from "next/link";
-import { Download } from "lucide-react";
+import {
+  Briefcase,
+  Car,
+  CalendarRange,
+  Download,
+  Euro,
+  HelpCircle,
+  Route,
+} from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
 import {
   buildMonthReport,
@@ -13,6 +21,7 @@ import { isValidMonthParam } from "../../../lib/exports/params";
 import { todayInAppTz } from "../../../lib/day";
 import { buttonClasses } from "../../../components/ui/Button";
 import { PageHeader } from "../../../components/ui/PageHeader";
+import { IconBadge } from "../../../components/ui/IconBadge";
 import { Panel } from "../../../components/ui/Panel";
 import { StatCard } from "../../../components/ui/StatCard";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
@@ -66,7 +75,9 @@ function parseSelected(raw: string | undefined): Classification[] {
     .filter((s): s is Classification =>
       ALL_CLASSIFICATIONS.includes(s as Classification),
     );
-  return parts.length > 0 ? parts : DEFAULT_CLASSIFICATIONS;
+  return parts.length === 1 && parts[0] === "business"
+    ? DEFAULT_CLASSIFICATIONS
+    : ALL_CLASSIFICATIONS;
 }
 
 function formatDateCell(dateStr: string): string {
@@ -97,14 +108,6 @@ export default async function ReportsPage({
           visual="document"
           title={t("title")}
           subtitle={t("subtitle")}
-          actions={
-            <Link
-              href={`/reports/year?year=${month.slice(0, 4)}`}
-              className={buttonClasses("secondary", "md")}
-            >
-              {t("year.open")}
-            </Link>
-          }
         />
 
         <Panel className="mt-4" padding="sm">
@@ -151,35 +154,42 @@ export default async function ReportsPage({
         visual="document"
         title={t("title")}
         subtitle={t("subtitle")}
-        actions={
-          <Link
-            href={`/reports/year?year=${month.slice(0, 4)}`}
-            className={buttonClasses("secondary", "md")}
-          >
-            {t("year.open")}
-          </Link>
-        }
       />
 
       <Panel className="mt-4" padding="sm">
         <ReportFilters month={month} selected={selected} />
       </Panel>
 
-      <div className="mt-4 flex gap-1.5">
-        <a
-          href={`/api/export/month/${month}${exportQuery}&format=csv`}
-          className={buttonClasses("ghost", "sm")}
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-1.5">
+          <a
+            href={`/api/export/month/${month}${exportQuery}&format=csv`}
+            className={buttonClasses("ghost", "sm")}
+          >
+            <Download aria-hidden size={14} />
+            {t("exportCsv")}
+          </a>
+
+          <a
+            href={`/api/export/month/${month}${exportQuery}&format=pdf`}
+            className={buttonClasses("ghost", "sm")}
+          >
+            <Download aria-hidden size={14} />
+            {t("exportPdf")}
+          </a>
+        </div>
+
+        <Link
+          href={`/reports/year?year=${month.slice(0, 4)}&classification=${selected.join(",")}`}
+          className={buttonClasses(
+            "secondary",
+            "sm",
+            "!border-red-600 !bg-red-600 !text-white hover:!border-red-700 hover:!bg-red-700 dark:!border-red-500 dark:!bg-red-600 dark:!text-white dark:hover:!border-red-500 dark:hover:!bg-red-500",
+          )}
         >
-          <Download aria-hidden size={14} />
-          {t("exportCsv")}
-        </a>
-        <a
-          href={`/api/export/month/${month}${exportQuery}&format=pdf`}
-          className={buttonClasses("ghost", "sm")}
-        >
-          <Download aria-hidden size={14} />
-          {t("exportPdf")}
-        </a>
+          <CalendarRange aria-hidden size={14} />
+          {t("year.open")}
+        </Link>
       </div>
 
       <MonthSealCard
@@ -190,16 +200,32 @@ export default async function ReportsPage({
         canSeal={canSeal}
       />
 
-      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <div
+        className={`mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 ${
+          selected.length === 1 ? "" : "lg:grid-cols-5"
+        }`}
+      >
         {ALL_CLASSIFICATIONS.filter((c) => selected.includes(c)).map((c) => {
           const bucket = report.byClassification[c];
 
           return (
             <StatCard
+              valueClassName="mt-1 text-base font-semibold tabular-nums"
               key={c}
               label={tc(`classification.${c}`)}
               value={formatKm(bucket.distanceKm)}
               tone={classificationTone(c)}
+              icon={
+                c === "business" ? (
+                  <Briefcase className="h-4 w-4" />
+                ) : c === "private" ? (
+                  <Car className="h-4 w-4" />
+                ) : c === "commute" ? (
+                  <Route className="h-4 w-4" />
+                ) : (
+                  <HelpCircle className="h-4 w-4" />
+                )
+              }
               footer={
                 <p className="text-xs text-neutral-500 dark:text-neutral-400">
                   {t("driveCountLabel", { count: bucket.driveCount })}
@@ -210,9 +236,12 @@ export default async function ReportsPage({
         })}
 
         <StatCard
+
+          valueClassName="mt-1 text-base font-semibold tabular-nums"
           label={t("total")}
           value={formatKm(report.totals.distanceKm)}
           tone="violet"
+          icon={<Route className="h-4 w-4" />}
           footer={
             <p className="text-xs text-neutral-500 dark:text-neutral-400">
               {t("driveCountLabel", { count: report.totals.driveCount })}
@@ -222,12 +251,16 @@ export default async function ReportsPage({
       </div>
 
       {report.businessReimbursement.applicable && (
-        <div className="mt-4 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+        <div className="mt-4 rounded-3xl border border-neutral-200/80 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
           <div className="flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
-                {t("reimbursement.title")}
-              </p>
+            <div className="flex items-start gap-3">
+              <IconBadge tone="emerald" size="sm">
+                <Euro className="h-4 w-4" />
+              </IconBadge>
+              <div>
+                <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                  {t("reimbursement.title")}
+                </p>
               <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
                 {t("reimbursement.formula", {
                   km: new Intl.NumberFormat(locale, {
@@ -244,11 +277,12 @@ export default async function ReportsPage({
               </p>
             </div>
 
+            </div>
             <div className="text-right">
               <p className="text-xs text-neutral-500 dark:text-neutral-400">
                 {t("reimbursement.amount")}
               </p>
-              <p className="mt-1 text-2xl font-semibold tracking-tight tabular-nums">
+              <p className="mt-1 text-base font-semibold tracking-tight tabular-nums">
                 {new Intl.NumberFormat(locale, {
                   style: "currency",
                   currency: "EUR",
@@ -273,7 +307,7 @@ export default async function ReportsPage({
         </p>
       )}
 
-      <div className="mt-6 overflow-x-auto rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+      <div className="mt-6 overflow-x-auto rounded-3xl border border-neutral-200/80 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
         <table className="w-full text-sm">
           <thead className="border-b border-neutral-200 bg-neutral-50 text-left text-xs font-semibold text-neutral-500 dark:border-neutral-800 dark:bg-neutral-800/60 dark:text-neutral-400">
             <tr>

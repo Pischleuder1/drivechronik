@@ -1,6 +1,6 @@
 {
   "title": "Berichte",
-  "subtitle": "Monatsreport nach Klassifizierung.",
+  "subtitle": "Monatsbericht für Dienstfahrten oder alle Fahrten.",
   "exportCsv": "CSV exportieren",
   "exportPdf": "PDF exportieren",
   "total": "Gesamt",
@@ -17,7 +17,9 @@
   "filters": {
     "prevMonth": "Vorheriger Monat",
     "nextMonth": "Nächster Monat",
-    "selectMonth": "Monat wählen"
+    "selectMonth": "Monat wählen",
+    "businessOnly": "Dienstfahrten",
+    "allDrives": "Alle Fahrten"
   },
   "reimbursement": {
     "title": "Kilometererstattung",
@@ -43,7 +45,12 @@
       "month": "Monat",
       "drives": "Fahrten",
       "distance": "Geschäftliche km",
-      "amount": "Erstattung"
-    }
+      "amount": "Erstattung",
+      "allDistance": "Kilometer"
+    },
+    "allTitle": "Alle Fahrten {year}",
+    "allSubtitle": "Jahresübersicht aller Fahrten. Die Kilometererstattung wird nur für geschäftliche Fahrten berechnet.",
+    "allTotalDistance": "Gesamtkilometer",
+    "allIncomplete": "Mindestens einer Fahrt fehlen Distanzdaten. Die Gesamtkilometer können daher unvollständig sein."
   }
 }

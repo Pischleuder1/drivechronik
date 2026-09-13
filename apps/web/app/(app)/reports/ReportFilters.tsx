@@ -1,11 +1,19 @@
 "use client";
+
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  BriefcaseBusiness,
+  CarFront,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { Classification } from "@drivechronik/core";
 import { buttonClasses } from "../../../components/ui/Button";
 
-const CLASSIFICATION_VALUES: Classification[] = [
+const BUSINESS_ONLY: Classification[] = ["business"];
+
+const ALL_DRIVES: Classification[] = [
   "business",
   "private",
   "commute",
@@ -14,9 +22,7 @@ const CLASSIFICATION_VALUES: Classification[] = [
 
 function buildQuery(month: string, classifications: Classification[]): string {
   const params = new URLSearchParams({ month });
-  if (classifications.length > 0) {
-    params.set("classification", classifications.join(","));
-  }
+  params.set("classification", classifications.join(","));
   return `?${params.toString()}`;
 }
 
@@ -37,65 +43,98 @@ export function ReportFilters({
 }) {
   const router = useRouter();
   const t = useTranslations("reports");
-  const tc = useTranslations("common");
 
-  function goTo(nextMonth: string, nextSelected: Classification[]) {
+  const businessOnly =
+    selected.length === 1 && selected[0] === "business";
+
+  const effectiveSelected = businessOnly ? BUSINESS_ONLY : ALL_DRIVES;
+
+  function goTo(
+    nextMonth: string,
+    nextSelected: Classification[],
+  ) {
     router.push(`/reports${buildQuery(nextMonth, nextSelected)}`);
   }
 
-  function toggle(value: Classification) {
-    const isSelected = selected.includes(value);
-    const next = isSelected
-      ? selected.filter((c) => c !== value)
-      : [...selected, value];
-    goTo(month, next);
-  }
-
   return (
-    <div className="flex flex-wrap items-center gap-4">
+    <div className="flex flex-wrap items-center justify-between gap-4">
+
+      <div className="inline-flex rounded-xl border border-neutral-200 bg-neutral-50 p-1 dark:border-neutral-700 dark:bg-neutral-950">
+
+        <button
+          type="button"
+          aria-pressed={businessOnly}
+          onClick={() => goTo(month, BUSINESS_ONLY)}
+          className={`inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+            businessOnly
+              ? "bg-blue-600 text-white shadow-sm"
+              : "text-neutral-600 hover:bg-white hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
+          }`}
+        >
+          <BriefcaseBusiness aria-hidden size={15} />
+          {t("filters.businessOnly")}
+        </button>
+
+        <button
+          type="button"
+          aria-pressed={!businessOnly}
+          onClick={() => goTo(month, ALL_DRIVES)}
+          className={`inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+            !businessOnly
+              ? "bg-violet-600 text-white shadow-sm"
+              : "text-neutral-600 hover:bg-white hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
+          }`}
+        >
+          <CarFront aria-hidden size={15} />
+          {t("filters.allDrives")}
+        </button>
+
+      </div>
+
       <div className="flex items-center gap-1">
+
         <button
           type="button"
           aria-label={t("filters.prevMonth")}
-          onClick={() => goTo(shiftMonth(month, -1), selected)}
-          className={buttonClasses("secondary", "md", "!h-9 !w-9 !p-0")}
+          onClick={() =>
+            goTo(shiftMonth(month, -1), effectiveSelected)
+          }
+          className={buttonClasses(
+            "secondary",
+            "md",
+            "!h-9 !w-9 !p-0",
+          )}
         >
           <ChevronLeft aria-hidden size={18} />
         </button>
+
         <input
           type="month"
           value={month}
           aria-label={t("filters.selectMonth")}
           onChange={(e) => {
-            if (e.target.value) goTo(e.target.value, selected);
+            if (e.target.value) {
+              goTo(e.target.value, effectiveSelected);
+            }
           }}
           className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm text-neutral-900 outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:focus-visible:ring-white dark:focus-visible:ring-offset-neutral-950"
         />
+
         <button
           type="button"
           aria-label={t("filters.nextMonth")}
-          onClick={() => goTo(shiftMonth(month, 1), selected)}
-          className={buttonClasses("secondary", "md", "!h-9 !w-9 !p-0")}
+          onClick={() =>
+            goTo(shiftMonth(month, 1), effectiveSelected)
+          }
+          className={buttonClasses(
+            "secondary",
+            "md",
+            "!h-9 !w-9 !p-0",
+          )}
         >
           <ChevronRight aria-hidden size={18} />
         </button>
-      </div>
 
-      <div className="flex flex-wrap items-center gap-3">
-        {CLASSIFICATION_VALUES.map((value) => (
-          <label
-            key={value}
-            className="flex items-center gap-1.5 text-sm text-neutral-700 dark:text-neutral-300"
-          >
-            <input
-              type="checkbox"
-              checked={selected.includes(value)}
-              onChange={() => toggle(value)}
-              className="h-4 w-4 rounded border-neutral-300 dark:border-neutral-700"
-            />
-            {tc(`classification.${value}`)}
-          </label>
-        ))}
       </div>
     </div>
   );

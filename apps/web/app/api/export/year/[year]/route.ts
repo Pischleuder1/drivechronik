@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getLocale, getTranslations } from "next-intl/server";
 
-import { buildBusinessYearReport } from "@drivechronik/core";
+import {
+  buildBusinessYearReport,
+  type Classification,
+} from "@drivechronik/core";
 
 import { validateSession } from "../../../../../lib/auth/session";
 import { getBusinessReimbursementRateEurPerKm } from "../../../../../lib/appSettings";
@@ -18,6 +21,13 @@ import {
 } from "../../../../../lib/exports/params";
 
 export const dynamic = "force-dynamic";
+
+const ALL_CLASSIFICATIONS: Classification[] = [
+  "business",
+  "private",
+  "commute",
+  "unclassified",
+];
 
 export async function GET(
   request: NextRequest,
@@ -52,9 +62,21 @@ export async function GET(
     );
   }
 
+  const classification =
+    request.nextUrl.searchParams.get("classification");
+
+  const businessOnly =
+    classification == null || classification === "business";
+
+  const selected: Classification[] = businessOnly
+    ? ["business"]
+    : ALL_CLASSIFICATIONS;
+
   const [data, reimbursementRate, locale] =
     await Promise.all([
-      loadBusinessYearReportData(year),
+      businessOnly
+          ? loadBusinessYearReportData(year)
+          : loadBusinessYearReportData(year, selected),
       getBusinessReimbursementRateEurPerKm(),
       getLocale(),
     ]);
@@ -64,10 +86,13 @@ export async function GET(
     year,
     data.meta,
     reimbursementRate,
+    selected,
   );
 
-  const labels = buildBusinessYearExportLabels(t, locale);
-  const filename = yearFilename(year, format);
+  const labels = buildBusinessYearExportLabels(t, locale, !businessOnly);
+  const filename = businessOnly
+    ? yearFilename(year, format)
+    : `drivechronik-jahr-${year}-alle-fahrten.${format}`;
 
   if (format === "csv") {
     const csv = renderBusinessYearCsv(report, labels);

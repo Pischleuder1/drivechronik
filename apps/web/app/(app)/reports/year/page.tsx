@@ -5,6 +5,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import {
   buildBusinessYearReport,
   formatKm,
+  type Classification,
 } from "@drivechronik/core";
 
 import { getBusinessReimbursementRateEurPerKm } from "../../../../lib/appSettings";
@@ -22,6 +23,15 @@ import { getVehicles } from "../../../../lib/queries";
 
 export const dynamic = "force-dynamic";
 
+const BUSINESS_ONLY: Classification[] = ["business"];
+
+const ALL_CLASSIFICATIONS: Classification[] = [
+  "business",
+  "private",
+  "commute",
+  "unclassified",
+];
+
 function currentYearInAppTz(): string {
   return todayInAppTz().slice(0, 4);
 }
@@ -29,7 +39,7 @@ function currentYearInAppTz(): string {
 export default async function BusinessYearReportPage({
   searchParams,
 }: {
-  searchParams: Promise<{ year?: string }>;
+  searchParams: Promise<{ year?: string; classification?: string }>;
 }) {
   const [t, locale] = await Promise.all([
     getTranslations("reports"),
@@ -42,13 +52,23 @@ export default async function BusinessYearReportPage({
       ? sp.year
       : currentYearInAppTz();
 
+  const businessOnly =
+    sp.classification == null ||
+    sp.classification === "business";
+
+  const selected = businessOnly
+    ? BUSINESS_ONLY
+    : ALL_CLASSIFICATIONS;
+
+  const classificationQuery = selected.join(",");
+
   const vehicles = await getVehicles();
 
   if (vehicles.length === 0) {
     return (
       <div className="mx-auto max-w-4xl">
         <Link
-          href={`/reports?month=${year}-01&classification=business`}
+          href={`/reports?month=${year}-01&classification=${classificationQuery}`}
           className={buttonClasses("ghost", "sm")}
         >
           <ArrowLeft aria-hidden size={14} />
@@ -58,12 +78,12 @@ export default async function BusinessYearReportPage({
         <PageHeader
           visual="document"
           className="mt-4"
-          title={t("year.title", { year })}
-          subtitle={t("year.subtitle")}
+          title={t(businessOnly ? "year.title" : "year.allTitle", { year })}
+          subtitle={t(businessOnly ? "year.subtitle" : "year.allSubtitle")}
         />
 
         <Panel className="mt-4" padding="sm">
-          <YearReportFilters year={year} />
+          <YearReportFilters year={year} businessOnly={businessOnly} />
         </Panel>
 
         <div className="mt-6">
@@ -74,7 +94,7 @@ export default async function BusinessYearReportPage({
   }
 
   const [data, reimbursementRate] = await Promise.all([
-    loadBusinessYearReportData(year),
+    loadBusinessYearReportData(year, selected),
     getBusinessReimbursementRateEurPerKm(),
   ]);
 
@@ -83,6 +103,7 @@ export default async function BusinessYearReportPage({
     year,
     data.meta,
     reimbursementRate,
+    selected,
   );
 
   const currency = new Intl.NumberFormat(locale, {
@@ -102,7 +123,7 @@ export default async function BusinessYearReportPage({
   return (
     <div className="mx-auto max-w-4xl">
       <Link
-        href={`/reports?month=${year}-01&classification=business`}
+        href={`/reports?month=${year}-01&classification=${classificationQuery}`}
         className={buttonClasses("ghost", "sm")}
       >
         <ArrowLeft aria-hidden size={14} />
@@ -112,17 +133,17 @@ export default async function BusinessYearReportPage({
       <PageHeader
         visual="document"
         className="mt-4"
-        title={t("year.title", { year })}
-        subtitle={t("year.subtitle")}
+        title={t(businessOnly ? "year.title" : "year.allTitle", { year })}
+        subtitle={t(businessOnly ? "year.subtitle" : "year.allSubtitle")}
       />
 
       <Panel className="mt-4" padding="sm">
-        <YearReportFilters year={year} />
+        <YearReportFilters year={year} businessOnly={businessOnly} />
       </Panel>
 
       <div className="mt-4 flex gap-1.5">
         <a
-          href={`/api/export/year/${year}?format=csv`}
+          href={`/api/export/year/${year}?format=csv&classification=${classificationQuery}`}
           className={buttonClasses("ghost", "sm")}
         >
           <Download aria-hidden size={14} />
@@ -130,7 +151,7 @@ export default async function BusinessYearReportPage({
         </a>
 
         <a
-          href={`/api/export/year/${year}?format=pdf`}
+          href={`/api/export/year/${year}?format=pdf&classification=${classificationQuery}`}
           className={buttonClasses("ghost", "sm")}
         >
           <Download aria-hidden size={14} />
@@ -140,7 +161,7 @@ export default async function BusinessYearReportPage({
 
       <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <StatCard
-          label={t("year.totalDistance")}
+          label={t(businessOnly ? "year.totalDistance" : "year.allTotalDistance")}
           value={formatKm(report.totals.distanceKm)}
           tone="blue"
           icon={<Route aria-hidden size={18} />}
@@ -175,7 +196,7 @@ export default async function BusinessYearReportPage({
 
       {report.incomplete && (
         <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
-          {t("year.incomplete")}
+          {t(businessOnly ? "year.incomplete" : "year.allIncomplete")}
         </p>
       )}
 
@@ -188,7 +209,7 @@ export default async function BusinessYearReportPage({
                 {t("year.table.drives")}
               </th>
               <th className="px-4 py-3 text-right">
-                {t("year.table.distance")}
+                {t(businessOnly ? "year.table.distance" : "year.table.allDistance")}
               </th>
               <th className="px-4 py-3 text-right">
                 {t("year.table.amount")}
@@ -210,7 +231,7 @@ export default async function BusinessYearReportPage({
                 >
                   <td className="px-3 py-2 font-medium">
                     <Link
-                      href={`/reports?month=${month.month}&classification=business`}
+                      href={`/reports?month=${month.month}&classification=${classificationQuery}`}
                       className="hover:underline"
                     >
                       {monthName}

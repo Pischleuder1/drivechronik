@@ -68,6 +68,7 @@ export function buildBusinessYearReport(
   meta: ReportMeta,
   rateEurPerKm =
     DEFAULT_BUSINESS_REIMBURSEMENT_RATE_EUR_PER_KM,
+  classifications: ReportDrive["classification"][] = ["business"],
 ): BusinessYearReport {
   if (!/^\d{4}$/.test(year)) {
     throw new Error("Year must use YYYY format.");
@@ -90,8 +91,14 @@ export function buildBusinessYearReport(
     }),
   );
 
+  const selectedClassifications = new Set(classifications);
+  const businessDistanceByMonth = Array.from(
+    { length: 12 },
+    () => 0,
+  );
+
   for (const drive of drives) {
-    if (drive.classification !== "business") continue;
+    if (!selectedClassifications.has(drive.classification)) continue;
 
     const monthKey = monthKeyInTimeZone(
       drive.startTime,
@@ -109,16 +116,20 @@ export function buildBusinessYearReport(
 
     if (drive.distanceKm != null) {
       bucket.distanceKm += drive.distanceKm;
+
+      if (drive.classification === "business") {
+        businessDistanceByMonth[monthIndex] += drive.distanceKm;
+      }
     } else {
       bucket.incomplete = true;
     }
   }
 
-  for (const month of months) {
+  months.forEach((month, index) => {
     month.amountEur = roundCurrency(
-      month.distanceKm * rateEurPerKm,
+      businessDistanceByMonth[index]! * rateEurPerKm,
     );
-  }
+  });
 
   const totals: BusinessYearTotals = {
     driveCount: months.reduce(

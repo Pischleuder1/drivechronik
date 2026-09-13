@@ -741,7 +741,7 @@ export function Planner({
                 max={100}
                 value={soc}
                 onChange={(e) => setSoc(e.target.value)}
-                className="mt-2 w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xl font-semibold tabular-nums text-neutral-900 outline-none transition focus:border-blue-500 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100"
+                className="mt-2 w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-base font-semibold tabular-nums text-neutral-900 outline-none transition focus:border-blue-500 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100"
               />
             </div>
 
@@ -759,7 +759,7 @@ export function Planner({
                 inputMode="numeric"
                 value={tempC}
                 onChange={(e) => setTempC(e.target.value)}
-                className="mt-2 w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xl font-semibold tabular-nums text-neutral-900 outline-none transition focus:border-amber-500 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100"
+                className="mt-2 w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-base font-semibold tabular-nums text-neutral-900 outline-none transition focus:border-amber-500 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100"
               />
             </div>
 
@@ -779,7 +779,7 @@ export function Planner({
                 max={250}
                 value={capacityKwh}
                 onChange={(e) => setCapacityKwh(e.target.value)}
-                className="mt-2 w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xl font-semibold tabular-nums text-neutral-900 outline-none transition focus:border-emerald-500 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100"
+                className="mt-2 w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-base font-semibold tabular-nums text-neutral-900 outline-none transition focus:border-emerald-500 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100"
               />
 
               <p className="mt-2 text-xs leading-relaxed text-neutral-400 dark:text-neutral-500">
@@ -1152,7 +1152,7 @@ function Metric({
   return (
     <div className="rounded-xl border border-neutral-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-900">
       <p className="text-xs text-neutral-500 dark:text-neutral-400">{label}</p>
-      <p className="mt-0.5 text-xl font-semibold tabular-nums text-neutral-900 dark:text-neutral-100">
+      <p className="mt-0.5 text-base font-semibold tabular-nums text-neutral-900 dark:text-neutral-100">
         {value}
       </p>
       {sub && (

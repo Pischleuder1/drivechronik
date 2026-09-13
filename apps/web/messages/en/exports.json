@@ -184,6 +184,9 @@
     "amount": "Reimbursement amount",
     "total": "Total",
     "incomplete": "At least one business drive is missing distance data; mileage and reimbursement may be incomplete.",
-    "roundingNote": "The annual reimbursement is the sum of the monthly amounts rounded to cents."
+    "roundingNote": "The annual reimbursement is the sum of the monthly amounts rounded to cents.",
+    "allTitle": "All drives {year}",
+    "allDistance": "Mileage",
+    "allIncomplete": "At least one drive is missing distance data. Mileage may therefore be incomplete."
   }
 }

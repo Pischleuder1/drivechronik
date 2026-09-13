@@ -33,6 +33,7 @@ export interface ReportDrive {
 
 export interface ReportMeta {
   vehicleName: string;
+  vehicleModel?: string | null;
   driverName: string;
   licensePlate: string | null;
   vehicleVin: string | null;

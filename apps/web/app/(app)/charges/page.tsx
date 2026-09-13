@@ -149,6 +149,7 @@ export default async function ChargesPage({
       <section className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <StatCard
           label={t("page.stats.sessions")}
+            valueClassName="mt-1 text-base font-semibold tabular-nums"
           value={sessions.length}
           tone="sky"
           icon={<Zap className="h-4 w-4" />}
@@ -167,6 +168,7 @@ export default async function ChargesPage({
 
         <StatCard
           label={t("page.stats.energyAdded")}
+            valueClassName="mt-1 text-base font-semibold tabular-nums"
           value={formatKwh(totalEnergy)}
           tone="emerald"
           icon={<Battery className="h-4 w-4" />}
@@ -174,6 +176,7 @@ export default async function ChargesPage({
 
         <StatCard
           label={t("page.stats.totalCost")}
+            valueClassName="mt-1 text-base font-semibold tabular-nums"
           value={
             costsPresent.length > 0
               ? formatCost(String(totalCost), totalCurrency)

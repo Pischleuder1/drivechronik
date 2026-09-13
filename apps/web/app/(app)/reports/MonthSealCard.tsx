@@ -1,12 +1,14 @@
 "use client";
 
 import { useActionState } from "react";
+import { CalendarCheck, History } from "lucide-react";
 
 import {
   sealMonth,
   type SealMonthResult,
 } from "../../../lib/actions/monthSeals";
 import { buttonClasses } from "../../../components/ui/Button";
+import { IconBadge } from "../../../components/ui/IconBadge";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import type {
   MonthSealHistoryEntry,
@@ -53,17 +55,23 @@ export function MonthSealCard({
         : "Noch nicht abgeschlossen";
 
   return (
-    <div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+    <div className="mt-6 rounded-3xl border border-neutral-200/80 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold">
-            Monatsabschluss
-          </p>
-
-          <div className="mt-2">
-            <StatusBadge tone={statusTone}>
-              {statusLabel}
-            </StatusBadge>
+          <div className="flex items-center gap-3">
+            <IconBadge tone={statusTone} size="sm">
+              <CalendarCheck className="h-4 w-4" />
+            </IconBadge>
+            <div>
+              <p className="text-sm font-semibold">
+                Monatsabschluss
+              </p>
+              <div className="mt-1.5">
+                <StatusBadge tone={statusTone}>
+                  {statusLabel}
+                </StatusBadge>
+              </div>
+            </div>
           </div>
 
           {isSealed && status.sealedAt && (
@@ -115,15 +123,18 @@ export function MonthSealCard({
 
       {history.length > 0 && (
         <div className="mt-5 border-t border-neutral-200 pt-4 dark:border-neutral-800">
-          <p className="text-sm font-semibold">
-            Abschlusshistorie
-          </p>
+          <div className="flex items-center gap-2">
+            <History className="h-4 w-4 text-violet-500" />
+            <p className="text-sm font-semibold">
+              Abschlusshistorie
+            </p>
+          </div>
 
           <div className="mt-3 space-y-2">
             {history.map((entry) => (
               <div
                 key={entry.revision}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-neutral-50/60 px-3 py-2.5 dark:border-neutral-800 dark:bg-neutral-800/40"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-neutral-200 bg-neutral-50/60 px-3 py-2.5 dark:border-neutral-800 dark:bg-neutral-800/40"
               >
                 <div>
                   <p className="text-sm font-medium">

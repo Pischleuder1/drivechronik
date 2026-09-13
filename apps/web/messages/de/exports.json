@@ -184,6 +184,9 @@
     "amount": "Erstattungsbetrag",
     "total": "Gesamt",
     "incomplete": "Mindestens einer geschäftlichen Fahrt fehlen Distanzdaten; Kilometer und Erstattung können unvollständig sein.",
-    "roundingNote": "Die Jahreserstattung entspricht der Summe der auf Cent gerundeten Monatserstattungen."
+    "roundingNote": "Die Jahreserstattung entspricht der Summe der auf Cent gerundeten Monatserstattungen.",
+    "allTitle": "Alle Fahrten {year}",
+    "allDistance": "Kilometer",
+    "allIncomplete": "Mindestens einer Fahrt fehlen Distanzdaten. Die Kilometer können daher unvollständig sein."
   }
 }

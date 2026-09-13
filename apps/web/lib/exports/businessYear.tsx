@@ -36,18 +36,20 @@ export interface BusinessYearExportLabels {
 export function buildBusinessYearExportLabels(
   t: Translator,
   locale: string,
+  allDrives = false,
 ): BusinessYearExportLabels {
   return {
     locale,
-    title: (year: string) => t("year.title", { year }),
+    title: (year: string) =>
+      t(allDrives ? "year.allTitle" : "year.title", { year }),
     vehicle: t("year.vehicle"),
     month: t("year.month"),
     drives: t("year.drives"),
-    distance: t("year.distance"),
+    distance: t(allDrives ? "year.allDistance" : "year.distance"),
     rate: t("year.rate"),
     amount: t("year.amount"),
     total: t("year.total"),
-    incomplete: t("year.incomplete"),
+    incomplete: t(allDrives ? "year.allIncomplete" : "year.incomplete"),
     roundingNote: t("year.roundingNote"),
     footer: (date: string) => t("pdf.footer", { date }),
   };
@@ -227,7 +229,10 @@ export function BusinessYearPdf({
         <Text style={styles.header}>{labels.title(report.year)}</Text>
 
         <Text style={styles.subHeader}>
-          {report.meta.vehicleName}
+          {report.meta.vehicleModel ?? report.meta.vehicleName}
+          {report.meta.licensePlate
+            ? ` · ${report.meta.licensePlate}`
+            : ""}
         </Text>
 
         <View style={styles.summary}>

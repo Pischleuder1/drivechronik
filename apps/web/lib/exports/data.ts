@@ -21,6 +21,7 @@ export async function loadMeta(vehicleId?: number): Promise<ReportMeta & { vehic
         .select({
           id: vehicles.id,
           displayName: vehicles.displayName,
+          model: vehicles.model,
           licensePlate: vehicles.licensePlate,
           vin: vehicles.vin,
         })
@@ -31,6 +32,7 @@ export async function loadMeta(vehicleId?: number): Promise<ReportMeta & { vehic
         .select({
           id: vehicles.id,
           displayName: vehicles.displayName,
+          model: vehicles.model,
           licensePlate: vehicles.licensePlate,
           vin: vehicles.vin,
         })
@@ -49,6 +51,7 @@ export async function loadMeta(vehicleId?: number): Promise<ReportMeta & { vehic
   return {
     vehicleId: vehicle.id,
     vehicleName: vehicle.displayName,
+    vehicleModel: vehicle.model,
     driverName,
     licensePlate: vehicle.licensePlate,
     vehicleVin: vehicle.vin,
@@ -247,21 +250,27 @@ export function yearBounds(year: string): { start: Date; end: Date } {
  */
 export async function loadBusinessYearReportData(
   year: string,
+  classifications: Classification[] = ["business"],
 ): Promise<BusinessYearExportData> {
   const { start, end } = yearBounds(year);
   const meta = await loadMeta();
 
+  const conditions = [
+    eq(drives.vehicleId, meta.vehicleId),
+    gte(drives.startTime, start),
+    lt(drives.startTime, end),
+  ];
+
+  if (classifications.length > 0) {
+    conditions.push(
+      inArray(drives.classification, classifications),
+    );
+  }
+
   const rows = await db
     .select()
     .from(drives)
-    .where(
-      and(
-        eq(drives.vehicleId, meta.vehicleId),
-        eq(drives.classification, "business"),
-        gte(drives.startTime, start),
-        lt(drives.startTime, end),
-      ),
-    )
+    .where(and(...conditions))
     .orderBy(asc(drives.startTime));
 
   return {

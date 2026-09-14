@@ -47,7 +47,7 @@ Tessie & Co. sind gut, aber: Abo-Kosten, Feature-Überschneidung mit der Tesla-A
 
 **Cockpit & Fahrzeug**
 - **Start-Dashboard** — SoC + Reichweite, Standort, Status, Wetter, Reifendruck mit Warnung und letzte Fahrten als Karte + Liste; zusätzlich Fahrzeugmetadaten, lokalisierte Modellbezeichnung und dynamische Fahrzeugdarstellung
-- **Fahrzeug-Analytics** — Fahrzeugdaten mit Modell, Kennzeichen und VIN sowie geschätzter Batteriezustand und Degradation, prognostizierte 100-%-Reichweite, Kilometerstand, Ladeeffizienz, Vampir-Verlust und Software-/Update-Historie
+- **Fahrzeug-Analytics** — Fahrzeugdaten mit Modell, Kennzeichen und VIN; zusätzlich eine filterbare Nutzungsübersicht für Tag, Monat, Jahr oder Gesamtzeitraum mit Fahrten, Kilometern, Fahrzeit, Energieverbrauch, Durchschnittsverbrauch sowie Ladeanzahl, DC-Ladungen, geladener Energie, Ladezeit und Ladekosten. Ergänzt um geschätzten Batteriezustand und Degradation, prognostizierte 100-%-Reichweite, Kilometerstand, Ladeeffizienz, Vampir-Verlust und Software-/Update-Historie
 - **Reale Fahrzeugdaten** — Auswertungen basieren auf TeslaMate-Historie und vorhandenen Fahrzeugwerten; Schätzwerte und Fallbacks werden entsprechend gekennzeichnet
 - **Verbindungs-Diagnose** — Sync-Gesundheit pro Datenquelle auf einen Blick, optionaler TeslaMate-Direkttest
 

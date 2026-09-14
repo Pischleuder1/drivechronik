@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added a vehicle usage overview with day, month, year and all-time filters, previous/next period navigation and combined driving and charging KPIs including distance, drive time, consumed energy, average consumption, charging sessions, DC sessions, charged energy, charging time and charging costs.
+
 - Vehicle view now shows the stored Tesla model, license plate and VIN in a dedicated vehicle-details section.
 - Expanded place types with site/branch, supplier, hotel and parking while keeping the existing home, work, customer, charger and other categories.
 

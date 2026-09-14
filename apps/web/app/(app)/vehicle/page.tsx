@@ -15,6 +15,12 @@ import { SoftwareTimeline } from "../settings/SoftwareTimeline";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Panel } from "../../../components/ui/Panel";
 import { formatTeslaModel } from "../../../lib/vehicleDisplay";
+import {
+  currentVehicleUsageKeys,
+  getVehicleUsageSummary,
+  resolveVehicleUsageSelection,
+} from "../../../lib/vehicleUsage";
+import { VehicleUsageFilter } from "./VehicleUsageFilter";
 
 import { IconBadge, type IconBadgeTone } from "../../../components/ui/IconBadge";
 
@@ -31,6 +37,18 @@ function valueOrDash(
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
   })}${suffix}`;
+}
+
+function formatDuration(seconds: number): string {
+  const rounded = Math.max(0, Math.round(seconds));
+  const hours = Math.floor(rounded / 3600);
+  const minutes = Math.floor((rounded % 3600) / 60);
+
+  if (hours > 0) {
+    return `${hours} h ${minutes} min`;
+  }
+
+  return `${minutes} min`;
 }
 
 function MetricCard({
@@ -92,8 +110,22 @@ function DataValue({
   );
 }
 
-export default async function VehiclePage() {
+export default async function VehiclePage({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    period?: string;
+    value?: string;
+  }>;
+}) {
   const t = await getTranslations("vehicle");
+  const params = await searchParams;
+
+  const usageSelection = resolveVehicleUsageSelection(
+    params.period,
+    params.value,
+  );
+  const currentUsageKeys = currentVehicleUsageKeys();
 
   const vehicles = await getVehicles();
   const vehicle = vehicles[0];
@@ -115,9 +147,10 @@ export default async function VehiclePage() {
     );
   }
 
-  const [analytics, softwareUpdates] = await Promise.all([
+  const [analytics, softwareUpdates, usage] = await Promise.all([
     getVehicleAnalytics(vehicle.id),
     getSoftwareUpdates(vehicle.id),
+    getVehicleUsageSummary(vehicle.id, usageSelection),
   ]);
 
   const battery = analytics.battery;
@@ -169,6 +202,161 @@ export default async function VehiclePage() {
             <p className="mt-1 break-all font-mono text-sm font-medium text-neutral-900 dark:text-neutral-100">
               {vehicle.vin || "—"}
             </p>
+          </div>
+        </div>
+      </Panel>
+
+      <Panel className="mt-3 border-t-4 border-t-violet-500 dark:border-t-violet-400">
+        <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+          {t("usage.title")}
+        </h2>
+
+        <VehicleUsageFilter
+          period={usageSelection.period}
+          value={usageSelection.value}
+          currentDay={currentUsageKeys.day}
+          currentMonth={currentUsageKeys.month}
+          currentYear={currentUsageKeys.year}
+          labels={{
+            day: t("usage.period.day"),
+            month: t("usage.period.month"),
+            year: t("usage.period.year"),
+            all: t("usage.period.all"),
+            previous: t("usage.period.previous"),
+            next: t("usage.period.next"),
+          }}
+        />
+
+        <div className="mt-5 grid gap-3 lg:grid-cols-2">
+          <div className="rounded-2xl border border-neutral-200 border-t-4 border-t-sky-500 p-4 dark:border-neutral-800 dark:border-t-sky-400">
+            <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+              {t("usage.driving.title")}
+            </h3>
+
+            <dl className="mt-3 divide-y divide-neutral-100 text-sm dark:divide-neutral-800">
+              {[
+                [
+                  t("usage.driving.drives"),
+                  usage.driveCount.toLocaleString("de-DE"),
+                ],
+                [
+                  t("usage.driving.distance"),
+                  `${usage.distanceKm.toLocaleString("de-DE", {
+                    maximumFractionDigits: 1,
+                  })} km`,
+                ],
+                [
+                  t("usage.driving.duration"),
+                  formatDuration(usage.durationSeconds),
+                ],
+                [
+                  t("usage.driving.energy"),
+                  `${usage.consumedEnergyKwh.toLocaleString("de-DE", {
+                    maximumFractionDigits: 1,
+                  })} kWh${usage.energyEstimated ? " ~" : ""}`,
+                ],
+                [
+                  t("usage.driving.consumption"),
+                  usage.avgConsumptionWhKm != null
+                    ? `${Math.round(
+                        usage.avgConsumptionWhKm,
+                      ).toLocaleString("de-DE")} Wh/km`
+                    : "—",
+                ],
+              ].map(([label, value]) => (
+                <div
+                  key={label}
+                  className="flex items-center justify-between gap-4 py-2.5"
+                >
+                  <dt className="text-neutral-500 dark:text-neutral-400">
+                    {label}
+                  </dt>
+                  <dd className="font-semibold tabular-nums text-neutral-900 dark:text-neutral-100">
+                    {value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+
+            {(usage.energyEstimated || usage.energyIncomplete) && (
+              <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
+                {[
+                  usage.energyEstimated
+                    ? t("usage.estimated")
+                    : null,
+                  usage.energyIncomplete
+                    ? t("usage.incomplete")
+                    : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </p>
+            )}
+          </div>
+
+          <div className="rounded-2xl border border-neutral-200 border-t-4 border-t-emerald-500 p-4 dark:border-neutral-800 dark:border-t-emerald-400">
+            <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+              {t("usage.charging.title")}
+            </h3>
+
+            <dl className="mt-3 divide-y divide-neutral-100 text-sm dark:divide-neutral-800">
+              {[
+                [
+                  t("usage.charging.sessions"),
+                  usage.chargeCount.toLocaleString("de-DE"),
+                ],
+                [
+                  t("usage.charging.dcSessions"),
+                  usage.dcChargeCount.toLocaleString("de-DE"),
+                ],
+                [
+                  t("usage.charging.energy"),
+                  `${usage.chargedEnergyKwh.toLocaleString("de-DE", {
+                    maximumFractionDigits: 1,
+                  })} kWh`,
+                ],
+                [
+                  t("usage.charging.duration"),
+                  formatDuration(usage.chargeDurationSeconds),
+                ],
+                [
+                  t("usage.charging.cost"),
+                  `${usage.totalCostEur.toLocaleString("de-DE", {
+                    style: "currency",
+                    currency: "EUR",
+                  })}${usage.costIncomplete ? " *" : ""}`,
+                ],
+                [
+                  t("usage.charging.averagePrice"),
+                  usage.avgPricePerKwh != null
+                    ? usage.avgPricePerKwh.toLocaleString("de-DE", {
+                        style: "currency",
+                        currency: "EUR",
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 3,
+                      })
+                    : "—",
+                ],
+              ].map(([label, value]) => (
+                <div
+                  key={label}
+                  className="flex items-center justify-between gap-4 py-2.5"
+                >
+                  <dt className="text-neutral-500 dark:text-neutral-400">
+                    {label}
+                  </dt>
+                  <dd className="font-semibold tabular-nums text-neutral-900 dark:text-neutral-100">
+                    {value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+
+            {usage.costIncomplete && (
+              <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
+                * {t("usage.incomplete")}
+              </p>
+            )}
           </div>
         </div>
       </Panel>

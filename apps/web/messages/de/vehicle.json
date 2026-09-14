@@ -53,5 +53,35 @@
     "model": "Modell",
     "licensePlate": "Kennzeichen",
     "vin": "VIN"
+  },
+  "usage": {
+    "title": "Nutzungsübersicht",
+    "period": {
+      "day": "Tag",
+      "month": "Monat",
+      "year": "Jahr",
+      "all": "Gesamt",
+      "previous": "Vorheriger Zeitraum",
+      "next": "Nächster Zeitraum"
+    },
+    "driving": {
+      "title": "Fahren",
+      "drives": "Fahrten",
+      "distance": "Gesamtkilometer",
+      "duration": "Fahrzeit",
+      "energy": "Energie verbraucht",
+      "consumption": "Ø Verbrauch"
+    },
+    "charging": {
+      "title": "Laden",
+      "sessions": "Ladevorgänge",
+      "dcSessions": "davon DC",
+      "energy": "Energie geladen",
+      "duration": "Ladezeit",
+      "cost": "Ladekosten",
+      "averagePrice": "Ø Preis / kWh"
+    },
+    "estimated": "enthält geschätzte Werte",
+    "incomplete": "unvollständig"
   }
 }

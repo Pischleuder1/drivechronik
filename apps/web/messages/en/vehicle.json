@@ -53,5 +53,35 @@
     "model": "Model",
     "licensePlate": "License plate",
     "vin": "VIN"
+  },
+  "usage": {
+    "title": "Usage overview",
+    "period": {
+      "day": "Day",
+      "month": "Month",
+      "year": "Year",
+      "all": "All time",
+      "previous": "Previous period",
+      "next": "Next period"
+    },
+    "driving": {
+      "title": "Driving",
+      "drives": "Drives",
+      "distance": "Total distance",
+      "duration": "Driving time",
+      "energy": "Energy used",
+      "consumption": "Avg. consumption"
+    },
+    "charging": {
+      "title": "Charging",
+      "sessions": "Charging sessions",
+      "dcSessions": "of which DC",
+      "energy": "Energy charged",
+      "duration": "Charging time",
+      "cost": "Charging cost",
+      "averagePrice": "Avg. price / kWh"
+    },
+    "estimated": "includes estimated values",
+    "incomplete": "incomplete"
   }
 }

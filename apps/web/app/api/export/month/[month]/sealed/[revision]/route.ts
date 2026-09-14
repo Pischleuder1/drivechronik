@@ -124,6 +124,8 @@ export async function GET(
   const meta: ReportMeta = {
     vehicleName:
       sealed.content.identity.vehicleDisplayName,
+    vehicleModel:
+      sealed.content.identity.vehicleModel ?? null,
     driverName:
       sealed.content.identity.driverName,
     licensePlate:

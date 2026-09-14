@@ -3,7 +3,6 @@
   "subtitle": "Long-term technical metrics derived from vehicle data recorded by TeslaMate.",
   "noVehicle": "No vehicle available yet.",
   "noData": "Not enough data available yet.",
-
   "battery": {
     "title": "Battery",
     "capacity": "Estimated usable capacity",
@@ -13,20 +12,17 @@
     "estimated": "Estimated from suitable charging sessions – not a BMS SoH value.",
     "notEnoughForDegradation": "More charging sessions are required for a meaningful trend."
   },
-
   "range": {
     "title": "Range",
     "current": "Current rated range",
     "projected": "Projected at 100%",
     "hint": "Calculated from the latest recorded SoC and rated range."
   },
-
   "odometer": {
     "title": "Odometer",
     "current": "Current",
     "last30": "Last 30 days"
   },
-
   "charging": {
     "title": "Charging efficiency",
     "efficiency": "Overall efficiency",
@@ -35,7 +31,6 @@
     "sessions": "{count} sessions · {ac} AC · {dc} DC",
     "hint": "Ratio of energy stored in the battery to energy used while charging."
   },
-
   "drain": {
     "title": "Vampire drain",
     "soc": "SoC loss / 24 h",
@@ -43,7 +38,6 @@
     "samples": "{count} suitable parking periods",
     "hint": "Median from parking periods of at least 8 hours without an overlapping charge."
   },
-
   "history": {
     "title": "Development",
     "range": "100% range",
@@ -51,8 +45,13 @@
     "days": "{count} daily values",
     "empty": "No historical vehicle metrics available yet."
   },
-
   "software": {
     "title": "Software history"
+  },
+  "identity": {
+    "title": "Vehicle details",
+    "model": "Model",
+    "licensePlate": "License plate",
+    "vin": "VIN"
   }
 }

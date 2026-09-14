@@ -3,7 +3,6 @@
   "subtitle": "Technische Langzeitwerte aus den von TeslaMate erfassten Fahrzeugdaten.",
   "noVehicle": "Noch kein Fahrzeug vorhanden.",
   "noData": "Noch nicht genügend Daten vorhanden.",
-
   "battery": {
     "title": "Batterie",
     "capacity": "Geschätzte nutzbare Kapazität",
@@ -13,20 +12,17 @@
     "estimated": "Schätzung aus geeigneten Ladevorgängen – kein BMS-SoH.",
     "notEnoughForDegradation": "Für eine belastbare Entwicklung sind noch mehr Ladevorgänge erforderlich."
   },
-
   "range": {
     "title": "Reichweite",
     "current": "Aktuelle Rated Range",
     "projected": "Auf 100 % hochgerechnet",
     "hint": "Aus dem zuletzt erfassten SoC und der Rated Range berechnet."
   },
-
   "odometer": {
     "title": "Kilometerstand",
     "current": "Aktuell",
     "last30": "Letzte 30 Tage"
   },
-
   "charging": {
     "title": "Ladeeffizienz",
     "efficiency": "Gesamtwirkungsgrad",
@@ -35,7 +31,6 @@
     "sessions": "{count} Ladevorgänge · {ac} AC · {dc} DC",
     "hint": "Verhältnis von im Akku gespeicherter zu bezogener Energie."
   },
-
   "drain": {
     "title": "Standverbrauch",
     "soc": "SoC-Verlust / 24 h",
@@ -43,7 +38,6 @@
     "samples": "{count} geeignete Standzeiten",
     "hint": "Median aus Standzeiten ab 8 Stunden ohne überlappenden Ladevorgang."
   },
-
   "history": {
     "title": "Entwicklung",
     "range": "100-%-Reichweite",
@@ -51,8 +45,13 @@
     "days": "{count} Tageswerte",
     "empty": "Noch keine historischen Fahrzeugwerte vorhanden."
   },
-
   "software": {
     "title": "Software-Historie"
+  },
+  "identity": {
+    "title": "Fahrzeugdaten",
+    "model": "Modell",
+    "licensePlate": "Kennzeichen",
+    "vin": "VIN"
   }
 }

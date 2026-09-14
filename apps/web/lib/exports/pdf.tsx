@@ -17,8 +17,10 @@ import {
   type JourneyReport,
   type JourneyType,
   type MonthReport,
+  type ReportMeta,
 } from "@drivechronik/core";
 import { toIntlLocale, type IntlLocale } from "../i18nLocale";
+import { formatTeslaModel } from "../vehicleDisplay";
 
 type Translator = Awaited<ReturnType<typeof getTranslations>>;
 
@@ -57,6 +59,7 @@ export interface PdfLabels {
   identity: {
     driver: string;
     vehicle: string;
+    model: string;
     licensePlate: string;
     vin: string;
   };
@@ -172,6 +175,7 @@ export function buildPdfLabels(t: Translator, tCommon: Translator, locale = "de"
     identity: {
       driver: t("pdf.identity.driver"),
       vehicle: t("pdf.identity.vehicle"),
+      model: t("pdf.identity.model"),
       licensePlate: t("pdf.identity.licensePlate"),
       vin: t("pdf.identity.vin"),
     },
@@ -546,6 +550,37 @@ function ChargeTableRow({ row, timeZone }: { row: JourneyChargeReport; timeZone:
   );
 }
 
+function ReportIdentityBlock({
+  meta,
+  labels,
+}: {
+  meta: ReportMeta;
+  labels: PdfLabels;
+}) {
+  return (
+    <View style={styles.identityBox} wrap={false}>
+      <View style={styles.identityRow}>
+        <Text style={styles.identityLabel}>{labels.identity.driver}</Text>
+        <Text style={styles.identityValue}>{meta.driverName || "–"}</Text>
+      </View>
+      <View style={styles.identityRow}>
+        <Text style={styles.identityLabel}>{labels.identity.vehicle}</Text>
+        <Text style={styles.identityValue}>{meta.vehicleName}</Text>
+      </View>
+      <View style={styles.identityRow}>
+        <Text style={styles.identityLabel}>{labels.identity.model}</Text>
+        <Text style={styles.identityValue}>
+          {formatTeslaModel(meta.vehicleModel) || "–"}
+        </Text>
+      </View>
+      <View style={styles.identityRow}>
+        <Text style={styles.identityLabel}>{labels.identity.licensePlate}</Text>
+        <Text style={styles.identityValue}>{meta.licensePlate || "–"}</Text>
+      </View>
+    </View>
+  );
+}
+
 /** Single-drive PDF export (vision.md §20.1). */
 export function DrivePdf({ report, labels }: { report: DriveReport; labels: PdfLabels }) {
   // Helvetica (react-pdf's built-in font) lacks a "→" glyph — use an ASCII-safe separator.
@@ -554,7 +589,8 @@ export function DrivePdf({ report, labels }: { report: DriveReport; labels: PdfL
     <Document>
       <Page size="A4" orientation="landscape" style={styles.page}>
         <Text style={styles.header}>{labels.drive.title(formatDateCell(report.date))}</Text>
-        <Text style={styles.subHeader}>{`${title} · ${report.meta.vehicleName}`}</Text>
+        <Text style={styles.subHeader}>{title}</Text>
+        <ReportIdentityBlock meta={report.meta} labels={labels} />
 
         <View style={styles.table}>
           <DriveTableHeader labels={labels} />
@@ -592,7 +628,7 @@ export function DayPdf({ report, labels }: { report: DayReport; labels: PdfLabel
     <Document>
       <Page size="A4" orientation="landscape" style={styles.page}>
         <Text style={styles.header}>{labels.day.title(formatDateCell(report.date))}</Text>
-        <Text style={styles.subHeader}>{report.meta.vehicleName}</Text>
+        <ReportIdentityBlock meta={report.meta} labels={labels} />
 
         <View style={styles.table}>
           <DriveTableHeader labels={labels} />
@@ -672,6 +708,12 @@ export function MonthPdf({ report, labels }: { report: MonthReport; labels: PdfL
               {report.meta.vehicleName}
             </Text>
           </View>
+            <View style={styles.identityRow}>
+              <Text style={styles.identityLabel}>{labels.identity.model}</Text>
+              <Text style={styles.identityValue}>
+                {formatTeslaModel(report.meta.vehicleModel) || "–"}
+              </Text>
+            </View>
 
           {report.meta.licensePlate && (
             <View style={styles.identityRow}>
@@ -782,8 +824,9 @@ export function JourneyPdf({ report, labels }: { report: JourneyReport; labels: 
       <Page size="A4" orientation="landscape" style={styles.page}>
         <Text style={styles.header}>{labels.journey.title(journey.name)}</Text>
         <Text style={styles.subHeader}>
-          {`${rangeLabel} · ${labels.journeyTypes[journey.type]} · ${meta.vehicleName}`}
+          {`${rangeLabel} · ${labels.journeyTypes[journey.type]}`}
         </Text>
+        <ReportIdentityBlock meta={meta} labels={labels} />
 
         <View style={styles.totalsBox}>
           <Text style={styles.totalsTitle}>{labels.journey.kpisTitle}</Text>
@@ -912,6 +955,12 @@ export function SealedMonthPdf({
               {report.meta.vehicleName}
             </Text>
           </View>
+            <View style={styles.identityRow}>
+              <Text style={styles.identityLabel}>{labels.identity.model}</Text>
+              <Text style={styles.identityValue}>
+                {formatTeslaModel(report.meta.vehicleModel) || "–"}
+              </Text>
+            </View>
 
           {report.meta.licensePlate && (
             <View style={styles.identityRow}>

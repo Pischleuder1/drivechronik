@@ -20,12 +20,21 @@ import { detectLateLogbookCompletion } from "./logbookCompletion";
 export interface Vehicle {
   id: number;
   displayName: string;
+  model: string | null;
+  vin: string | null;
+  licensePlate: string | null;
 }
 
 /** All vehicles, ordered by id (first = default). */
 export async function getVehicles(): Promise<Vehicle[]> {
   return db
-    .select({ id: vehicles.id, displayName: vehicles.displayName })
+    .select({
+      id: vehicles.id,
+      displayName: vehicles.displayName,
+      model: vehicles.model,
+      vin: vehicles.vin,
+      licensePlate: vehicles.licensePlate,
+    })
     .from(vehicles)
     .orderBy(asc(vehicles.id));
 }

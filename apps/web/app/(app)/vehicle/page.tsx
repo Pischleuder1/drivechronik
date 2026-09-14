@@ -14,6 +14,7 @@ import { getSoftwareUpdates } from "../../../lib/softwareUpdates";
 import { SoftwareTimeline } from "../settings/SoftwareTimeline";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Panel } from "../../../components/ui/Panel";
+import { formatTeslaModel } from "../../../lib/vehicleDisplay";
 
 import { IconBadge, type IconBadgeTone } from "../../../components/ui/IconBadge";
 
@@ -137,7 +138,42 @@ export default async function VehiclePage() {
         subtitle={t("subtitle")}
       />
 
-      <div className="mt-6 grid gap-3 md:grid-cols-3">
+      <Panel className="mt-6">
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+          {t("identity.title")}
+        </h2>
+
+        <div className="mt-4 grid gap-4 sm:grid-cols-3">
+          <div>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+              {t("identity.model")}
+            </p>
+            <p className="mt-1 font-medium text-neutral-900 dark:text-neutral-100">
+              {formatTeslaModel(vehicle.model) || "—"}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+              {t("identity.licensePlate")}
+            </p>
+            <p className="mt-1 font-medium text-neutral-900 dark:text-neutral-100">
+              {vehicle.licensePlate || "—"}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+              {t("identity.vin")}
+            </p>
+            <p className="mt-1 break-all font-mono text-sm font-medium text-neutral-900 dark:text-neutral-100">
+              {vehicle.vin || "—"}
+            </p>
+          </div>
+        </div>
+      </Panel>
+
+      <div className="mt-3 grid gap-3 md:grid-cols-3">
         <MetricCard
           title={t("battery.title")}
           icon={Battery}

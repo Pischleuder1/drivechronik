@@ -137,6 +137,7 @@ export async function sealMonth(
         .select({
           id: vehicles.id,
           displayName: vehicles.displayName,
+          model: vehicles.model,
           vin: vehicles.vin,
           licensePlate: vehicles.licensePlate,
         })
@@ -279,6 +280,7 @@ export async function sealMonth(
         driverName,
         licensePlate: vehicle.licensePlate,
         vehicleDisplayName: vehicle.displayName,
+        vehicleModel: vehicle.model,
         vehicleVin: vehicle.vin,
       };
 

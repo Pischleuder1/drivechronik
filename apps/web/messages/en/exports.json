@@ -177,7 +177,8 @@
       "driver": "Driver",
       "vehicle": "Vehicle",
       "licensePlate": "License plate",
-      "vin": "VIN"
+      "vin": "VIN",
+      "model": "Model"
     },
     "sealedMonth": {
       "title": "Sealed logbook report",

@@ -5,6 +5,7 @@ export interface MonthSealIdentity {
   driverName: string;
   licensePlate: string | null;
   vehicleDisplayName: string;
+  vehicleModel?: string | null;
   vehicleVin: string | null;
 }
 
@@ -67,6 +68,9 @@ export function createMonthSealContent(
       driverName,
       licensePlate: identity.licensePlate?.trim() || null,
       vehicleDisplayName: identity.vehicleDisplayName,
+      ...(identity.vehicleModel !== undefined
+        ? { vehicleModel: identity.vehicleModel?.trim() || null }
+        : {}),
       vehicleVin: identity.vehicleVin,
     },
     drives: sorted.map((drive) => ({

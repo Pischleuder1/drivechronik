@@ -177,7 +177,8 @@
       "driver": "Fahrer",
       "vehicle": "Fahrzeug",
       "licensePlate": "Kennzeichen",
-      "vin": "VIN"
+      "vin": "VIN",
+      "model": "Modell"
     },
     "sealedMonth": {
       "title": "Abgeschlossener Fahrtenbuchbericht",

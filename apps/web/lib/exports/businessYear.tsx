@@ -12,6 +12,7 @@ import { stringify } from "csv-stringify/sync";
 import type { getTranslations } from "next-intl/server";
 
 import type { BusinessYearReport } from "@drivechronik/core";
+import { formatTeslaModel } from "../vehicleDisplay";
 
 const BOM = "﻿";
 const DELIMITER = ";";
@@ -22,6 +23,9 @@ export interface BusinessYearExportLabels {
   locale: string;
   title: (year: string) => string;
   vehicle: string;
+  driver: string;
+  model: string;
+  licensePlate: string;
   month: string;
   drives: string;
   distance: string;
@@ -43,6 +47,9 @@ export function buildBusinessYearExportLabels(
     title: (year: string) =>
       t(allDrives ? "year.allTitle" : "year.title", { year }),
     vehicle: t("year.vehicle"),
+    driver: t("pdf.identity.driver"),
+    model: t("pdf.identity.model"),
+    licensePlate: t("pdf.identity.licensePlate"),
     month: t("year.month"),
     drives: t("year.drives"),
     distance: t(allDrives ? "year.allDistance" : "year.distance"),
@@ -229,10 +236,12 @@ export function BusinessYearPdf({
         <Text style={styles.header}>{labels.title(report.year)}</Text>
 
         <Text style={styles.subHeader}>
-          {report.meta.vehicleModel ?? report.meta.vehicleName}
-          {report.meta.licensePlate
-            ? ` · ${report.meta.licensePlate}`
-            : ""}
+          {[
+            `${labels.driver}: ${report.meta.driverName || "–"}`,
+            `${labels.vehicle}: ${report.meta.vehicleName}`,
+            `${labels.model}: ${formatTeslaModel(report.meta.vehicleModel) || "–"}`,
+            `${labels.licensePlate}: ${report.meta.licensePlate || "–"}`,
+          ].join(" · ")}
         </Text>
 
         <View style={styles.summary}>

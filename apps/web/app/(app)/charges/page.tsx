@@ -113,7 +113,7 @@ export default async function ChargesPage({
   const totalCurrency = costsPresent[0]?.currency ?? "CHF";
 
   return (
-    <div className="mx-auto max-w-6xl">
+    <div className="w-full">
       {/* Header */}
       <PageHeader
         visual="charge"

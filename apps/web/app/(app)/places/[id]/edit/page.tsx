@@ -44,7 +44,7 @@ export default async function EditPlacePage({
   const ruleHref = `/rules/new?${ruleParams.toString()}`;
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="w-full">
       <Link
         href="/places"
         className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"

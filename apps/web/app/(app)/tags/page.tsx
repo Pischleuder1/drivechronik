@@ -13,7 +13,7 @@ export default async function TagsPage() {
   const tags = await getAllTags();
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="w-full">
       <PageHeader
         visual="tools"
         title={t("title")}

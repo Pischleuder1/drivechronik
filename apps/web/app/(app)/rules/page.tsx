@@ -53,7 +53,7 @@ export default async function RulesPage() {
   ]);
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="w-full">
       <PageHeader
         visual="tools"
         title={t("title")}

@@ -193,7 +193,7 @@ export default async function TeslaInvoicesPage({
   }
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="w-full">
       <Link
         href="/charges"
         className="text-sm text-neutral-500 transition hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"

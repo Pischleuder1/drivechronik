@@ -66,7 +66,7 @@ export default async function BusinessYearReportPage({
 
   if (vehicles.length === 0) {
     return (
-      <div className="mx-auto max-w-4xl">
+      <div className="w-full">
         <Link
           href={`/reports?month=${year}-01&classification=${classificationQuery}`}
           className={buttonClasses("ghost", "sm")}
@@ -121,7 +121,7 @@ export default async function BusinessYearReportPage({
   const rate = currency.format(report.rateEurPerKm);
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="w-full">
       <Link
         href={`/reports?month=${year}-01&classification=${classificationQuery}`}
         className={buttonClasses("ghost", "sm")}

@@ -27,7 +27,7 @@ export default async function JourneysPage() {
   const journeys = await getJourneys();
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="w-full">
       <PageHeader
         visual="route"
         title={t("list.title")}

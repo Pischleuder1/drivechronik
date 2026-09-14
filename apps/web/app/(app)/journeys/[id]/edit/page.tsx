@@ -35,7 +35,7 @@ export default async function EditJourneyPage({
   };
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="w-full">
       <Link
         href={`/journeys/${journey.id}`}
         className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"

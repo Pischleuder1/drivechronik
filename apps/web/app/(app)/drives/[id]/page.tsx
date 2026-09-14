@@ -242,7 +242,7 @@ export default async function DriveDetailPage({
   kennzahlen.push([t("metrics.endAddress"), drive.endAddress ?? "—"]);
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="w-full">
       <Link
         href="/day"
         className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"

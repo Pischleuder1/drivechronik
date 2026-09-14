@@ -103,7 +103,7 @@ export default async function ReportsPage({
 
   if (vehicles.length === 0) {
     return (
-      <div className="mx-auto max-w-4xl">
+      <div className="w-full">
         <PageHeader
           visual="document"
           title={t("title")}
@@ -149,7 +149,7 @@ export default async function ReportsPage({
   const exportQuery = `?classification=${selected.join(",")}`;
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="w-full">
       <PageHeader
         visual="document"
         title={t("title")}

@@ -99,7 +99,7 @@ export default async function VehiclePage() {
 
   if (!vehicle) {
     return (
-      <div className="mx-auto max-w-5xl">
+      <div className="w-full">
         <PageHeader
           visual="vehicle"
           title={t("title")}
@@ -129,7 +129,7 @@ export default async function VehiclePage() {
       : "—";
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="w-full">
       <PageHeader
         visual="vehicle"
         eyebrow={vehicle.displayName}

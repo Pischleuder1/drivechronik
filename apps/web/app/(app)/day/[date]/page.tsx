@@ -47,7 +47,7 @@ export default async function DayPage({
 
   if (vehicles.length === 0) {
     return (
-      <div className="mx-auto max-w-2xl">
+      <div className="w-full">
         <Panel padding="sm">
           <PageHeader
             visual="gps"
@@ -112,7 +112,7 @@ export default async function DayPage({
     timeline.charges.length === 0;
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="w-full">
       <Panel padding="sm">
         <PageHeader
           visual="gps"

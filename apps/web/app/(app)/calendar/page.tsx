@@ -32,7 +32,7 @@ export default async function CalendarPage({
 
   if (vehicles.length === 0) {
     return (
-      <div className="mx-auto max-w-3xl">
+      <div className="w-full">
         <PageHeader
           visual="calendar"
           title={t("pageTitle")}
@@ -62,7 +62,7 @@ export default async function CalendarPage({
   const cells = buildCalendarGrid(month, statsByDay, today);
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="w-full">
       <PageHeader
         visual="calendar"
         title={t("pageTitle")}

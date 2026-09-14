@@ -102,7 +102,7 @@ export default async function YearlyInsightsPage({
   const vehicles = await getVehicles();
   if (vehicles.length === 0) {
     return (
-      <div className="mx-auto max-w-5xl">
+      <div className="w-full">
         <Link
           href="/insights"
           className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
@@ -267,7 +267,7 @@ export default async function YearlyInsightsPage({
   );
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="w-full">
       <Link
         href={`/insights?vehicle=${currentVehicle.id}`}
         className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"

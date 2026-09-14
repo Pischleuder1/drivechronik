@@ -105,7 +105,7 @@ export default async function InsightsPage({
   const vehicles = await getVehicles();
   if (vehicles.length === 0) {
     return (
-      <div className="mx-auto max-w-4xl">
+      <div className="w-full">
         <PageHeader
           visual="stats"
           title={t("title")}
@@ -205,7 +205,7 @@ export default async function InsightsPage({
     enoughForPage && shortTrip.shortShare > SHORT_TRIP_MIN_SHARE;
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="w-full">
       <PageHeader
         visual="stats"
         title={t("title")}

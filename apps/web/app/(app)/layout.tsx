@@ -94,7 +94,9 @@ export default async function AppLayout({
         </header>
 
         <main className="min-w-0 flex-1 px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-4 md:px-8 md:pb-8 md:pt-6">
-          {children}
+          <div className="mx-auto w-full max-w-5xl">
+            {children}
+          </div>
         </main>
       </div>
 

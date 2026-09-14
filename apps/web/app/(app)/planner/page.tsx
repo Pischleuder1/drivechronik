@@ -21,7 +21,7 @@ export default async function PlannerPage() {
   const vehicles = await getVehicles();
   if (vehicles.length === 0) {
     return (
-      <div className="mx-auto max-w-3xl">
+      <div className="w-full">
         <PageHeader
           visual="route"
           title={t("title")}
@@ -60,7 +60,7 @@ export default async function PlannerPage() {
     context.status?.soc != null ? context.status.soc : FALLBACK_SOC;
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="w-full">
       <PageHeader
         visual="route"
         title={t("title")}

@@ -31,7 +31,7 @@ export default async function PlacesPage() {
   const dwellStatsByPlaceId = await getPlaceDwellStats();
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="w-full">
       <PageHeader
         visual="places"
         title={t("title")}

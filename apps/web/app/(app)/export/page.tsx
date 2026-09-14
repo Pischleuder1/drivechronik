@@ -14,7 +14,7 @@ export default async function DataExportPage() {
   const t = await getTranslations("settings");
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="w-full">
       <PageHeader
         visual="document"
         title={t("dataExport.title")}

@@ -69,7 +69,7 @@
     "travelWithCharging": "Fahrt, Fähre und Laden",
     "noExtraBreaks": "ohne zusätzliche Pausen",
     "arrivalWithoutCharging": "Ankunft ohne Laden",
-    "plannedArrival": "Geplante Ankunft",
+    "plannedArrival": "Geplanter Ankunfts-SoC",
     "plannedStopsIncluded": "inklusive geplanter Ladestopps",
     "chargersInCorridor": "Schnelllader im 15-km-Suchkorridor",
     "chargingStop": "Ladestopp {index}",
@@ -163,5 +163,10 @@
     "recommendedChargingStop": "Empfohlener Ladestopp",
     "fastCharger": "HPC-Schnelllader",
     "upTo": "bis"
+  },
+  "pdfExport": {
+    "button": "PDF exportieren",
+    "creating": "PDF wird erstellt …",
+    "error": "PDF konnte nicht erstellt werden."
   }
 }

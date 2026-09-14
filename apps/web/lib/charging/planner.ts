@@ -405,7 +405,15 @@ export function selectChargingStop(
       (remainingEnergyKwh / input.capacityKwh) * 100;
 
     // Sobald eine Ladeplanung erforderlich ist, planen wir bis zur Zielreserve.
-    if (arrivalSocAtDestination >= input.targetArrivalSoc) {
+    // Kleine Toleranz für Gleitkomma-Rundungen:
+    // Eine rechnerisch exakt auf die Zielreserve geplante Etappe kann
+    // sonst z. B. mit 19.999999 % statt 20 % bewertet werden.
+    const socComparisonTolerance = 0.01;
+
+    if (
+      arrivalSocAtDestination >=
+      input.targetArrivalSoc - socComparisonTolerance
+    ) {
       return {
         stop: stops[0] ?? null,
         stops,

@@ -14,6 +14,7 @@ import { StatCard } from "../../../components/ui/StatCard";
 import { DestinationSearch } from "./DestinationSearch";
 import { PlannerMapLoader } from "./PlannerMapLoader";
 import { TeslaSharePanel } from "./TeslaSharePanel";
+import { PlannerPdfExportButton } from "./PlannerPdfExportButton";
 
 export interface PlannerProps {
   vehicleId: number;
@@ -799,7 +800,8 @@ export function Planner({
         )}
 
         <div className="mt-4 flex items-center gap-3">
-          <button
+          <div className="flex w-full flex-wrap items-center justify-between gap-3">
+<button
             type="submit"
             disabled={pending}
             className={buttonClasses("primary", "md")}
@@ -807,6 +809,14 @@ export function Planner({
             <Navigation aria-hidden size={16} />
             {pending ? t("form.submitPending") : t("form.submit")}
           </button>
+
+          <PlannerPdfExportButton
+            plan={plan}
+            startLabel={plannedStartLabel}
+            waypointLabels={plannedWaypointLabels}
+            destinationLabel={plannedDestinationLabel}
+          />
+        </div>
           {historyDriveCount < 30 && (
             <span className="text-xs text-neutral-400 dark:text-neutral-500">
               {t("form.historyHint", { count: historyDriveCount })}
@@ -906,7 +916,7 @@ function Result({
 
   return (
     <div className="flex flex-col gap-4">
-      {plan.routeOptions.length > 1 && (
+            {plan.routeOptions.length > 1 && (
         <div className="grid gap-2 sm:grid-cols-3">
           {plan.routeOptions.map((option) => {
             const selected = option.id === selectedRouteId;
@@ -993,6 +1003,7 @@ function Result({
         <StatCard
           label={t("result.distance")}
           value={formatKm(plan.distanceKm)}
+          valueClassName="mt-2 text-xl font-semibold tabular-nums"
           tone="blue"
         />
 
@@ -1000,6 +1011,7 @@ function Result({
           label={t("result.travelTimeWithoutCharging")}
           value={formatDuration(plan.durationSeconds)}
           hint={t("result.ferryIncluded")}
+          valueClassName="mt-2 text-xl font-semibold tabular-nums"
           tone="violet"
         />
 
@@ -1017,6 +1029,7 @@ function Result({
                 })
               : t("result.noChargingStops")
           }
+          valueClassName="mt-2 text-xl font-semibold tabular-nums"
           tone="amber"
         />
 
@@ -1028,12 +1041,14 @@ function Result({
               ? t("result.travelWithCharging")
               : t("result.noExtraBreaks")
           }
+          valueClassName="mt-2 text-xl font-semibold tabular-nums"
           tone="indigo"
         />
 
         <StatCard
           label={t("result.avgSpeed")}
           value={`${Math.round(plan.avgSpeedKmh)} km/h`}
+          valueClassName="mt-2 text-xl font-semibold tabular-nums"
           tone="sky"
         />
 
@@ -1041,6 +1056,7 @@ function Result({
           label={t("result.consumption")}
           value={`${plan.energyKwh.toFixed(1)} kWh`}
           hint={`${Math.round(plan.whPerKm)} Wh/km`}
+          valueClassName="mt-2 text-xl font-semibold tabular-nums"
           tone="cyan"
         />
 
@@ -1048,6 +1064,7 @@ function Result({
           label={t("result.arrivalWithoutCharging")}
           value={`${displaySoc} %`}
           hint={toneLabel}
+          valueClassName="mt-2 text-xl font-semibold tabular-nums"
           tone={
             tone.labelKey === "comfortable"
               ? "emerald"
@@ -1065,7 +1082,15 @@ function Result({
               : "–"
           }
           hint={t("result.plannedStopsIncluded")}
+          valueClassName="mt-2 text-xl font-semibold tabular-nums"
           tone="emerald"
+        />
+
+        <StatCard
+          label={t("result.chargersInCorridor")}
+          value={String(plan.chargingSiteCount)}
+          valueClassName="mt-2 text-xl font-semibold tabular-nums"
+          tone="sky"
         />
       </div>
 
@@ -1074,11 +1099,6 @@ function Result({
           {t("result.lowArrivalHint")}
         </p>
       )}
-      <StatCard
-        label={t("result.chargersInCorridor")}
-        value={String(plan.chargingSiteCount)}
-        tone="sky"
-      />
 
       {plan.recommendedChargingStops.length > 0 && (
         <div className="flex flex-col gap-3">

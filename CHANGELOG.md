@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added route-planner PDF export for the current calculated route, including route summary, charging stops, ferry passages and a captured OpenStreetMap overview with schematic fallback.
+
 - Added a vehicle usage overview with day, month, year and all-time filters, previous/next period navigation and combined driving and charging KPIs including distance, drive time, consumed energy, average consumption, charging sessions, DC sessions, charged energy, charging time and charging costs.
 
 - Vehicle view now shows the stored Tesla model, license plate and VIN in a dedicated vehicle-details section.
@@ -34,6 +36,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Ferry-aware Sassnitz–Rønne routing.
 
 ### Changed
+
+- Refined route-planner result presentation with more compact KPI values, a complete three-column summary grid and the PDF export action alongside the range-check action.
 
 - Added contextual SVG artwork to Dashboard, Fahrten, yearly Wrapped and destination heatmap headers.
 
@@ -62,6 +66,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replaced the generic vehicle header drawing with a dedicated transparent Tesla-style vehicle illustration.
 
 ### Fixed
+
+- Fixed route-planner charging plans being incorrectly marked incomplete when floating-point rounding placed the calculated destination SoC fractionally below the configured target reserve.
 
 - Improved charging-stop handling on ferry routes.
 

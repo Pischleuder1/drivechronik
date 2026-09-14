@@ -164,6 +164,7 @@ export function PlannerMap({
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
       attribution: "&copy; OpenStreetMap contributors",
+      crossOrigin: "anonymous",
     }).addTo(map);
 
     const polyline = L.polyline(latLngs, {
@@ -303,6 +304,7 @@ export function PlannerMap({
   return (
     <div
       ref={containerRef}
+      data-planner-map-export="true"
       className="h-64 w-full rounded-lg border border-neutral-300 dark:border-neutral-700 sm:h-[360px]"
     />
   );

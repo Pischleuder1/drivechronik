@@ -69,7 +69,7 @@
     "travelWithCharging": "Driving, ferry and charging",
     "noExtraBreaks": "without additional breaks",
     "arrivalWithoutCharging": "Arrival without charging",
-    "plannedArrival": "Planned arrival",
+    "plannedArrival": "Planned arrival SoC",
     "plannedStopsIncluded": "including planned charging stops",
     "chargersInCorridor": "Fast chargers within the 15 km search corridor",
     "chargingStop": "Charging stop {index}",
@@ -163,5 +163,10 @@
     "recommendedChargingStop": "Recommended charging stop",
     "fastCharger": "HPC fast charger",
     "upTo": "up to"
+  },
+  "pdfExport": {
+    "button": "Export PDF",
+    "creating": "Creating PDF …",
+    "error": "PDF could not be created."
   }
 }

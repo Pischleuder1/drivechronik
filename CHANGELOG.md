@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Vehicle view now shows the stored Tesla model, license plate and VIN in a dedicated vehicle-details section.
 - Expanded place types with site/branch, supplier, hotel and parking while keeping the existing home, work, customer, charger and other categories.
 
 - TRONITY XLSX charging import with vehicle selection, preview, duplicate-safe matching and merging into existing charging sessions while protecting manual costs, notes and locked place assignments.
@@ -46,6 +47,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Yearly reports can now switch between business drives and all drives while preserving the selected scope across year navigation and CSV/PDF exports; kilometre reimbursement continues to use business distance only.
 
+- Standardized vehicle identity across report PDFs with driver name, vehicle name, normalized Tesla model (`Tesla 3` / `Tesla Y`) and license plate; monthly and sealed-month PDFs continue to include the VIN.
+- New monthly seal snapshots also preserve the vehicle model while remaining compatible with older revisions that do not contain this field.
 - Yearly PDF reports now include the actual vehicle model and license plate when available.
 
 - Refined Insights with more compact metric presentation, clearer panel styling and a dedicated annual-report action.

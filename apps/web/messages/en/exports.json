@@ -172,6 +172,28 @@
       "costIncomplete": "(incomplete)",
       "drivesSection": "Drives",
       "chargeStopsSection": "Charging Stops"
+    },
+    "identity": {
+      "driver": "Driver",
+      "vehicle": "Vehicle",
+      "licensePlate": "License plate",
+      "vin": "VIN"
+    },
+    "sealedMonth": {
+      "title": "Sealed logbook report",
+      "revision": "Revision {revision}",
+      "sealedAt": "Sealed",
+      "sealedBy": "Sealed by",
+      "verificationStatus": "Verification status",
+      "integrityVerified": "Integrity successfully verified",
+      "integrityProof": "Integrity proof",
+      "contentHash": "Content hash",
+      "sealHash": "Seal hash",
+      "auditHash": "Audit hash",
+      "digitalSignature": "Digital signature",
+      "signatureValid": "Valid · Ed25519",
+      "unsignedOlderRevision": "Unsigned · older revision",
+      "signingKeyId": "Signing key ID"
     }
   },
   "year": {

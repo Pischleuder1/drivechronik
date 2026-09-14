@@ -33,7 +33,17 @@
       "serverFilesMissing": "The uploaded files are incomplete on the server.",
       "invalidJob": "The import job could not be created.",
       "importFailed": "The Tessie import failed.",
-      "unknown": "An unknown error occurred during the Tessie import."
+      "unknown": "An unknown error occurred during the Tessie import.",
+      "invalidJobId": "Invalid import job ID.",
+      "jobNotFound": "Import job not found.",
+      "invalidStagingPath": "Invalid staging path.",
+      "invalidFilename": "Invalid filename.",
+      "uploadsClosed": "Uploads are no longer allowed for this import job.",
+      "fileContentMissing": "File content is missing.",
+      "fileSaveFailed": "The file could not be saved.",
+      "cannotStart": "This import job cannot be started.",
+      "requiredFilesMissing": "Required Tessie files are missing.",
+      "startFailed": "The import job could not be started."
     }
   },
   "teslaCharging": {
@@ -64,7 +74,11 @@
       "vehicle_not_found": "Unknown VIN"
     },
     "errors": {
-      "unknown": "The Tesla CSV could not be processed."
+      "unknown": "The Tesla CSV could not be processed.",
+      "selectFile": "Please select a Tesla CSV file.",
+      "fileTooLarge": "The Tesla CSV is larger than 5 MB.",
+      "tooManyRows": "The Tesla CSV contains more than {max} records.",
+      "recordCreateFailed": "The Tesla charging record could not be created."
     }
   },
   "tronityCharging": {
@@ -116,7 +130,14 @@
     },
     "errors": {
       "noVehicles": "No vehicle is available in DriveChronik for the TRONITY import.",
-      "unknown": "The TRONITY XLSX export could not be processed."
+      "unknown": "The TRONITY XLSX export could not be processed.",
+      "selectFile": "Please select a TRONITY XLSX file.",
+      "fileTooLarge": "The TRONITY file is larger than 10 MB.",
+      "invalidFormat": "Please select a TRONITY export in XLSX format.",
+      "invalidVehicle": "Invalid vehicle selection.",
+      "vehicleNotFound": "The selected vehicle was not found.",
+      "vehicleRequired": "Please select a vehicle for the TRONITY import.",
+      "tooManyRows": "The TRONITY export contains more than {max} charging sessions."
     }
   },
   "history": {
@@ -158,7 +179,17 @@
     "rollbackPartial": "Rollback partially completed. {count, plural, one {# conflict remains protected.} other {# conflicts remain protected.}}",
     "errors": {
       "preview": "The rollback preview could not be loaded.",
-      "rollback": "The import could not be rolled back."
+      "rollback": "The import could not be rolled back.",
+      "unknown": "The import could not be checked.",
+      "invalidId": "Invalid import ID.",
+      "confirmationMissing": "Confirmation is missing.",
+      "confirmationRequired": "The rollback must be explicitly confirmed.",
+      "notFound": "The import was not found.",
+      "running": "A running import cannot be rolled back.",
+      "alreadyRolledBack": "This import has already been completely rolled back."
     }
+  },
+  "apiErrors": {
+    "notAuthenticated": "Not signed in."
   }
 }

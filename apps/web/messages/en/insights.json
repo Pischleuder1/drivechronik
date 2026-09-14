@@ -44,7 +44,8 @@
     "avgShortTrip": "Avg short trip:",
     "avgOverall": "Avg overall:",
     "surplusPrefix": "Short trips consume on average",
-    "surplusSuffix": "— a cold drivetrain is a consumption driver."
+    "surplusSuffix": "— a cold drivetrain is a consumption driver.",
+    "singleDrive": "individual drive"
   },
   "yearly": {
     "back": "Back to Insights",

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 import {
   and,
   asc,
@@ -55,6 +56,23 @@ function sourceId(
   ].join(":");
 }
 
+type TronityImportErrorCode =
+  | "missing_file"
+  | "file_too_large"
+  | "invalid_format"
+  | "no_vehicles"
+  | "invalid_vehicle"
+  | "vehicle_not_found"
+  | "vehicle_required"
+  | "too_many_rows";
+
+class TronityImportError extends Error {
+  constructor(public readonly code: TronityImportErrorCode) {
+    super(code);
+    this.name = "TronityImportError";
+  }
+}
+
 function errorResponse(
   message: string,
   status = 400,
@@ -66,11 +84,12 @@ function errorResponse(
 }
 
 export async function POST(request: Request) {
+  const t = await getTranslations("import");
   const user = await validateSession();
 
   if (!user) {
     return errorResponse(
-      "Nicht angemeldet.",
+      t("apiErrors.notAuthenticated"),
       401,
     );
   }
@@ -86,9 +105,7 @@ export async function POST(request: Request) {
       typeof file !== "object" ||
       !("arrayBuffer" in file)
     ) {
-      throw new Error(
-        "Bitte eine TRONITY-XLSX-Datei auswählen.",
-      );
+      throw new TronityImportError("missing_file");
     }
 
     const size =
@@ -98,9 +115,7 @@ export async function POST(request: Request) {
         : 0;
 
     if (size > MAX_FILE_BYTES) {
-      throw new Error(
-        "Die TRONITY-Datei ist größer als 10 MB.",
-      );
+      throw new TronityImportError("file_too_large");
     }
 
     const fileName =
@@ -115,9 +130,7 @@ export async function POST(request: Request) {
         .toLowerCase()
         .endsWith(".xlsx")
     ) {
-      throw new Error(
-        "Bitte einen TRONITY-Export im XLSX-Format auswählen.",
-      );
+      throw new TronityImportError("invalid_format");
     }
 
     const vehicleRows = await db
@@ -130,9 +143,7 @@ export async function POST(request: Request) {
       .orderBy(asc(vehicles.id));
 
     if (vehicleRows.length === 0) {
-      throw new Error(
-        "Es ist noch kein Fahrzeug in DriveChronik vorhanden.",
-      );
+      throw new TronityImportError("no_vehicles");
     }
 
     const rawVehicleId =
@@ -154,9 +165,7 @@ export async function POST(request: Request) {
         !Number.isInteger(vehicleId) ||
         vehicleId <= 0
       ) {
-        throw new Error(
-          "Ungültige Fahrzeugauswahl.",
-        );
+        throw new TronityImportError("invalid_vehicle");
       }
 
       vehicle = vehicleRows.find(
@@ -165,18 +174,14 @@ export async function POST(request: Request) {
       );
 
       if (!vehicle) {
-        throw new Error(
-          "Das ausgewählte Fahrzeug wurde nicht gefunden.",
-        );
+        throw new TronityImportError("vehicle_not_found");
       }
     } else if (
       vehicleRows.length === 1
     ) {
       vehicle = vehicleRows[0];
     } else {
-      throw new Error(
-        "Bitte ein Fahrzeug für den TRONITY-Import auswählen.",
-      );
+      throw new TronityImportError("vehicle_required");
     }
 
     const buffer = Buffer.from(
@@ -190,9 +195,7 @@ export async function POST(request: Request) {
       );
 
     if (rows.length > MAX_ROWS) {
-      throw new Error(
-        `Der TRONITY-Export enthält mehr als ${MAX_ROWS} Ladevorgänge.`,
-      );
+      throw new TronityImportError("too_many_rows");
     }
 
     const firstStart = Math.min(
@@ -788,10 +791,29 @@ export async function POST(request: Request) {
       },
     });
   } catch (error) {
-    return errorResponse(
-      error instanceof Error
-        ? error.message
-        : "TRONITY-Export konnte nicht verarbeitet werden.",
-    );
+    if (error instanceof TronityImportError) {
+      switch (error.code) {
+        case "missing_file":
+          return errorResponse(t("tronityCharging.errors.selectFile"));
+        case "file_too_large":
+          return errorResponse(t("tronityCharging.errors.fileTooLarge"));
+        case "invalid_format":
+          return errorResponse(t("tronityCharging.errors.invalidFormat"));
+        case "no_vehicles":
+          return errorResponse(t("tronityCharging.errors.noVehicles"));
+        case "invalid_vehicle":
+          return errorResponse(t("tronityCharging.errors.invalidVehicle"));
+        case "vehicle_not_found":
+          return errorResponse(t("tronityCharging.errors.vehicleNotFound"));
+        case "vehicle_required":
+          return errorResponse(t("tronityCharging.errors.vehicleRequired"));
+        case "too_many_rows":
+          return errorResponse(
+            t("tronityCharging.errors.tooManyRows", { max: MAX_ROWS }),
+          );
+      }
+    }
+
+    return errorResponse(t("tronityCharging.errors.unknown"));
   }
 }

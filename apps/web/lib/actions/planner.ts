@@ -761,14 +761,14 @@ export async function planRoute(
 
 const PUTTGARDEN_RODBY_FERRY = {
   id: "ferry-puttgarden-rodby",
-  label: "Via Fähre Puttgarden–Rødby",
+  label: "Puttgarden–Rødby",
   puttgarden: { lat: 54.49878, lon: 11.22362 },
   rodby: { lat: 54.654306, lon: 11.35399 },
 } as const;
 
 const SASSNITZ_RONNE_FERRY = {
   id: "ferry-sassnitz-ronne",
-  label: "Via BORNHOLMSLINJEN Sassnitz–Rønne",
+  label: "BORNHOLMSLINJEN Sassnitz–Rønne",
   sassnitz: { lat: 54.486071, lon: 13.587807 },
   ronne: { lat: 55.099583, lon: 14.692352 },
 } as const;
@@ -1210,7 +1210,7 @@ function parseOsrmBody(body: unknown): OsrmRoute[] | null {
 
           ferryDurationS += stepDurationS;
 
-          const ferryName = step.name?.trim() || "Fährpassage";
+          const ferryName = step.name?.trim() || "";
           const previousFerry = ferrySegments[ferrySegments.length - 1];
 
           if (

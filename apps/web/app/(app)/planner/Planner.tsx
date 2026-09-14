@@ -163,22 +163,22 @@ export function Planner({
       {
         afterMs: 500,
         progress: 25,
-        label: "Route wird berechnet …",
+        label: t("progress.routing"),
       },
       {
         afterMs: 1400,
         progress: 45,
-        label: "Verbrauch wird prognostiziert …",
+        label: t("progress.consumption"),
       },
       {
         afterMs: 2600,
         progress: 68,
-        label: "Schnelllader entlang der Route werden geprüft …",
+        label: t("progress.chargers"),
       },
       {
         afterMs: 4200,
         progress: 88,
-        label: "Ladeplanung wird optimiert …",
+        label: t("progress.chargingPlan"),
       },
     ];
 
@@ -192,7 +192,7 @@ export function Planner({
     return () => {
       timers.forEach((timer) => window.clearTimeout(timer));
     };
-  }, [pending]);
+  }, [pending, t]);
 
   // 100 % nach erfolgreicher Berechnung noch kurz sichtbar lassen.
   useEffect(() => {
@@ -370,7 +370,7 @@ export function Planner({
       return;
     }
     if (!resolvedWaypoints) {
-      setError("Bitte alle Zwischenziele vollständig auswählen.");
+      setError(t("errors.incompleteWaypoints"));
       return;
     }
 
@@ -391,7 +391,7 @@ export function Planner({
     }
 
     setProgress(8);
-    setProgressStage("Route wird vorbereitet …");
+    setProgressStage(t("progress.preparing"));
     setPending(true);
     setError(null);
     const res = await planRoute({
@@ -719,7 +719,7 @@ export function Planner({
               )}
             >
               <Plus aria-hidden size={15} />
-              Zwischenziel hinzufügen
+              {t("form.addWaypoint")}
             </button>
           </div>
 
@@ -938,8 +938,9 @@ function Result({
 
                 {option.hasFerry && (
                   <div className="mt-1 text-xs font-medium text-amber-700 dark:text-amber-400">
-                    Fähre · ca.{" "}
-                    {formatDuration(option.ferryDurationSeconds)}
+                    {t("result.ferryApprox", {
+                      duration: formatDuration(option.ferryDurationSeconds),
+                    })}
                   </div>
                 )}
               </button>
@@ -967,7 +968,7 @@ function Result({
       {selectedRoute?.hasFerry && selectedRoute.ferrySegments.length > 0 && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/30">
           <div className="mb-2 text-sm font-semibold text-amber-900 dark:text-amber-200">
-            ⛴ Fährpassage
+            ⛴ {t("result.ferryPassage")}
           </div>
 
           <div className="flex flex-col gap-2">
@@ -976,12 +977,12 @@ function Result({
                 key={ferry.name + index}
                 className="text-sm text-amber-900 dark:text-amber-100"
               >
-                <span className="font-medium">{ferry.name}</span>
+                <span className="font-medium">{ferry.name || t("result.ferryPassage")}</span>
                 {" · "}
                 {formatKm(ferry.distanceKm)}
                 {" · "}
                 {formatDuration(ferry.durationSeconds)}
-                {" · kein Fahrverbrauch"}
+                {" · "}{t("result.noDrivingConsumption")}
               </div>
             ))}
           </div>
@@ -996,14 +997,14 @@ function Result({
         />
 
         <StatCard
-          label="Reisezeit ohne Laden"
+          label={t("result.travelTimeWithoutCharging")}
           value={formatDuration(plan.durationSeconds)}
-          hint="inklusive möglicher Fährpassagen"
+          hint={t("result.ferryIncluded")}
           tone="violet"
         />
 
         <StatCard
-          label="Ladezeit"
+          label={t("result.chargingTime")}
           value={
             totalChargingMinutes > 0
               ? formatDuration(totalChargingMinutes * 60)
@@ -1011,19 +1012,21 @@ function Result({
           }
           hint={
             plan.recommendedChargingStops.length > 0
-              ? plan.recommendedChargingStops.length + " geplante Ladestopps"
-              : "keine Ladestopps nötig"
+              ? t("result.plannedChargingStops", {
+                  count: plan.recommendedChargingStops.length,
+                })
+              : t("result.noChargingStops")
           }
           tone="amber"
         />
 
         <StatCard
-          label="Gesamtreisezeit"
+          label={t("result.totalTravelTime")}
           value={formatDuration(totalTravelSeconds)}
           hint={
             totalChargingMinutes > 0
-              ? "Fahrt, Fähre und Laden"
-              : "ohne zusätzliche Pausen"
+              ? t("result.travelWithCharging")
+              : t("result.noExtraBreaks")
           }
           tone="indigo"
         />
@@ -1042,7 +1045,7 @@ function Result({
         />
 
         <StatCard
-          label="Ankunft ohne Laden"
+          label={t("result.arrivalWithoutCharging")}
           value={`${displaySoc} %`}
           hint={toneLabel}
           tone={
@@ -1055,13 +1058,13 @@ function Result({
         />
 
         <StatCard
-          label="Geplante Ankunft"
+          label={t("result.plannedArrival")}
           value={
             plan.plannedArrivalSoc != null
               ? Math.max(0, Math.round(plan.plannedArrivalSoc)) + " %"
               : "–"
           }
-          hint="inklusive geplanter Ladestopps"
+          hint={t("result.plannedStopsIncluded")}
           tone="emerald"
         />
       </div>
@@ -1072,7 +1075,7 @@ function Result({
         </p>
       )}
       <StatCard
-        label="Schnelllader im 15-km-Suchkorridor"
+        label={t("result.chargersInCorridor")}
         value={String(plan.chargingSiteCount)}
         tone="sky"
       />
@@ -1087,7 +1090,7 @@ function Result({
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-xs font-medium uppercase tracking-wide text-amber-700 dark:text-amber-400">
-                    Ladestopp {index + 1}
+                    {t("result.chargingStop", { index: index + 1 })}
                   </p>
                   <p className="mt-1 text-lg font-semibold text-neutral-900 dark:text-neutral-100">
                     {stop.name}
@@ -1095,25 +1098,27 @@ function Result({
                 </div>
 
                 <div className="rounded-full bg-amber-500 px-3 py-1 text-sm font-semibold text-white">
-                  ca. {stop.chargingMinutes} min
+                  {t("result.approxMinutes", {
+                    minutes: stop.chargingMinutes,
+                  })}
                 </div>
               </div>
 
               <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
                 <Metric
-                  label="nach Start"
+                  label={t("result.afterStart")}
                   value={Math.round(stop.routeDistanceKm) + " km"}
                 />
                 <Metric
-                  label="Ankunft"
+                  label={t("result.arrival")}
                   value={Math.round(stop.arrivalSoc) + " %"}
                 />
                 <Metric
-                  label="Weiterfahrt"
+                  label={t("result.departure")}
                   value={Math.round(stop.departureSoc) + " %"}
                 />
                 <Metric
-                  label="Nachladen"
+                  label={t("result.chargeAdded")}
                   value={stop.energyAddedKwh.toFixed(1) + " kWh"}
                 />
               </div>
@@ -1121,17 +1126,15 @@ function Result({
           ))}
 
           <p className="text-xs text-neutral-600 dark:text-neutral-400">
-            Berechnet für eine Zielreserve von 20 % und mindestens 10 % bei
-            Ankunft am Schnelllader.
+            {t("result.chargingReserveNote")}
           </p>
         </div>
       )}
 
       {!plan.chargingPlanComplete && (
         <div className="rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-950/30 dark:text-red-300">
-          <strong>Ladeplanung nicht vollständig möglich.</strong>{" "}
-          Entlang der gewählten Route wurde keine durchgängige Folge geeigneter
-          Schnelllader gefunden.
+          <strong>{t("result.chargingPlanIncompleteTitle")}</strong>{" "}
+          {t("result.chargingPlanIncompleteText")}
         </div>
       )}
 

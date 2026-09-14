@@ -44,7 +44,8 @@
     "avgShortTrip": "Ø Kurzstrecke:",
     "avgOverall": "Ø gesamt:",
     "surplusPrefix": "Kurzstrecken verbrauchen im Schnitt",
-    "surplusSuffix": "— kalter Antriebsstrang ist ein Verbrauchstreiber."
+    "surplusSuffix": "— kalter Antriebsstrang ist ein Verbrauchstreiber.",
+    "singleDrive": "einzelne Fahrt"
   },
   "yearly": {
     "back": "Zurück zu Auswertungen",

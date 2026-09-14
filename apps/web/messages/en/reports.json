@@ -52,5 +52,49 @@
     "allSubtitle": "Annual overview of all drives. Mileage reimbursement is calculated only for business drives.",
     "allTotalDistance": "Total mileage",
     "allIncomplete": "At least one drive is missing distance data. Total mileage may therefore be incomplete."
+  },
+  "monthSeal": {
+    "title": "Monthly seal",
+    "sealed": "Sealed · Revision {revision}",
+    "sealedChanged": "Sealed, then changed · Revision {revision}",
+    "unsealed": "Not sealed yet",
+    "sealedAt": "Sealed: {date}",
+    "noHistoricPdf": "No historical PDF export is available for this older revision.",
+    "sealing": "Sealing …",
+    "reseal": "Seal again",
+    "seal": "Seal month",
+    "history": "Seal history",
+    "revision": "Revision {revision}",
+    "drives": "{count, plural, one {# drive} other {# drives}}",
+    "signatureValid": "Signature valid · Ed25519",
+    "signingKey": "Key {key}",
+    "unsigned": "Older revision · unsigned",
+    "signatureInvalid": "Signature verification failed",
+    "snapshotUnavailable": "Snapshot unavailable",
+    "cannotSeal": "The current or a future month cannot be sealed yet.",
+    "success": "Month sealed successfully · Revision {revision}",
+    "errors": {
+      "notAuthenticated": "Not signed in.",
+      "invalidInput": "Invalid month or vehicle.",
+      "cannotSealCurrentOrFuture": "The current or a future month cannot be sealed yet.",
+      "signingKeyMissing": "The monthly seal cannot be signed because no private signing key is configured.",
+      "privateKeyLoadFailed": "The private signing key could not be loaded.",
+      "vehicleNotFound": "Vehicle not found.",
+      "driverMissing": "Please enter a driver name in Settings first.",
+      "noDrives": "There are no drives for this month.",
+      "incompleteDrives": "The month cannot be sealed yet: {count, plural, one {# drive is} other {# drives are}} still incomplete.",
+      "alreadySealed": "The month is already sealed with this drive state.",
+      "failed": "The monthly seal failed."
+    },
+    "exportErrors": {
+      "notAuthenticated": "Not signed in.",
+      "invalidMonth": "Invalid month.",
+      "invalidRevision": "Invalid revision.",
+      "invalidVehicleId": "Invalid or missing vehicle ID.",
+      "notFound": "The requested monthly seal was not found.",
+      "snapshotMissingExport": "No complete snapshot was stored for this older revision. A historically reproducible export is therefore not possible.",
+      "snapshotMissingProof": "No complete snapshot was stored for this older revision.",
+      "integrityFailed": "The integrity check of the monthly seal failed."
+    }
   }
 }

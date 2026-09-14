@@ -120,7 +120,7 @@ export default async function SettingsPage() {
         <SoftwareTimeline updates={softwareUpdates} embedded />
       </Card>
 
-      <Card title="Fahrtenbuch / Berichtsdaten">
+      <Card title={t("reportIdentity.title")}>
         <ReportIdentityForm
           driverName={driverName}
           vehicles={vehicles.map((vehicle) => ({

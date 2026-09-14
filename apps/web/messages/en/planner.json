@@ -1,7 +1,7 @@
 {
   "title": "Route Planner",
   "experimentalBadge": "Experimental",
-  "subtitle": "Range check based on your personal consumption curve. An honest forecast with disclosed assumptions — no guarantee, no charging-stop planning (coming in a later version).",
+  "subtitle": "Range check based on your personal consumption curve, with disclosed assumptions and automatic charging-stop planning.",
   "baseSource": {
     "tempBin": "personal consumption curve (temperature range)",
     "historyAvg": "personal overall average",
@@ -31,7 +31,8 @@
     "historyHint": "Only {count, plural, one {# drive} other {# drives}} in history — base value not yet very reliable.",
     "routingPrefix": "Routing:",
     "routingDefaultHint": "public OSRM demo server — set up your own server via OSRM_URL.",
-    "routingCustomHint": "your own OSRM server (OSRM_URL)."
+    "routingCustomHint": "your own OSRM server (OSRM_URL).",
+    "addWaypoint": "Add waypoint"
   },
   "errors": {
     "missingStart": "Please select a starting point.",
@@ -46,7 +47,8 @@
     "routingRateLimited": "The public OSRM demo server rejected the request (rate limit). Please try again later or set up your own server via OSRM_URL.",
     "routingHttpError": "Routing service responded with HTTP {status}.",
     "routingBadResponse": "Unexpected response from the routing service.",
-    "routingNoRoute": "No route could be calculated for the start and destination. Please choose different points."
+    "routingNoRoute": "No route could be calculated for the start and destination. Please choose different points.",
+    "incompleteWaypoints": "Please select all waypoints completely."
   },
   "result": {
     "distance": "Distance",
@@ -54,7 +56,31 @@
     "avgSpeed": "Avg. speed",
     "consumption": "Consumption",
     "arrivalSoc": "Arrival SoC",
-    "lowArrivalHint": "The predicted arrival SoC is low — a charging stop is required. Automatic charging-stop planning is coming in a later version."
+    "lowArrivalHint": "The predicted arrival SoC is low — a charging stop is required. DriveChronik automatically plans a suitable fast charger along the route.",
+    "ferryApprox": "Ferry · approx. {duration}",
+    "ferryPassage": "Ferry crossing",
+    "noDrivingConsumption": "no driving consumption",
+    "travelTimeWithoutCharging": "Travel time without charging",
+    "ferryIncluded": "including possible ferry crossings",
+    "chargingTime": "Charging time",
+    "plannedChargingStops": "{count, plural, one {# planned charging stop} other {# planned charging stops}}",
+    "noChargingStops": "no charging stops required",
+    "totalTravelTime": "Total travel time",
+    "travelWithCharging": "Driving, ferry and charging",
+    "noExtraBreaks": "without additional breaks",
+    "arrivalWithoutCharging": "Arrival without charging",
+    "plannedArrival": "Planned arrival",
+    "plannedStopsIncluded": "including planned charging stops",
+    "chargersInCorridor": "Fast chargers within the 15 km search corridor",
+    "chargingStop": "Charging stop {index}",
+    "approxMinutes": "approx. {minutes} min",
+    "afterStart": "from start",
+    "arrival": "Arrival",
+    "departure": "Departure",
+    "chargeAdded": "Energy added",
+    "chargingReserveNote": "Calculated for a 20% destination reserve and at least 10% on arrival at a fast charger.",
+    "chargingPlanIncompleteTitle": "Charging plan could not be completed.",
+    "chargingPlanIncompleteText": "No continuous sequence of suitable fast chargers was found along the selected route."
   },
   "teslaShare": {
     "title": "Send route to Tesla",
@@ -125,5 +151,17 @@
   "destinationSearch": {
     "placeholder": "Search destination address…",
     "searching": "Searching…"
+  },
+  "progress": {
+    "preparing": "Preparing route …",
+    "routing": "Calculating route …",
+    "consumption": "Predicting consumption …",
+    "chargers": "Checking fast chargers along the route …",
+    "chargingPlan": "Optimizing charging plan …"
+  },
+  "map": {
+    "recommendedChargingStop": "Recommended charging stop",
+    "fastCharger": "HPC fast charger",
+    "upTo": "up to"
   }
 }

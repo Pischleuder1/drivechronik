@@ -2,6 +2,7 @@ import { mkdir, rm } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 import { importJobs } from "@drivechronik/db";
 
 import { validateSession } from "../../../../../lib/auth/session";
@@ -13,11 +14,12 @@ const IMPORT_STAGING_DIR =
   process.env.IMPORT_STAGING_DIR ?? "/import-staging";
 
 export async function POST() {
+  const t = await getTranslations("import");
   const user = await validateSession();
 
   if (!user) {
     return NextResponse.json(
-      { error: "Nicht angemeldet." },
+      { error: t("apiErrors.notAuthenticated") },
       { status: 401 },
     );
   }
@@ -49,7 +51,7 @@ export async function POST() {
       await rm(stagingPath, { recursive: true, force: true });
 
       return NextResponse.json(
-        { error: "Importjob konnte nicht angelegt werden." },
+        { error: t("tessie.errors.invalidJob") },
         { status: 500 },
       );
     }
@@ -67,7 +69,7 @@ export async function POST() {
     console.error("[web] Tessie-Importjob konnte nicht angelegt werden", error);
 
     return NextResponse.json(
-      { error: "Importjob konnte nicht angelegt werden." },
+      { error: t("tessie.errors.invalidJob") },
       { status: 500 },
     );
   }

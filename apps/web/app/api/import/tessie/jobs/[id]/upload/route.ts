@@ -6,6 +6,7 @@ import { randomUUID } from "node:crypto";
 
 import { and, eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 import { importJobs } from "@drivechronik/db";
 
 import { validateSession } from "../../../../../../../lib/auth/session";
@@ -34,11 +35,12 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const t = await getTranslations("import");
   const user = await validateSession();
 
   if (!user) {
     return NextResponse.json(
-      { error: "Nicht angemeldet." },
+      { error: t("apiErrors.notAuthenticated") },
       { status: 401 },
     );
   }
@@ -48,7 +50,7 @@ export async function POST(
 
   if (!Number.isInteger(jobId) || jobId <= 0) {
     return NextResponse.json(
-      { error: "Ungültige Importjob-ID." },
+      { error: t("tessie.errors.invalidJobId") },
       { status: 400 },
     );
   }
@@ -57,7 +59,7 @@ export async function POST(
 
   if (!filename || !ALLOWED_FILES.has(filename)) {
     return NextResponse.json(
-      { error: "Ungültiger Dateiname." },
+      { error: t("tessie.errors.invalidFilename") },
       { status: 400 },
     );
   }
@@ -82,28 +84,28 @@ export async function POST(
 
   if (!job) {
     return NextResponse.json(
-      { error: "Importjob nicht gefunden." },
+      { error: t("tessie.errors.jobNotFound") },
       { status: 404 },
     );
   }
 
   if (job.status !== "staged") {
     return NextResponse.json(
-      { error: "Für diesen Importjob sind keine Uploads mehr möglich." },
+      { error: t("tessie.errors.uploadsClosed") },
       { status: 409 },
     );
   }
 
   if (!isPathInsideStaging(job.stagingPath)) {
     return NextResponse.json(
-      { error: "Ungültiger Staging-Pfad." },
+      { error: t("tessie.errors.invalidStagingPath") },
       { status: 500 },
     );
   }
 
   if (!request.body) {
     return NextResponse.json(
-      { error: "Dateiinhalt fehlt." },
+      { error: t("tessie.errors.fileContentMissing") },
       { status: 400 },
     );
   }
@@ -161,7 +163,7 @@ export async function POST(
     );
 
     return NextResponse.json(
-      { error: "Datei konnte nicht gespeichert werden." },
+      { error: t("tessie.errors.fileSaveFailed") },
       { status: 500 },
     );
   }

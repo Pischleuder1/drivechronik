@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 import {
   and,
   asc,
@@ -46,6 +47,14 @@ const sealMonthSchema = z.object({
   vehicleId: z.coerce.number().int().positive(),
 });
 
+class SealMonthUserError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "SealMonthUserError";
+  }
+}
+
+
 export interface SealMonthResult {
   ok: boolean;
   error?: string;
@@ -57,12 +66,13 @@ export async function sealMonth(
   _prev: SealMonthResult,
   formData: FormData,
 ): Promise<SealMonthResult> {
+  const t = await getTranslations("reports.monthSeal.errors");
   const user = await validateSession();
 
   if (!user) {
     return {
       ok: false,
-      error: "Nicht angemeldet.",
+      error: t("notAuthenticated"),
     };
   }
 
@@ -74,7 +84,7 @@ export async function sealMonth(
   if (!parsed.success) {
     return {
       ok: false,
-      error: "Ungültiger Monat oder ungültiges Fahrzeug.",
+      error: t("invalidInput"),
     };
   }
 
@@ -84,8 +94,7 @@ export async function sealMonth(
   if (end.getTime() > Date.now()) {
     return {
       ok: false,
-      error:
-        "Der aktuelle oder ein zukünftiger Monat kann noch nicht abgeschlossen werden.",
+      error: t("cannotSealCurrentOrFuture"),
     };
   }
 
@@ -97,19 +106,15 @@ export async function sealMonth(
     if (!loadedPrivateKey) {
       return {
         ok: false,
-        error:
-          "Der Monatsabschluss kann nicht signiert werden: Es ist kein privater Signaturschlüssel konfiguriert.",
+        error: t("signingKeyMissing"),
       };
     }
 
     privateKey = loadedPrivateKey;
-  } catch (error) {
+  } catch {
     return {
       ok: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "Der private Signaturschlüssel konnte nicht geladen werden.",
+      error: t("privateKeyLoadFailed"),
     };
   }
 
@@ -142,7 +147,7 @@ export async function sealMonth(
       const vehicle = vehicleRows[0];
 
       if (!vehicle) {
-        throw new Error("Fahrzeug wurde nicht gefunden.");
+        throw new SealMonthUserError(t("vehicleNotFound"));
       }
 
       const driverRows = await tx
@@ -158,9 +163,7 @@ export async function sealMonth(
           : "";
 
       if (!driverName) {
-        throw new Error(
-          "Bitte zuerst in den Einstellungen einen Fahrernamen hinterlegen.",
-        );
+        throw new SealMonthUserError(t("driverMissing"));
       }
 
       const driveRows = await tx
@@ -176,9 +179,7 @@ export async function sealMonth(
         .orderBy(asc(drives.startTime), asc(drives.id));
 
       if (driveRows.length === 0) {
-        throw new Error(
-          "Für diesen Monat sind keine Fahrten vorhanden.",
-        );
+        throw new SealMonthUserError(t("noDrives"));
       }
 
       const incomplete = driveRows.filter(
@@ -190,11 +191,7 @@ export async function sealMonth(
       );
 
       if (incomplete.length > 0) {
-        throw new Error(
-          "Der Monat kann noch nicht abgeschlossen werden: " +
-            incomplete.length +
-            " Fahrt(en) sind noch unvollständig.",
-        );
+        throw new SealMonthUserError(t("incompleteDrives", { count: incomplete.length }));
       }
 
       const placeIds = [
@@ -327,9 +324,7 @@ export async function sealMonth(
           hashed.contentHash,
         )
       ) {
-        throw new Error(
-          "Der Monat ist bereits mit diesem Fahrtenstand abgeschlossen.",
-        );
+        throw new SealMonthUserError(t("alreadySealed"));
       }
 
       const revision =
@@ -424,9 +419,9 @@ export async function sealMonth(
     return {
       ok: false,
       error:
-        error instanceof Error
+        error instanceof SealMonthUserError
           ? error.message
-          : "Der Monatsabschluss ist fehlgeschlagen.",
+          : t("failed"),
     };
   }
 }

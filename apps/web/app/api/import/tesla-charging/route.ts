@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 import {
   and,
   asc,
@@ -260,6 +261,19 @@ function snapshotsEqual(
   );
 }
 
+type TeslaImportErrorCode =
+  | "missing_file"
+  | "file_too_large"
+  | "too_many_rows"
+  | "record_create_failed";
+
+class TeslaImportError extends Error {
+  constructor(public readonly code: TeslaImportErrorCode) {
+    super(code);
+    this.name = "TeslaImportError";
+  }
+}
+
 async function parseRequestFile(
   request: Request,
 ): Promise<{
@@ -276,9 +290,7 @@ async function parseRequestFile(
     typeof file !== "object" ||
     !("arrayBuffer" in file)
   ) {
-    throw new Error(
-      "Bitte eine Tesla-CSV-Datei auswählen.",
-    );
+    throw new TeslaImportError("missing_file");
   }
 
   const size =
@@ -288,9 +300,7 @@ async function parseRequestFile(
       : 0;
 
   if (size > MAX_FILE_BYTES) {
-    throw new Error(
-      "Die Tesla-CSV ist größer als 5 MB.",
-    );
+    throw new TeslaImportError("file_too_large");
   }
 
   const fileName =
@@ -309,9 +319,7 @@ async function parseRequestFile(
     parseTeslaChargingCsv(csvText);
 
   if (rows.length > MAX_ROWS) {
-    throw new Error(
-      `Die Tesla-CSV enthält mehr als ${MAX_ROWS} Einträge.`,
-    );
+    throw new TeslaImportError("too_many_rows");
   }
 
   return {
@@ -321,11 +329,12 @@ async function parseRequestFile(
 }
 
 export async function POST(request: Request) {
+  const t = await getTranslations("import");
   const user = await validateSession();
 
   if (!user) {
     return NextResponse.json(
-      { error: "Nicht angemeldet." },
+      { error: t("apiErrors.notAuthenticated") },
       { status: 401 },
     );
   }
@@ -742,9 +751,7 @@ export async function POST(request: Request) {
               insertedRows[0];
 
             if (!insertedRow) {
-              throw new Error(
-                "Tesla-Ladedatensatz konnte nicht angelegt werden.",
-              );
+              throw new TeslaImportError("record_create_failed");
             }
 
             await recordImportChange(
@@ -801,13 +808,29 @@ export async function POST(request: Request) {
     });
 
   } catch (error) {
+    let message = t("teslaCharging.errors.unknown");
+
+    if (error instanceof TeslaImportError) {
+      switch (error.code) {
+        case "missing_file":
+          message = t("teslaCharging.errors.selectFile");
+          break;
+        case "file_too_large":
+          message = t("teslaCharging.errors.fileTooLarge");
+          break;
+        case "too_many_rows":
+          message = t("teslaCharging.errors.tooManyRows", {
+            max: MAX_ROWS,
+          });
+          break;
+        case "record_create_failed":
+          message = t("teslaCharging.errors.recordCreateFailed");
+          break;
+      }
+    }
+
     return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Tesla-CSV konnte nicht verarbeitet werden.",
-      },
+      { error: message },
       { status: 400 },
     );
   }

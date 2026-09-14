@@ -173,5 +173,18 @@
       "hint": "The archive also contains a manifest with table structure, row counts and SHA-256 checksums."
     },
     "back": "Back to More"
+  },
+  "reportIdentity": {
+    "title": "Logbook / report details",
+    "noVehicle": "No vehicle available.",
+    "driverName": "Driver name",
+    "driverNamePlaceholder": "First and last name",
+    "vehicle": "Vehicle",
+    "licensePlate": "License plate",
+    "licensePlatePlaceholder": "e.g. MI-AB 123",
+    "hint": "Driver name and license plate are used for logbook reports and monthly seals.",
+    "saved": "Report details saved.",
+    "saving": "Saving …",
+    "save": "Save"
   }
 }

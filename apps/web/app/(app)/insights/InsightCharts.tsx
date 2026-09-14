@@ -190,7 +190,7 @@ export function ScatterBinnedChart({
       <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
         <span className="inline-flex items-center gap-1.5 text-neutral-600 dark:text-neutral-300">
           <span aria-hidden className="inline-block h-2 w-2 rounded-full bg-neutral-400 dark:bg-neutral-500" />
-          einzelne Fahrt
+          {t("charts.singleDrive")}
         </span>
         <span className="inline-flex items-center gap-1.5 text-blue-700 dark:text-blue-400">
           <span

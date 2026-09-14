@@ -52,5 +52,49 @@
     "allSubtitle": "Jahresübersicht aller Fahrten. Die Kilometererstattung wird nur für geschäftliche Fahrten berechnet.",
     "allTotalDistance": "Gesamtkilometer",
     "allIncomplete": "Mindestens einer Fahrt fehlen Distanzdaten. Die Gesamtkilometer können daher unvollständig sein."
+  },
+  "monthSeal": {
+    "title": "Monatsabschluss",
+    "sealed": "Abgeschlossen · Revision {revision}",
+    "sealedChanged": "Abgeschlossen, danach geändert · Revision {revision}",
+    "unsealed": "Noch nicht abgeschlossen",
+    "sealedAt": "Abschluss: {date}",
+    "noHistoricPdf": "Für diese ältere Revision ist kein historischer PDF-Export verfügbar.",
+    "sealing": "Wird abgeschlossen …",
+    "reseal": "Erneut abschließen",
+    "seal": "Monat abschließen",
+    "history": "Abschlusshistorie",
+    "revision": "Revision {revision}",
+    "drives": "{count, plural, one {# Fahrt} other {# Fahrten}}",
+    "signatureValid": "Signatur gültig · Ed25519",
+    "signingKey": "Schlüssel {key}",
+    "unsigned": "Ältere Revision · nicht signiert",
+    "signatureInvalid": "Signaturprüfung fehlgeschlagen",
+    "snapshotUnavailable": "Snapshot nicht verfügbar",
+    "cannotSeal": "Der aktuelle oder ein zukünftiger Monat kann noch nicht abgeschlossen werden.",
+    "success": "Monat erfolgreich abgeschlossen · Revision {revision}",
+    "errors": {
+      "notAuthenticated": "Nicht angemeldet.",
+      "invalidInput": "Ungültiger Monat oder ungültiges Fahrzeug.",
+      "cannotSealCurrentOrFuture": "Der aktuelle oder ein zukünftiger Monat kann noch nicht abgeschlossen werden.",
+      "signingKeyMissing": "Der Monatsabschluss kann nicht signiert werden: Es ist kein privater Signaturschlüssel konfiguriert.",
+      "privateKeyLoadFailed": "Der private Signaturschlüssel konnte nicht geladen werden.",
+      "vehicleNotFound": "Fahrzeug wurde nicht gefunden.",
+      "driverMissing": "Bitte zuerst in den Einstellungen einen Fahrernamen hinterlegen.",
+      "noDrives": "Für diesen Monat sind keine Fahrten vorhanden.",
+      "incompleteDrives": "Der Monat kann noch nicht abgeschlossen werden: {count, plural, one {# Fahrt ist} other {# Fahrten sind}} noch unvollständig.",
+      "alreadySealed": "Der Monat ist bereits mit diesem Fahrtenstand abgeschlossen.",
+      "failed": "Der Monatsabschluss ist fehlgeschlagen."
+    },
+    "exportErrors": {
+      "notAuthenticated": "Nicht angemeldet.",
+      "invalidMonth": "Ungültiger Monat.",
+      "invalidRevision": "Ungültige Revision.",
+      "invalidVehicleId": "Ungültige oder fehlende Fahrzeug-ID.",
+      "notFound": "Der angeforderte Monatsabschluss wurde nicht gefunden.",
+      "snapshotMissingExport": "Für diese ältere Revision wurde noch kein vollständiger Snapshot gespeichert. Ein historisch reproduzierbarer Export ist daher nicht möglich.",
+      "snapshotMissingProof": "Für diese ältere Revision wurde noch kein vollständiger Snapshot gespeichert.",
+      "integrityFailed": "Die Integritätsprüfung des Monatsabschlusses ist fehlgeschlagen."
+    }
   }
 }

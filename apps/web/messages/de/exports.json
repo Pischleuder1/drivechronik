@@ -172,6 +172,28 @@
       "costIncomplete": "(unvollst.)",
       "drivesSection": "Fahrten",
       "chargeStopsSection": "Ladestopps"
+    },
+    "identity": {
+      "driver": "Fahrer",
+      "vehicle": "Fahrzeug",
+      "licensePlate": "Kennzeichen",
+      "vin": "VIN"
+    },
+    "sealedMonth": {
+      "title": "Abgeschlossener Fahrtenbuchbericht",
+      "revision": "Revision {revision}",
+      "sealedAt": "Abschluss",
+      "sealedBy": "Abgeschlossen von",
+      "verificationStatus": "Prüfstatus",
+      "integrityVerified": "Integrität erfolgreich geprüft",
+      "integrityProof": "Integritätsnachweis",
+      "contentHash": "Content-Hash",
+      "sealHash": "Seal-Hash",
+      "auditHash": "Audit-Hash",
+      "digitalSignature": "Digitale Signatur",
+      "signatureValid": "Gültig · Ed25519",
+      "unsignedOlderRevision": "Nicht signiert · ältere Revision",
+      "signingKeyId": "Schlüssel-ID"
     }
   },
   "year": {

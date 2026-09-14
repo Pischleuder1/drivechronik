@@ -778,19 +778,22 @@ async function buildPreview(
   const run = runs[0];
 
   if (!run) {
-    throw new Error(
+    throw new ImportRollbackError(
+      "not_found",
       `Import-Lauf ${importRunId} wurde nicht gefunden.`,
     );
   }
 
   if (run.status === "running") {
-    throw new Error(
+    throw new ImportRollbackError(
+      "running",
       "Ein laufender Import kann nicht zurückgesetzt werden.",
     );
   }
 
   if (run.status === "rolled_back") {
-    throw new Error(
+    throw new ImportRollbackError(
+      "already_rolled_back",
       "Dieser Import wurde bereits vollständig zurückgesetzt.",
     );
   }
@@ -851,6 +854,21 @@ async function buildPreview(
       ).length,
     details,
   };
+}
+
+export type ImportRollbackErrorCode =
+  | "not_found"
+  | "running"
+  | "already_rolled_back";
+
+export class ImportRollbackError extends Error {
+  constructor(
+    public readonly code: ImportRollbackErrorCode,
+    message: string,
+  ) {
+    super(message);
+    this.name = "ImportRollbackError";
+  }
 }
 
 export async function previewImportRollback(

@@ -54,6 +54,28 @@ export interface PdfLabels {
   };
   footer: (date: string) => string;
   footerEstimatedSuffix: string;
+  identity: {
+    driver: string;
+    vehicle: string;
+    licensePlate: string;
+    vin: string;
+  };
+  sealedMonth: {
+    title: string;
+    revision: (revision: number) => string;
+    sealedAt: string;
+    sealedBy: string;
+    verificationStatus: string;
+    integrityVerified: string;
+    integrityProof: string;
+    contentHash: string;
+    sealHash: string;
+    auditHash: string;
+    digitalSignature: string;
+    signatureValid: string;
+    unsignedOlderRevision: string;
+    signingKeyId: string;
+  };
   drive: {
     title: (date: string) => string;
     kpisTitle: string;
@@ -147,6 +169,29 @@ export function buildPdfLabels(t: Translator, tCommon: Translator, locale = "de"
     },
     footer: (date: string) => t("pdf.footer", { date }),
     footerEstimatedSuffix: t("pdf.footerEstimatedSuffix"),
+    identity: {
+      driver: t("pdf.identity.driver"),
+      vehicle: t("pdf.identity.vehicle"),
+      licensePlate: t("pdf.identity.licensePlate"),
+      vin: t("pdf.identity.vin"),
+    },
+    sealedMonth: {
+      title: t("pdf.sealedMonth.title"),
+      revision: (revision: number) =>
+        t("pdf.sealedMonth.revision", { revision }),
+      sealedAt: t("pdf.sealedMonth.sealedAt"),
+      sealedBy: t("pdf.sealedMonth.sealedBy"),
+      verificationStatus: t("pdf.sealedMonth.verificationStatus"),
+      integrityVerified: t("pdf.sealedMonth.integrityVerified"),
+      integrityProof: t("pdf.sealedMonth.integrityProof"),
+      contentHash: t("pdf.sealedMonth.contentHash"),
+      sealHash: t("pdf.sealedMonth.sealHash"),
+      auditHash: t("pdf.sealedMonth.auditHash"),
+      digitalSignature: t("pdf.sealedMonth.digitalSignature"),
+      signatureValid: t("pdf.sealedMonth.signatureValid"),
+      unsignedOlderRevision: t("pdf.sealedMonth.unsignedOlderRevision"),
+      signingKeyId: t("pdf.sealedMonth.signingKeyId"),
+    },
     drive: {
       title: (date: string) => t("pdf.drive.title", { date }),
       kpisTitle: t("pdf.drive.kpisTitle"),
@@ -615,14 +660,14 @@ export function MonthPdf({ report, labels }: { report: MonthReport; labels: PdfL
 
         <View style={styles.identityBox} wrap={false}>
           <View style={styles.identityRow}>
-            <Text style={styles.identityLabel}>Fahrer</Text>
+            <Text style={styles.identityLabel}>{labels.identity.driver}</Text>
             <Text style={styles.identityValue}>
               {report.meta.driverName || "–"}
             </Text>
           </View>
 
           <View style={styles.identityRow}>
-            <Text style={styles.identityLabel}>Fahrzeug</Text>
+            <Text style={styles.identityLabel}>{labels.identity.vehicle}</Text>
             <Text style={styles.identityValue}>
               {report.meta.vehicleName}
             </Text>
@@ -630,7 +675,7 @@ export function MonthPdf({ report, labels }: { report: MonthReport; labels: PdfL
 
           {report.meta.licensePlate && (
             <View style={styles.identityRow}>
-              <Text style={styles.identityLabel}>Kennzeichen</Text>
+              <Text style={styles.identityLabel}>{labels.identity.licensePlate}</Text>
               <Text style={styles.identityValue}>
                 {report.meta.licensePlate}
               </Text>
@@ -639,7 +684,7 @@ export function MonthPdf({ report, labels }: { report: MonthReport; labels: PdfL
 
           {report.meta.vehicleVin && (
             <View style={styles.identityRow}>
-              <Text style={styles.identityLabel}>VIN</Text>
+              <Text style={styles.identityLabel}>{labels.identity.vin}</Text>
               <Text style={styles.identityValue}>
                 {report.meta.vehicleVin}
               </Text>
@@ -846,23 +891,23 @@ export function SealedMonthPdf({
         style={styles.page}
       >
         <Text style={styles.header}>
-          Abgeschlossener Fahrtenbuchbericht
+          {labels.sealedMonth.title}
         </Text>
 
         <Text style={styles.subHeader}>
-          {monthLabel + " · Revision " + seal.revision}
+          {monthLabel + " · " + labels.sealedMonth.revision(seal.revision)}
         </Text>
 
         <View style={styles.identityBox} wrap={false}>
           <View style={styles.identityRow}>
-            <Text style={styles.identityLabel}>Fahrer</Text>
+            <Text style={styles.identityLabel}>{labels.identity.driver}</Text>
             <Text style={styles.identityValue}>
               {report.meta.driverName || "–"}
             </Text>
           </View>
 
           <View style={styles.identityRow}>
-            <Text style={styles.identityLabel}>Fahrzeug</Text>
+            <Text style={styles.identityLabel}>{labels.identity.vehicle}</Text>
             <Text style={styles.identityValue}>
               {report.meta.vehicleName}
             </Text>
@@ -871,7 +916,7 @@ export function SealedMonthPdf({
           {report.meta.licensePlate && (
             <View style={styles.identityRow}>
               <Text style={styles.identityLabel}>
-                Kennzeichen
+                {labels.identity.licensePlate}
               </Text>
               <Text style={styles.identityValue}>
                 {report.meta.licensePlate}
@@ -881,7 +926,7 @@ export function SealedMonthPdf({
 
           {report.meta.vehicleVin && (
             <View style={styles.identityRow}>
-              <Text style={styles.identityLabel}>VIN</Text>
+              <Text style={styles.identityLabel}>{labels.identity.vin}</Text>
               <Text style={styles.identityValue}>
                 {report.meta.vehicleVin}
               </Text>
@@ -889,7 +934,7 @@ export function SealedMonthPdf({
           )}
 
           <View style={styles.identityRow}>
-            <Text style={styles.identityLabel}>Abschluss</Text>
+            <Text style={styles.identityLabel}>{labels.sealedMonth.sealedAt}</Text>
             <Text style={styles.identityValue}>
               {formatGeneratedAt(
                 seal.sealedAt,
@@ -905,7 +950,7 @@ export function SealedMonthPdf({
                 { width: 90 },
               ]}
             >
-              Abgeschlossen von
+              {labels.sealedMonth.sealedBy}
             </Text>
             <Text style={styles.identityValue}>
               {seal.sealedBy}
@@ -914,10 +959,10 @@ export function SealedMonthPdf({
 
           <View style={styles.identityRow}>
             <Text style={styles.identityLabel}>
-              Prüfstatus
+              {labels.sealedMonth.verificationStatus}
             </Text>
             <Text style={styles.identityValue}>
-              Integrität erfolgreich geprüft
+              {labels.sealedMonth.integrityVerified}
             </Text>
           </View>
         </View>
@@ -986,12 +1031,12 @@ export function SealedMonthPdf({
 
         <View style={styles.totalsBox} wrap={false}>
           <Text style={styles.totalsTitle}>
-            Integritätsnachweis
+            {labels.sealedMonth.integrityProof}
           </Text>
 
           <View style={styles.identityRow}>
             <Text style={styles.identityLabel}>
-              Content-Hash
+              {labels.sealedMonth.contentHash}
             </Text>
             <Text
               style={[
@@ -1005,7 +1050,7 @@ export function SealedMonthPdf({
 
           <View style={styles.identityRow}>
             <Text style={styles.identityLabel}>
-              Seal-Hash
+              {labels.sealedMonth.sealHash}
             </Text>
             <Text
               style={[
@@ -1020,7 +1065,7 @@ export function SealedMonthPdf({
           {seal.lastAuditHash && (
             <View style={styles.identityRow}>
               <Text style={styles.identityLabel}>
-                Audit-Hash
+                {labels.sealedMonth.auditHash}
               </Text>
               <Text
                 style={[
@@ -1035,12 +1080,12 @@ export function SealedMonthPdf({
 
           <View style={styles.identityRow}>
             <Text style={styles.identityLabel}>
-              Digitale Signatur
+              {labels.sealedMonth.digitalSignature}
             </Text>
             <Text style={styles.identityValue}>
               {seal.signatureStatus === "valid"
-                ? "Gültig · Ed25519"
-                : "Nicht signiert · ältere Revision"}
+                ? labels.sealedMonth.signatureValid
+                : labels.sealedMonth.unsignedOlderRevision}
             </Text>
           </View>
 
@@ -1048,7 +1093,7 @@ export function SealedMonthPdf({
             seal.signingKeyId && (
               <View style={styles.identityRow}>
                 <Text style={styles.identityLabel}>
-                  Schlüssel-ID
+                  {labels.sealedMonth.signingKeyId}
                 </Text>
                 <Text
                   style={[

@@ -33,7 +33,17 @@
       "serverFilesMissing": "Die hochgeladenen Dateien sind auf dem Server nicht vollständig.",
       "invalidJob": "Der Importjob konnte nicht angelegt werden.",
       "importFailed": "Der Tessie-Import ist fehlgeschlagen.",
-      "unknown": "Beim Tessie-Import ist ein unbekannter Fehler aufgetreten."
+      "unknown": "Beim Tessie-Import ist ein unbekannter Fehler aufgetreten.",
+      "invalidJobId": "Ungültige Importjob-ID.",
+      "jobNotFound": "Importjob nicht gefunden.",
+      "invalidStagingPath": "Ungültiger Staging-Pfad.",
+      "invalidFilename": "Ungültiger Dateiname.",
+      "uploadsClosed": "Für diesen Importjob sind keine Uploads mehr möglich.",
+      "fileContentMissing": "Dateiinhalt fehlt.",
+      "fileSaveFailed": "Datei konnte nicht gespeichert werden.",
+      "cannotStart": "Dieser Importjob kann nicht gestartet werden.",
+      "requiredFilesMissing": "Es fehlen Tessie-Pflichtdateien.",
+      "startFailed": "Importjob konnte nicht gestartet werden."
     }
   },
   "teslaCharging": {
@@ -64,7 +74,11 @@
       "vehicle_not_found": "VIN unbekannt"
     },
     "errors": {
-      "unknown": "Die Tesla-CSV konnte nicht verarbeitet werden."
+      "unknown": "Die Tesla-CSV konnte nicht verarbeitet werden.",
+      "selectFile": "Bitte eine Tesla-CSV-Datei auswählen.",
+      "fileTooLarge": "Die Tesla-CSV ist größer als 5 MB.",
+      "tooManyRows": "Die Tesla-CSV enthält mehr als {max} Einträge.",
+      "recordCreateFailed": "Der Tesla-Ladedatensatz konnte nicht angelegt werden."
     }
   },
   "tronityCharging": {
@@ -116,7 +130,14 @@
     },
     "errors": {
       "noVehicles": "Für den TRONITY-Import ist noch kein Fahrzeug in DriveChronik vorhanden.",
-      "unknown": "Der TRONITY-XLSX-Export konnte nicht verarbeitet werden."
+      "unknown": "Der TRONITY-XLSX-Export konnte nicht verarbeitet werden.",
+      "selectFile": "Bitte eine TRONITY-XLSX-Datei auswählen.",
+      "fileTooLarge": "Die TRONITY-Datei ist größer als 10 MB.",
+      "invalidFormat": "Bitte einen TRONITY-Export im XLSX-Format auswählen.",
+      "invalidVehicle": "Ungültige Fahrzeugauswahl.",
+      "vehicleNotFound": "Das ausgewählte Fahrzeug wurde nicht gefunden.",
+      "vehicleRequired": "Bitte ein Fahrzeug für den TRONITY-Import auswählen.",
+      "tooManyRows": "Der TRONITY-Export enthält mehr als {max} Ladevorgänge."
     }
   },
   "history": {
@@ -158,7 +179,17 @@
     "rollbackPartial": "Rollback teilweise ausgeführt. {count, plural, one {# Konflikt bleibt geschützt.} other {# Konflikte bleiben geschützt.}}",
     "errors": {
       "preview": "Die Rollback-Vorschau konnte nicht geladen werden.",
-      "rollback": "Der Import konnte nicht zurückgesetzt werden."
+      "rollback": "Der Import konnte nicht zurückgesetzt werden.",
+      "unknown": "Der Import konnte nicht geprüft werden.",
+      "invalidId": "Ungültige Import-ID.",
+      "confirmationMissing": "Bestätigung fehlt.",
+      "confirmationRequired": "Rollback muss ausdrücklich bestätigt werden.",
+      "notFound": "Der Import wurde nicht gefunden.",
+      "running": "Ein laufender Import kann nicht zurückgesetzt werden.",
+      "alreadyRolledBack": "Dieser Import wurde bereits vollständig zurückgesetzt."
     }
+  },
+  "apiErrors": {
+    "notAuthenticated": "Nicht angemeldet."
   }
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -145,6 +146,7 @@ export function PlannerMap({
   chargingSites,
   recommendedChargingStops,
 }: PlannerMapProps) {
+  const t = useTranslations("planner");
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
 
@@ -224,17 +226,17 @@ export function PlannerMap({
           <div style="min-width:180px">
             ${
               isRecommended
-                ? "<strong>Empfohlener Ladestopp</strong><br>"
+                ? `<strong>${escapeHtml(t("map.recommendedChargingStop"))}</strong><br>`
                 : isTesla
                   ? "<strong>Tesla Supercharger</strong><br>"
-                  : "<strong>HPC-Schnelllader</strong><br>"
+                  : `<strong>${escapeHtml(t("map.fastCharger"))}</strong><br>`
             }
             ${escapeHtml(site.name)}<br>
             <span style="color:#666">
               ${escapeHtml(stallsText)}
               ${
                 site.powerKw != null
-                  ? ` · bis ${Math.round(site.powerKw)} kW`
+                  ? ` · ${escapeHtml(t("map.upTo"))} ${Math.round(site.powerKw)} kW`
                   : ""
               }
             </span>
@@ -296,7 +298,7 @@ export function PlannerMap({
       mapRef.current = null;
     };
 
-  }, [geometry, waypoints, chargingSites, recommendedChargingStops]);
+  }, [geometry, waypoints, chargingSites, recommendedChargingStops, t]);
 
   return (
     <div

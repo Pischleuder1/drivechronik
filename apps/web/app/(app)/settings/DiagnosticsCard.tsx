@@ -207,7 +207,7 @@ export async function DiagnosticsCard() {
               {backup.health === "missing"
                 ? t("diagnostics.backup.missingDescription")
                 : backup.health === "invalid"
-                  ? (backup.error ?? t("diagnostics.backup.invalidDescription"))
+                  ? t("diagnostics.backup.invalidDescription")
                   : t("diagnostics.backup.notConfiguredDescription")}
             </p>
           )}

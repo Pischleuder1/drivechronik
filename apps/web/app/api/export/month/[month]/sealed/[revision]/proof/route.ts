@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 
 import { validateSession } from "../../../../../../../../lib/auth/session";
 import { isValidMonthParam } from "../../../../../../../../lib/exports/params";
@@ -33,11 +34,14 @@ export async function GET(
     }>;
   },
 ) {
+  const tErrors = await getTranslations(
+    "reports.monthSeal.exportErrors",
+  );
   const user = await validateSession();
 
   if (!user) {
     return NextResponse.json(
-      { error: "Nicht angemeldet." },
+      { error: tErrors("notAuthenticated") },
       { status: 401 },
     );
   }
@@ -46,7 +50,7 @@ export async function GET(
 
   if (!isValidMonthParam(month)) {
     return NextResponse.json(
-      { error: "Ungültiger Monat." },
+      { error: tErrors("invalidMonth") },
       { status: 400 },
     );
   }
@@ -59,14 +63,14 @@ export async function GET(
 
   if (revision == null) {
     return NextResponse.json(
-      { error: "Ungültige Revision." },
+      { error: tErrors("invalidRevision") },
       { status: 400 },
     );
   }
 
   if (vehicleId == null) {
     return NextResponse.json(
-      { error: "Ungültige oder fehlende Fahrzeug-ID." },
+      { error: tErrors("invalidVehicleId") },
       { status: 400 },
     );
   }
@@ -82,7 +86,7 @@ export async function GET(
       return NextResponse.json(
         {
           error:
-            "Der angeforderte Monatsabschluss wurde nicht gefunden.",
+            tErrors("notFound"),
         },
         { status: 404 },
       );
@@ -92,7 +96,7 @@ export async function GET(
       return NextResponse.json(
         {
           error:
-            "Für diese ältere Revision wurde noch kein vollständiger Snapshot gespeichert.",
+            tErrors("snapshotMissingProof"),
         },
         { status: 409 },
       );
@@ -101,7 +105,7 @@ export async function GET(
     return NextResponse.json(
       {
         error:
-          "Die Integritätsprüfung des Monatsabschlusses ist fehlgeschlagen.",
+          tErrors("integrityFailed"),
         reason: sealed.error,
       },
       { status: 409 },

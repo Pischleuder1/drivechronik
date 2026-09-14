@@ -173,5 +173,18 @@
       "hint": "Das Archiv enthält zusätzlich ein Manifest mit Tabellenstruktur, Datensatzanzahlen und SHA-256-Prüfsummen."
     },
     "back": "Zurück zu Mehr"
+  },
+  "reportIdentity": {
+    "title": "Fahrtenbuch / Berichtsdaten",
+    "noVehicle": "Kein Fahrzeug vorhanden.",
+    "driverName": "Fahrername",
+    "driverNamePlaceholder": "Vor- und Nachname",
+    "vehicle": "Fahrzeug",
+    "licensePlate": "Kfz-Kennzeichen",
+    "licensePlatePlaceholder": "z. B. MI-AB 123",
+    "hint": "Fahrername und Kennzeichen werden für Fahrtenbuchberichte und spätere Monatsabschlüsse verwendet.",
+    "saved": "Berichtsdaten gespeichert.",
+    "saving": "Speichern …",
+    "save": "Speichern"
   }
 }

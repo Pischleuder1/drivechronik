@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { CalendarCheck, History } from "lucide-react";
 
 import {
@@ -32,6 +33,9 @@ export function MonthSealCard({
   history: MonthSealHistoryEntry[];
   canSeal: boolean;
 }) {
+  const t = useTranslations("reports.monthSeal");
+  const locale = useLocale();
+
   const [result, action, pending] = useActionState(
     sealMonth,
     initialState,
@@ -49,10 +53,10 @@ export function MonthSealCard({
 
   const statusLabel =
     status.state === "sealed_unchanged"
-      ? `Abgeschlossen · Revision ${status.revision}`
+      ? t("sealed", { revision: status.revision ?? "—" })
       : status.state === "sealed_changed"
-        ? `Abgeschlossen, danach geändert · Revision ${status.revision}`
-        : "Noch nicht abgeschlossen";
+        ? t("sealedChanged", { revision: status.revision ?? "—" })
+        : t("unsealed");
 
   return (
     <div className="mt-6 rounded-3xl border border-neutral-200/80 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
@@ -64,7 +68,7 @@ export function MonthSealCard({
             </IconBadge>
             <div>
               <p className="text-sm font-semibold">
-                Monatsabschluss
+                {t("title")}
               </p>
               <div className="mt-1.5">
                 <StatusBadge tone={statusTone}>
@@ -76,11 +80,12 @@ export function MonthSealCard({
 
           {isSealed && status.sealedAt && (
             <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-              Abschluss:{" "}
-              {new Intl.DateTimeFormat("de-DE", {
-                dateStyle: "medium",
-                timeStyle: "short",
-              }).format(new Date(status.sealedAt))}
+              {t("sealedAt", {
+                date: new Intl.DateTimeFormat(locale, {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                }).format(new Date(status.sealedAt)),
+              })}
               {status.sealedBy
                 ? ` · ${status.sealedBy}`
                 : ""}
@@ -92,7 +97,7 @@ export function MonthSealCard({
             status.revision != null &&
             !status.hasSnapshot && (
               <p className="mt-3 text-xs text-neutral-500 dark:text-neutral-400">
-                Für diese ältere Revision ist kein historischer PDF-Export verfügbar.
+                {t("noHistoricPdf")}
               </p>
             )}
         </div>
@@ -112,10 +117,10 @@ export function MonthSealCard({
               className={buttonClasses("primary", "md", "!h-9 disabled:cursor-not-allowed")}
             >
               {pending
-                ? "Wird abgeschlossen …"
+                ? t("sealing")
                 : isChanged
-                  ? "Erneut abschließen"
-                  : "Monat abschließen"}
+                  ? t("reseal")
+                  : t("seal")}
             </button>
           </form>
         )}
@@ -126,7 +131,7 @@ export function MonthSealCard({
           <div className="flex items-center gap-2">
             <History className="h-4 w-4 text-violet-500" />
             <p className="text-sm font-semibold">
-              Abschlusshistorie
+              {t("history")}
             </p>
           </div>
 
@@ -138,11 +143,11 @@ export function MonthSealCard({
               >
                 <div>
                   <p className="text-sm font-medium">
-                    Revision {entry.revision}
+                    {t("revision", { revision: entry.revision })}
                   </p>
 
                   <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                    {new Intl.DateTimeFormat("de-DE", {
+                    {new Intl.DateTimeFormat(locale, {
                       dateStyle: "medium",
                       timeStyle: "short",
                     }).format(new Date(entry.sealedAt))}
@@ -151,13 +156,10 @@ export function MonthSealCard({
                   </p>
 
                   <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-                    {entry.driveCount}{" "}
-                    {entry.driveCount === 1
-                      ? "Fahrt"
-                      : "Fahrten"}
+                    {t("drives", { count: entry.driveCount })}
                     {" · "}
                     {entry.distanceKm.toLocaleString(
-                      "de-DE",
+                      locale,
                       {
                         minimumFractionDigits: 1,
                         maximumFractionDigits: 1,
@@ -168,24 +170,25 @@ export function MonthSealCard({
 
                   {entry.signatureStatus === "valid" && (
                     <p className="mt-1 text-xs text-emerald-700 dark:text-emerald-300">
-                      Signatur gültig · Ed25519
+                      {t("signatureValid")}
                       {entry.signingKeyId
-                        ? " · Schlüssel " +
-                          entry.signingKeyId.slice(0, 12) +
-                          "…"
+                        ? " · " +
+                          t("signingKey", {
+                            key: entry.signingKeyId.slice(0, 12) + "…",
+                          })
                         : ""}
                     </p>
                   )}
 
                   {entry.signatureStatus === "unsigned" && (
                     <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-                      Ältere Revision · nicht signiert
+                      {t("unsigned")}
                     </p>
                   )}
 
                   {entry.signatureStatus === "invalid" && (
                     <p className="mt-1 text-xs font-medium text-red-700 dark:text-red-300">
-                      Signaturprüfung fehlgeschlagen
+                      {t("signatureInvalid")}
                     </p>
                   )}
                 </div>
@@ -206,7 +209,7 @@ export function MonthSealCard({
                   </a>
                 ) : (
                   <span className="text-xs text-neutral-400">
-                    Snapshot nicht verfügbar
+                    {t("snapshotUnavailable")}
                   </span>
                 )}
               </div>
@@ -217,7 +220,7 @@ export function MonthSealCard({
 
       {!canSeal && (
         <p className="mt-3 text-xs text-neutral-500 dark:text-neutral-400">
-          Der aktuelle oder ein zukünftiger Monat kann noch nicht abgeschlossen werden.
+          {t("cannotSeal")}
         </p>
       )}
 
@@ -229,7 +232,7 @@ export function MonthSealCard({
 
       {result.ok && (
         <p className="mt-3 text-sm text-emerald-700 dark:text-emerald-300">
-          Monat erfolgreich abgeschlossen · Revision {result.revision}
+          {t("success", { revision: result.revision ?? "—" })}
         </p>
       )}
     </div>

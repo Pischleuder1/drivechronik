@@ -4,3 +4,5 @@ export * from "./audit.js";
 
 export * from "./importRollback.js";
 export * from "./importRollbackExecutor.js";
+
+export { ImportRollbackError } from "./importRollbackExecutor.js";

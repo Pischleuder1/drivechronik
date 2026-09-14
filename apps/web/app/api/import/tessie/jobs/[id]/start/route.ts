@@ -3,6 +3,7 @@ import path from "node:path";
 
 import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 import { importJobs } from "@drivechronik/db";
 
 import { validateSession } from "../../../../../../../lib/auth/session";
@@ -47,11 +48,12 @@ export async function POST(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const t = await getTranslations("import");
   const user = await validateSession();
 
   if (!user) {
     return NextResponse.json(
-      { error: "Nicht angemeldet." },
+      { error: t("apiErrors.notAuthenticated") },
       { status: 401 },
     );
   }
@@ -61,7 +63,7 @@ export async function POST(
 
   if (!Number.isInteger(jobId) || jobId <= 0) {
     return NextResponse.json(
-      { error: "Ungültige Importjob-ID." },
+      { error: t("tessie.errors.invalidJobId") },
       { status: 400 },
     );
   }
@@ -86,28 +88,28 @@ export async function POST(
 
   if (!job) {
     return NextResponse.json(
-      { error: "Importjob nicht gefunden." },
+      { error: t("tessie.errors.jobNotFound") },
       { status: 404 },
     );
   }
 
   if (job.status !== "staged") {
     return NextResponse.json(
-      { error: "Dieser Importjob kann nicht gestartet werden." },
+      { error: t("tessie.errors.cannotStart") },
       { status: 409 },
     );
   }
 
   if (!isPathInsideStaging(job.stagingPath)) {
     return NextResponse.json(
-      { error: "Ungültiger Staging-Pfad." },
+      { error: t("tessie.errors.invalidStagingPath") },
       { status: 500 },
     );
   }
 
   if (!(await hasRequiredFiles(job.stagingPath))) {
     return NextResponse.json(
-      { error: "Es fehlen Tessie-Pflichtdateien." },
+      { error: t("tessie.errors.requiredFilesMissing") },
       { status: 400 },
     );
   }
@@ -140,7 +142,7 @@ export async function POST(
 
   if (!result) {
     return NextResponse.json(
-      { error: "Importjob konnte nicht gestartet werden." },
+      { error: t("tessie.errors.startFailed") },
       { status: 409 },
     );
   }

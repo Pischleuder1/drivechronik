@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 
 import {
+  ImportRollbackError,
   previewImportRollback,
   rollbackImportRun,
 } from "@drivechronik/db";
@@ -35,31 +37,34 @@ function parseImportRunId(
   return id;
 }
 
-function rollbackError(
+async function rollbackError(
   error: unknown,
 ) {
-  const message =
-    error instanceof Error
-      ? error.message
-      : "Import konnte nicht geprüft werden.";
+  const t = await getTranslations("import");
 
-  const status =
-    message.includes(
-      "wurde nicht gefunden",
-    )
-      ? 404
-      : message.includes(
-            "bereits vollständig zurückgesetzt",
-          ) ||
-          message.includes(
-            "laufender Import",
-          )
-        ? 409
-        : 400;
+  if (error instanceof ImportRollbackError) {
+    switch (error.code) {
+      case "not_found":
+        return NextResponse.json(
+          { error: t("history.errors.notFound") },
+          { status: 404 },
+        );
+      case "running":
+        return NextResponse.json(
+          { error: t("history.errors.running") },
+          { status: 409 },
+        );
+      case "already_rolled_back":
+        return NextResponse.json(
+          { error: t("history.errors.alreadyRolledBack") },
+          { status: 409 },
+        );
+    }
+  }
 
   return NextResponse.json(
-    { error: message },
-    { status },
+    { error: t("history.errors.unknown") },
+    { status: 400 },
   );
 }
 
@@ -67,13 +72,14 @@ export async function GET(
   _request: Request,
   { params }: RouteContext,
 ) {
+  const t = await getTranslations("import");
   const user = await validateSession();
 
   if (!user) {
     return NextResponse.json(
       {
         error:
-          "Nicht angemeldet.",
+          t("apiErrors.notAuthenticated"),
       },
       { status: 401 },
     );
@@ -88,7 +94,7 @@ export async function GET(
     return NextResponse.json(
       {
         error:
-          "Ungültige Import-ID.",
+          t("history.errors.invalidId"),
       },
       { status: 400 },
     );
@@ -114,13 +120,14 @@ export async function POST(
   request: Request,
   { params }: RouteContext,
 ) {
+  const t = await getTranslations("import");
   const user = await validateSession();
 
   if (!user) {
     return NextResponse.json(
       {
         error:
-          "Nicht angemeldet.",
+          t("apiErrors.notAuthenticated"),
       },
       { status: 401 },
     );
@@ -135,7 +142,7 @@ export async function POST(
     return NextResponse.json(
       {
         error:
-          "Ungültige Import-ID.",
+          t("history.errors.invalidId"),
       },
       { status: 400 },
     );
@@ -149,7 +156,7 @@ export async function POST(
     return NextResponse.json(
       {
         error:
-          "Bestätigung fehlt.",
+          t("history.errors.confirmationMissing"),
       },
       { status: 400 },
     );
@@ -164,7 +171,7 @@ export async function POST(
     return NextResponse.json(
       {
         error:
-          "Rollback muss ausdrücklich bestätigt werden.",
+          t("history.errors.confirmationRequired"),
       },
       { status: 400 },
     );

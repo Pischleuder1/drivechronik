@@ -22,7 +22,7 @@ function formatKwPrecise(kw: number): string {
 
 const CHART_WIDTH = 600;
 const CHART_HEIGHT = 200;
-const PADDING = { top: 14, right: 16, bottom: 22, left: 40 };
+const PADDING = { top: 14, right: 16, bottom: 34, left: 40 };
 
 type XMode = "soc" | "time";
 
@@ -69,9 +69,27 @@ export function ChargeChart({ points, avgPowerKw, maxPowerKw }: ChargeChartProps
     return data.byTime.map((p) => p.elapsedMin);
   }, [mode, data]);
 
-  const xMin = xs.length > 0 ? Math.min(...xs) : 0;
+  // Time charts start at zero even if the first TeslaMate measurement
+  // arrives a little later.
+  const xMin =
+    mode === "time"
+      ? 0
+      : xs.length > 0
+        ? Math.min(...xs)
+        : 0;
+
   const xMax = xs.length > 0 ? Math.max(...xs) : 1;
   const xRange = xMax - xMin || 1;
+
+  const xTicks = [0, 0.25, 0.5, 0.75, 1].map((fraction) => ({
+    fraction,
+    value: xMin + xRange * fraction,
+  }));
+
+  const formatXTick = (value: number) =>
+    mode === "soc"
+      ? `${Math.round(value)} %`
+      : `${Math.round(value)} min`;
 
   const innerWidth = CHART_WIDTH - PADDING.left - PADDING.right;
   const innerHeight = CHART_HEIGHT - PADDING.top - PADDING.bottom;
@@ -211,6 +229,31 @@ export function ChargeChart({ points, avgPowerKw, maxPowerKw }: ChargeChartProps
               className="stroke-neutral-200 dark:stroke-neutral-700"
               strokeWidth={1}
             />
+          );
+        })}
+
+        {/* X-Achsen-Labels */}
+        {xTicks.map((tick, i) => {
+          const x =
+            PADDING.left +
+            tick.fraction * innerWidth;
+
+          return (
+            <text
+              key={`xa-${i}`}
+              x={x}
+              y={plotBottom + 17}
+              textAnchor={
+                i === 0
+                  ? "start"
+                  : i === xTicks.length - 1
+                    ? "end"
+                    : "middle"
+              }
+              className="text-[9px] fill-neutral-500 dark:fill-neutral-400"
+            >
+              {formatXTick(tick.value)}
+            </text>
           );
         })}
 

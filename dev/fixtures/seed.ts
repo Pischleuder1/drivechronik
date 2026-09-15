@@ -670,41 +670,7 @@ function modelYRwdDcPowerFactor(soc: number): number {
   ]!.factor;
 }
 
-function averageModelYRwdDcPowerFactor(
-  startSoc: number,
-  endSoc: number,
-): number {
-  const from = Math.max(0, Math.min(100, startSoc));
-  const to = Math.max(from, Math.min(100, endSoc));
-
-  if (to <= from) {
-    return modelYRwdDcPowerFactor(from);
-  }
-
-  const breakpoints = [
-    from,
-    ...MODEL_Y_RWD_DC_CURVE
-      .map((point) => point.soc)
-      .filter((soc) => soc > from && soc < to),
-    to,
-  ];
-
-  let integral = 0;
-
-  for (let i = 1; i < breakpoints.length; i++) {
-    const lowerSoc = breakpoints[i - 1]!;
-    const upperSoc = breakpoints[i]!;
-    const width = upperSoc - lowerSoc;
-
-    integral +=
-      ((modelYRwdDcPowerFactor(lowerSoc) +
-        modelYRwdDcPowerFactor(upperSoc)) /
-        2) *
-      width;
-  }
-
-  return integral / (to - from);
-}
+const CHARGING_LOSS_FACTOR = 1.08;
 
 function simulateCharging(opts: {
   start: Date;
@@ -723,26 +689,16 @@ function simulateCharging(opts: {
   const startIdeal = idealRangeForSoc(startSoc);
   const startRated = ratedRangeForSoc(startSoc);
   const socToAdd = Math.max(0, targetSoc - startSoc);
-  const energyAddedKwh = (socToAdd / 100) * BATTERY_CAPACITY_KWH;
+  const energyAddedKwh =
+    (socToAdd / 100) * BATTERY_CAPACITY_KWH;
 
-  // Approximate 8 % charging losses. `charger_power` represents the power
-  // drawn during charging, so session duration is derived from energy used,
-  // not only from the energy that reaches the battery.
-  const energyUsedKwh = energyAddedKwh * 1.08;
+  // `charger_power` represents input power from the charger. Around 8 %
+  // charging losses mean that only power / CHARGING_LOSS_FACTOR reaches
+  // the battery.
+  const energyUsedKwh =
+    energyAddedKwh * CHARGING_LOSS_FACTOR;
 
-  const avgPowerKw = isDc
-    ? peakKw * averageModelYRwdDcPowerFactor(startSoc, targetSoc)
-    : peakKw;
-
-  const durationHours =
-    avgPowerKw > 0 ? energyUsedKwh / avgPowerKw : 0;
-
-  const durationMin = Math.max(
-    5,
-    Math.round(durationHours * 60),
-  );
   const stepMin = 1;
-  const numSteps = Math.max(1, Math.round(durationMin / stepMin));
 
   // Position row that charging_processes.position_id references (required,
   // NOT NULL). Not linked to a drive.
@@ -773,42 +729,99 @@ function simulateCharging(opts: {
     seasonalBaseTemperature(start) + chargeJitter(3.5);
 
   let socAcc = startSoc;
-  for (let i = 1; i <= numSteps; i++) {
-    const t = i / numSteps;
-    const date = new Date(start.getTime() + t * durationMin * 60 * 1000);
+  let energyAddedAcc = 0;
+  let elapsedMin = 0;
+  let safetySteps = 0;
 
-    // DC follows the synthetic Model Y RWD curve.
-    // peakKw remains the upper limit of this charger/session.
-    const soc = startSoc + socToAdd * t;
+  while (energyAddedAcc < energyAddedKwh - 1e-9) {
+    safetySteps += 1;
+
+    if (safetySteps > 12 * 60) {
+      throw new Error("Synthetic charging session exceeded 12 hours");
+    }
+
+    // DC power depends on the CURRENT SoC. AC remains flat.
     const power = isDc
-      ? peakKw * modelYRwdDcPowerFactor(soc)
+      ? peakKw * modelYRwdDcPowerFactor(socAcc)
       : peakKw;
 
-    const stepSocAdd = socToAdd / numSteps;
-    socAcc = Math.min(targetSoc, socAcc + stepSocAdd);
+    if (power <= 0) {
+      throw new Error("Synthetic charging power must be greater than zero");
+    }
+
+    // Charger power is input power. Convert it to energy that actually
+    // reaches the battery during this time step.
+    const batteryPowerKw =
+      power / CHARGING_LOSS_FACTOR;
+
+    const fullStepEnergyKwh =
+      batteryPowerKw * (stepMin / 60);
+
+    const remainingEnergyKwh =
+      energyAddedKwh - energyAddedAcc;
+
+    const stepEnergyKwh = Math.min(
+      fullStepEnergyKwh,
+      remainingEnergyKwh,
+    );
+
+    // The final step may be shorter than one minute.
+    const actualStepMin =
+      fullStepEnergyKwh > 0
+        ? stepMin * (stepEnergyKwh / fullStepEnergyKwh)
+        : 0;
+
+    elapsedMin += actualStepMin;
+    energyAddedAcc += stepEnergyKwh;
+
+    socAcc = Math.min(
+      targetSoc,
+      startSoc +
+        (energyAddedAcc / BATTERY_CAPACITY_KWH) * 100,
+    );
+
+    const date = new Date(
+      start.getTime() + elapsedMin * 60 * 1000,
+    );
+
     const socRounded = Math.round(socAcc);
-    const energySoFar = energyAddedKwh * t;
 
     charges.push({
       date,
       battery_level: socRounded,
       usable_battery_level: socRounded,
-      charge_energy_added: Number(energySoFar.toFixed(2)),
+      charge_energy_added: Number(
+        energyAddedAcc.toFixed(2),
+      ),
       charger_power: Math.round(power),
       charger_phases: isDc ? null : 3,
-      charger_voltage: isDc ? Math.round(370 + chargeJitter(20)) : 230,
+      charger_voltage: isDc
+        ? Math.round(370 + chargeJitter(20))
+        : 230,
       fast_charger_present: isDc,
-      ideal_battery_range_km: idealRangeForSoc(socAcc),
-      rated_battery_range_km: ratedRangeForSoc(socAcc),
+      ideal_battery_range_km:
+        idealRangeForSoc(socAcc),
+      rated_battery_range_km:
+        ratedRangeForSoc(socAcc),
       charging_process_id: chargingProcessId,
       outside_temp: Number(
-        (sessionOutsideTemp + chargeJitter(0.8)).toFixed(1),
+        (
+          sessionOutsideTemp +
+          chargeJitter(0.8)
+        ).toFixed(1),
       ),
     });
   }
 
+  const durationMin = Math.max(
+    1,
+    Math.round(elapsedMin),
+  );
+
   batteryLevel = Math.round(targetSoc);
-  const endDate = new Date(start.getTime() + durationMin * 60 * 1000);
+  const endDate = new Date(
+    start.getTime() + elapsedMin * 60 * 1000,
+  );
 
   return {
     start_date: start,

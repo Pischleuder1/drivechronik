@@ -187,10 +187,22 @@ function makeRng(seed: number) {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
+// Independent deterministic random streams.
+//
+// General jitter remains on the original seed. Charging point noise,
+// scenario decisions and synthetic prices are deliberately separated so
+// changing charge-point density cannot alter the demo-year timeline.
 const rng = makeRng(42);
+const chargeRng = makeRng(420042);
+const scenarioRng = makeRng(420043);
+const costRng = makeRng(420044);
 
 function jitter(scale: number): number {
   return (rng() - 0.5) * 2 * scale;
+}
+
+function chargeJitter(scale: number): number {
+  return (chargeRng() - 0.5) * 2 * scale;
 }
 
 // Nominal cold tire pressure for the synthetic demo vehicle (bar) — front slightly lower than
@@ -658,6 +670,42 @@ function modelYRwdDcPowerFactor(soc: number): number {
   ]!.factor;
 }
 
+function averageModelYRwdDcPowerFactor(
+  startSoc: number,
+  endSoc: number,
+): number {
+  const from = Math.max(0, Math.min(100, startSoc));
+  const to = Math.max(from, Math.min(100, endSoc));
+
+  if (to <= from) {
+    return modelYRwdDcPowerFactor(from);
+  }
+
+  const breakpoints = [
+    from,
+    ...MODEL_Y_RWD_DC_CURVE
+      .map((point) => point.soc)
+      .filter((soc) => soc > from && soc < to),
+    to,
+  ];
+
+  let integral = 0;
+
+  for (let i = 1; i < breakpoints.length; i++) {
+    const lowerSoc = breakpoints[i - 1]!;
+    const upperSoc = breakpoints[i]!;
+    const width = upperSoc - lowerSoc;
+
+    integral +=
+      ((modelYRwdDcPowerFactor(lowerSoc) +
+        modelYRwdDcPowerFactor(upperSoc)) /
+        2) *
+      width;
+  }
+
+  return integral / (to - from);
+}
+
 function simulateCharging(opts: {
   start: Date;
   addressKey: keyof typeof addressIdByKey;
@@ -677,11 +725,22 @@ function simulateCharging(opts: {
   const socToAdd = Math.max(0, targetSoc - startSoc);
   const energyAddedKwh = (socToAdd / 100) * BATTERY_CAPACITY_KWH;
 
-  // Rough duration estimate from average power over the session (tapering
-  // curve loses ~30% of peak on average for DC, ~flat for AC).
-  const avgKw = isDc ? peakKw * 0.62 : peakKw * 0.97;
-  const durationHours = avgKw > 0 ? energyAddedKwh / avgKw : 0;
-  const durationMin = Math.max(5, Math.round(durationHours * 60));
+  // Approximate 8 % charging losses. `charger_power` represents the power
+  // drawn during charging, so session duration is derived from energy used,
+  // not only from the energy that reaches the battery.
+  const energyUsedKwh = energyAddedKwh * 1.08;
+
+  const avgPowerKw = isDc
+    ? peakKw * averageModelYRwdDcPowerFactor(startSoc, targetSoc)
+    : peakKw;
+
+  const durationHours =
+    avgPowerKw > 0 ? energyUsedKwh / avgPowerKw : 0;
+
+  const durationMin = Math.max(
+    5,
+    Math.round(durationHours * 60),
+  );
   const stepMin = 1;
   const numSteps = Math.max(1, Math.round(durationMin / stepMin));
 
@@ -711,7 +770,7 @@ function simulateCharging(opts: {
   // Messpunkt zusätzlich leicht schwankend — TeslaMate loggt outside_temp
   // pro `charges`-Zeile, nicht nur als Session-Mittel.
   const sessionOutsideTemp =
-    seasonalBaseTemperature(start) + jitter(3.5);
+    seasonalBaseTemperature(start) + chargeJitter(3.5);
 
   let socAcc = startSoc;
   for (let i = 1; i <= numSteps; i++) {
@@ -737,12 +796,14 @@ function simulateCharging(opts: {
       charge_energy_added: Number(energySoFar.toFixed(2)),
       charger_power: Math.round(power),
       charger_phases: isDc ? null : 3,
-      charger_voltage: isDc ? Math.round(370 + jitter(20)) : 230,
+      charger_voltage: isDc ? Math.round(370 + chargeJitter(20)) : 230,
       fast_charger_present: isDc,
       ideal_battery_range_km: idealRangeForSoc(socAcc),
       rated_battery_range_km: ratedRangeForSoc(socAcc),
       charging_process_id: chargingProcessId,
-      outside_temp: Number((sessionOutsideTemp + jitter(0.8)).toFixed(1)),
+      outside_temp: Number(
+        (sessionOutsideTemp + chargeJitter(0.8)).toFixed(1),
+      ),
     });
   }
 
@@ -753,7 +814,7 @@ function simulateCharging(opts: {
     start_date: start,
     end_date: endDate,
     charge_energy_added: Number(energyAddedKwh.toFixed(2)),
-    charge_energy_used: Number((energyAddedKwh * 1.08).toFixed(2)), // charging losses
+    charge_energy_used: Number(energyUsedKwh.toFixed(2)),
     start_battery_level: startSoc,
     end_battery_level: batteryLevel,
     duration_min: durationMin,
@@ -1158,7 +1219,7 @@ for (let w = 0; w < WEEKS; w++) {
         isDc: true,
         peakKw: 170,
         cost: Number(
-          (18 + rng() * 6).toFixed(2),
+          (18 + costRng() * 6).toFixed(2),
         ),
         positionCoord:
           pointFor("charger-bispingen"),
@@ -1225,7 +1286,7 @@ for (let w = 0; w < WEEKS; w++) {
         isDc: true,
         peakKw: 170,
         cost: Number(
-          (18 + rng() * 6).toFixed(2),
+          (18 + costRng() * 6).toFixed(2),
         ),
         positionCoord:
           pointFor("charger-bispingen"),
@@ -1300,7 +1361,7 @@ for (let w = 0; w < WEEKS; w++) {
       continue;
     }
 
-    if (d === 6 && rng() < 0.90) {
+    if (d === 6 && scenarioRng() < 0.90) {
       addRoundTrip({
         day,
         startHour: 11,

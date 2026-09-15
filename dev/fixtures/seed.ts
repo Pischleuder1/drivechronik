@@ -613,9 +613,51 @@ function applyParkedDrain(hours: number) {
 }
 
 /**
- * Simulate a charging process: ramps power up, holds, tapers as it approaches
- * the target SoC. Produces one `charges` row roughly every 60s.
+ * Synthetic DC charging curve for the demo Model Y RWD.
+ *
+ * Values are relative to the maximum power available for the session.
+ * Linear interpolation creates a smooth SoC-dependent charging curve.
+ *
+ * 10–80 % averages roughly 63 % of peak power. AC charging remains flat.
  */
+const MODEL_Y_RWD_DC_CURVE = [
+  { soc: 0, factor: 0.35 },
+  { soc: 5, factor: 0.70 },
+  { soc: 10, factor: 1.00 },
+  { soc: 20, factor: 0.90 },
+  { soc: 30, factor: 0.75 },
+  { soc: 40, factor: 0.65 },
+  { soc: 50, factor: 0.57 },
+  { soc: 60, factor: 0.50 },
+  { soc: 70, factor: 0.42 },
+  { soc: 80, factor: 0.28 },
+  { soc: 90, factor: 0.16 },
+  { soc: 95, factor: 0.10 },
+  { soc: 100, factor: 0.05 },
+] as const;
+
+function modelYRwdDcPowerFactor(soc: number): number {
+  const clampedSoc = Math.max(0, Math.min(100, soc));
+
+  for (let i = 1; i < MODEL_Y_RWD_DC_CURVE.length; i++) {
+    const lower = MODEL_Y_RWD_DC_CURVE[i - 1]!;
+    const upper = MODEL_Y_RWD_DC_CURVE[i]!;
+
+    if (clampedSoc <= upper.soc) {
+      const span = upper.soc - lower.soc;
+      const position =
+        span > 0 ? (clampedSoc - lower.soc) / span : 0;
+
+      return lower.factor +
+        (upper.factor - lower.factor) * position;
+    }
+  }
+
+  return MODEL_Y_RWD_DC_CURVE[
+    MODEL_Y_RWD_DC_CURVE.length - 1
+  ]!.factor;
+}
+
 function simulateCharging(opts: {
   start: Date;
   addressKey: keyof typeof addressIdByKey;
@@ -676,15 +718,12 @@ function simulateCharging(opts: {
     const t = i / numSteps;
     const date = new Date(start.getTime() + t * durationMin * 60 * 1000);
 
-    // Power curve: DC tapers hard after ~60% SoC; AC is flat.
-    let power: number;
-    if (isDc) {
-      const soc = startSoc + socToAdd * t;
-      const taper = soc < 60 ? 1 : Math.max(0.15, 1 - (soc - 60) / 45);
-      power = peakKw * taper;
-    } else {
-      power = peakKw;
-    }
+    // DC follows the synthetic Model Y RWD curve.
+    // peakKw remains the upper limit of this charger/session.
+    const soc = startSoc + socToAdd * t;
+    const power = isDc
+      ? peakKw * modelYRwdDcPowerFactor(soc)
+      : peakKw;
 
     const stepSocAdd = socToAdd / numSteps;
     socAcc = Math.min(targetSoc, socAcc + stepSocAdd);

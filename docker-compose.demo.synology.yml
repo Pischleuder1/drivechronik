@@ -74,6 +74,7 @@ services:
       drivechronik-db:
         condition: service_healthy
 
+
   demo-bootstrap:
     build:
       context: ./dev/fixtures
@@ -127,7 +128,7 @@ services:
       # Already running a real DriveChronik stack on :3000 on this host? Edit
       # this line to e.g. "3100:3000" — no .env indirection here on purpose,
       # this file is meant to just work with a single command.
-      - "3000:3000"
+      - "4027:3000"
     environment:
       DATABASE_URL: postgres://drivechronik:drivechronik-demo@drivechronik-db:5432/drivechronik
       APP_TIMEZONE: Europe/Berlin

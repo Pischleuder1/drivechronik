@@ -73,7 +73,7 @@ Ob ein erzeugter Nachweis für steuerliche Zwecke, gegenüber einem Arbeitgeber 
 
 ## Demo ohne Auto
 
-Kein Tesla, kein TeslaMate? Der Demo-Stack startet eine komplett gefüllte App mit sechs Wochen synthetischer Fahrdaten:
+Kein Tesla, kein TeslaMate? Der Demo-Stack startet eine komplett gefüllte App mit rund zwölf Monaten synthetischer Fahr-, Lade- und Ortsdaten:
 
 ```bash
 docker compose -f docker-compose.demo.yml up -d --build
@@ -88,12 +88,12 @@ pnpm-Monorepo: Next.js 15 (`apps/web`) · Sync-Worker (`apps/worker`) · Drizzle
 
 ## Entwicklung
 
-Ohne echtes Auto — eine Fixture-TeslaMate-DB mit 6 Wochen synthetischer Fahrdaten liegt bei:
+Ohne echtes Auto — eine Fixture-TeslaMate-DB mit rund zwölf Monaten synthetischer Fahrdaten liegt bei:
 
 ```bash
 pnpm install
 pnpm dev:db                                # drivechronik-db :5432 + fixture teslamate-db :5433
-pnpm db:seed:teslamate                     # ~140 Fahrten, Laden, Geofences (Raum Zürich)
+pnpm db:seed:teslamate                     # ~430 Fahrten, ~18.000 km, Laden und Geofences (Deutschland)
 DATABASE_URL=postgres://drivechronik:drivechronik@localhost:5432/drivechronik pnpm db:migrate
 pnpm --filter @drivechronik/worker dev        # Sync-Loop (braucht DATABASE_URL + TESLAMATE_DATABASE_URL, siehe .env.example)
 pnpm --filter @drivechronik/web dev           # http://localhost:3000

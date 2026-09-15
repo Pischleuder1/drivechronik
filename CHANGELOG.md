@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Expanded the self-contained demo to roughly one year of deterministic synthetic Model Y data with around 430 drives, 18,000 km, 120 charging sessions and 18 places, including business, private, commute and intentionally unclassified drives.
+- Added demo bootstrap data for synthetic places and automatic classification rules used by the local and Synology demo stacks.
+
 - Added route-planner PDF export for the current calculated route, including route summary, charging stops, ferry passages and a captured OpenStreetMap overview with schematic fallback.
 
 - Added a vehicle usage overview with day, month, year and all-time filters, previous/next period navigation and combined driving and charging KPIs including distance, drive time, consumed energy, average consumption, charging sessions, DC sessions, charged energy, charging time and charging costs.
@@ -36,6 +39,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Ferry-aware Sassnitz–Rønne routing.
 
 ### Changed
+
+- Updated the demo to use Europe/Berlin, a more realistic cumulative parked-energy drain and locally generated synthetic GPS routes; removed the obsolete static demoRoutes fixture.
 
 - Refined route-planner result presentation with more compact KPI values, a complete three-column summary grid and the PDF export action alongside the range-check action.
 

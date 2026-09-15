@@ -6,22 +6,17 @@
  * teslamate-db service). Idempotent: truncates the relevant tables (restart
  * identity) before inserting, so re-running produces the same data.
  *
- * Fixture world: one car ("Blitzkarre", Model 3) commuting around Zurich,
- * Switzerland, for ~6 weeks, plus one weekend road trip to Chur.
+ * Fixture world: one fictional Tesla Model Y RWD in Germany with roughly
+ * one year of realistic commuting, business, private and charging activity.
  *
  * Run with: pnpm db:seed:teslamate  (from repo root)
  *        or: pnpm --filter @drivechronik/fixtures seed
  */
 import postgres from "postgres";
 import {
-  ZUHAUSE_BUERO,
-  BUERO_KUNDE_MUELLER,
-  BUERO_SUPERMARKT,
-  ZUHAUSE_SUPERMARKT,
-  ZUHAUSE_RASTSTAETTE,
-  RASTSTAETTE_CHUR,
-  CHUR_ZUHAUSE,
-} from "./demoRoutes";
+  DEMO_PLACES,
+  demoPlace,
+} from "./demoWorld";
 
 const DATABASE_URL =
   process.env.TESLAMATE_DATABASE_URL ??
@@ -33,121 +28,54 @@ const sql = postgres(DATABASE_URL, { max: 1 });
 // Constants / fixture world
 // ---------------------------------------------------------------------------
 
-const EFFICIENCY_KWH_PER_KM = 0.152;
-// Rated range consumed per km driven is slightly worse than the "lab"
-// efficiency would suggest (climate, elevation, driving style headroom).
-const RANGE_DROP_FACTOR = 1.15;
-// Nominal battery capacity used to convert rated-range deltas <-> kWh, and to
-// derive rated_battery_range_km from battery_level for a fresh full charge.
-const BATTERY_CAPACITY_KWH = 57.5; // Model 3 RWD-ish usable capacity
-const FULL_RATED_RANGE_KM = 415; // rated range at 100% SoC
+const EFFICIENCY_KWH_PER_KM = 0.172;
+
+// Model-Y-RWD-Demowerte. Die Werte sind bewusst plausibel,
+// aber nicht an ein reales Fahrzeug gebunden.
+const RANGE_DROP_FACTOR = 1.08;
+const BATTERY_CAPACITY_KWH = 62.0;
+const FULL_RATED_RANGE_KM = 455;
 
 const CAR = {
   eid: 1111111111,
   vid: 2222222222,
-  vin: "5YJ3E7EA1PF000001",
-  name: "Blitzkarre",
-  model: "3",
-  trim_badging: "74d",
-  exterior_color: "DeepBlueMetallic",
-  wheel_type: "Aero19",
+  vin: "7SAYGDEE0TF000001",
+  name: "Demo Model Y",
+  model: "Y",
+  trim_badging: "RWD",
+  exterior_color: "PearlWhiteMultiCoat",
+  wheel_type: "Gemini19",
   efficiency: EFFICIENCY_KWH_PER_KM,
 };
 
-type LatLon = { lat: number; lon: number };
+type LatLon = {
+  lat: number;
+  lon: number;
+};
 
-const ZUHAUSE: LatLon = { lat: 47.3769, lon: 8.5417 };
-const BUERO: LatLon = { lat: 47.3902, lon: 8.5158 };
-const KUNDE_MUELLER: LatLon = { lat: 47.4245, lon: 8.606 };
-const RASTSTAETTE: LatLon = { lat: 47.175, lon: 8.96 };
-const CHUR: LatLon = { lat: 46.8499, lon: 9.533 };
-// Local errand stop (supermarket) a few minutes from Zuhause — used for
-// short weekend / evening drives so the fixture isn't only commute traffic.
-const SUPERMARKT: LatLon = { lat: 47.3701, lon: 8.5322 };
+const GEOFENCES = DEMO_PLACES.map((place) => ({
+  name: place.name,
+  lat: place.lat,
+  lon: place.lon,
+  radius: place.radiusM,
+}));
 
-const GEOFENCES = [
-  { name: "Zuhause", ...ZUHAUSE, radius: 100 },
-  { name: "Büro", ...BUERO, radius: 120 },
-  { name: "Kunde Müller", ...KUNDE_MUELLER, radius: 150 },
-] as const;
-
-const ADDRESSES = [
-  {
-    key: "zuhause",
-    display_name: "Musterstrasse 1, 8001 Zürich, Schweiz",
-    name: "Musterstrasse 1",
-    road: "Musterstrasse",
-    house_number: "1",
-    city: "Zürich",
-    postcode: "8001",
-    state: "Zürich",
-    country: "Schweiz",
-    ...ZUHAUSE,
-  },
-  {
-    key: "buero",
-    display_name: "Bahnhofstrasse 50, 8001 Zürich, Schweiz",
-    name: "Bahnhofstrasse 50",
-    road: "Bahnhofstrasse",
-    house_number: "50",
-    city: "Zürich",
-    postcode: "8001",
-    state: "Zürich",
-    country: "Schweiz",
-    ...BUERO,
-  },
-  {
-    key: "kunde",
-    display_name: "Industriestrasse 12, 8600 Dübendorf, Schweiz",
-    name: "Industriestrasse 12",
-    road: "Industriestrasse",
-    house_number: "12",
-    city: "Dübendorf",
-    postcode: "8600",
-    state: "Zürich",
-    country: "Schweiz",
-    ...KUNDE_MUELLER,
-  },
-  {
-    key: "raststaette",
-    display_name: "Raststätte Neuhaus, A3, 8855 Neuhaus SZ, Schweiz",
-    name: "Raststätte Neuhaus",
-    road: "A3",
-    house_number: null,
-    city: "Neuhaus",
-    postcode: "8855",
-    state: "Schwyz",
-    country: "Schweiz",
-    ...RASTSTAETTE,
-  },
-  {
-    key: "chur",
-    display_name: "Bahnhofplatz 3, 7000 Chur, Schweiz",
-    name: "Bahnhofplatz 3",
-    road: "Bahnhofplatz",
-    house_number: "3",
-    city: "Chur",
-    postcode: "7000",
-    state: "Graubünden",
-    country: "Schweiz",
-    ...CHUR,
-  },
-  {
-    key: "supermarkt",
-    display_name: "Coop Supermarkt, Seebahnstrasse 8, 8004 Zürich, Schweiz",
-    name: "Coop Supermarkt",
-    road: "Seebahnstrasse",
-    house_number: "8",
-    city: "Zürich",
-    postcode: "8004",
-    state: "Zürich",
-    country: "Schweiz",
-    ...SUPERMARKT,
-  },
-] as const;
+const ADDRESSES = DEMO_PLACES.map((place) => ({
+  key: place.key,
+  display_name: place.displayName,
+  name: place.name,
+  road: place.road,
+  house_number: place.houseNumber,
+  city: place.city,
+  postcode: place.postcode,
+  state: place.state,
+  country: place.country,
+  lat: place.lat,
+  lon: place.lon,
+}));
 
 // ---------------------------------------------------------------------------
-// Date range: 6 full weeks (Mon-Fri commuting pattern), ending "yesterday".
+// Date range: 52 weeks ending in the current week, never beyond yesterday.
 // ---------------------------------------------------------------------------
 
 function startOfDay(d: Date): Date {
@@ -170,30 +98,62 @@ function atTime(day: Date, hh: number, mm: number): Date {
 
 const now = new Date();
 const yesterday = startOfDay(addDays(now, -1));
-// Monday of the week containing "yesterday"
-const endWeekMonday = addDays(yesterday, -(((yesterday.getDay() + 6) % 7)));
-const startMonday = addDays(endWeekMonday, -5 * 7); // 6 weeks total incl. end week
 
-const WEEKS = 6;
-const weekMondays = Array.from({ length: WEEKS }, (_, i) =>
-  addDays(startMonday, i * 7),
+const endWeekMonday = addDays(
+  yesterday,
+  -((yesterday.getDay() + 6) % 7),
 );
 
-// Weekend road trip: Saturday of the 3rd week (0-indexed week 2)
-const weekendMonday = weekMondays[2];
-const weekendSaturday = addDays(weekendMonday, 5);
-const weekendSunday = addDays(weekendMonday, 6);
+const WEEKS = 52;
 
-// Software-Update-Historie (TeslaMate `updates`): drei Updates über die
-// 6-Wochen-Fixture verteilt, jeweils an einem frühen Morgen (Fahrzeug parkt
-// zuhause) installiert. Reicht bis zur letzten vollen Woche, damit auch ein
-// "offenes" Update (end_date NULL, gerade angestoßen) getestet werden kann.
+const startMonday = addDays(
+  endWeekMonday,
+  -(WEEKS - 1) * 7,
+);
+
+const weekMondays = Array.from(
+  { length: WEEKS },
+  (_, i) => addDays(startMonday, i * 7),
+);
+
+// Über das Demo-Jahr verteilte Tesla-Softwareupdates.
 const SOFTWARE_UPDATES = [
-  { monday: weekMondays[0]!, dayOffset: 2, version: "2024.14.9", durationMin: 35 },
-  { monday: weekMondays[2]!, dayOffset: 3, version: "2024.20.1", durationMin: 40 },
-  { monday: weekMondays[4]!, dayOffset: 1, version: "2024.26.3", durationMin: 30 },
-  // Neuestes Update: noch "laufend" (end_date NULL) am letzten Fixture-Tag.
-  { monday: weekMondays[5]!, dayOffset: 4, version: "2024.32.7", durationMin: null },
+  {
+    monday: weekMondays[1]!,
+    dayOffset: 2,
+    version: "2025.32.6",
+    durationMin: 35,
+  },
+  {
+    monday: weekMondays[10]!,
+    dayOffset: 3,
+    version: "2025.44.25.2",
+    durationMin: 40,
+  },
+  {
+    monday: weekMondays[19]!,
+    dayOffset: 1,
+    version: "2026.2.8",
+    durationMin: 32,
+  },
+  {
+    monday: weekMondays[29]!,
+    dayOffset: 2,
+    version: "2026.14.7",
+    durationMin: 38,
+  },
+  {
+    monday: weekMondays[39]!,
+    dayOffset: 3,
+    version: "2026.26.6",
+    durationMin: 34,
+  },
+  {
+    monday: weekMondays[50]!,
+    dayOffset: 1,
+    version: "2026.32.4",
+    durationMin: null,
+  },
 ] as const;
 
 // ---------------------------------------------------------------------------
@@ -233,7 +193,7 @@ function jitter(scale: number): number {
   return (rng() - 0.5) * 2 * scale;
 }
 
-// Nominal cold tire pressure for a Model 3 (bar) — front slightly lower than
+// Nominal cold tire pressure for the synthetic demo vehicle (bar) — front slightly lower than
 // rear is typical. Small per-reading jitter so values aren't perfectly flat.
 const TPMS_FRONT_BAR = 2.9;
 const TPMS_REAR_BAR = 2.9;
@@ -288,67 +248,72 @@ function interpolateRoutePoint(route: LatLon[], t: number): LatLon {
   return route[route.length - 1];
 }
 
-// Synthetic demo routes. Production DriveChronik does NOT use these:
-// real drives use the GPS positions imported from TeslaMate.
+// Synthetic demo route geometry.
+// Production DriveChronik continues to use the real GPS positions
+// imported from TeslaMate.
+//
+// The demo remains completely offline and therefore does not call an
+// external routing service while seeding. A reproducible gentle bend
+// keeps longer demo tracks from looking like simple straight lines.
 function demoRoute(from: LatLon, to: LatLon): LatLon[] {
-  const same = (a: LatLon, b: LatLon) =>
-    Math.abs(a.lat - b.lat) < 0.00001 &&
-    Math.abs(a.lon - b.lon) < 0.00001;
+  const directKm = haversineKm(from, to);
 
-  const reverse = (points: LatLon[]) => [...points].reverse();
+  const segments =
+    directKm >= 150
+      ? 10
+      : directKm >= 60
+        ? 8
+        : directKm >= 20
+          ? 6
+          : 4;
 
-  if (same(from, ZUHAUSE) && same(to, BUERO)) return ZUHAUSE_BUERO;
-  if (same(from, BUERO) && same(to, ZUHAUSE)) return reverse(ZUHAUSE_BUERO);
+  const dLat = to.lat - from.lat;
+  const dLon = to.lon - from.lon;
+  const norm = Math.sqrt(dLat * dLat + dLon * dLon) || 1;
 
-  if (same(from, BUERO) && same(to, KUNDE_MUELLER)) {
-    return BUERO_KUNDE_MUELLER;
-  }
+  const normalLat = dLon / norm;
+  const normalLon = -dLat / norm;
 
-  if (same(from, KUNDE_MUELLER) && same(to, BUERO)) {
-    return reverse(BUERO_KUNDE_MUELLER);
-  }
+  const sign =
+    Math.sin(
+      (from.lat + from.lon + to.lat + to.lon) * 1000,
+    ) >= 0
+      ? 1
+      : -1;
 
-  if (same(from, ZUHAUSE) && same(to, SUPERMARKT)) {
-    return ZUHAUSE_SUPERMARKT;
-  }
+  const bend = Math.min(
+    0.05,
+    Math.max(0.0015, directKm / 4000),
+  );
 
-  if (same(from, SUPERMARKT) && same(to, ZUHAUSE)) {
-    return reverse(ZUHAUSE_SUPERMARKT);
-  }
+  return Array.from({ length: segments + 1 }, (_, i) => {
+    const t = i / segments;
 
-  if (same(from, BUERO) && same(to, SUPERMARKT)) {
-    return BUERO_SUPERMARKT;
-  }
+    if (i === 0) {
+      return { ...from };
+    }
 
-  if (same(from, SUPERMARKT) && same(to, BUERO)) {
-    return reverse(BUERO_SUPERMARKT);
-  }
+    if (i === segments) {
+      return { ...to };
+    }
 
-  if (same(from, ZUHAUSE) && same(to, RASTSTAETTE)) {
-    return ZUHAUSE_RASTSTAETTE;
-  }
+    const curve =
+      Math.sin(Math.PI * t) *
+      Math.sin(Math.PI * t * 1.5) *
+      bend *
+      sign;
 
-  if (same(from, RASTSTAETTE) && same(to, ZUHAUSE)) {
-    return reverse(ZUHAUSE_RASTSTAETTE);
-  }
-
-  if (same(from, RASTSTAETTE) && same(to, CHUR)) {
-    return RASTSTAETTE_CHUR;
-  }
-
-  if (same(from, CHUR) && same(to, RASTSTAETTE)) {
-    return reverse(RASTSTAETTE_CHUR);
-  }
-
-  if (same(from, CHUR) && same(to, ZUHAUSE)) {
-    return CHUR_ZUHAUSE;
-  }
-
-  if (same(from, ZUHAUSE) && same(to, CHUR)) {
-    return reverse(CHUR_ZUHAUSE);
-  }
-
-  return [from, to];
+    return {
+      lat:
+        from.lat +
+        dLat * t +
+        normalLat * curve,
+      lon:
+        from.lon +
+        dLon * t +
+        normalLon * curve,
+    };
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -435,6 +400,24 @@ interface ChargingProcessRow {
   cost: number | null;
 }
 
+const MONTHLY_BASE_TEMP_C = [
+  3, 4, 7, 11, 15, 18,
+  21, 20, 16, 11, 7, 4,
+] as const;
+
+const MONTHLY_CONSUMPTION_FACTOR = [
+  1.22, 1.18, 1.10, 1.04, 0.99, 0.96,
+  0.95, 0.96, 1.00, 1.06, 1.14, 1.22,
+] as const;
+
+function seasonalConsumptionFactor(date: Date): number {
+  return MONTHLY_CONSUMPTION_FACTOR[date.getMonth()] ?? 1;
+}
+
+function seasonalBaseTemperature(date: Date): number {
+  return MONTHLY_BASE_TEMP_C[date.getMonth()] ?? 12;
+}
+
 // Simulation state, mutated as we walk through time.
 let odometer = 24500.0; // km
 let batteryLevel = 78; // % SoC, integer as TeslaMate stores smallint
@@ -457,19 +440,19 @@ let positionIdCounter = 0; // 1-based, mirrors serial after TRUNCATE RESTART IDE
 let driveIdCounter = 0;
 let chargingProcessIdCounter = 0;
 
-const addressIdByKey: Record<string, number> = {
-  zuhause: 1,
-  buero: 2,
-  kunde: 3,
-  raststaette: 4,
-  chur: 5,
-  supermarkt: 6,
-};
-const geofenceIdByName: Record<string, number> = {
-  Zuhause: 1,
-  Büro: 2,
-  "Kunde Müller": 3,
-};
+const addressIdByKey = Object.fromEntries(
+  DEMO_PLACES.map((place, index) => [
+    place.key,
+    index + 1,
+  ]),
+) as Record<string, number>;
+
+const geofenceIdByName = Object.fromEntries(
+  DEMO_PLACES.map((place, index) => [
+    place.name,
+    index + 1,
+  ]),
+) as Record<string, number>;
 
 const CAR_ID = 1;
 
@@ -505,9 +488,9 @@ function simulateDrive(opts: {
 
   const durationSec = durationMin * 60;
   // TeslaMate logs a position roughly every 5-10s while actively driving; we
-  // use ~7s so the ~6-week fixture clears a healthy position count without
-  // inflating trip counts beyond the described weekly pattern.
-  const stepSec = 7;
+  // One position every ~15 seconds keeps a full demo year reasonably small
+  // while still producing useful GPS tracks and maps.
+  const stepSec = 15;
   const numSteps = Math.max(2, Math.round(durationSec / stepSec));
 
   const startOdometer = odometer;
@@ -516,8 +499,13 @@ function simulateDrive(opts: {
   const startRated = ratedRangeForSoc(startBattery);
 
   // Total rated-range km consumed by this drive.
-  const rangeConsumed = distanceKm * RANGE_DROP_FACTOR;
-  const socConsumed = (rangeConsumed / FULL_RATED_RANGE_KM) * 100;
+  const rangeConsumed =
+    distanceKm *
+    RANGE_DROP_FACTOR *
+    seasonalConsumptionFactor(start);
+
+  const socConsumed =
+    (rangeConsumed / FULL_RATED_RANGE_KM) * 100;
 
   const route = demoRoute(from, to);
 
@@ -579,7 +567,8 @@ function simulateDrive(opts: {
     positions[i]!.drive_id = driveId;
   }
 
-  const outsideTemp = 16 + jitter(6);
+  const outsideTemp =
+    seasonalBaseTemperature(start) + jitter(3.5);
 
   return {
     start_date: start,
@@ -610,11 +599,17 @@ function simulateDrive(opts: {
 }
 
 /** Small vampire drain while parked (percent SoC lost per hour). */
-const VAMPIRE_DRAIN_PCT_PER_HOUR = 0.15;
+const VAMPIRE_DRAIN_PCT_PER_HOUR = 0.015;
+let parkedDrainAccumulator = 0;
 
 function applyParkedDrain(hours: number) {
-  const loss = VAMPIRE_DRAIN_PCT_PER_HOUR * hours;
-  batteryLevel = Math.max(1, Math.round(batteryLevel - loss));
+  parkedDrainAccumulator += VAMPIRE_DRAIN_PCT_PER_HOUR * hours;
+
+  const wholePercent = Math.floor(parkedDrainAccumulator);
+  if (wholePercent < 1) return;
+
+  batteryLevel = Math.max(1, batteryLevel - wholePercent);
+  parkedDrainAccumulator -= wholePercent;
 }
 
 /**
@@ -673,7 +668,8 @@ function simulateCharging(opts: {
   // Session-Basistemperatur (wie bei Fahrten: 16°C Mittel +/- Jitter), pro
   // Messpunkt zusätzlich leicht schwankend — TeslaMate loggt outside_temp
   // pro `charges`-Zeile, nicht nur als Session-Mittel.
-  const sessionOutsideTemp = 16 + jitter(6);
+  const sessionOutsideTemp =
+    seasonalBaseTemperature(start) + jitter(3.5);
 
   let socAcc = startSoc;
   for (let i = 1; i <= numSteps; i++) {
@@ -735,271 +731,561 @@ function simulateCharging(opts: {
 }
 
 // ---------------------------------------------------------------------------
-// Build the 6-week timeline
+// Build realistic 52-week demo timeline
 // ---------------------------------------------------------------------------
 
-let lastHomeArrival: Date | null = null;
-let eveningsSinceLastCharge = 0;
+const BUSINESS_TARGETS = [
+  "customer-hannover",
+  "customer-muenster",
+  "customer-osnabrueck",
+  "customer-dortmund",
+  "customer-kassel",
+  "customer-paderborn",
+  "site-guetersloh",
+  "supplier-minden",
+] as const;
 
-for (let w = 0; w < WEEKS; w++) {
-  const monday = weekMondays[w]!;
-  const isWeekendTripWeek = w === 2;
+function pointFor(key: string): LatLon {
+  const place = demoPlace(key);
 
-  for (let d = 0; d < 7; d++) {
-    const day = addDays(monday, d);
-    if (day > yesterday) continue; // never generate data beyond "yesterday"
-    const isWeekday = d < 5;
+  return {
+    lat: place.lat,
+    lon: place.lon,
+  };
+}
 
-    if (isWeekday) {
-      // 07:50 Zuhause -> Büro
-      const morning = simulateDrive({
-        start: atTime(day, 7, 50),
-        fromKey: "zuhause",
-        toKey: "buero",
-        from: ZUHAUSE,
-        to: BUERO,
-        distanceKm: 3.04,
-        durationMin: Math.round(25 + jitter(3)),
-        cruiseSpeedKmh: 45,
-        startGeofence: "Zuhause",
-        endGeofence: "Büro",
-      });
-      drives.push(morning);
+function roadDistanceKm(
+  fromKey: string,
+  toKey: string,
+): number {
+  const direct = haversineKm(
+    pointFor(fromKey),
+    pointFor(toKey),
+  );
 
-      // Tue (1) + Thu (3): Büro -> Kunde Müller -> Büro
-      if (d === 1 || d === 3) {
-        const toKunde = simulateDrive({
-          start: atTime(day, 10, 15),
-          fromKey: "buero",
-          toKey: "kunde",
-          from: BUERO,
-          to: KUNDE_MUELLER,
-          distanceKm: 8.96,
-          durationMin: Math.round(22 + jitter(3)),
-          cruiseSpeedKmh: 50,
-          startGeofence: "Büro",
-          endGeofence: "Kunde Müller",
-        });
-        drives.push(toKunde);
-        applyParkedDrain(1.5 / 60); // negligible, brief stop
+  const factor =
+    direct < 10
+      ? 1.22
+      : direct < 50
+        ? 1.18
+        : 1.15;
 
-        const backToBuero = simulateDrive({
-          start: atTime(day, 11, 45),
-          fromKey: "kunde",
-          toKey: "buero",
-          from: KUNDE_MUELLER,
-          to: BUERO,
-          distanceKm: 8.96,
-          durationMin: Math.round(22 + jitter(3)),
-          cruiseSpeedKmh: 50,
-          startGeofence: "Kunde Müller",
-          endGeofence: "Büro",
-        });
-        drives.push(backToBuero);
-      }
+  return Number(
+    Math.max(1.2, direct * factor).toFixed(2),
+  );
+}
 
-      // Parked at Büro during the day
-      applyParkedDrain(7.5);
+function durationForDistance(distanceKm: number): number {
+  const averageSpeed =
+    distanceKm < 10
+      ? 32
+      : distanceKm < 30
+        ? 45
+        : distanceKm < 80
+          ? 65
+          : distanceKm < 160
+            ? 82
+            : 92;
 
-      // Occasional lunchtime errand on non-customer-visit weekdays (Mon/Wed/Fri):
-      // a quick supermarket run near the office.
-      if ((d === 0 || d === 2 || d === 4) && rng() < 0.95) {
-        const toShop = simulateDrive({
-          start: atTime(day, 12, 15),
-          fromKey: "buero",
-          toKey: "supermarkt",
-          from: BUERO,
-          to: SUPERMARKT,
-          distanceKm: 4.05,
-          durationMin: Math.round(10 + jitter(2)),
-          cruiseSpeedKmh: 35,
-          startGeofence: "Büro",
-          endGeofence: null,
-        });
-        drives.push(toShop);
-        applyParkedDrain(0.25);
-        const backToOffice = simulateDrive({
-          start: atTime(day, 12, 45),
-          fromKey: "supermarkt",
-          toKey: "buero",
-          from: SUPERMARKT,
-          to: BUERO,
-          distanceKm: 4.05,
-          durationMin: Math.round(10 + jitter(2)),
-          cruiseSpeedKmh: 35,
-          startGeofence: null,
-          endGeofence: "Büro",
-        });
-        drives.push(backToOffice);
-      }
+  return Math.max(
+    5,
+    Math.round((distanceKm / averageSpeed) * 60 + 4),
+  );
+}
 
-      // 17:30 Büro -> Zuhause
-      const evening = simulateDrive({
-        start: atTime(day, 17, 30),
-        fromKey: "buero",
-        toKey: "zuhause",
-        from: BUERO,
-        to: ZUHAUSE,
-        distanceKm: 3.04,
-        durationMin: Math.round(25 + jitter(3)),
-        cruiseSpeedKmh: 45,
-        startGeofence: "Büro",
-        endGeofence: "Zuhause",
-      });
-      drives.push(evening);
-      lastHomeArrival = evening.end_date;
-      eveningsSinceLastCharge += 1;
+function cruiseForDistance(distanceKm: number): number {
+  if (distanceKm < 10) return 40;
+  if (distanceKm < 30) return 60;
+  if (distanceKm < 80) return 90;
+  return 120;
+}
 
-      // AC home charging every 2-3 evenings, to 80%.
-      const shouldCharge = eveningsSinceLastCharge >= 2 && batteryLevel < 80;
-      if (shouldCharge) {
-        const chargeStart = addDays(day, 0);
-        chargeStart.setHours(19, 30, 0, 0);
-        const cp = simulateCharging({
-          start: chargeStart,
-          addressKey: "zuhause",
-          geofenceName: "Zuhause",
-          targetSoc: 80,
-          isDc: false,
-          peakKw: 11,
-          cost: null,
-          positionCoord: ZUHAUSE,
-        });
-        chargingProcesses.push(cp);
-        eveningsSinceLastCharge = 0;
-        applyParkedDrain(12); // rest of the night after charge completes
-      } else {
-        applyParkedDrain(14); // parked overnight, no charge
-      }
-    } else if (isWeekendTripWeek && d === 5) {
-      // Saturday: weekend road trip Zuhause -> Raststätte -> Chur
-      const leg1 = simulateDrive({
-        start: atTime(day, 9, 0),
-        fromKey: "zuhause",
-        toKey: "raststaette",
-        from: ZUHAUSE,
-        to: RASTSTAETTE,
-        distanceKm: 52.42,
-        durationMin: 35,
-        cruiseSpeedKmh: 110,
-        startGeofence: "Zuhause",
-        endGeofence: null,
-      });
-      drives.push(leg1);
+function driveBetween(
+  start: Date,
+  fromKey: string,
+  toKey: string,
+): DriveRow {
+  const distanceKm = roadDistanceKm(
+    fromKey,
+    toKey,
+  );
 
-      // DC fast charge at the Raststätte: ~150kW peak, 20 min, +30kWh
-      const socAdd = (30 / BATTERY_CAPACITY_KWH) * 100;
-      const chargeStart = new Date(leg1.end_date.getTime() + 3 * 60 * 1000);
-      const cp = simulateCharging({
-        start: chargeStart,
-        addressKey: "raststaette",
-        geofenceName: null,
-        targetSoc: Math.min(95, Math.round(batteryLevel + socAdd)),
-        isDc: true,
-        peakKw: 150,
-        cost: Number((30 * 0.55).toFixed(2)),
-        positionCoord: RASTSTAETTE,
-      });
-      chargingProcesses.push(cp);
+  return simulateDrive({
+    start,
+    fromKey,
+    toKey,
+    from: pointFor(fromKey),
+    to: pointFor(toKey),
+    distanceKm,
+    durationMin: durationForDistance(distanceKm),
+    cruiseSpeedKmh: cruiseForDistance(distanceKm),
+    startGeofence: demoPlace(fromKey).name,
+    endGeofence: demoPlace(toKey).name,
+  });
+}
 
-      const leg2Start = new Date(cp.end_date.getTime() + 5 * 60 * 1000);
-      const leg2 = simulateDrive({
-        start: leg2Start,
-        fromKey: "raststaette",
-        toKey: "chur",
-        from: RASTSTAETTE,
-        to: CHUR,
-        distanceKm: 71.62,
-        durationMin: 40,
-        cruiseSpeedKmh: 100,
-        startGeofence: null,
-        endGeofence: null,
-      });
-      drives.push(leg2);
-      applyParkedDrain(20); // overnight in Chur
-    } else if (isWeekendTripWeek && d === 6) {
-      // Sunday: return trip Chur -> Zuhause
-      const ret = simulateDrive({
-        start: atTime(day, 16, 0),
-        fromKey: "chur",
-        toKey: "zuhause",
-        from: CHUR,
-        to: ZUHAUSE,
-        distanceKm: 119.18,
-        durationMin: 80,
-        cruiseSpeedKmh: 110,
-        startGeofence: null,
-        endGeofence: "Zuhause",
-      });
-      drives.push(ret);
-      lastHomeArrival = ret.end_date;
-      eveningsSinceLastCharge += 1;
-      applyParkedDrain(14);
-    } else {
-      // Regular weekend day: mostly parked at home, with an occasional
-      // errand (groceries) to keep the fixture from being pure commute data.
-      if (rng() < 0.95) {
-        const errandStart = atTime(day, d === 5 ? 10 : 11, 0);
-        const toShop = simulateDrive({
-          start: errandStart,
-          fromKey: "zuhause",
-          toKey: "supermarkt",
-          from: ZUHAUSE,
-          to: SUPERMARKT,
-          distanceKm: 1.64,
-          durationMin: Math.round(9 + jitter(2)),
-          cruiseSpeedKmh: 35,
-          startGeofence: "Zuhause",
-          endGeofence: null,
-        });
-        drives.push(toShop);
-        applyParkedDrain(0.5);
-        const backHome = simulateDrive({
-          start: new Date(toShop.end_date.getTime() + 25 * 60 * 1000),
-          fromKey: "supermarkt",
-          toKey: "zuhause",
-          from: SUPERMARKT,
-          to: ZUHAUSE,
-          distanceKm: 1.64,
-          durationMin: Math.round(9 + jitter(2)),
-          cruiseSpeedKmh: 35,
-          startGeofence: null,
-          endGeofence: "Zuhause",
-        });
-        drives.push(backHome);
-        eveningsSinceLastCharge += 1;
-      } else {
-        eveningsSinceLastCharge += 1;
-      }
+function expectedSocForDistance(
+  distanceKm: number,
+  date: Date,
+): number {
+  return (
+    (
+      distanceKm *
+      RANGE_DROP_FACTOR *
+      seasonalConsumptionFactor(date)
+    ) /
+    FULL_RATED_RANGE_KM
+  ) * 100;
+}
 
-      // Same "every 2-3 evenings" AC charge cadence applies on weekends.
-      const shouldChargeWeekend =
-        eveningsSinceLastCharge >= 2 &&
-        (eveningsSinceLastCharge >= 3 || rng() > 0.5) &&
-        batteryLevel < 80;
-      if (shouldChargeWeekend) {
-        const chargeStart = atTime(day, 19, 30);
-        const cp = simulateCharging({
-          start: chargeStart,
-          addressKey: "zuhause",
-          geofenceName: "Zuhause",
-          targetSoc: 80,
-          isDc: false,
-          peakKw: 11,
-          cost: null,
-          positionCoord: ZUHAUSE,
-        });
-        chargingProcesses.push(cp);
-        eveningsSinceLastCharge = 0;
-        applyParkedDrain(12);
-      } else {
-        applyParkedDrain(23);
-      }
-    }
+function homeCharge(
+  start: Date,
+  targetSoc = 80,
+): void {
+  if (batteryLevel >= targetSoc - 2) {
+    return;
+  }
+
+  const cp = simulateCharging({
+    start,
+    addressKey: "home",
+    geofenceName: demoPlace("home").name,
+    targetSoc,
+    isDc: false,
+    peakKw: 11,
+    cost: null,
+    positionCoord: pointFor("home"),
+  });
+
+  chargingProcesses.push(cp);
+}
+
+function prepareForBusinessTrip(
+  day: Date,
+  targetKey: string,
+): void {
+  const roundTripKm =
+    roadDistanceKm("home", targetKey) * 2;
+
+  const expectedUse =
+    expectedSocForDistance(roundTripKm, day);
+
+  const requiredStartSoc = Math.min(
+    90,
+    Math.ceil(expectedUse + 13),
+  );
+
+  if (batteryLevel < requiredStartSoc) {
+    const targetSoc = Math.max(
+      80,
+      requiredStartSoc,
+    );
+
+    homeCharge(
+      atTime(day, 0, 30),
+      targetSoc,
+    );
   }
 }
 
-void lastHomeArrival;
+function addRoundTrip(opts: {
+  day: Date;
+  startHour: number;
+  startMinute: number;
+  fromKey: string;
+  toKey: string;
+  stopMinutes: number;
+}): void {
+  const outward = driveBetween(
+    atTime(
+      opts.day,
+      opts.startHour,
+      opts.startMinute,
+    ),
+    opts.fromKey,
+    opts.toKey,
+  );
+
+  drives.push(outward);
+
+  applyParkedDrain(
+    opts.stopMinutes / 60,
+  );
+
+  const backStart = new Date(
+    outward.end_date.getTime() +
+      opts.stopMinutes * 60 * 1000,
+  );
+
+  const back = driveBetween(
+    backStart,
+    opts.toKey,
+    opts.fromKey,
+  );
+
+  drives.push(back);
+}
+
+function addBusinessRoundTrip(
+  day: Date,
+  targetKey: string,
+  startHour: number,
+): void {
+  prepareForBusinessTrip(
+    day,
+    targetKey,
+  );
+
+  const outward = driveBetween(
+    atTime(day, startHour, 15),
+    "home",
+    targetKey,
+  );
+
+  drives.push(outward);
+
+  applyParkedDrain(2);
+
+  const back = driveBetween(
+    new Date(
+      outward.end_date.getTime() +
+        2 * 60 * 60 * 1000,
+    ),
+    targetKey,
+    "home",
+  );
+
+  drives.push(back);
+
+  // Nach längeren Außendiensttagen wird am Abend geladen.
+  if (batteryLevel < 38) {
+    homeCharge(
+      atTime(day, 20, 15),
+      80,
+    );
+  } else {
+    applyParkedDrain(10);
+  }
+}
+
+const HAMBURG_TRIP_WEEKS =
+  new Set([8, 25, 42]);
+
+for (let w = 0; w < WEEKS; w++) {
+  const monday = weekMondays[w]!;
+
+  for (let d = 0; d < 7; d++) {
+    const day = addDays(monday, d);
+
+    if (day > yesterday) {
+      continue;
+    }
+
+    // --------------------------------------------------------
+    // Montag:
+    // etwa zwei von drei Wochen klassischer Arbeitsweg.
+    // --------------------------------------------------------
+    if (d === 0 && w % 3 !== 2) {
+      if (batteryLevel < 35) {
+        homeCharge(
+          atTime(day, 0, 30),
+          80,
+        );
+      }
+
+      const toOffice = driveBetween(
+        atTime(day, 7, 35),
+        "home",
+        "office",
+      );
+
+      drives.push(toOffice);
+
+      applyParkedDrain(8);
+
+      const home = driveBetween(
+        atTime(day, 16, 45),
+        "office",
+        "home",
+      );
+
+      drives.push(home);
+
+      // Der Dienstag ist regelmäßig Außendiensttag.
+      // Deshalb montags bei Bedarf über Nacht auffüllen.
+      if (batteryLevel < 76) {
+        homeCharge(
+          atTime(day, 19, 30),
+          80,
+        );
+      } else {
+        applyParkedDrain(12);
+      }
+
+      continue;
+    }
+
+    // --------------------------------------------------------
+    // Dienstag: regelmäßiger Außendienst.
+    // --------------------------------------------------------
+    if (d === 1) {
+      const target =
+        BUSINESS_TARGETS[
+          w % BUSINESS_TARGETS.length
+        ]!;
+
+      addBusinessRoundTrip(
+        day,
+        target,
+        8,
+      );
+
+      continue;
+    }
+
+    // --------------------------------------------------------
+    // Donnerstag: zweiter Außendiensttag mit versetztem Ziel.
+    // --------------------------------------------------------
+    if (d === 3) {
+      const target =
+        BUSINESS_TARGETS[
+          (w + 3) %
+            BUSINESS_TARGETS.length
+        ]!;
+
+      addBusinessRoundTrip(
+        day,
+        target,
+        8,
+      );
+
+      continue;
+    }
+
+    // --------------------------------------------------------
+    // Freitag: etwa alle drei Wochen eine private Besorgung.
+    // --------------------------------------------------------
+    if (d === 4 && w % 3 === 0) {
+      addRoundTrip({
+        day,
+        startHour: 17,
+        startMinute: 30,
+        fromKey: "home",
+        toKey: "supermarket",
+        stopMinutes: 35,
+      });
+
+      if (batteryLevel < 45) {
+        homeCharge(
+          atTime(day, 20, 30),
+          80,
+        );
+      }
+
+      continue;
+    }
+
+    // --------------------------------------------------------
+    // Drei größere private Wochenendfahrten nach Hamburg.
+    // --------------------------------------------------------
+    if (
+      HAMBURG_TRIP_WEEKS.has(w) &&
+      d === 5
+    ) {
+      if (batteryLevel < 72) {
+        homeCharge(
+          atTime(addDays(day, -1), 21, 30),
+          85,
+        );
+      }
+
+      const leg1 = driveBetween(
+        atTime(day, 8, 45),
+        "home",
+        "charger-bispingen",
+      );
+
+      drives.push(leg1);
+
+      const dc1 = simulateCharging({
+        start: new Date(
+          leg1.end_date.getTime() +
+            5 * 60 * 1000,
+        ),
+        addressKey: "charger-bispingen",
+        geofenceName:
+          demoPlace("charger-bispingen").name,
+        targetSoc: 82,
+        isDc: true,
+        peakKw: 170,
+        cost: Number(
+          (18 + rng() * 6).toFixed(2),
+        ),
+        positionCoord:
+          pointFor("charger-bispingen"),
+      });
+
+      chargingProcesses.push(dc1);
+
+      const leg2 = driveBetween(
+        new Date(
+          dc1.end_date.getTime() +
+            8 * 60 * 1000,
+        ),
+        "charger-bispingen",
+        "hotel-hamburg",
+      );
+
+      drives.push(leg2);
+
+      applyParkedDrain(7);
+
+      if (batteryLevel < 68) {
+        const hotelCharge = simulateCharging({
+          start: atTime(day, 21, 0),
+          addressKey: "hotel-hamburg",
+          geofenceName:
+            demoPlace("hotel-hamburg").name,
+          targetSoc: 80,
+          isDc: false,
+          peakKw: 11,
+          cost: null,
+          positionCoord:
+            pointFor("hotel-hamburg"),
+        });
+
+        chargingProcesses.push(
+          hotelCharge,
+        );
+      }
+
+      continue;
+    }
+
+    if (
+      HAMBURG_TRIP_WEEKS.has(w) &&
+      d === 6
+    ) {
+      const leg1 = driveBetween(
+        atTime(day, 14, 30),
+        "hotel-hamburg",
+        "charger-bispingen",
+      );
+
+      drives.push(leg1);
+
+      const dc2 = simulateCharging({
+        start: new Date(
+          leg1.end_date.getTime() +
+            5 * 60 * 1000,
+        ),
+        addressKey: "charger-bispingen",
+        geofenceName:
+          demoPlace("charger-bispingen").name,
+        targetSoc: 82,
+        isDc: true,
+        peakKw: 170,
+        cost: Number(
+          (18 + rng() * 6).toFixed(2),
+        ),
+        positionCoord:
+          pointFor("charger-bispingen"),
+      });
+
+      chargingProcesses.push(dc2);
+
+      const leg2 = driveBetween(
+        new Date(
+          dc2.end_date.getTime() +
+            8 * 60 * 1000,
+        ),
+        "charger-bispingen",
+        "home",
+      );
+
+      drives.push(leg2);
+
+      if (batteryLevel < 40) {
+        homeCharge(
+          atTime(day, 21, 0),
+          80,
+        );
+      }
+
+      continue;
+    }
+
+    // In Hamburg-Wochen keine weiteren Wochenendfahrten.
+    if (HAMBURG_TRIP_WEEKS.has(w)) {
+      continue;
+    }
+
+    // --------------------------------------------------------
+    // Samstag: etwa alle fünf Wochen Parkhaus.
+    // Keine Klassifizierungsregel -> bleibt bewusst offen.
+    // --------------------------------------------------------
+    if (d === 5 && w % 5 === 0) {
+      addRoundTrip({
+        day,
+        startHour: 10,
+        startMinute: 30,
+        fromKey: "home",
+        toKey: "parking-bielefeld",
+        stopMinutes: 90,
+      });
+
+      continue;
+    }
+
+    // --------------------------------------------------------
+    // Sonntag: monatlich Freizeitfahrt nach Detmold,
+    // sonst meist normale private Besorgung.
+    // --------------------------------------------------------
+    if (d === 6 && w % 4 === 1) {
+      if (batteryLevel < 45) {
+        homeCharge(
+          atTime(day, 0, 30),
+          80,
+        );
+      }
+
+      addRoundTrip({
+        day,
+        startHour: 10,
+        startMinute: 15,
+        fromKey: "home",
+        toKey: "leisure-detmold",
+        stopMinutes: 180,
+      });
+
+      continue;
+    }
+
+    if (d === 6 && rng() < 0.90) {
+      addRoundTrip({
+        day,
+        startHour: 11,
+        startMinute: 0,
+        fromKey: "home",
+        toKey: "supermarket",
+        stopMinutes: 40,
+      });
+
+      if (batteryLevel < 42) {
+        homeCharge(
+          atTime(day, 19, 30),
+          80,
+        );
+      }
+
+      continue;
+    }
+
+    // Ein wenig Standverbrauch an Tagen ohne Fahrt.
+    applyParkedDrain(18);
+  }
+}
+
 
 // ---------------------------------------------------------------------------
 // DB writes
@@ -1015,6 +1301,52 @@ function chunk<T>(arr: T[], size: number): T[][] {
 
 async function main() {
   console.log(`Seeding TeslaMate fixture DB at ${DATABASE_URL}`);
+
+  if (process.env.SEED_DRY_RUN === "true") {
+    const totalKm = drives.reduce(
+      (sum, drive) => sum + drive.distance,
+      0,
+    );
+
+    const dcSessions = chargingProcesses.filter(
+      (session) =>
+        session.geofence_id ===
+          geofenceIdByName[
+            demoPlace("charger-bispingen").name
+          ] ||
+        session.geofence_id ===
+          geofenceIdByName[
+            demoPlace("charger-lauenau").name
+          ] ||
+        session.geofence_id ===
+          geofenceIdByName[
+            demoPlace("charger-porta").name
+          ],
+    ).length;
+
+    const firstDrive = drives[0];
+    const lastDrive =
+      drives.length > 0
+        ? drives[drives.length - 1]
+        : undefined;
+
+    console.log("");
+    console.log("Demo dry-run summary");
+    console.log("--------------------");
+    console.log(`drives:            ${drives.length}`);
+    console.log(`distance:          ${totalKm.toFixed(0)} km`);
+    console.log(`charging sessions: ${chargingProcesses.length}`);
+    console.log(`DC sessions:       ${dcSessions}`);
+    console.log(`positions:         ${positions.length}`);
+    console.log(
+      `date range:        ${firstDrive?.start_date.toISOString() ?? "-"} .. ${lastDrive?.end_date.toISOString() ?? "-"}`,
+    );
+    console.log(
+      `odometer:          ${(odometer - totalKm).toFixed(0)} km .. ${odometer.toFixed(0)} km`,
+    );
+
+    return;
+  }
 
   await sql.begin(async (tx) => {
     // Truncate in FK-safe order, restart identity so ids match our

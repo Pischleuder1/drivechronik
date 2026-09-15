@@ -4,7 +4,13 @@
     "outDir": "dist",
     "rootDir": ".",
     "noEmit": true,
-    "types": ["node"]
+    "types": [
+      "node"
+    ]
   },
-  "include": ["seed.ts"]
+  "include": [
+    "seed.ts",
+    "demoBootstrap.ts",
+    "demoWorld.ts"
+  ]
 }

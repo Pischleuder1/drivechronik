@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "seed": "tsx seed.ts",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "bootstrap": "tsx demoBootstrap.ts"
   },
   "dependencies": {
     "postgres": "^3.4.5"

@@ -140,6 +140,7 @@ export function Planner({
   const [nextWaypointId, setNextWaypointId] = useState(1);
 
   const [soc, setSoc] = useState(String(defaultSoc));
+  const [targetSoc, setTargetSoc] = useState("20");
   const [tempC, setTempC] = useState(String(defaultTempC));
   const [capacityKwh, setCapacityKwh] = useState(String(defaultCapacityKwh));
 
@@ -376,12 +377,22 @@ export function Planner({
     }
 
     const socNum = Number(soc);
+    const targetSocNum = Number(targetSoc);
     const tempNum = Number(tempC);
     const capNum = Number(capacityKwh);
     if (!Number.isFinite(socNum) || socNum < 0 || socNum > 100) {
       setError(t("errors.socRange"));
       return;
     }
+    if (
+      !Number.isFinite(targetSocNum) ||
+      targetSocNum < 5 ||
+      targetSocNum > 80
+    ) {
+      setError(t("errors.targetSocRange"));
+      return;
+    }
+
     if (!Number.isFinite(tempNum)) {
       setError(t("errors.tempInvalid"));
       return;
@@ -403,6 +414,7 @@ export function Planner({
       destLon: dest.lon,
       waypoints: resolvedWaypoints,
       startSoc: socNum,
+      targetArrivalSoc: targetSocNum,
       tempC: tempNum,
       capacityKwh: capNum,
       routeOptionId,
@@ -725,7 +737,7 @@ export function Planner({
           </div>
 
           {/* Fahrparameter */}
-          <div className="grid grid-cols-1 gap-3 sm:col-span-2 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 sm:col-span-2 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-2xl border border-t-4 border-neutral-200 border-t-blue-500 bg-white p-4 shadow-sm dark:border-neutral-800 dark:border-t-blue-500 dark:bg-neutral-900">
               <label
                 htmlFor="planner-soc"
@@ -744,6 +756,29 @@ export function Planner({
                 onChange={(e) => setSoc(e.target.value)}
                 className="mt-2 w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-base font-semibold tabular-nums text-neutral-900 outline-none transition focus:border-blue-500 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100"
               />
+            </div>
+
+            <div className="rounded-2xl border border-t-4 border-neutral-200 border-t-indigo-500 bg-white p-4 shadow-sm dark:border-neutral-800 dark:border-t-indigo-500 dark:bg-neutral-900">
+              <label
+                htmlFor="planner-target-soc"
+                className="block text-xs font-medium text-neutral-500 dark:text-neutral-400"
+              >
+                {t("form.targetSoc")}
+              </label>
+              <input
+                id="planner-target-soc"
+                type="number"
+                inputMode="numeric"
+                min={5}
+                max={80}
+                step={1}
+                value={targetSoc}
+                onChange={(e) => setTargetSoc(e.target.value)}
+                className="mt-2 w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-base font-semibold tabular-nums text-neutral-900 outline-none transition focus:border-indigo-500 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100"
+              />
+              <p className="mt-2 text-xs leading-relaxed text-neutral-400 dark:text-neutral-500">
+                {t("form.targetSocHint")}
+              </p>
             </div>
 
             <div className="rounded-2xl border border-t-4 border-neutral-200 border-t-amber-500 bg-white p-4 shadow-sm dark:border-neutral-800 dark:border-t-amber-500 dark:bg-neutral-900">
@@ -1094,7 +1129,8 @@ function Result({
         />
       </div>
 
-      {plan.arrivalSoc < 10 && !plan.chargingPlanComplete && (
+      {plan.arrivalSoc < plan.targetArrivalSoc &&
+        !plan.chargingPlanComplete && (
         <p className="text-xs text-neutral-500 dark:text-neutral-400">
           {t("result.lowArrivalHint")}
         </p>
@@ -1146,7 +1182,9 @@ function Result({
           ))}
 
           <p className="text-xs text-neutral-600 dark:text-neutral-400">
-            {t("result.chargingReserveNote")}
+            {t("result.chargingReserveNote", {
+              target: Math.round(plan.targetArrivalSoc),
+            })}
           </p>
         </div>
       )}

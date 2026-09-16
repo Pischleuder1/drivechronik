@@ -24,15 +24,17 @@
     "startSoc": "Start SoC (%)",
     "expectedTemp": "Expected outside temperature (°C)",
     "batteryCapacity": "Battery capacity (kWh)",
-    "capacityHintDerived": "Derived from current range and SoC — adjust if needed.",
-    "capacityHintDefault": "Could not be derived from vehicle data — default value, please check.",
+    "capacityHintDerived": "Estimated usable capacity from suitable charging sessions — adjust if needed.",
+    "capacityHintDefault": "No reliable capacity estimate from charging sessions yet — please check the default value.",
     "submit": "Check range",
     "submitPending": "Calculating…",
     "historyHint": "Only {count, plural, one {# drive} other {# drives}} in history — base value not yet very reliable.",
     "routingPrefix": "Routing:",
     "routingDefaultHint": "public OSRM demo server — set up your own server via OSRM_URL.",
     "routingCustomHint": "your own OSRM server (OSRM_URL).",
-    "addWaypoint": "Add waypoint"
+    "addWaypoint": "Add waypoint",
+    "targetSoc": "Target arrival SoC (%)",
+    "targetSocHint": "Desired battery reserve on arrival at the destination."
   },
   "errors": {
     "missingStart": "Please select a starting point.",
@@ -48,7 +50,8 @@
     "routingHttpError": "Routing service responded with HTTP {status}.",
     "routingBadResponse": "Unexpected response from the routing service.",
     "routingNoRoute": "No route could be calculated for the start and destination. Please choose different points.",
-    "incompleteWaypoints": "Please select all waypoints completely."
+    "incompleteWaypoints": "Please select all waypoints completely.",
+    "targetSocRange": "Target arrival SoC must be between 5 and 80%."
   },
   "result": {
     "distance": "Distance",
@@ -78,7 +81,7 @@
     "arrival": "Arrival",
     "departure": "Departure",
     "chargeAdded": "Energy added",
-    "chargingReserveNote": "Calculated for a 20% destination reserve and at least 10% on arrival at a fast charger.",
+    "chargingReserveNote": "Calculated for a {target}% destination reserve and at least 10% on arrival at a fast charger.",
     "chargingPlanIncompleteTitle": "Charging plan could not be completed.",
     "chargingPlanIncompleteText": "No continuous sequence of suitable fast chargers was found along the selected route."
   },

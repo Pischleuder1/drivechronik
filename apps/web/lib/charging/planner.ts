@@ -286,12 +286,12 @@ export function selectChargingStop(
 ): ChargingStopSelection {
   const requirement = calculateChargingRequirement(input);
 
-  // Unter 10 % prognostizierter Ziel-SoC wird automatisch geladen.
-  // 10-15 % bleibt wie bisher eine direkte Fahrt mit geringer Reserve.
-  const automaticStopThresholdSoc = 10;
+  // Die vom Nutzer gewählte Zielreserve ist verbindlich.
+  // Liegt die direkte Ankunft darunter, wird eine Ladeplanung ausgelöst.
 
   if (
-    requirement.arrivalSocWithoutCharging >= automaticStopThresholdSoc
+    requirement.arrivalSocWithoutCharging >=
+    input.targetArrivalSoc - 0.01
   ) {
     return {
       stop: null,

@@ -48,6 +48,7 @@ const plannerPdfSchema = z.object({
 
   arrivalSoc: z.number(),
   plannedArrivalSoc: z.number().nullable(),
+  targetArrivalSoc: z.number().min(5).max(80),
 
   chargingSiteCount: z.number().int().nonnegative(),
   chargingPlanComplete: z.boolean(),

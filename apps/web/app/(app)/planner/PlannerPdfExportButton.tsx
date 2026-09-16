@@ -130,6 +130,7 @@ export function PlannerPdfExportButton({
 
           arrivalSoc: plan.arrivalSoc,
           plannedArrivalSoc: plan.plannedArrivalSoc,
+          targetArrivalSoc: plan.targetArrivalSoc,
 
           chargingSiteCount: plan.chargingSiteCount,
           chargingPlanComplete: plan.chargingPlanComplete,

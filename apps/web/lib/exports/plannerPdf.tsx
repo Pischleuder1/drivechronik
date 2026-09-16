@@ -46,6 +46,7 @@ export interface PlannerPdfData {
 
   arrivalSoc: number;
   plannedArrivalSoc: number | null;
+  targetArrivalSoc: number;
 
   chargingSiteCount: number;
   chargingPlanComplete: boolean;
@@ -299,8 +300,8 @@ function labels(locale: string) {
         departure: "Weiterfahrt",
         energy: "Nachladen",
         chargingDuration: "Ladezeit",
-        reserve:
-          "Berechnet für eine Zielreserve von 20 % und mindestens 10 % bei Ankunft an einem Schnelllader.",
+        reserve: (target: number) =>
+          `Berechnet für eine Zielreserve von ${Math.round(target)} % und mindestens 10 % bei Ankunft an einem Schnelllader.`,
         incomplete:
           "Hinweis: Die Ladeplanung konnte nicht vollständig abgeschlossen werden.",
         page: "Seite",
@@ -336,8 +337,8 @@ function labels(locale: string) {
         departure: "Departure",
         energy: "Energy added",
         chargingDuration: "Charging time",
-        reserve:
-          "Calculated for a 20% destination reserve and at least 10% on arrival at a fast charger.",
+        reserve: (target: number) =>
+          `Calculated for a ${Math.round(target)}% destination reserve and at least 10% on arrival at a fast charger.`,
         incomplete:
           "Note: The charging plan could not be completed.",
         page: "Page",
@@ -741,7 +742,7 @@ function PlannerPdfDocument({
         ) : null}
 
         <Text style={styles.note}>
-          {t.reserve}
+          {t.reserve(data.targetArrivalSoc)}
           {!data.chargingPlanComplete
             ? ` ${t.incomplete}`
             : ""}

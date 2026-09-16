@@ -55,6 +55,7 @@ const planRouteInputSchema = z.object({
     }),
   ).max(10).optional(),
   startSoc: z.number().min(0).max(100),
+  targetArrivalSoc: z.number().min(5).max(80),
   tempC: z.number().min(-40).max(55),
   capacityKwh: z.number().min(5).max(250),
   routeOptionId: z.string().min(1).optional(),
@@ -84,6 +85,7 @@ export interface PlanResult {
 
   tempC: number;
   startSoc: number;
+  targetArrivalSoc: number;
   capacityKwh: number;
   /** Ankunfts-SoC in % (kann < 0 sein → Reichweite reicht nicht). */
   arrivalSoc: number;
@@ -219,6 +221,7 @@ export async function planRoute(
     destLon,
     waypoints = [],
     startSoc,
+    targetArrivalSoc,
     tempC,
     capacityKwh,
     routeOptionId,
@@ -495,7 +498,7 @@ export async function planRoute(
           endKm: segment.endM / 1000,
         }),
       ),
-      targetArrivalSoc: 20,
+      targetArrivalSoc,
       minimumStopArrivalSoc: 10,
     },
   );
@@ -517,7 +520,7 @@ export async function planRoute(
             endKm: segment.endM / 1000,
           }),
         ),
-        targetArrivalSoc: 20,
+        targetArrivalSoc,
         minimumStopArrivalSoc: 10,
       },
     );
@@ -675,7 +678,7 @@ export async function planRoute(
             endKm: segment.endM / 1000,
           }),
         ),
-        targetArrivalSoc: 20,
+        targetArrivalSoc,
         minimumStopArrivalSoc: 10,
       },
     );
@@ -707,6 +710,7 @@ export async function planRoute(
       historyDriveCount: base.historyDriveCount,
       tempC,
       startSoc,
+      targetArrivalSoc,
       capacityKwh,
       arrivalSoc: finalArrivalSoc,
       plannedArrivalSoc: finalChargingSelection.plannedArrivalSoc,

@@ -24,15 +24,17 @@
     "startSoc": "Start-SoC (%)",
     "expectedTemp": "Erwartete Außentemperatur (°C)",
     "batteryCapacity": "Batteriekapazität (kWh)",
-    "capacityHintDerived": "Aus aktueller Reichweite und SoC hergeleitet — bei Bedarf anpassen.",
-    "capacityHintDefault": "Konnte nicht aus Fahrzeugdaten hergeleitet werden — Standardwert, bitte prüfen.",
+    "capacityHintDerived": "Aus geeigneten Ladevorgängen geschätzte nutzbare Kapazität — bei Bedarf anpassen.",
+    "capacityHintDefault": "Noch keine belastbare Kapazitätsschätzung aus Ladevorgängen — Vorgabewert bitte prüfen.",
     "submit": "Reichweite prüfen",
     "submitPending": "Berechne…",
     "historyHint": "Nur {count, plural, one {# Fahrt} other {# Fahrten}} in der Historie — Basiswert noch wenig belastbar.",
     "routingPrefix": "Routing:",
     "routingDefaultHint": "öffentlicher OSRM-Demo-Server — eigenen Server über OSRM_URL hinterlegen.",
     "routingCustomHint": "eigener OSRM-Server (OSRM_URL).",
-    "addWaypoint": "Zwischenziel hinzufügen"
+    "addWaypoint": "Zwischenziel hinzufügen",
+    "targetSoc": "Ziel-SoC (%)",
+    "targetSocHint": "Gewünschte Batteriereserve bei Ankunft am Ziel."
   },
   "errors": {
     "missingStart": "Bitte einen Startpunkt wählen.",
@@ -48,7 +50,8 @@
     "routingHttpError": "Routing-Dienst antwortete mit HTTP {status}.",
     "routingBadResponse": "Unerwartete Antwort vom Routing-Dienst.",
     "routingNoRoute": "Für Start und Ziel konnte keine Route berechnet werden. Bitte andere Punkte wählen.",
-    "incompleteWaypoints": "Bitte alle Zwischenziele vollständig auswählen."
+    "incompleteWaypoints": "Bitte alle Zwischenziele vollständig auswählen.",
+    "targetSocRange": "Ziel-SoC muss zwischen 5 und 80 % liegen."
   },
   "result": {
     "distance": "Distanz",
@@ -78,7 +81,7 @@
     "arrival": "Ankunft",
     "departure": "Weiterfahrt",
     "chargeAdded": "Nachladen",
-    "chargingReserveNote": "Berechnet für eine Zielreserve von 20 % und mindestens 10 % bei Ankunft am Schnelllader.",
+    "chargingReserveNote": "Berechnet für eine Zielreserve von {target} % und mindestens 10 % bei Ankunft am Schnelllader.",
     "chargingPlanIncompleteTitle": "Ladeplanung nicht vollständig möglich.",
     "chargingPlanIncompleteText": "Entlang der gewählten Route wurde keine durchgängige Folge geeigneter Schnelllader gefunden."
   },

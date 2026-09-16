@@ -24,6 +24,14 @@ DriveChronik liest die Datenbank einer bestehenden [TeslaMate](https://github.co
 
 ➡️ [Zur Installation mit fertigen Docker-Images](#installation-mit-fertigen-docker-images)
 
+### Web-Demo
+
+DriveChronik kann vor der Installation direkt im Browser ausprobiert werden:
+
+➡️ [DriveChronik Web-Demo](http://owncloud.my-homeip.de:4333)
+
+**Demo-Zugang:** `demo1234`
+
 Weitere Möglichkeiten:
 
 - [Installation aus dem Sourcecode](#installation-aus-dem-sourcecode)

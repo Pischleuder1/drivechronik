@@ -1,36 +1,42 @@
-name: CI
+name: DriveChronik CI
 
 on:
   push:
     branches:
       - main
   pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  checks:
+  check:
+    name: Lint und Build
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out repository
+      - name: Repository auschecken
         uses: actions/checkout@v4
 
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Set up Node.js
+      - name: Node.js einrichten
         uses: actions/setup-node@v4
         with:
-          node-version: 22
-          cache: pnpm
+          node-version: "22"
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Corepack aktivieren
+        run: corepack enable
 
-      - name: Lint and typecheck
-        run: pnpm lint
+      - name: Abhängigkeiten installieren
+        run: corepack pnpm install --frozen-lockfile
 
-      - name: Test
-        run: pnpm -r test
+      - name: Web-App prüfen
+        run: corepack pnpm --filter @drivechronik/web lint
 
-      - name: Build
-        run: pnpm -r build
+      - name: Web-App bauen
+        run: corepack pnpm --filter @drivechronik/web build

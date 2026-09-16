@@ -2,6 +2,9 @@ name: DriveChronik Docker Images
 
 on:
   workflow_dispatch:
+  push:
+    tags:
+      - "v*"
 
 permissions:
   contents: read
@@ -29,6 +32,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Metadaten für Web-Image
+        id: meta-web
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/pischleuder1/drivechronik-web
+          tags: |
+            type=raw,value=latest
+            type=ref,event=tag
+
       - name: Web-Image bauen und veröffentlichen
         uses: docker/build-push-action@v6
         with:
@@ -36,8 +48,17 @@ jobs:
           file: apps/web/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
+          tags: ${{ steps.meta-web.outputs.tags }}
+          labels: ${{ steps.meta-web.outputs.labels }}
+
+      - name: Metadaten für Worker-Image
+        id: meta-worker
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/pischleuder1/drivechronik-worker
           tags: |
-            ghcr.io/pischleuder1/drivechronik-web:latest
+            type=raw,value=latest
+            type=ref,event=tag
 
       - name: Worker-Image bauen und veröffentlichen
         uses: docker/build-push-action@v6
@@ -46,8 +67,17 @@ jobs:
           file: apps/worker/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
+          tags: ${{ steps.meta-worker.outputs.tags }}
+          labels: ${{ steps.meta-worker.outputs.labels }}
+
+      - name: Metadaten für Supercharge-Compass
+        id: meta-supercharge
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/pischleuder1/drivechronik-supercharge-compass
           tags: |
-            ghcr.io/pischleuder1/drivechronik-worker:latest
+            type=raw,value=latest
+            type=ref,event=tag
 
       - name: Supercharge-Compass bauen und veröffentlichen
         uses: docker/build-push-action@v6
@@ -56,5 +86,5 @@ jobs:
           file: ./services/supercharge-compass/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: |
-            ghcr.io/pischleuder1/drivechronik-supercharge-compass:latest
+          tags: ${{ steps.meta-supercharge.outputs.tags }}
+          labels: ${{ steps.meta-supercharge.outputs.labels }}

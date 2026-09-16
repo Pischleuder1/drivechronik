@@ -1,0 +1,12 @@
+services:
+  migrate:
+    image: ghcr.io/pischleuder1/drivechronik-worker:${DRIVECHRONIK_IMAGE_TAG:-latest}
+
+  supercharge-compass:
+    image: ghcr.io/pischleuder1/drivechronik-supercharge-compass:${DRIVECHRONIK_IMAGE_TAG:-latest}
+
+  web:
+    image: ghcr.io/pischleuder1/drivechronik-web:${DRIVECHRONIK_IMAGE_TAG:-latest}
+
+  worker:
+    image: ghcr.io/pischleuder1/drivechronik-worker:${DRIVECHRONIK_IMAGE_TAG:-latest}

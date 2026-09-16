@@ -15,6 +15,20 @@ DriveChronik liest die Datenbank einer bestehenden [TeslaMate](https://github.co
 
 > *English: DriveChronik is a self-hosted trip archive and analytics UI on top of your existing TeslaMate database — day timeline, trip classification (logbook-style), tagging, charging analytics, journeys, exports (CSV/PDF/GPX), auto-classification rules, per-place charging costs, insights, dark mode, German/English UI. Read-only against TeslaMate, your data stays on your server.*
 
+## Installation
+
+**Für die meisten Nutzer empfohlen:** DriveChronik mit den fertigen Docker-Images installieren.
+
+- Synology / Intel / AMD: `linux/amd64`
+- Raspberry Pi 4/5 64-Bit: `linux/arm64`
+
+➡️ [Zur Installation mit fertigen Docker-Images](#installation-mit-fertigen-docker-images)
+
+Weitere Möglichkeiten:
+
+- [Installation aus dem Sourcecode](#installation-aus-dem-sourcecode)
+- [Demo ohne Tesla/TeslaMate](#demo-ohne-auto)
+
 ## Warum?
 
 Tessie & Co. sind gut, aber: Abo-Kosten, Feature-Überschneidung mit der Tesla-App und Bewegungsdaten bei einem Drittanbieter. TeslaMate loggt hervorragend, hat aber keinen Workflow zum **Wiederfinden und Nachweisen** einzelner Fahrten. DriveChronik ist die Produkt-Schicht darüber.

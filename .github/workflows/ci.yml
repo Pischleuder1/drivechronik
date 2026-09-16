@@ -35,6 +35,12 @@ jobs:
       - name: Abhängigkeiten installieren
         run: corepack pnpm install --frozen-lockfile
 
+      - name: Core-Paket bauen
+        run: corepack pnpm --filter @drivechronik/core build
+
+      - name: Datenbank-Paket bauen
+        run: corepack pnpm --filter @drivechronik/db build
+
       - name: Web-App prüfen
         run: corepack pnpm --filter @drivechronik/web lint
 

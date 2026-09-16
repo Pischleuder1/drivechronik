@@ -403,3 +403,123 @@ Der Tessie-Import rekonstruiert Fahrten und Ladevorgänge und schützt bereits v
 
 Basiert auf Tripatlas v0.1.1 © 2026 Jan Schultheiss.  
 DriveChronik Weiterentwicklung © 2026 Pischleuder1.
+
+---
+
+## Installation mit fertigen Docker-Images
+
+DriveChronik kann auf Docker-fähigen Systemen wie einer Synology NAS, einem Linux-Server oder einem 64-Bit-Raspberry-Pi betrieben werden.
+
+Für die Installation mit den fertigen Images müssen Node.js, pnpm oder andere Build-Werkzeuge nicht installiert werden.
+
+### Voraussetzungen
+
+- Docker
+- Docker Compose
+- Git
+- 64-Bit-System mit `amd64` oder `arm64`
+
+Die veröffentlichten DriveChronik-Images unterstützen:
+
+- `linux/amd64` – z. B. Synology NAS, Intel-/AMD-Server
+- `linux/arm64` – z. B. Raspberry Pi 4/5 mit 64-Bit-Betriebssystem
+
+### 1. Repository herunterladen
+
+```bash
+git clone https://github.com/Pischleuder1/drivechronik.git
+cd drivechronik
+```
+
+### 2. Konfiguration erstellen
+
+```bash
+cp .env.example .env
+```
+
+Danach die Datei `.env` bearbeiten und die erforderlichen Werte festlegen:
+
+```bash
+nano .env
+```
+
+Insbesondere müssen alle erforderlichen Zugangsdaten und Passwörter gesetzt werden, darunter das PostgreSQL-Passwort.
+
+### 3. Fertige Docker-Images herunterladen
+
+```bash
+docker compose \
+  -f docker-compose.yml \
+  -f docker-compose.release.yml \
+  pull
+```
+
+Docker lädt automatisch die zum System passende Architektur.
+
+Verwendet werden die DriveChronik-Images:
+
+```text
+ghcr.io/pischleuder1/drivechronik-web:latest
+ghcr.io/pischleuder1/drivechronik-worker:latest
+ghcr.io/pischleuder1/drivechronik-supercharge-compass:latest
+```
+
+PostgreSQL und weitere Basisdienste werden über ihre offiziellen Docker-Images bereitgestellt.
+
+### 4. DriveChronik starten
+
+```bash
+docker compose \
+  -f docker-compose.yml \
+  -f docker-compose.release.yml \
+  up -d --no-build
+```
+
+Mit `--no-build` werden ausschließlich die fertigen Images verwendet. DriveChronik muss auf dem Zielsystem nicht selbst kompiliert werden.
+
+### 5. Status prüfen
+
+```bash
+docker compose \
+  -f docker-compose.yml \
+  -f docker-compose.release.yml \
+  ps
+```
+
+### Aktualisierung
+
+Eine vorhandene Installation kann später so aktualisiert werden:
+
+```bash
+cd drivechronik
+
+git pull
+
+docker compose \
+  -f docker-compose.yml \
+  -f docker-compose.release.yml \
+  pull
+
+docker compose \
+  -f docker-compose.yml \
+  -f docker-compose.release.yml \
+  up -d --no-build
+```
+
+Vorhandene Datenbanken und persistente Docker-Volumes werden dadurch nicht automatisch gelöscht.
+
+## Installation aus dem Sourcecode
+
+Entwickler können DriveChronik weiterhin direkt aus dem Sourcecode bauen:
+
+```bash
+git clone https://github.com/Pischleuder1/drivechronik.git
+cd drivechronik
+
+cp .env.example .env
+
+docker compose build
+docker compose up -d
+```
+
+Dabei werden die DriveChronik-Images lokal aus dem Sourcecode erzeugt.

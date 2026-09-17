@@ -1,5 +1,5 @@
 import { createDb } from "@drivechronik/db";
-import { createTeslamateClient, probeTeslamateSchema } from "./teslamate/client.js";
+import { createTeslaMateDataSource } from "./dataSource/teslamateDataSource.js";
 import { runSyncCycle } from "./sync/cycle.js";
 import { runNextImportJob } from "./import/jobs.js";
 import { loadWorkerEnv } from "./env.js";
@@ -18,7 +18,7 @@ const env = loadEnvOrExit();
 const SYNC_INTERVAL_SECONDS = env.syncIntervalSeconds;
 
 const db = createDb(env.databaseUrl);
-const tm = createTeslamateClient(env.teslamateDatabaseUrl);
+const dataSource = createTeslaMateDataSource(env.teslamateDatabaseUrl);
 
 let timer: ReturnType<typeof setTimeout> | undefined;
 let running = false;
@@ -28,7 +28,7 @@ async function tick(): Promise<void> {
   running = true;
   try {
     await runNextImportJob(db, env.importStagingDir);
-    await runSyncCycle(db, tm);
+    await runSyncCycle(db, dataSource);
   } catch (err) {
     // Fehler ist bereits in sync_state protokolliert — nächster Tick versucht es neu.
     console.error(`[drivechronik-worker] sync fehlgeschlagen:`, err);
@@ -58,7 +58,7 @@ process.on("SIGTERM", () => shutdown("SIGTERM"));
 
 console.log(`[drivechronik-worker] starting, interval=${SYNC_INTERVAL_SECONDS}s`);
 try {
-  await probeTeslamateSchema(tm);
+  await dataSource.probe();
   console.log("[drivechronik-worker] TeslaMate-Schema ok");
   await writeWorkerHeartbeat();
 } catch (err) {

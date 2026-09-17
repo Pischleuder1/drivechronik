@@ -1,7 +1,6 @@
 import { sql } from "drizzle-orm";
 import { vehicleStatus, type Db } from "@drivechronik/db";
-import type { TeslamateSql } from "../teslamate/client.js";
-import { fetchLatestPositions, fetchLatestStates } from "../teslamate/queries.js";
+import type { VehicleDataSource } from "../dataSource/vehicleDataSource.js";
 import type { VehicleRef } from "./vehicles.js";
 
 export interface VehicleStatusSyncResult {
@@ -18,13 +17,13 @@ export interface VehicleStatusSyncResult {
  */
 export async function syncVehicleStatus(
   db: Db,
-  tm: TeslamateSql,
+  dataSource: VehicleDataSource,
   vehicleMap: Map<number, VehicleRef>,
 ): Promise<VehicleStatusSyncResult> {
   try {
     const [positions, states] = await Promise.all([
-      fetchLatestPositions(tm),
-      fetchLatestStates(tm),
+      dataSource.fetchLatestPositions(),
+      dataSource.fetchLatestStates(),
     ]);
 
     const positionByCarId = new Map(positions.map((p) => [p.car_id, p]));

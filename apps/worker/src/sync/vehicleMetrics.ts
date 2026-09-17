@@ -1,10 +1,8 @@
 import { vehicleMetrics, type Db } from "@drivechronik/db";
-import type { TeslamateSql } from "../teslamate/client.js";
-import { fetchVehicleMetricsSince } from "../teslamate/queries.js";
+import type { VehicleDataSource } from "../dataSource/vehicleDataSource.js";
 import { getWatermark, recordSyncRun } from "./state.js";
 import type { VehicleRef } from "./vehicles.js";
 
-const SOURCE = "teslamate";
 const ENTITY = "vehicle_metrics";
 const EPOCH = new Date(0);
 const OVERLAP_MS = 30 * 60 * 1000;
@@ -17,17 +15,19 @@ export interface VehicleMetricsSyncResult {
 
 export async function syncVehicleMetrics(
   db: Db,
-  tm: TeslamateSql,
+  dataSource: VehicleDataSource,
   vehicleMap: Map<number, VehicleRef>,
 ): Promise<VehicleMetricsSyncResult> {
+  const source = dataSource.source;
+
   try {
-    const watermark = (await getWatermark(db, SOURCE, ENTITY)) ?? EPOCH;
+    const watermark = (await getWatermark(db, source, ENTITY)) ?? EPOCH;
     const since =
       watermark === EPOCH
         ? EPOCH
         : new Date(Math.max(0, watermark.getTime() - OVERLAP_MS));
 
-    const rows = await fetchVehicleMetricsSince(tm, since, FETCH_LIMIT);
+    const rows = await dataSource.fetchVehicleMetricsSince(since, FETCH_LIMIT);
 
     let inserted = 0;
 
@@ -45,7 +45,7 @@ export async function syncVehicleMetrics(
             soc: row.soc,
             ratedRangeKm: row.rated_range_km,
             odometerKm: row.odometer,
-            source: SOURCE,
+            source,
           };
         })
         .filter((row) => row !== null);
@@ -68,7 +68,7 @@ export async function syncVehicleMetrics(
           ? null
           : watermark;
 
-    await recordSyncRun(db, SOURCE, ENTITY, {
+    await recordSyncRun(db, source, ENTITY, {
       status: "ok",
       watermarkTs: newest,
       rowsUpserted: inserted,
@@ -76,7 +76,7 @@ export async function syncVehicleMetrics(
 
     return { inserted };
   } catch (err) {
-    await recordSyncRun(db, SOURCE, ENTITY, {
+    await recordSyncRun(db, source, ENTITY, {
       status: "error",
       error: err instanceof Error ? err.message : String(err),
       rowsUpserted: 0,

@@ -132,6 +132,7 @@ export interface VehicleDataSource {
 
   fetchCompletedDrivesSince(since: Date): Promise<SourceDrive[]>;
   fetchInProgressDrives(): Promise<SourceDrive[]>;
+  fetchExistingDriveIds(ids: number[]): Promise<number[]>;
 
   fetchCompletedChargingProcessesSince(
     since: Date,

@@ -1,5 +1,5 @@
 import type { Db } from "@drivechronik/db";
-import type { TeslamateSql } from "../teslamate/client.js";
+import type { VehicleDataSource } from "../dataSource/vehicleDataSource.js";
 import { syncVehicles } from "./vehicles.js";
 import { syncVehicleStatus } from "./vehicleStatus.js";
 import { syncVehicleMetrics } from "./vehicleMetrics.js";
@@ -25,20 +25,23 @@ const ELEVATION_MAX_POINTS_PER_CYCLE = process.env.ELEVATION_MAX_POINTS_PER_CYCL
   : undefined;
 
 /** Ein kompletter Sync-Zyklus — genutzt vom Loop (index.ts) und der CLI. */
-export async function runSyncCycle(db: Db, tm: TeslamateSql): Promise<void> {
-  const vehicleMap = await syncVehicles(db, tm);
-  await syncVehicleStatus(db, tm, vehicleMap);
-  const vehicleMetricsResult = await syncVehicleMetrics(db, tm, vehicleMap);
-  const geofenceResult = await syncGeofenceImport(db, tm);
+export async function runSyncCycle(
+  db: Db,
+  dataSource: VehicleDataSource,
+): Promise<void> {
+  const vehicleMap = await syncVehicles(db, dataSource);
+  await syncVehicleStatus(db, dataSource, vehicleMap);
+  const vehicleMetricsResult = await syncVehicleMetrics(db, dataSource, vehicleMap);
+  const geofenceResult = await syncGeofenceImport(db, dataSource);
   const matchablePlaces = await loadMatchablePlaces(db);
-  const driveResult = await syncDrives(db, tm, vehicleMap, matchablePlaces);
-  const routePointsResult = await syncRoutePoints(db, tm, driveResult.upsertedRefs);
-  const chargeResult = await syncCharges(db, tm, vehicleMap, matchablePlaces);
-  const chargePointsResult = await syncChargePoints(db, tm, chargeResult.upsertedRefs);
+  const driveResult = await syncDrives(db, dataSource, vehicleMap, matchablePlaces);
+  const routePointsResult = await syncRoutePoints(db, dataSource, driveResult.upsertedRefs);
+  const chargeResult = await syncCharges(db, dataSource, vehicleMap, matchablePlaces);
+  const chargePointsResult = await syncChargePoints(db, dataSource, chargeResult.upsertedRefs);
   const parkResult = await syncParks(db, matchablePlaces);
   const rulesResult = await applyClassificationRules(db);
   const chargeCostsResult = await applyAutoChargeCosts(db);
-  const softwareUpdatesResult = await syncSoftwareUpdates(db, tm, vehicleMap);
+  const softwareUpdatesResult = await syncSoftwareUpdates(db, dataSource, vehicleMap);
   const elevationResult = ELEVATION_ENABLED
     ? await syncElevations(db, ELEVATION_MAX_POINTS_PER_CYCLE)
     : { pointsFilled: 0 };

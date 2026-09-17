@@ -61,6 +61,18 @@ export class TeslaMateDataSource implements VehicleDataSource {
     return fetchInProgressDrives(this.sql);
   }
 
+  async fetchExistingDriveIds(ids: number[]): Promise<number[]> {
+    if (ids.length === 0) return [];
+
+    const rows = await this.sql<{ id: number }[]>`
+      SELECT id
+      FROM drives
+      WHERE id = ANY(${ids})
+    `;
+
+    return rows.map((row) => row.id);
+  }
+
   fetchCompletedChargingProcessesSince(
     since: Date,
   ): Promise<SourceChargingProcess[]> {

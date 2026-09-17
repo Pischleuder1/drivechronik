@@ -1,16 +1,13 @@
 import { sql } from "drizzle-orm";
 import { chargeSessions, type Db } from "@drivechronik/db";
-import type { TeslamateSql } from "../teslamate/client.js";
-import {
-  fetchCompletedChargingProcessesSince,
-  fetchInProgressChargingProcesses,
-  type TmChargingProcess,
-} from "../teslamate/queries.js";
+import type {
+  SourceChargingProcess,
+  VehicleDataSource,
+} from "../dataSource/vehicleDataSource.js";
 import { matchPlace, type MatchablePlace } from "@drivechronik/core";
 import { getWatermark, recordSyncRun } from "./state.js";
 import type { VehicleRef } from "./vehicles.js";
 
-const SOURCE = "teslamate";
 const ENTITY = "charges";
 // Overlap-Rescan: TeslaMate repariert/merged Ladevorgänge gelegentlich nachträglich.
 const OVERLAP_MS = 24 * 60 * 60 * 1000;
@@ -30,16 +27,18 @@ export interface UpsertedChargeRef {
 
 export async function syncCharges(
   db: Db,
-  tm: TeslamateSql,
+  dataSource: VehicleDataSource,
   vehicleMap: Map<number, VehicleRef>,
   matchablePlaces: MatchablePlace[],
 ): Promise<ChargeSyncResult> {
+  const source = dataSource.source;
+
   try {
-    const watermark = (await getWatermark(db, SOURCE, ENTITY)) ?? EPOCH;
+    const watermark = (await getWatermark(db, source, ENTITY)) ?? EPOCH;
     const since = new Date(watermark.getTime() - OVERLAP_MS);
 
-    const completed = await fetchCompletedChargingProcessesSince(tm, since);
-    const inProgress = await fetchInProgressChargingProcesses(tm);
+    const completed = await dataSource.fetchCompletedChargingProcessesSince(since);
+    const inProgress = await dataSource.fetchInProgressChargingProcesses();
     const rows = [...completed, ...inProgress];
 
     let upserted = 0;
@@ -48,7 +47,7 @@ export async function syncCharges(
       const chunk = rows.slice(i, i + CHUNK_SIZE);
       const entries = chunk
         .map((c) => {
-          const values = toChargeValues(c, vehicleMap, matchablePlaces);
+          const values = toChargeValues(c, vehicleMap, matchablePlaces, source);
           return values ? { tmCharge: c, values } : null;
         })
         .filter((e) => e !== null);
@@ -106,14 +105,14 @@ export async function syncCharges(
           ? null
           : watermark;
 
-    await recordSyncRun(db, SOURCE, ENTITY, {
+    await recordSyncRun(db, source, ENTITY, {
       status: "ok",
       watermarkTs,
       rowsUpserted: upserted,
     });
     return { upserted, upsertedRefs };
   } catch (err) {
-    await recordSyncRun(db, SOURCE, ENTITY, {
+    await recordSyncRun(db, source, ENTITY, {
       status: "error",
       error: err instanceof Error ? err.message : String(err),
       rowsUpserted: 0,
@@ -123,9 +122,10 @@ export async function syncCharges(
 }
 
 function toChargeValues(
-  c: TmChargingProcess,
+  c: SourceChargingProcess,
   vehicleMap: Map<number, VehicleRef>,
   matchablePlaces: MatchablePlace[],
+  source: string,
 ) {
   const vehicle = vehicleMap.get(c.car_id);
   if (!vehicle) {
@@ -166,7 +166,7 @@ function toChargeValues(
     // Provenance: TeslaMate-Kosten kommen als 'synced' rein, damit die
     // automatische Neuberechnung (chargeCosts.ts) sie nie überschreibt.
     costSource: c.cost != null ? ("synced" as const) : null,
-    source: SOURCE,
+    source,
     sourceId: String(c.id),
     syncedAt: new Date(),
   };

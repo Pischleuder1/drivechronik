@@ -1,6 +1,6 @@
 import { gt } from "drizzle-orm";
 import { createDb, syncState } from "@drivechronik/db";
-import { createTeslamateClient, probeTeslamateSchema } from "./teslamate/client.js";
+import { createTeslaMateDataSource } from "./dataSource/teslamateDataSource.js";
 import { runSyncCycle } from "./sync/cycle.js";
 import { rematchPlaces } from "./sync/rematch.js";
 import { importTessie } from "./import/tessie.js";
@@ -27,8 +27,10 @@ async function main(): Promise<void> {
 
   switch (command) {
     case "resync": {
-      const tm = createTeslamateClient(requireEnv("TESLAMATE_DATABASE_URL"));
-      await probeTeslamateSchema(tm);
+      const dataSource = createTeslaMateDataSource(
+        requireEnv("TESLAMATE_DATABASE_URL"),
+      );
+      await dataSource.probe();
 
       const fromIdx = args.indexOf("--from");
       if (fromIdx >= 0) {
@@ -48,7 +50,7 @@ async function main(): Promise<void> {
         console.log("Alle Watermarks zurückgesetzt (voller Re-Sync).");
       }
 
-      await runSyncCycle(db, tm);
+      await runSyncCycle(db, dataSource);
       break;
     }
 

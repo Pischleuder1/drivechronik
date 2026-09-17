@@ -1,16 +1,13 @@
 import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { appendAuditEntries, drives, type Db } from "@drivechronik/db";
 import { deriveDriveEnergy, matchPlace, type MatchablePlace } from "@drivechronik/core";
-import type { TeslamateSql } from "../teslamate/client.js";
-import {
-  fetchCompletedDrivesSince,
-  fetchInProgressDrives,
-  type TmDrive,
-} from "../teslamate/queries.js";
+import type {
+  SourceDrive,
+  VehicleDataSource,
+} from "../dataSource/vehicleDataSource.js";
 import { getWatermark, recordSyncRun } from "./state.js";
 import type { VehicleRef } from "./vehicles.js";
 
-const SOURCE = "teslamate";
 const ENTITY = "drives";
 // Overlap-Rescan: TeslaMate repariert/merged Fahrten gelegentlich nachträglich.
 const OVERLAP_MS = 24 * 60 * 60 * 1000;
@@ -34,16 +31,18 @@ export interface UpsertedDriveRef {
 
 export async function syncDrives(
   db: Db,
-  tm: TeslamateSql,
+  dataSource: VehicleDataSource,
   vehicleMap: Map<number, VehicleRef>,
   matchablePlaces: MatchablePlace[],
 ): Promise<DriveSyncResult> {
+  const source = dataSource.source;
+
   try {
-    const watermark = (await getWatermark(db, SOURCE, ENTITY)) ?? EPOCH;
+    const watermark = (await getWatermark(db, source, ENTITY)) ?? EPOCH;
     const since = new Date(watermark.getTime() - OVERLAP_MS);
 
-    const completed = await fetchCompletedDrivesSince(tm, since);
-    const inProgress = await fetchInProgressDrives(tm);
+    const completed = await dataSource.fetchCompletedDrivesSince(since);
+    const inProgress = await dataSource.fetchInProgressDrives();
     const rows = [...completed, ...inProgress];
 
     let upserted = 0;
@@ -52,7 +51,7 @@ export async function syncDrives(
       const chunk = rows.slice(i, i + CHUNK_SIZE);
       const entries = chunk
         .map((d) => {
-          const values = toDriveValues(d, vehicleMap, matchablePlaces);
+          const values = toDriveValues(d, vehicleMap, matchablePlaces, source);
           return values ? { tmDrive: d, values } : null;
         })
         .filter((e) => e !== null);
@@ -118,7 +117,7 @@ export async function syncDrives(
       upserted += entries.length;
     }
 
-    const deletedZombies = await deleteZombieDrives(db, tm, inProgress);
+    const deletedZombies = await deleteZombieDrives(db, dataSource, inProgress, source);
 
     const watermarkTs =
       completed.length > 0
@@ -129,14 +128,14 @@ export async function syncDrives(
           ? null
           : watermark;
 
-    await recordSyncRun(db, SOURCE, ENTITY, {
+    await recordSyncRun(db, source, ENTITY, {
       status: "ok",
       watermarkTs,
       rowsUpserted: upserted,
     });
     return { upserted, deletedZombies, upsertedRefs };
   } catch (err) {
-    await recordSyncRun(db, SOURCE, ENTITY, {
+    await recordSyncRun(db, source, ENTITY, {
       status: "error",
       error: err instanceof Error ? err.message : String(err),
       rowsUpserted: 0,
@@ -146,9 +145,10 @@ export async function syncDrives(
 }
 
 function toDriveValues(
-  d: TmDrive,
+  d: SourceDrive,
   vehicleMap: Map<number, VehicleRef>,
   matchablePlaces: MatchablePlace[],
+  source: string,
 ) {
   const vehicle = vehicleMap.get(d.car_id);
   if (!vehicle) {
@@ -210,7 +210,7 @@ function toDriveValues(
     speedMaxKmh: d.speed_max,
     powerMaxKw: d.power_max,
     powerMinKw: d.power_min,
-    source: SOURCE,
+    source,
     sourceId: String(d.id),
     syncedAt: new Date(),
   };
@@ -223,13 +223,14 @@ function toDriveValues(
  */
 async function deleteZombieDrives(
   db: Db,
-  tm: TeslamateSql,
-  inProgress: TmDrive[],
+  dataSource: VehicleDataSource,
+  inProgress: SourceDrive[],
+  source: string,
 ): Promise<number> {
   const openLocal = await db
     .select({ id: drives.id, sourceId: drives.sourceId })
     .from(drives)
-    .where(and(eq(drives.source, SOURCE), isNull(drives.endTime)));
+    .where(and(eq(drives.source, source), isNull(drives.endTime)));
   if (openLocal.length === 0) return 0;
 
   const stillOpenRemote = new Set(inProgress.map((d) => String(d.id)));
@@ -238,10 +239,11 @@ async function deleteZombieDrives(
 
   // Existiert die Fahrt drüben noch (dann wurde sie nur abgeschlossen und der
   // Completed-Sync aktualisiert sie), oder ist sie weg (→ löschen)?
-  const remoteIds = await tm<{ id: number }[]>`
-    SELECT id FROM drives WHERE id = ANY(${candidates.map((c) => Number(c.sourceId))})
-  `;
-  const existing = new Set(remoteIds.map((r) => String(r.id)));
+  const remoteIds = await dataSource.fetchExistingDriveIds(
+    candidates.map((candidate) => Number(candidate.sourceId)),
+  );
+
+  const existing = new Set(remoteIds.map((id) => String(id)));
   const toDelete = candidates.filter((c) => !existing.has(c.sourceId));
   if (toDelete.length === 0) return 0;
 
@@ -261,18 +263,18 @@ async function deleteZombieDrives(
         field: "deleted",
         oldValue: drive.sourceId,
         newValue: null,
-        changedBy: "system:teslamate-sync",
+        changedBy: `system:${source}-sync`,
         eventType: "delete",
         metadata: {
-          reason: "teslamate_zombie",
-          source: "teslamate",
+          reason: `${source}_zombie`,
+          source,
           sourceId: drive.sourceId,
         },
       })),
     );
   });
   console.warn(
-    `[sync:drives] ${toDelete.length} von TeslaMate verworfene offene Fahrt(en) entfernt`,
+    `[sync:drives] ${toDelete.length} von ${source} verworfene offene Fahrt(en) entfernt`,
   );
   return toDelete.length;
 }

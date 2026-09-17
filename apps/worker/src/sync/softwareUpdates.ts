@@ -1,11 +1,12 @@
 import { sql } from "drizzle-orm";
 import { softwareUpdates, type Db } from "@drivechronik/db";
-import type { TeslamateSql } from "../teslamate/client.js";
-import { fetchUpdates, type TmUpdate } from "../teslamate/queries.js";
+import type {
+  SourceSoftwareUpdate,
+  VehicleDataSource,
+} from "../dataSource/vehicleDataSource.js";
 import { recordSyncRun } from "./state.js";
 import type { VehicleRef } from "./vehicles.js";
 
-const SOURCE = "teslamate";
 const ENTITY = "software_updates";
 
 export interface SoftwareUpdatesSyncResult {
@@ -18,13 +19,15 @@ export interface SoftwareUpdatesSyncResult {
  */
 export async function syncSoftwareUpdates(
   db: Db,
-  tm: TeslamateSql,
+  dataSource: VehicleDataSource,
   vehicleMap: Map<number, VehicleRef>,
 ): Promise<SoftwareUpdatesSyncResult> {
+  const source = dataSource.source;
+
   try {
-    const rows = await fetchUpdates(tm);
+    const rows = await dataSource.fetchSoftwareUpdates();
     const values = rows
-      .map((u) => toSoftwareUpdateValues(u, vehicleMap))
+      .map((u) => toSoftwareUpdateValues(u, vehicleMap, source))
       .filter((v) => v !== null);
 
     if (values.length > 0) {
@@ -43,13 +46,13 @@ export async function syncSoftwareUpdates(
         });
     }
 
-    await recordSyncRun(db, SOURCE, ENTITY, {
+    await recordSyncRun(db, source, ENTITY, {
       status: "ok",
       rowsUpserted: values.length,
     });
     return { upserted: values.length };
   } catch (err) {
-    await recordSyncRun(db, SOURCE, ENTITY, {
+    await recordSyncRun(db, source, ENTITY, {
       status: "error",
       error: err instanceof Error ? err.message : String(err),
       rowsUpserted: 0,
@@ -58,7 +61,11 @@ export async function syncSoftwareUpdates(
   }
 }
 
-function toSoftwareUpdateValues(u: TmUpdate, vehicleMap: Map<number, VehicleRef>) {
+function toSoftwareUpdateValues(
+  u: SourceSoftwareUpdate,
+  vehicleMap: Map<number, VehicleRef>,
+  source: string,
+) {
   const vehicle = vehicleMap.get(u.car_id);
   if (!vehicle) {
     console.warn(
@@ -72,7 +79,7 @@ function toSoftwareUpdateValues(u: TmUpdate, vehicleMap: Map<number, VehicleRef>
     version: u.version,
     startTime: u.start_time,
     endTime: u.end_time,
-    source: SOURCE,
+    source,
     sourceId: String(u.id),
     syncedAt: new Date(),
   };

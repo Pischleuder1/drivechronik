@@ -134,7 +134,7 @@ Für eine bestehende TeslaMate-Installation:
 1. DriveChronik klonen oder auf den Server kopieren.
 2. Eine read-only-Rolle in der TeslaMate-Datenbank anlegen.
 3. `.env.example` nach `.env` kopieren und mindestens `POSTGRES_PASSWORD` sowie `TESLAMATE_DATABASE_URL` setzen.
-4. Mit `docker compose up -d --build` starten.
+4. Mit `docker compose pull` die fertigen Images laden und anschließend mit `docker compose up -d` starten.
 5. `http://<server>:<WEB_PORT>` öffnen und die Erstanmeldung durchführen.
 
 Anschließend mit `docker compose ps -a` prüfen: `db`, `web` und `worker` sollten healthy sein; `migrate` muss erfolgreich mit `Exited (0)` beendet sein.
@@ -190,29 +190,28 @@ Der TeslaMate-PostgreSQL-Port muss vom DriveChronik-Host erreichbar sein. Auf de
 
 ### Optional: TeslaMate auf demselben Docker-Host
 
-Laufen TeslaMate und DriveChronik auf demselben Docker-Host, kann der DriveChronik-Worker zusätzlich an das bestehende TeslaMate-Netzwerk angebunden werden. Dadurch muss der PostgreSQL-Port von TeslaMate nicht nach außen veröffentlicht werden.
+Laufen TeslaMate und DriveChronik auf demselben Docker-Host, kann DriveChronik direkt an das bestehende TeslaMate-Docker-Netz angebunden werden. Dadurch muss der PostgreSQL-Port von TeslaMate nicht nach außen veröffentlicht werden.
 
-Beispiel `docker-compose.override.yml`:
+Dafür liegt die Vorlage `docker-compose.teslamate.yml` bei. Einmalig kopieren:
 
-```yaml
-services:
-  web:
-    networks:
-      - default
-      - teslamate
-
-  worker:
-    networks:
-      - default
-      - teslamate
-
-networks:
-  teslamate:
-    external: true
-    name: teslamate_default
+```bash
+cp docker-compose.teslamate.yml docker-compose.override.yml
 ```
 
-Dann kann in `.env` z. B. verwendet werden:
+Docker Compose lädt `docker-compose.override.yml` danach automatisch mit. Die normalen Befehle bleiben unverändert:
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
+Standardmäßig wird das Netzwerk `teslamate_default` verwendet. Falls die TeslaMate-Installation einen anderen Netzwerknamen verwendet, kann dieser in `.env` gesetzt werden:
+
+```text
+TESLAMATE_DOCKER_NETWORK=teslamate_default
+```
+
+Als `TESLAMATE_DATABASE_URL` kann anschließend der Datenbank-Service im TeslaMate-Netz verwendet werden, zum Beispiel:
 
 `TESLAMATE_DATABASE_URL=postgres://drivechronik_ro:read-only-passwort@database:5432/teslamate`
 
@@ -231,10 +230,11 @@ Vorhandene ältere, noch unsignierte Revisionen bleiben lesbar und exportierbar.
 ### 4. Stack starten
 
 ```bash
-docker compose up -d --build
+docker compose pull
+docker compose up -d
 ```
 
-Das baut `apps/web`, `apps/worker` und den eingebetteten `supercharge-compass`-Dienst, lässt den `migrate`-Service einmalig die Drizzle-Migrationen einspielen (`restart: "no"`, muss erfolgreich durchlaufen) und startet dann `db`, `web`, `worker`, `supercharge-compass` und den automatischen `backup`-Service dauerhaft (`restart: unless-stopped`).
+Dabei werden die veröffentlichten DriveChronik-Images aus GHCR verwendet. Der `migrate`-Service spielt einmalig die Drizzle-Migrationen ein (`restart: "no"`, muss erfolgreich durchlaufen). Anschließend laufen `db`, `web`, `worker`, `supercharge-compass` und der automatische `backup`-Service dauerhaft (`restart: unless-stopped`).
 
 `supercharge-compass` stellt DriveChronik die Tesla-Supercharger-Standorte für die automatische Ladestopp-Planung bereit. Der Dienst ist nur im internen Docker-Netz erreichbar und veröffentlicht keinen zusätzlichen Port. Beim ersten Start wird der Supercharger-Datensatz automatisch geladen und anschließend täglich aktualisiert. Die Daten werden im Docker-Volume `supercharge-compass-data` persistent gespeichert. Für diese Nutzung ist kein OpenRouteService-API-Key erforderlich; die eigentliche Routenberechnung übernimmt weiterhin der von DriveChronik konfigurierte OSRM-Dienst.
 
@@ -258,11 +258,12 @@ Vor einem Update zuerst ein manuelles Backup der DriveChronik-Datenbank erstelle
 docker compose exec backup /scripts/backup.sh once
 ```
 
-Danach den aktuellen Programmstand laden und die Container neu bauen:
+Danach die Konfiguration aktualisieren, die veröffentlichten Images laden und die Container aktualisieren:
 
 ```bash
 git pull --ff-only
-docker compose up -d --build
+docker compose pull
+docker compose up -d
 ```
 
 Neue Datenbank-Migrationen werden automatisch über den einmaligen `migrate`-Service ausgeführt. Anschließend den Zustand des Stacks prüfen:
@@ -470,10 +471,7 @@ Insbesondere müssen alle erforderlichen Zugangsdaten und Passwörter gesetzt we
 ### 3. Fertige Docker-Images herunterladen
 
 ```bash
-docker compose \
-  -f docker-compose.yml \
-  -f docker-compose.release.yml \
-  pull
+docker compose pull
 ```
 
 Docker lädt automatisch die zum System passende Architektur.
@@ -491,21 +489,17 @@ PostgreSQL und weitere Basisdienste werden über ihre offiziellen Docker-Images 
 ### 4. DriveChronik starten
 
 ```bash
-docker compose \
-  -f docker-compose.yml \
-  -f docker-compose.release.yml \
-  up -d --no-build
+docker compose up -d
 ```
 
-Mit `--no-build` werden ausschließlich die fertigen Images verwendet. DriveChronik muss auf dem Zielsystem nicht selbst kompiliert werden.
+Die normale `docker-compose.yml` verwendet ausschließlich die veröffentlichten DriveChronik-Images. DriveChronik muss auf dem Zielsystem nicht selbst kompiliert werden.
+
+Standardmäßig wird über `DRIVECHRONIK_IMAGE_TAG=latest` die aktuelle Version verwendet. Wer bewusst auf einer bestimmten Version bleiben möchte, kann in `.env` beispielsweise `DRIVECHRONIK_IMAGE_TAG=v0.4.2` setzen.
 
 ### 5. Status prüfen
 
 ```bash
-docker compose \
-  -f docker-compose.yml \
-  -f docker-compose.release.yml \
-  ps
+docker compose ps
 ```
 
 ### Aktualisierung
@@ -515,24 +509,18 @@ Eine vorhandene Installation kann später so aktualisiert werden:
 ```bash
 cd drivechronik
 
-git pull
+git pull --ff-only
 
-docker compose \
-  -f docker-compose.yml \
-  -f docker-compose.release.yml \
-  pull
+docker compose pull
 
-docker compose \
-  -f docker-compose.yml \
-  -f docker-compose.release.yml \
-  up -d --no-build
+docker compose up -d
 ```
 
 Vorhandene Datenbanken und persistente Docker-Volumes werden dadurch nicht automatisch gelöscht.
 
 ## Installation aus dem Sourcecode
 
-Entwickler können DriveChronik weiterhin direkt aus dem Sourcecode bauen:
+Entwickler können DriveChronik weiterhin direkt aus dem Sourcecode bauen. Dafür liegt `docker-compose.build.yml` bei:
 
 ```bash
 git clone https://github.com/Pischleuder1/drivechronik.git
@@ -540,8 +528,8 @@ cd drivechronik
 
 cp .env.example .env
 
-docker compose build
-docker compose up -d
+docker compose -f docker-compose.yml -f docker-compose.build.yml build
+docker compose -f docker-compose.yml -f docker-compose.build.yml up -d
 ```
 
-Dabei werden die DriveChronik-Images lokal aus dem Sourcecode erzeugt.
+Dabei werden `web`, `worker`, `migrate` und `supercharge-compass` lokal aus dem Sourcecode erzeugt. Die normale Installation verwendet dagegen ausschließlich die veröffentlichten Images aus GHCR.

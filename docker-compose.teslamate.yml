@@ -1,0 +1,15 @@
+services:
+  web:
+    networks:
+      - default
+      - teslamate
+
+  worker:
+    networks:
+      - default
+      - teslamate
+
+networks:
+  teslamate:
+    external: true
+    name: ${TESLAMATE_DOCKER_NETWORK:-teslamate_default}

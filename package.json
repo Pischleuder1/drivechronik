@@ -1,7 +1,7 @@
 {
   "name": "drivechronik",
   "private": true,
-  "version": "0.4.1",
+  "version": "0.4.2",
   "packageManager": "pnpm@9.15.9",
   "scripts": {
     "dev": "echo \"Run pnpm --filter @drivechronik/web dev (or worker/db) — no root dev process\"",

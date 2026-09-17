@@ -1,7 +1,6 @@
 import { and, eq, sql } from "drizzle-orm";
 import { syncState, vehicles, type Db } from "@drivechronik/db";
-import type { TeslamateSql } from "../teslamate/client.js";
-import { fetchCars } from "../teslamate/queries.js";
+import type { VehicleDataSource } from "../dataSource/vehicleDataSource.js";
 
 export interface VehicleRef {
   id: number;
@@ -15,9 +14,9 @@ export interface VehicleRef {
  */
 export async function syncVehicles(
   db: Db,
-  tm: TeslamateSql,
+  dataSource: VehicleDataSource,
 ): Promise<Map<number, VehicleRef>> {
-  const cars = await fetchCars(tm);
+  const cars = await dataSource.fetchVehicles();
   const map = new Map<number, VehicleRef>();
 
   for (const car of cars) {
@@ -28,7 +27,7 @@ export async function syncVehicles(
       })
       .from(vehicles)
       .where(
-        and(eq(vehicles.source, "teslamate"), eq(vehicles.sourceId, String(car.id))),
+        and(eq(vehicles.source, dataSource.source), eq(vehicles.sourceId, String(car.id))),
       );
 
     const synced = {
@@ -47,7 +46,7 @@ export async function syncVehicles(
         model: car.model,
         trimBadging: car.trim_badging,
         efficiencyKwhPerKm: car.efficiency,
-        source: "teslamate",
+        source: dataSource.source,
         sourceId: String(car.id),
       })
       .onConflictDoUpdate({
@@ -76,7 +75,7 @@ export async function syncVehicles(
       await db
         .update(syncState)
         .set({ watermarkTs: null })
-        .where(and(eq(syncState.source, "teslamate"), eq(syncState.entity, "drives")));
+        .where(and(eq(syncState.source, dataSource.source), eq(syncState.entity, "drives")));
       console.log(
         `[sync:vehicles] Effizienz für "${synced.displayName}" jetzt ${car.efficiency} kWh/km ` +
           `(vorher ${prevEffective ?? "unbekannt"}) — voller Drive-Re-Sync zur Energie-Neuberechnung ausgelöst`,

@@ -1,7 +1,9 @@
 import { eq } from "drizzle-orm";
 import { routePoints, type Db } from "@drivechronik/db";
-import type { TeslamateSql } from "../teslamate/client.js";
-import { fetchPositionsForDrive, type TmPosition } from "../teslamate/queries.js";
+import type {
+  SourcePosition,
+  VehicleDataSource,
+} from "../dataSource/vehicleDataSource.js";
 import type { UpsertedDriveRef } from "./drives.js";
 
 const CHUNK_SIZE = 500;
@@ -22,7 +24,7 @@ export interface RoutePointsSyncResult {
  */
 export async function syncRoutePoints(
   db: Db,
-  tm: TeslamateSql,
+  dataSource: VehicleDataSource,
   refs: UpsertedDriveRef[],
 ): Promise<RoutePointsSyncResult> {
   let drivesProcessed = 0;
@@ -31,8 +33,7 @@ export async function syncRoutePoints(
   for (const ref of refs) {
     if (ref.endTime == null) continue; // nur abgeschlossene Fahrten haben eine feste Route
 
-    const positions = await fetchPositionsForDrive(
-      tm,
+    const positions = await dataSource.fetchPositionsForDrive(
       ref.carId,
       ref.startTime,
       ref.endTime,
@@ -64,10 +65,10 @@ export async function syncRoutePoints(
   return { drivesProcessed, pointsInserted };
 }
 
-function downsample(positions: TmPosition[]): TmPosition[] {
+function downsample(positions: SourcePosition[]): SourcePosition[] {
   if (positions.length === 0) return [];
 
-  const result: TmPosition[] = [positions[0]!];
+  const result: SourcePosition[] = [positions[0]!];
   let lastKept = positions[0]!;
 
   for (let i = 1; i < positions.length - 1; i++) {

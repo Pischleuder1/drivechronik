@@ -1,7 +1,6 @@
 import { eq, inArray } from "drizzle-orm";
 import { places, settings, type Db } from "@drivechronik/db";
-import type { TeslamateSql } from "../teslamate/client.js";
-import { fetchGeofences } from "../teslamate/queries.js";
+import type { VehicleDataSource } from "../dataSource/vehicleDataSource.js";
 
 const SETTINGS_KEY = "geofence_import_done";
 const SOURCE = "teslamate_geofence";
@@ -17,7 +16,7 @@ export interface GeofenceImportResult {
  */
 export async function syncGeofenceImport(
   db: Db,
-  tm: TeslamateSql,
+  dataSource: VehicleDataSource,
 ): Promise<GeofenceImportResult> {
   const done = await db
     .select({ value: settings.value })
@@ -27,7 +26,7 @@ export async function syncGeofenceImport(
     return { imported: 0 };
   }
 
-  const geofences = await fetchGeofences(tm);
+  const geofences = await dataSource.fetchGeofences();
 
   // places hat kein UNIQUE(source, source_id) — Duplikate manuell per
   // Existenz-Check vermeiden statt ON CONFLICT.

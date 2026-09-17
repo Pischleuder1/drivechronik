@@ -1,7 +1,9 @@
 import { and, eq, isNotNull, notExists, sql } from "drizzle-orm";
 import { chargePoints, chargeSessions, type Db } from "@drivechronik/db";
-import type { TeslamateSql } from "../teslamate/client.js";
-import { fetchChargesForProcess, type TmCharge } from "../teslamate/queries.js";
+import type {
+  SourceChargePoint,
+  VehicleDataSource,
+} from "../dataSource/vehicleDataSource.js";
 import type { UpsertedChargeRef } from "./charges.js";
 
 const CHUNK_SIZE = 500;
@@ -27,16 +29,16 @@ export interface ChargePointsSyncResult {
  */
 export async function syncChargePoints(
   db: Db,
-  tm: TeslamateSql,
+  dataSource: VehicleDataSource,
   refs: UpsertedChargeRef[],
 ): Promise<ChargePointsSyncResult> {
   let sessionsProcessed = 0;
   let pointsInserted = 0;
 
-  const backfill = await findSessionsWithoutPoints(db, refs);
+  const backfill = await findSessionsWithoutPoints(db, refs, dataSource.source);
 
   for (const ref of [...refs, ...backfill]) {
-    const charges = await fetchChargesForProcess(tm, ref.tmChargingProcessId);
+    const charges = await dataSource.fetchChargePoints(ref.tmChargingProcessId);
     const sampled = downsample(charges);
 
     await db
@@ -73,6 +75,7 @@ export async function syncChargePoints(
 async function findSessionsWithoutPoints(
   db: Db,
   refs: UpsertedChargeRef[],
+  source: string,
 ): Promise<UpsertedChargeRef[]> {
   const alreadyHandled = new Set(refs.map((r) => r.drivechronikChargeSessionId));
   const rows = await db
@@ -80,7 +83,7 @@ async function findSessionsWithoutPoints(
     .from(chargeSessions)
     .where(
       and(
-        eq(chargeSessions.source, "teslamate"),
+        eq(chargeSessions.source, source),
         isNotNull(chargeSessions.endTime),
         notExists(
           db
@@ -102,10 +105,10 @@ async function findSessionsWithoutPoints(
     }));
 }
 
-function downsample(charges: TmCharge[]): TmCharge[] {
+function downsample(charges: SourceChargePoint[]): SourceChargePoint[] {
   if (charges.length === 0) return [];
 
-  const result: TmCharge[] = [charges[0]!];
+  const result: SourceChargePoint[] = [charges[0]!];
   let lastKept = charges[0]!;
 
   for (let i = 1; i < charges.length - 1; i++) {

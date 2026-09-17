@@ -41,6 +41,15 @@ jobs:
       - name: Datenbank-Paket bauen
         run: corepack pnpm --filter @drivechronik/db build
 
+      - name: Worker prüfen
+        run: corepack pnpm --filter @drivechronik/worker lint
+
+      - name: Worker testen
+        run: corepack pnpm --filter @drivechronik/worker test
+
+      - name: Worker bauen
+        run: corepack pnpm --filter @drivechronik/worker build
+
       - name: Web-App prüfen
         run: corepack pnpm --filter @drivechronik/web lint
 

@@ -1,0 +1,24 @@
+services:
+  migrate:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    image: drivechronik-worker:local
+
+  worker:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    image: drivechronik-worker:local
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    image: drivechronik-web:local
+
+  supercharge-compass:
+    build:
+      context: ./services/supercharge-compass
+      dockerfile: Dockerfile
+    image: drivechronik-supercharge-compass:local

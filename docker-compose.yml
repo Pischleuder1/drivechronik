@@ -4,13 +4,13 @@
 # against an EXISTING TeslaMate installation's Postgres, reached read-only.
 # See README.md "Deployment" for the full runbook.
 #
-# TeslaMate connectivity — two options for TESLAMATE_DATABASE_URL in .env:
-#   (a) Same Docker host, TeslaMate on a shared Docker network:
-#       set TESLAMATE_DATABASE_URL=postgres://drivechronik_ro:...@teslamate-db:5432/teslamate
-#       and uncomment the `networks:` stanzas below (external teslamate_default).
-#   (b) TeslaMate reachable over LAN/VPN (e.g. Tailscale) as a plain host:
-#       set TESLAMATE_DATABASE_URL=postgres://drivechronik_ro:...@teslamate-host.example:5432/teslamate
-#       — no extra network config needed, this is the default assumption below.
+# TeslaMate connectivity:
+# Standard: TeslaMate-Postgres ist per LAN/VPN/Hostname erreichbar.
+# Dafür reicht TESLAMATE_DATABASE_URL in .env; kein zusätzliches Docker-Netz nötig.
+#
+# Läuft TeslaMate auf demselben Docker-Host, kann optional
+# docker-compose.teslamate.yml nach docker-compose.override.yml kopiert werden.
+# Siehe README "Optional: TeslaMate auf demselben Docker-Host".
 
 services:
   db:
@@ -30,10 +30,7 @@ services:
     # No published port — only reachable from other services on this network.
 
   migrate:
-    build:
-      context: .
-      dockerfile: apps/worker/Dockerfile
-    image: drivechronik-worker:latest
+    image: ghcr.io/pischleuder1/drivechronik-worker:${DRIVECHRONIK_IMAGE_TAG:-latest}
     command: ["node", "dist/migrate.js"]
     restart: "no"
     environment:
@@ -50,10 +47,7 @@ services:
       - import-staging:/import-staging
 
   supercharge-compass:
-    build:
-      context: ./services/supercharge-compass
-      dockerfile: Dockerfile
-    image: drivechronik-supercharge-compass:latest
+    image: ghcr.io/pischleuder1/drivechronik-supercharge-compass:${DRIVECHRONIK_IMAGE_TAG:-latest}
     restart: unless-stopped
     environment:
       PORT: "3000"
@@ -73,10 +67,7 @@ services:
     # Internal service only — no published port required.
 
   web:
-    build:
-      context: .
-      dockerfile: apps/web/Dockerfile
-    image: drivechronik-web:latest
+    image: ghcr.io/pischleuder1/drivechronik-web:${DRIVECHRONIK_IMAGE_TAG:-latest}
     restart: unless-stopped
     ports:
       - "${WEB_PORT:-3000}:3000"
@@ -105,15 +96,8 @@ services:
         condition: service_completed_successfully
       supercharge-compass:
         condition: service_healthy
-    networks:
-      - default
-      - teslamate
-
   worker:
-    build:
-      context: .
-      dockerfile: apps/worker/Dockerfile
-    image: drivechronik-worker:latest
+    image: ghcr.io/pischleuder1/drivechronik-worker:${DRIVECHRONIK_IMAGE_TAG:-latest}
     restart: unless-stopped
     environment:
       DATABASE_URL: postgres://drivechronik:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/drivechronik
@@ -131,9 +115,6 @@ services:
       migrate:
         condition: service_completed_successfully
     # No published port — sync loop only, no inbound traffic.
-    networks:
-      - default
-      - teslamate
 
   backup:
     image: postgres:17-alpine
@@ -161,21 +142,3 @@ volumes:
   drivechronik-db-data:
   import-staging:
   supercharge-compass-data:
-
-networks:
-  teslamate:
-    name: teslamate_default
-    external: true
-
-# Uncomment if TeslaMate runs on this same Docker host and you want to reach
-# it via its Compose network instead of a LAN/Tailscale host address:
-#
-# networks:
-#   default:
-#     name: drivechronik_default
-#   teslamate:
-#     name: teslamate_default
-#     external: true
-#
-# ...and add `networks: [default, teslamate]` to the `worker` service so it
-# can resolve the TeslaMate db service by its Compose service name.

@@ -9,6 +9,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added an optional `docker-compose.teslamate.yml` override for installations where TeslaMate runs on the same Docker host.
+- Added `docker-compose.build.yml` for developers who want to build DriveChronik locally from source.
+
+### Changed
+
+- Simplified the standard production deployment to use the published GHCR images directly.
+- Simplified installation and updates to the normal `docker compose pull` and `docker compose up -d` workflow.
+- Made the default Compose stack independent of a pre-existing `teslamate_default` Docker network.
+
+### Removed
+
+- Removed the obsolete `docker-compose.release.yml` override.
+
+## [0.4.2] - 2026-09-17
+
+### Added
+
+- Added a `VehicleDataSource` abstraction for vehicle-data providers.
+- Added the TeslaMate data-source adapter behind the new abstraction.
+- Added tests for TeslaMate data-source behavior and compatibility.
+
+### Changed
+
+- Decoupled worker synchronization from direct TeslaMate query/client access.
+- Added worker lint, test and build checks to CI.
+
+### Removed
+
+- Removed an obsolete release-image workflow superseded by the current Docker image pipeline.
+
+## [0.4.1] - 2026-09-16
+
+### Added
+
 - Expanded the self-contained demo to roughly one year of deterministic synthetic Model Y data with around 430 drives, 18,000 km, 120 charging sessions and 18 places, including business, private, commute and intentionally unclassified drives.
 - Added demo bootstrap data for synthetic places and automatic classification rules used by the local and Synology demo stacks.
 
@@ -78,6 +112,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Prevented route-planner delays and hangs when the Bundesnetzagentur charging-station feed times out or its data stream fails; provider refreshes now run non-blocking without preventing other charging providers from returning results.
 
+## [0.4.0] - 2026-09-08
+
+### Added
+- Vehicle driving profiles for future completed drives, with explicit application to unclassified history and guarded undo.
+
+### Changed
+- Paper & Ink application styling, a clearer overview and faster drive classification.
+- Continuous, distance-based journey and day recaps with shorter sections for short trips and distinct charging-stop cards.
+- Locale-aware numeric and ongoing-session formatting on overview, day and drive views.
+
+### Fixed
+- Clearing a manual charging price immediately restores the available place tariff and updates the form.
+- Rapid recap chapter selection retains every keyboard step.
+
 ## [0.3.2] - 2026-09-05
 
 ### Added
@@ -133,6 +181,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated demo documentation to reflect current DriveChronik features.
 - Removed the obsolete CONTRIBUTING.md reference.
 - Clarified project copyright and attribution for the DriveChronik continuation.
+
+## [0.2.0] - 2026-08-27
+
+### Added
+
+- A mobile "More" hub keeps the five-item bottom navigation focused while
+  exposing planning, analysis and configuration capabilities by intent.
+- Saved roadtrip plans now show a leg-by-leg plan-versus-actual comparison and
+  can refresh newly synchronized Journey items on demand.
+- Explicit charging checkpoints support target SoC values and estimated charge
+  times derived from the vehicle's own DC charging history.
+
+### Fixed
+
+- Vehicle-dependent pages now explain how to finish setup instead of showing an
+  incorrect not-found state on fresh installations.
+
+### Changed
+
+- Start new `0.2.x` versions under FSL-1.1-ALv2. Previously published releases
+  and branch commits remain available under AGPL-3.0 for copies received under
+  those terms.
+- Clarify separate terms for the marketing site, brand assets and external
+  contributions.
 
 ## [0.1.1] - 2026-07-08
 

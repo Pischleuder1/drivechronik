@@ -116,6 +116,13 @@
     "sessionNotFound": "Ladevorgang nicht gefunden.",
     "tagCreateFailed": "Tag konnte nicht angelegt werden."
   },
+  "curveComparison": {
+    "title": "DC-Ladekurvenvergleich",
+    "subtitle": "Leistung über SoC der letzten abgeschlossenen DC-Ladevorgänge · unabhängig vom Monatsfilter",
+    "chartAriaLabel": "Vergleich der DC-Ladekurven nach Ladezustand",
+    "median": "Median",
+    "note": "Kurven beginnen und enden nur dort, wo für den jeweiligen Ladevorgang TeslaMate-Messwerte vorliegen. Fehlende SoC-Bereiche werden nicht extrapoliert."
+  },
   "analysis": {
     "back": "Zurück zu Ladevorgängen",
     "title": "DC-Ladeanalyse",

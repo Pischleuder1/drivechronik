@@ -116,6 +116,13 @@
     "sessionNotFound": "Charging session not found.",
     "tagCreateFailed": "Failed to create tag."
   },
+  "curveComparison": {
+    "title": "DC charging curve comparison",
+    "subtitle": "Power over SoC for the most recent completed DC charging sessions · independent of the month filter",
+    "chartAriaLabel": "Comparison of DC charging curves by state of charge",
+    "median": "Median",
+    "note": "Curves start and end only where TeslaMate measurements are available for the respective charging session. Missing SoC ranges are not extrapolated."
+  },
   "analysis": {
     "back": "Back to charging",
     "title": "DC charging analysis",

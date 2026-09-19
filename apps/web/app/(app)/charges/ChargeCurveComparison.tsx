@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 
 export interface ComparisonCurvePoint {
   ts: number;
@@ -111,8 +112,8 @@ function median(values: number[]): number | null {
     : (sorted[middle - 1]! + sorted[middle]!) / 2;
 }
 
-function formatDate(ts: number): string {
-  return new Intl.DateTimeFormat("de-DE", {
+function formatDate(ts: number, locale: string): string {
+  return new Intl.DateTimeFormat(locale, {
     day: "2-digit",
     month: "2-digit",
     year: "2-digit",
@@ -120,6 +121,8 @@ function formatDate(ts: number): string {
 }
 
 export function ChargeCurveComparison({ curves }: Props) {
+  const t = useTranslations("charges");
+  const locale = useLocale();
   const [limit, setLimit] = useState<5 | 10>(5);
 
   const visibleCurves = useMemo(
@@ -211,10 +214,10 @@ export function ChargeCurveComparison({ curves }: Props) {
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-100 px-4 py-3 sm:px-5 dark:border-neutral-800">
         <div>
           <h2 className="font-semibold text-neutral-900 dark:text-neutral-100">
-            DC-Ladekurvenvergleich
+            {t("curveComparison.title")}
           </h2>
           <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
-            Leistung über SoC der letzten abgeschlossenen DC-Ladevorgänge · unabhängig vom Monatsfilter
+            {t("curveComparison.subtitle")}
           </p>
         </div>
 
@@ -228,7 +231,7 @@ export function ChargeCurveComparison({ curves }: Props) {
                 : "text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
             }`}
           >
-            Letzte 5
+            {t("analysis.lastFive")}
           </button>
 
           <button
@@ -241,7 +244,7 @@ export function ChargeCurveComparison({ curves }: Props) {
                 : "text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
             }`}
           >
-            Letzte 10
+            {t("analysis.lastTen")}
           </button>
         </div>
       </div>
@@ -252,7 +255,7 @@ export function ChargeCurveComparison({ curves }: Props) {
             viewBox={`0 0 ${width} ${height}`}
             className="min-w-[720px] w-full"
             role="img"
-            aria-label="Vergleich der DC-Ladekurven nach Ladezustand"
+            aria-label={t("curveComparison.chartAriaLabel")}
           >
             {gridPowers.map((power) => (
               <g key={power}>
@@ -355,7 +358,7 @@ export function ChargeCurveComparison({ curves }: Props) {
                 ][index % 10]}
               />
               <span>
-                {formatDate(curve.startTime)} · {curve.label}
+                {formatDate(curve.startTime, locale)} · {curve.label}
               </span>
             </div>
           ))}
@@ -363,15 +366,13 @@ export function ChargeCurveComparison({ curves }: Props) {
           {medianCurve.length >= 2 && (
             <div className="flex items-center gap-1.5 font-medium text-neutral-900 dark:text-neutral-100">
               <span className="h-1 w-5 bg-neutral-900 dark:bg-white" />
-              Median
+              {t("curveComparison.median")}
             </div>
           )}
         </div>
 
         <p className="mt-3 text-xs text-neutral-500 dark:text-neutral-400">
-          Kurven beginnen und enden nur dort, wo für den jeweiligen
-          Ladevorgang TeslaMate-Messwerte vorliegen. Fehlende SoC-Bereiche
-          werden nicht extrapoliert.
+          {t("curveComparison.note")}
         </p>
       </div>
     </section>

@@ -21,6 +21,8 @@ import { todayInAppTz } from "../../../lib/day";
 import { monthBounds } from "../../../lib/exports/data";
 import { isValidMonthParam } from "../../../lib/exports/params";
 import { getChargeSessionsInRange, getVehicles } from "../../../lib/queries";
+import { getChargingAnalytics } from "../../../lib/chargeAnalytics";
+import { getChargeCurve } from "../../../lib/chargeCurve";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { MetricGrid, MetricItem } from "../../../components/ui/MetricGrid";
 import { PageHeader } from "../../../components/ui/PageHeader";
@@ -28,6 +30,7 @@ import { SectionHeader } from "../../../components/ui/SectionHeader";
 import { StatCard } from "../../../components/ui/StatCard";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { ChargeMonthFilters } from "./ChargeMonthFilters";
+import { ChargeCurveComparison } from "./ChargeCurveComparison";
 
 export const dynamic = "force-dynamic";
 
@@ -112,6 +115,31 @@ export default async function ChargesPage({
 
   const totalCurrency = costsPresent[0]?.currency ?? "CHF";
 
+  // Der Ladekurvenvergleich ist unabhängig vom ausgewählten Monat.
+  // Er verwendet immer die letzten bis zu zehn DC-Ladevorgänge.
+  const dcAnalytics =
+    vehicleId != null
+      ? await getChargingAnalytics(vehicleId, 10)
+      : {
+          sessions: [],
+          medianPeakKw: null,
+          medianTenToEightySeconds: null,
+          locationRanking: [],
+          slowAlerts: [],
+        };
+
+  const dcCurveComparison = await Promise.all(
+    dcAnalytics.sessions.map(async (session) => ({
+      id: session.id,
+      startTime: session.startTime.getTime(),
+      label:
+        session.placeName ??
+        session.address ??
+        t("analysis.unknownLocation"),
+      points: await getChargeCurve(session.id),
+    })),
+  );
+
   return (
     <div className="w-full">
       {/* Header */}
@@ -121,27 +149,29 @@ export default async function ChargesPage({
         subtitle={t("page.subtitle")}
       />
 
-      <div className="mt-4 flex flex-wrap justify-end gap-2">
-        <Link
-          href="/charges/analysis"
-          className="inline-flex items-center gap-2 rounded-xl border border-sky-200 bg-sky-50 px-3.5 py-2 text-sm font-medium text-sky-800 transition hover:border-sky-300 hover:bg-sky-100 hover:shadow-sm dark:border-sky-900 dark:bg-sky-950/60 dark:text-sky-300 dark:hover:bg-sky-950"
-        >
-          <Zap className="h-4 w-4" />
-          {t("analysis.title")}
-        </Link>
-
-        <Link
-          href="/charges/tesla"
-          className="inline-flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3.5 py-2 text-sm font-medium transition hover:border-neutral-300 hover:bg-neutral-50 hover:shadow-sm dark:border-neutral-700 dark:bg-neutral-900 dark:hover:bg-neutral-800"
-        >
-          <ReceiptText className="h-4 w-4" />
-          {t("teslaOverview.open")}
-        </Link>
-      </div>
-
-      {/* Monat / AC-DC Übersicht */}
+      {/* Monat + Aktionen */}
       <section className="mt-4 rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm sm:p-4 dark:border-neutral-800 dark:bg-neutral-900">
-        <ChargeMonthFilters month={month} />
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <ChargeMonthFilters month={month} />
+
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/charges/analysis"
+              className="inline-flex items-center gap-2 rounded-xl border border-sky-200 bg-sky-50 px-3.5 py-2 text-sm font-medium text-sky-800 transition hover:border-sky-300 hover:bg-sky-100 hover:shadow-sm dark:border-sky-900 dark:bg-sky-950/60 dark:text-sky-300 dark:hover:bg-sky-950"
+            >
+              <Zap className="h-4 w-4" />
+              {t("analysis.title")}
+            </Link>
+
+            <Link
+              href="/charges/tesla"
+              className="inline-flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3.5 py-2 text-sm font-medium transition hover:border-neutral-300 hover:bg-neutral-50 hover:shadow-sm dark:border-neutral-700 dark:bg-neutral-900 dark:hover:bg-neutral-800"
+            >
+              <ReceiptText className="h-4 w-4" />
+              {t("teslaOverview.open")}
+            </Link>
+          </div>
+        </div>
       </section>
 
       {/* Kennzahlen */}
@@ -190,6 +220,8 @@ export default async function ChargesPage({
           icon={<ReceiptText className="h-4 w-4" />}
         />
       </section>
+
+      <ChargeCurveComparison curves={dcCurveComparison} />
 
       {/* Ladevorgänge */}
       <section className="mt-6">

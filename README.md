@@ -57,7 +57,7 @@ Tessie & Co. sind gut, aber: Abo-Kosten, Feature-Überschneidung mit der Tesla-A
 **Fahrt- & Lade-Analytics**
 - **Fahrt-Detail** — Route auf der Karte, kombinierter Verlaufs-Chart (Höhe/SoC/Tempo), Temperaturen, Max-Speed/-Leistung/Rekuperation, historisches Wetter zur Fahrtzeit, GPX-Export
   - Bei echten Fahrten basiert die dargestellte Route auf den von TeslaMate aufgezeichneten GPS-/Positionsdaten. OSRM rekonstruiert keine aufgezeichneten Fahrten.
-- **Ladeübersicht** — Ladekurve (kW über SoC), AC/DC, Kosten, Standort-Karte
+- **Ladeübersicht & DC-Analyse** — einzelne Ladekurve (kW über SoC bzw. Zeit), AC/DC, Kosten und Standort-Karte; zusätzlicher Vergleich der letzten 5 oder 10 abgeschlossenen DC-Ladevorgänge mit gemeinsamer Leistung-über-SoC-Darstellung und Median-Kurve. Der DC-Vergleich ist bewusst unabhängig vom ausgewählten Monatsfilter.
 - **Automatische Ladekosten** — Strompreis pro Ort hinterlegen (z. B. Zuhause 0,32 €/kWh) → Sessions ohne bekannten Preis werden automatisch berechnet, manuelle und gesyncte Kosten bleiben unangetastet
 - **Journeys** — Urlaube/Reisen als Klammer über Fahrten + Ladestopps mit Kennzahlen-Dashboard, Karte aller Etappen und Export als CSV, PDF und GPX
 - **Insights** — persönliche Verbrauchskurve: Verbrauch vs. Außentemperatur und Tempo, Saisonmuster und Kurzstrecken-Anteil; zusätzlich eine Jahresübersicht („Wrapped“) mit Gesamtkilometern, Fahrten, Fahrzeit, Klassifizierungsquote, längster Fahrt, stärkstem Monat/Tag und Top-Ziel
@@ -494,7 +494,7 @@ docker compose up -d
 
 Die normale `docker-compose.yml` verwendet ausschließlich die veröffentlichten DriveChronik-Images. DriveChronik muss auf dem Zielsystem nicht selbst kompiliert werden.
 
-Standardmäßig wird über `DRIVECHRONIK_IMAGE_TAG=latest` die aktuelle Version verwendet. Wer bewusst auf einer bestimmten Version bleiben möchte, kann in `.env` beispielsweise `DRIVECHRONIK_IMAGE_TAG=v0.4.2` setzen.
+Standardmäßig wird über `DRIVECHRONIK_IMAGE_TAG=latest` die aktuelle Version verwendet. Wer bewusst auf einer bestimmten Version bleiben möchte, kann in `.env` beispielsweise `DRIVECHRONIK_IMAGE_TAG=v0.4.3` setzen.
 
 ### 5. Status prüfen
 

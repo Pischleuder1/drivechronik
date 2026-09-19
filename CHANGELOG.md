@@ -7,13 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.3] - 2026-09-19
+
 ### Added
 
+- Added a DC charging-curve comparison to the charging overview for the last 5 or 10 completed DC charging sessions.
+- Added an interpolated median charging curve while preserving the actual recorded SoC range of each TeslaMate charging session.
 - Added an optional `docker-compose.teslamate.yml` override for installations where TeslaMate runs on the same Docker host.
 - Added `docker-compose.build.yml` for developers who want to build DriveChronik locally from source.
 
 ### Changed
 
+- Moved the DC charging analysis and Tesla invoice actions into the charging overview month toolbar.
+- The DC charging-curve comparison is intentionally independent of the selected month so recent DC sessions remain comparable across month boundaries.
 - Simplified the standard production deployment to use the published GHCR images directly.
 - Simplified installation and updates to the normal `docker compose pull` and `docker compose up -d` workflow.
 - Made the default Compose stack independent of a pre-existing `teslamate_default` Docker network.

@@ -1,6 +1,6 @@
 {
-  "title": "More",
-  "subtitle": "Settings and system status.",
+  "title": "Settings",
+  "subtitle": "Manage vehicles, data, reports and system settings.",
   "rulesLink": {
     "title": "Auto-classification rules",
     "subtitle": "Classify drives automatically using rules"
@@ -172,7 +172,7 @@
       "download": "Download complete data export",
       "hint": "The archive also contains a manifest with table structure, row counts and SHA-256 checksums."
     },
-    "back": "Back to More"
+    "back": "Back to Settings"
   },
   "reportIdentity": {
     "title": "Logbook / report details",
@@ -186,5 +186,22 @@
     "saved": "Report details saved.",
     "saving": "Saving …",
     "save": "Save"
+  },
+  "linkGroups": {
+    "general": "General",
+    "data": "Data",
+    "organization": "Organization",
+    "analysis": "Analysis"
+  },
+  "linkDescriptions": {
+    "vehicle": "Vehicle data, efficiency and software status",
+    "planner": "Configure route and charging planning",
+    "import": "Import Tesla, Tessie and TRONITY data",
+    "export": "Back up and export your data",
+    "tags": "Manage tags for drives and charging sessions",
+    "journeys": "Combine drives and charging stops into journeys",
+    "calendar": "View drives and charging sessions by date",
+    "reports": "Create logbook reports and summaries",
+    "insights": "Statistics, trends and yearly insights"
   }
 }

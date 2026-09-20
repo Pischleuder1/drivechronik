@@ -1,7 +1,19 @@
 import Link from "next/link";
 import webPackage from "../../../package.json";
 import { getLocale, getTranslations } from "next-intl/server";
-import { ChevronRight, Wand2 } from "lucide-react";
+import {
+  Archive,
+  CalendarDays,
+  Car,
+  ChevronRight,
+  Download,
+  FileBarChart,
+  Lightbulb,
+  Navigation,
+  Tags,
+  Upload,
+  Wand2,
+} from "lucide-react";
 import { getBusinessReimbursementRateEurPerKm, getDriverName } from "../../../lib/appSettings";
 import { APP_TIMEZONE } from "../../../lib/config";
 import { formatRelativeTime } from "../../../lib/day";
@@ -55,16 +67,99 @@ export default async function SettingsPage() {
     defaultVehicleId != null ? await getSoftwareUpdates(defaultVehicleId) : [];
   const entityLabels = buildEntityLabels(t);
 
-  const links = [
-    { href: "/vehicle", label: t("links.vehicle") },
-    { href: "/planner", label: t("links.planner") },
-    { href: "/import", label: t("links.import") },
-    { href: "/export", label: t("links.export") },
-    { href: "/tags", label: t("links.tags") },
-    { href: "/journeys", label: t("links.journeys") },
-    { href: "/calendar", label: t("links.calendar") },
-    { href: "/reports", label: t("links.reports") },
-    { href: "/insights", label: t("links.insights") },
+  const linkGroups = [
+    {
+      title: t("linkGroups.general"),
+      headerClass:
+        "border-sky-100 bg-sky-50/80 dark:border-sky-900/50 dark:bg-sky-950/30",
+      titleClass: "text-sky-700 dark:text-sky-300",
+      items: [
+        {
+          href: "/vehicle",
+          label: t("links.vehicle"),
+          description: t("linkDescriptions.vehicle"),
+          icon: Car,
+        },
+        {
+          href: "/planner",
+          label: t("links.planner"),
+          description: t("linkDescriptions.planner"),
+          icon: Navigation,
+        },
+        {
+          href: "/rules",
+          label: t("rulesLink.title"),
+          description: t("rulesLink.subtitle"),
+          icon: Wand2,
+        },
+      ],
+    },
+    {
+      title: t("linkGroups.data"),
+      headerClass:
+        "border-emerald-100 bg-emerald-50/80 dark:border-emerald-900/50 dark:bg-emerald-950/30",
+      titleClass: "text-emerald-700 dark:text-emerald-300",
+      items: [
+        {
+          href: "/import",
+          label: t("links.import"),
+          description: t("linkDescriptions.import"),
+          icon: Upload,
+        },
+        {
+          href: "/export",
+          label: t("links.export"),
+          description: t("linkDescriptions.export"),
+          icon: Download,
+        },
+        {
+          href: "/tags",
+          label: t("links.tags"),
+          description: t("linkDescriptions.tags"),
+          icon: Tags,
+        },
+      ],
+    },
+    {
+      title: t("linkGroups.organization"),
+      headerClass:
+        "border-amber-100 bg-amber-50/80 dark:border-amber-900/50 dark:bg-amber-950/30",
+      titleClass: "text-amber-700 dark:text-amber-300",
+      items: [
+        {
+          href: "/journeys",
+          label: t("links.journeys"),
+          description: t("linkDescriptions.journeys"),
+          icon: Archive,
+        },
+        {
+          href: "/calendar",
+          label: t("links.calendar"),
+          description: t("linkDescriptions.calendar"),
+          icon: CalendarDays,
+        },
+      ],
+    },
+    {
+      title: t("linkGroups.analysis"),
+      headerClass:
+        "border-violet-100 bg-violet-50/80 dark:border-violet-900/50 dark:bg-violet-950/30",
+      titleClass: "text-violet-700 dark:text-violet-300",
+      items: [
+        {
+          href: "/reports",
+          label: t("links.reports"),
+          description: t("linkDescriptions.reports"),
+          icon: FileBarChart,
+        },
+        {
+          href: "/insights",
+          label: t("links.insights"),
+          description: t("linkDescriptions.insights"),
+          icon: Lightbulb,
+        },
+      ],
+    },
   ];
 
   return (
@@ -135,36 +230,61 @@ export default async function SettingsPage() {
         <ReimbursementRateForm currentRate={reimbursementRate} />
       </Card>
 
-      <div className="mt-6 overflow-hidden divide-y divide-neutral-200 rounded-2xl border border-neutral-200 bg-white shadow-sm dark:divide-neutral-800 dark:border-neutral-800 dark:bg-neutral-900">
-        {links.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            className="flex items-center justify-between px-4 py-3 text-sm font-medium text-neutral-900 hover:bg-neutral-50 dark:text-neutral-100 dark:hover:bg-neutral-800"
+      <div className="mt-6 grid gap-5 md:grid-cols-2">
+        {linkGroups.map((group) => (
+          <section
+            key={group.title}
+            className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
           >
-            {link.label}
-            <ChevronRight aria-hidden size={18} className="text-neutral-400" />
-          </Link>
+            <div
+              className={`border-b px-5 py-3 ${group.headerClass}`}
+            >
+              <h2
+                className={`text-xs font-semibold uppercase tracking-[0.08em] ${group.titleClass}`}
+              >
+                {group.title}
+              </h2>
+            </div>
+
+            <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
+              {group.items.map((item) => {
+                const Icon = item.icon;
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="group flex items-center gap-4 px-4 py-4 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/70"
+                  >
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-600 transition-colors group-hover:bg-neutral-900 group-hover:text-white dark:bg-neutral-800 dark:text-neutral-300 dark:group-hover:bg-neutral-100 dark:group-hover:text-neutral-900">
+                      <Icon
+                        aria-hidden
+                        size={20}
+                        strokeWidth={1.9}
+                      />
+                    </span>
+
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+                        {item.label}
+                      </span>
+                      <span className="mt-0.5 block text-xs leading-5 text-neutral-500 dark:text-neutral-400">
+                        {item.description}
+                      </span>
+                    </span>
+
+                    <ChevronRight
+                      aria-hidden
+                      size={18}
+                      className="shrink-0 text-neutral-400 transition-transform group-hover:translate-x-0.5"
+                    />
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
         ))}
       </div>
-
-      <Link
-        href="/rules"
-        className="mt-6 flex items-center gap-3 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm transition-all hover:border-neutral-300 hover:bg-neutral-50 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700 dark:hover:bg-neutral-800"
-      >
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300">
-          <Wand2 aria-hidden size={20} />
-        </span>
-        <span className="flex-1">
-          <span className="block text-sm font-semibold text-neutral-900 dark:text-neutral-100">
-            {t("rulesLink.title")}
-          </span>
-          <span className="block text-sm text-neutral-500 dark:text-neutral-400">
-            {t("rulesLink.subtitle")}
-          </span>
-        </span>
-        <ChevronRight aria-hidden size={18} className="shrink-0 text-neutral-400" />
-      </Link>
 
       <DiagnosticsCard />
 

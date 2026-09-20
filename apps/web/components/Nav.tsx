@@ -14,7 +14,7 @@ import {
   FileBarChart,
   Lightbulb,
   Navigation,
-  Ellipsis,
+  Settings,
   type LucideIcon,
 } from "lucide-react";
 
@@ -39,7 +39,7 @@ const items: NavItem[] = [
   { href: "/reports", labelKey: "reports", icon: FileBarChart, match: (p) => p.startsWith("/reports"), sideOnly: true },
   { href: "/insights", labelKey: "insights", icon: Lightbulb, match: (p) => p.startsWith("/insights"), sideOnly: true },
   { href: "/planner", labelKey: "planner", icon: Navigation, match: (p) => p.startsWith("/planner"), sideOnly: true },
-  { href: "/settings", labelKey: "more", icon: Ellipsis, match: (p) => p.startsWith("/settings") || p.startsWith("/tags") || p.startsWith("/rules") || p.startsWith("/import") || p.startsWith("/export") },
+  { href: "/settings", labelKey: "settings", icon: Settings, match: (p) => p.startsWith("/settings") || p.startsWith("/tags") || p.startsWith("/rules") || p.startsWith("/import") || p.startsWith("/export") },
 ];
 
 function itemClasses(active: boolean, layout: "bottom" | "side"): string {

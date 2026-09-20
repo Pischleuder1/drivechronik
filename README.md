@@ -287,7 +287,7 @@ Der Abschluss ist ein manipulationserschwerender und nachvollziehbarer Anwendung
 
 ### Backup & Restore
 
-Der vollständige Datenexport unter **Mehr → Datenexport** ist eine portable,
+Der vollständige Datenexport unter **Einstellungen → Datenexport** ist eine portable,
 menschenlesbare Sicherung der fachlichen DriveChronik-Daten in JSON und CSV.
 Für eine vollständige 1:1-Wiederherstellung der Anwendung bleibt das
 PostgreSQL-Backup im Custom-Format (`.dump`) der maßgebliche Sicherungsweg.

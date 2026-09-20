@@ -1,6 +1,6 @@
 {
-  "title": "Mehr",
-  "subtitle": "Einstellungen und Systemstatus.",
+  "title": "Einstellungen",
+  "subtitle": "Fahrzeug, Daten, Berichte und System verwalten.",
   "rulesLink": {
     "title": "Auto-Klassifizierungs-Regeln",
     "subtitle": "Fahrten automatisch nach Regeln klassifizieren"
@@ -172,7 +172,7 @@
       "download": "Vollständigen Datenexport herunterladen",
       "hint": "Das Archiv enthält zusätzlich ein Manifest mit Tabellenstruktur, Datensatzanzahlen und SHA-256-Prüfsummen."
     },
-    "back": "Zurück zu Mehr"
+    "back": "Zurück zu Einstellungen"
   },
   "reportIdentity": {
     "title": "Fahrtenbuch / Berichtsdaten",
@@ -186,5 +186,22 @@
     "saved": "Berichtsdaten gespeichert.",
     "saving": "Speichern …",
     "save": "Speichern"
+  },
+  "linkGroups": {
+    "general": "Allgemein",
+    "data": "Daten",
+    "organization": "Organisation",
+    "analysis": "Auswertung"
+  },
+  "linkDescriptions": {
+    "vehicle": "Fahrzeugdaten, Effizienz und Softwarestand",
+    "planner": "Routen- und Ladeplanung konfigurieren",
+    "import": "Tesla-, Tessie- und TRONITY-Daten übernehmen",
+    "export": "Daten sichern und portabel exportieren",
+    "tags": "Schlagwörter für Fahrten und Ladevorgänge verwalten",
+    "journeys": "Fahrten und Ladestopps zu Reisen bündeln",
+    "calendar": "Fahrten und Ladevorgänge im Kalender ansehen",
+    "reports": "Fahrtenbuch und Berichte erstellen",
+    "insights": "Statistiken, Trends und Jahresauswertungen"
   }
 }

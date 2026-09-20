@@ -24,6 +24,24 @@ DriveChronik liest die Datenbank einer bestehenden [TeslaMate](https://github.co
 
 ➡️ [Zur Installation mit fertigen Docker-Images](#installation-mit-fertigen-docker-images)
 
+### Raspberry Pi 4 Appliance
+
+Für Raspberry Pi 4 steht ein fertig vorbereitetes SD-Karten-Image zur Verfügung.
+
+➡️ [DriveChronik Raspberry Pi 4 Appliance v0.4.4](https://github.com/Pischleuder1/drivechronik/releases/tag/pi4-appliance-v0.4.4)
+
+Enthalten:
+
+- DriveChronik v0.4.4
+- TeslaMate 4.2.0
+- automatische Ersteinrichtung
+- automatische Erweiterung des Dateisystems
+- HDMI-Statusanzeige
+- Zugriff über `drivechronik.local`
+- TeslaMate-Token-Hinweise bei der Ersteinrichtung
+
+Das Image kann direkt mit dem Raspberry Pi Imager auf eine SD-Karte geschrieben werden.
+
 ### Web-Demo
 
 DriveChronik kann vor der Installation direkt im Browser ausprobiert werden:

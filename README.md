@@ -494,7 +494,7 @@ docker compose up -d
 
 Die normale `docker-compose.yml` verwendet ausschließlich die veröffentlichten DriveChronik-Images. DriveChronik muss auf dem Zielsystem nicht selbst kompiliert werden.
 
-Standardmäßig wird über `DRIVECHRONIK_IMAGE_TAG=latest` die aktuelle Version verwendet. Wer bewusst auf einer bestimmten Version bleiben möchte, kann in `.env` beispielsweise `DRIVECHRONIK_IMAGE_TAG=v0.4.3` setzen.
+Standardmäßig wird über `DRIVECHRONIK_IMAGE_TAG=latest` die aktuelle Version verwendet. Wer bewusst auf einer bestimmten Version bleiben möchte, kann in `.env` beispielsweise `DRIVECHRONIK_IMAGE_TAG=v0.4.4` setzen.
 
 ### 5. Status prüfen
 

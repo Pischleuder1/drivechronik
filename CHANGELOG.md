@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.4] - 2026-09-20
+
+### Changed
+
+- Renamed the main navigation entry “More” to “Settings” and replaced the ellipsis icon with a settings icon.
+- Redesigned the Settings navigation with grouped cards, descriptive icons, supporting text and color-coded section headers.
+- Integrated auto-classification rules into the main Settings navigation.
+- Updated German and English Settings navigation labels and related documentation.
+
+
 ## [0.4.3] - 2026-09-19
 
 ### Added

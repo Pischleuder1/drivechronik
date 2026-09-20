@@ -1,0 +1,92 @@
+#!/bin/sh
+set -eu
+
+PERCENT="${1:-0}"
+MESSAGE="${2:-DriveChronik wird eingerichtet ...}"
+STATE="${3:-normal}"
+TTY="${DRIVECHRONIK_STATUS_TTY:-/dev/tty1}"
+WIDTH=30
+
+[ -w "$TTY" ] || exit 0
+
+case "$PERCENT" in
+    ''|*[!0-9]*) PERCENT=0 ;;
+esac
+
+[ "$PERCENT" -lt 0 ] && PERCENT=0
+[ "$PERCENT" -gt 100 ] && PERCENT=100
+
+FILLED=$((PERCENT * WIDTH / 100))
+EMPTY=$((WIDTH - FILLED))
+
+bar=""
+i=0
+while [ "$i" -lt "$FILLED" ]; do
+    bar="${bar}#"
+    i=$((i + 1))
+done
+
+i=0
+while [ "$i" -lt "$EMPTY" ]; do
+    bar="${bar}-"
+    i=$((i + 1))
+done
+
+{
+    # Bildschirm löschen und Cursor oben links
+    printf '\033[2J\033[H'
+
+    printf '\n'
+    printf ' DriveChronik Appliance\n'
+    printf ' ======================\n'
+    printf '\n'
+
+    if [ "$STATE" = "error" ]; then
+        printf ' [ FEHLER ]\n'
+    else
+        printf ' [%s] %3d %%\n' "$bar" "$PERCENT"
+    fi
+
+    printf '\n'
+    printf ' %s\n' "$MESSAGE"
+    printf '\n'
+
+    case "$STATE" in
+        done)
+            printf 'DriveChronik:\n'
+            printf 'http://drivechronik.local:3000\n'
+            printf 'Benutzer: admin\n'
+            printf 'Beim ersten Aufruf eigenes Admin-Passwort festlegen.\n'
+            printf '\n'
+            printf 'TeslaMate:\n'
+            printf 'http://drivechronik.local:4000\n'
+            printf 'TeslaMate-Tokens: Access + Refresh erforderlich.\n'
+            printf 'Anleitung: https://docs.teslamate.org/docs/installation/tokens/\n'
+            printf '\n'
+            printf 'Linux / SSH:\n'
+            printf 'Benutzer: drive\n'
+            printf 'Initialpasswort: drivechronik\n'
+            printf 'ssh drive@drivechronik.local\n'
+            printf '\n'
+            printf 'Beim ersten Linux-Login muss das Passwort geändert werden.\n'
+            printf '\n'
+            printf 'Zugangsdaten:\n'
+            printf 'drivechronik-credentials.txt auf der Boot-Partition\n'
+            ;;
+        error)
+            printf 'Die Einrichtung konnte nicht abgeschlossen werden.\n'
+            printf '\n'
+            printf 'Wartungszugang:\n'
+            printf 'Benutzer: drive\n'
+            printf 'Initialpasswort: drivechronik\n'
+            printf 'ssh drive@drivechronik.local\n'
+            ;;
+        *)
+            printf ' Bitte Raspberry Pi nicht ausschalten.\n'
+            ;;
+    esac
+
+    printf '\n'
+} > "$TTY"
+
+exit 0

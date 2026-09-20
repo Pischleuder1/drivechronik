@@ -1,0 +1,23 @@
+include:
+  file: trixie-minbase.yaml
+
+device:
+  layer: rpi4
+  hostname: drivechronik
+  storage_type: sd
+  user1: drive
+  user1sudo: passwd
+
+locale:
+  default: de_DE.UTF-8
+  keyboard_keymap: de
+  keyboard_layout: German
+  timezone: Europe/Berlin
+
+image:
+  name: drivechronik-pi4
+  boot_part_size: 200%
+  root_part_size: 300%
+
+layer:
+  appliance: drivechronik-appliance

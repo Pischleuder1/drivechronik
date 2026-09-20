@@ -1,0 +1,160 @@
+services:
+
+  # ---------------------------------------------------------------------------
+  # TeslaMate
+  # ---------------------------------------------------------------------------
+
+  teslamate-db:
+    image: postgres:18-trixie
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: teslamate
+      POSTGRES_PASSWORD: ${TESLAMATE_POSTGRES_PASSWORD:?Set TESLAMATE_POSTGRES_PASSWORD}
+      POSTGRES_DB: teslamate
+      DRIVECHRONIK_TESLAMATE_RO_PASSWORD: ${DRIVECHRONIK_TESLAMATE_RO_PASSWORD:?Set DRIVECHRONIK_TESLAMATE_RO_PASSWORD}
+    volumes:
+      - teslamate-db-data:/var/lib/postgresql
+      - ./teslamate-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U teslamate -d teslamate
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  teslamate:
+    image: teslamate/teslamate:${TESLAMATE_IMAGE_TAG:-4.2.0}
+    restart: unless-stopped
+    environment:
+      ENCRYPTION_KEY: ${TESLAMATE_ENCRYPTION_KEY:?Set TESLAMATE_ENCRYPTION_KEY}
+      DATABASE_USER: teslamate
+      DATABASE_PASS: ${TESLAMATE_POSTGRES_PASSWORD:?Set TESLAMATE_POSTGRES_PASSWORD}
+      DATABASE_NAME: teslamate
+      DATABASE_HOST: teslamate-db
+      DISABLE_MQTT: "true"
+      TZ: ${APP_TIMEZONE:-Europe/Berlin}
+    ports:
+      - "${TESLAMATE_PORT:-4000}:4000"
+    volumes:
+      - ./data/teslamate-import:/opt/app/import
+    cap_drop:
+      - ALL
+    depends_on:
+      teslamate-db:
+        condition: service_healthy
+
+  # ---------------------------------------------------------------------------
+  # DriveChronik
+  # ---------------------------------------------------------------------------
+
+  drivechronik-db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: drivechronik
+      POSTGRES_PASSWORD: ${DRIVECHRONIK_POSTGRES_PASSWORD:?Set DRIVECHRONIK_POSTGRES_PASSWORD}
+      POSTGRES_DB: drivechronik
+    volumes:
+      - drivechronik-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U drivechronik -d drivechronik
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  migrate:
+    image: ghcr.io/pischleuder1/drivechronik-worker:${DRIVECHRONIK_IMAGE_TAG:-v0.4.4}
+    command:
+      - node
+      - dist/migrate.js
+    restart: "no"
+    environment:
+      DATABASE_URL: postgres://drivechronik:${DRIVECHRONIK_POSTGRES_PASSWORD:?Set DRIVECHRONIK_POSTGRES_PASSWORD}@drivechronik-db:5432/drivechronik
+    depends_on:
+      drivechronik-db:
+        condition: service_healthy
+
+  import-staging-init:
+    image: alpine:3.20
+    restart: "no"
+    command:
+      - sh
+      - -c
+      - chown -R 1001:1001 /import-staging
+    volumes:
+      - import-staging:/import-staging
+
+  supercharge-compass:
+    image: ghcr.io/pischleuder1/drivechronik-supercharge-compass:${DRIVECHRONIK_IMAGE_TAG:-v0.4.4}
+    restart: unless-stopped
+    environment:
+      PORT: "3000"
+      DATA_FILE: /app/data/superchargers.json
+    volumes:
+      - supercharge-compass-data:/app/data
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/api/meta').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  web:
+    image: ghcr.io/pischleuder1/drivechronik-web:${DRIVECHRONIK_IMAGE_TAG:-v0.4.4}
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    environment:
+      DATABASE_URL: postgres://drivechronik:${DRIVECHRONIK_POSTGRES_PASSWORD:?Set DRIVECHRONIK_POSTGRES_PASSWORD}@drivechronik-db:5432/drivechronik
+      TESLAMATE_DATABASE_URL: postgres://drivechronik_ro:${DRIVECHRONIK_TESLAMATE_RO_PASSWORD:?Set DRIVECHRONIK_TESLAMATE_RO_PASSWORD}@teslamate-db:5432/teslamate
+      APP_TIMEZONE: ${APP_TIMEZONE:-Europe/Berlin}
+      INITIAL_ADMIN_PASSWORD: ${DRIVECHRONIK_INITIAL_ADMIN_PASSWORD:-}
+      IMPORT_STAGING_DIR: /import-staging
+      MONTH_SEAL_PRIVATE_KEY_FILE: /run/secrets/month-seal-ed25519-private.pem
+      SUPERCHARGE_COMPASS_URL: http://supercharge-compass:3000
+    volumes:
+      - import-staging:/import-staging
+      - ./secrets/month-seal-ed25519-private.pem:/run/secrets/month-seal-ed25519-private.pem:ro
+    depends_on:
+      import-staging-init:
+        condition: service_completed_successfully
+      drivechronik-db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      supercharge-compass:
+        condition: service_healthy
+
+  worker:
+    image: ghcr.io/pischleuder1/drivechronik-worker:${DRIVECHRONIK_IMAGE_TAG:-v0.4.4}
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://drivechronik:${DRIVECHRONIK_POSTGRES_PASSWORD:?Set DRIVECHRONIK_POSTGRES_PASSWORD}@drivechronik-db:5432/drivechronik
+      TESLAMATE_DATABASE_URL: postgres://drivechronik_ro:${DRIVECHRONIK_TESLAMATE_RO_PASSWORD:?Set DRIVECHRONIK_TESLAMATE_RO_PASSWORD}@teslamate-db:5432/teslamate
+      SYNC_INTERVAL_SECONDS: ${SYNC_INTERVAL_SECONDS:-60}
+      APP_TIMEZONE: ${APP_TIMEZONE:-Europe/Berlin}
+      IMPORT_STAGING_DIR: /import-staging
+    volumes:
+      - import-staging:/import-staging
+    depends_on:
+      import-staging-init:
+        condition: service_completed_successfully
+      drivechronik-db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      teslamate-db:
+        condition: service_healthy
+
+volumes:
+  teslamate-db-data:
+  drivechronik-db-data:
+  import-staging:
+  supercharge-compass-data:

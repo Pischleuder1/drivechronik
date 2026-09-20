@@ -21,3 +21,10 @@ secrets/
 
 # Exported month seal proof files
 fahrtenbuch-*-proof*.json
+
+# Raspberry Pi Appliance runtime data
+appliance/compose/.env
+appliance/compose/secrets/*.pem
+appliance/compose/data/
+appliance/compose/backups/
+appliance/compose/credentials.txt

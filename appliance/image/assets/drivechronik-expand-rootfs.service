@@ -1,0 +1,15 @@
+[Unit]
+Description=DriveChronik Root Filesystem Expansion
+Requires=drivechronik-access-init.service
+After=local-fs.target drivechronik-access-init.service
+Before=drivechronik-firstboot.service
+ConditionPathExists=!/var/lib/drivechronik-appliance/rootfs-expanded
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/drivechronik-expand-rootfs
+RemainAfterExit=yes
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target

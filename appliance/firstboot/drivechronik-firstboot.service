@@ -1,0 +1,15 @@
+[Unit]
+Description=DriveChronik Raspberry Pi Appliance First Boot
+Wants=network-online.target
+After=network-online.target docker.service
+Requires=docker.service
+ConditionPathExists=!/var/lib/drivechronik-appliance/initialized
+
+[Service]
+Type=oneshot
+ExecStart=/opt/drivechronik-appliance/firstboot/firstboot.sh
+RemainAfterExit=yes
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target

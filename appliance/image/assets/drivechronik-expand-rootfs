@@ -1,0 +1,63 @@
+#!/bin/sh
+set -eu
+
+STATE_DIR="/var/lib/drivechronik-appliance"
+MARKER="${STATE_DIR}/rootfs-expanded"
+
+STATUS="/usr/local/sbin/drivechronik-status"
+
+status() {
+    [ -x "$STATUS" ] && "$STATUS" "$1" "$2" "${3:-normal}" || true
+}
+
+[ -e "$MARKER" ] && exit 0
+
+status 20 "SD-Karte und Dateisystem werden vorbereitet ..."
+
+ROOT_SOURCE="$(findmnt -n -o SOURCE /)"
+ROOT_PART="$(readlink -f "$ROOT_SOURCE")"
+FSTYPE="$(findmnt -n -o FSTYPE /)"
+
+if [ "$FSTYPE" != "ext4" ]; then
+    echo "Fehler: Root-Dateisystem ist '$FSTYPE', erwartet wurde ext4." >&2
+    exit 1
+fi
+
+PKNAME="$(lsblk -no PKNAME "$ROOT_PART" | head -n 1 | tr -d '[:space:]')"
+PARTN="$(lsblk -no PARTN "$ROOT_PART" | head -n 1 | tr -d '[:space:]')"
+
+if [ -z "$PKNAME" ] || [ -z "$PARTN" ]; then
+    echo "Fehler: Blockgerät für $ROOT_PART konnte nicht bestimmt werden." >&2
+    exit 1
+fi
+
+DISK="/dev/$PKNAME"
+
+echo "DriveChronik: erweitere $ROOT_PART auf $DISK Partition $PARTN"
+
+set +e
+growpart "$DISK" "$PARTN"
+RC=$?
+set -e
+
+case "$RC" in
+    0)
+        echo "DriveChronik: Partition wurde erweitert."
+        ;;
+    1)
+        echo "DriveChronik: Partition nutzt bereits den verfügbaren Platz."
+        ;;
+    *)
+        echo "Fehler: growpart fehlgeschlagen (Exit $RC)." >&2
+        exit "$RC"
+        ;;
+esac
+
+udevadm settle || true
+resize2fs "$ROOT_PART"
+
+install -d -m 0700 "$STATE_DIR"
+touch "$MARKER"
+
+status 25 "SD-Karte und Dateisystem sind vorbereitet."
+echo "DriveChronik: Root-Dateisystem ist vorbereitet."

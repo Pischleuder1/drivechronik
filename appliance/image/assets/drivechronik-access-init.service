@@ -1,0 +1,13 @@
+[Unit]
+Description=DriveChronik Initial Linux Access
+After=local-fs.target
+Before=drivechronik-expand-rootfs.service drivechronik-firstboot.service
+ConditionPathExists=!/var/lib/drivechronik-appliance/access-initialized
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/drivechronik-access-init
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

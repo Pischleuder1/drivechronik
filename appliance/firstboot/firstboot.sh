@@ -320,6 +320,14 @@ ${SCHEME}://${IP_ADDRESS:-$HOSTNAME_NOW}:$WEB_PORT_VALUE
 TeslaMate:
 ${SCHEME}://${IP_ADDRESS:-$HOSTNAME_NOW}:$TESLAMATE_PORT_VALUE
 
+TeslaMate-Einrichtung:
+
+TeslaMate benötigt einen Access Token und Refresh Token.
+Die initialen Tokens werden außerhalb von TeslaMate erzeugt.
+
+Offizielle Anleitung:
+https://docs.teslamate.org/docs/installation/tokens/
+
 Linux-Zugang:
 
 Benutzer:

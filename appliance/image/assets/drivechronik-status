@@ -60,6 +60,8 @@ done
             printf '\n'
             printf 'TeslaMate:\n'
             printf 'http://drivechronik.local:4000\n'
+            printf 'TeslaMate-Tokens: Access + Refresh erforderlich.\n'
+            printf 'Anleitung: https://docs.teslamate.org/docs/installation/tokens/\n'
             printf '\n'
             printf 'Linux / SSH:\n'
             printf 'Benutzer: drive\n'

@@ -1,0 +1,88 @@
+#!/bin/sh
+set -eu
+
+ROOT="${1:?Root-Dateisystem fehlt}"
+: "${SRCROOT:?SRCROOT ist nicht gesetzt}"
+
+APPLIANCE_SRC="$(realpath "$SRCROOT/..")"
+DEST="$ROOT/opt/drivechronik-appliance"
+
+echo "DriveChronik: Appliance-Dateien installieren ..."
+
+install -d -m 0755 \
+    "$DEST/compose/teslamate-init" \
+    "$DEST/firstboot"
+
+install -m 0644 \
+    "$APPLIANCE_SRC/compose/docker-compose.yml" \
+    "$DEST/compose/docker-compose.yml"
+
+install -m 0644 \
+    "$APPLIANCE_SRC/compose/.env.example" \
+    "$DEST/compose/.env.example"
+
+install -m 0755 \
+    "$APPLIANCE_SRC/compose/teslamate-init/10-drivechronik-readonly.sh" \
+    "$DEST/compose/teslamate-init/10-drivechronik-readonly.sh"
+
+install -m 0755 \
+    "$APPLIANCE_SRC/firstboot/firstboot.sh" \
+    "$DEST/firstboot/firstboot.sh"
+
+install -m 0644 \
+    "$APPLIANCE_SRC/firstboot/drivechronik-firstboot.service" \
+    "$DEST/firstboot/drivechronik-firstboot.service"
+
+install -Dm0755 \
+    "$SRCROOT/assets/drivechronik-status" \
+    "$ROOT/usr/local/sbin/drivechronik-status"
+
+install -Dm0755 \
+    "$SRCROOT/assets/drivechronik-access-init" \
+    "$ROOT/usr/local/sbin/drivechronik-access-init"
+
+install -Dm0644 \
+    "$SRCROOT/assets/drivechronik-access-init.service" \
+    "$ROOT/etc/systemd/system/drivechronik-access-init.service"
+
+install -Dm0755 \
+    "$SRCROOT/assets/drivechronik-expand-rootfs" \
+    "$ROOT/usr/local/sbin/drivechronik-expand-rootfs"
+
+install -Dm0644 \
+    "$SRCROOT/assets/drivechronik-expand-rootfs.service" \
+    "$ROOT/etc/systemd/system/drivechronik-expand-rootfs.service"
+
+install -Dm0644 \
+    "$APPLIANCE_SRC/firstboot/drivechronik-firstboot.service" \
+    "$ROOT/etc/systemd/system/drivechronik-firstboot.service"
+
+install -Dm0644 \
+    "$SRCROOT/assets/10-rootfs.conf" \
+    "$ROOT/etc/systemd/system/drivechronik-firstboot.service.d/10-rootfs.conf"
+
+install -Dm0644 \
+    "$SRCROOT/assets/10-drivechronik-wait-online.conf" \
+    "$ROOT/etc/systemd/system/systemd-networkd-wait-online.service.d/10-drivechronik.conf"
+
+install -d -m 0755 \
+    "$ROOT/etc/systemd/system/multi-user.target.wants"
+
+ln -sfn ../drivechronik-access-init.service \
+    "$ROOT/etc/systemd/system/multi-user.target.wants/drivechronik-access-init.service"
+
+ln -sfn ../drivechronik-expand-rootfs.service \
+    "$ROOT/etc/systemd/system/multi-user.target.wants/drivechronik-expand-rootfs.service"
+
+ln -sfn ../drivechronik-firstboot.service \
+    "$ROOT/etc/systemd/system/multi-user.target.wants/drivechronik-firstboot.service"
+
+# tty1 wird während des Appliance-Betriebs als Statusanzeige verwendet.
+ln -sfn /dev/null "$ROOT/etc/systemd/system/getty@tty1.service"
+
+# tty2 bleibt als lokaler Wartungszugang verfügbar.
+install -d -m 0755 "$ROOT/etc/systemd/system/getty.target.wants"
+
+ln -sfn /usr/lib/systemd/system/getty@.service     "$ROOT/etc/systemd/system/getty.target.wants/getty@tty2.service"
+
+echo "DriveChronik: Appliance-Dateien installiert."

@@ -1,0 +1,80 @@
+#!/bin/sh
+set -eu
+umask 077
+
+LINUX_USER="drive"
+
+STATE_DIR="/var/lib/drivechronik-appliance"
+MARKER="$STATE_DIR/access-initialized"
+
+BOOT_DIR="/boot/firmware"
+BOOT_FILE="$BOOT_DIR/drivechronik-credentials.txt"
+
+STATUS="/usr/local/sbin/drivechronik-status"
+
+status() {
+    [ -x "$STATUS" ] && "$STATUS" "$1" "$2" "${3:-normal}" || true
+}
+
+fail() {
+    status 0 "$1" error
+    echo "Fehler: $1" >&2
+    exit 1
+}
+
+[ -e "$MARKER" ] && exit 0
+
+status 10 "Linux-Zugang wird vorbereitet ..."
+
+if ! id "$LINUX_USER" >/dev/null 2>&1; then
+    fail "Linux-Benutzer '$LINUX_USER' existiert nicht."
+fi
+
+install -d -m 0700 "$STATE_DIR"
+
+LINUX_PASSWORD="drivechronik"
+
+printf '%s:%s\n' "$LINUX_USER" "$LINUX_PASSWORD" | chpasswd
+
+# Beim ersten erfolgreichen Linux-Login muss ein eigenes Passwort gesetzt werden.
+chage -d 0 "$LINUX_USER"
+
+if [ ! -d "$BOOT_DIR" ] || [ ! -w "$BOOT_DIR" ]; then
+    fail "$BOOT_DIR ist nicht beschreibbar."
+fi
+
+TMP_BOOT="${BOOT_FILE}.tmp"
+
+cat > "$TMP_BOOT" <<EOF
+DriveChronik Raspberry Pi Appliance
+===================================
+
+Linux-Zugang
+
+Benutzer:
+$LINUX_USER
+
+Initiales Passwort:
+$LINUX_PASSWORD
+
+Hostname:
+drivechronik
+
+SSH:
+ssh $LINUX_USER@drivechronik.local
+
+Die Einrichtung von TeslaMate und DriveChronik läuft noch.
+
+WICHTIG:
+Beim ersten Linux-Login muss dieses Passwort
+durch ein eigenes Passwort ersetzt werden.
+EOF
+
+chmod 600 "$TMP_BOOT"
+mv "$TMP_BOOT" "$BOOT_FILE"
+
+touch "$MARKER"
+chmod 600 "$MARKER"
+
+status 15 "Linux-Zugang wurde eingerichtet."
+echo "DriveChronik: Linux-Erstzugang eingerichtet."

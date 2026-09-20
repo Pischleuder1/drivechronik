@@ -1,0 +1,22 @@
+# METABEGIN
+# X-Env-Layer-Name: drivechronik-appliance
+# X-Env-Layer-Version: 1.0.0
+# X-Env-Layer-Desc: DriveChronik Raspberry Pi appliance base
+# X-Env-Layer-Category: general
+# X-Env-Layer-Requires: docker-debian-trixie
+# METAEND
+---
+mmdebstrap:
+  packages:
+    - avahi-daemon
+    - avahi-utils
+    - ca-certificates
+    - cloud-guest-utils
+    - e2fsprogs
+    - iproute2
+    - openssl
+    - util-linux
+    - passwd
+
+  customize-hooks:
+    - $BDEBSTRAP_HOOKS/enable-units "$1" docker avahi-daemon

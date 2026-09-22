@@ -15,7 +15,6 @@ import { getCurrentWeather, type WeatherResult } from "../../lib/weather";
 import { getDefaultVehicleId } from "../../lib/search";
 import { VehicleCard } from "./VehicleCard";
 import { DashboardHero } from "./DashboardHero";
-import { QuickAccessCard } from "./QuickAccessCard";
 import { WeatherCard } from "./WeatherCard";
 import { RecentDrivesCard } from "./RecentDrivesCard";
 import { DashboardWeekCharts } from "./DashboardWeekCharts";
@@ -152,16 +151,14 @@ export default async function DashboardPage() {
         </div>
 
         <div className="lg:col-span-4">
-          <QuickAccessCard />
+          <StatsRow
+            today={today}
+            week={week}
+            lastCharge={lastCharge}
+            unclassifiedCount={unclassifiedCount}
+          />
         </div>
       </div>
-
-      <StatsRow
-        today={today}
-        week={week}
-        lastCharge={lastCharge}
-        unclassifiedCount={unclassifiedCount}
-      />
 
       <div className="grid gap-4 md:grid-cols-2">
         <WeatherCard weather={weather} />

@@ -54,7 +54,7 @@ export async function RecentDrivesCard({
       <SectionHeader
         title={t("recentDrives.title")}
         count={drives.length}
-        tone="blue"
+        tone="neutral"
       />
 
       {orderedTracks.length > 0 && (

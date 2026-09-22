@@ -17,15 +17,15 @@ import { IconBadge } from "../../components/ui/IconBadge";
 type VehicleCardTranslator = Awaited<ReturnType<typeof getTranslations>>;
 
 function socColor(soc: number): string {
-  if (soc > 50) return "bg-emerald-500";
-  if (soc >= 20) return "bg-amber-500";
-  return "bg-red-500";
+  if (soc < 10) return "bg-red-500";
+  if (soc < 20) return "bg-amber-500";
+  return "bg-blue-500";
 }
 
 function socTextColor(soc: number): string {
-  if (soc > 50) return "text-emerald-600 dark:text-emerald-400";
-  if (soc >= 20) return "text-amber-600 dark:text-amber-400";
-  return "text-red-600 dark:text-red-400";
+  if (soc < 10) return "text-red-600 dark:text-red-400";
+  if (soc < 20) return "text-amber-600 dark:text-amber-400";
+  return "text-neutral-950 dark:text-neutral-50";
 }
 
 function statusLine(
@@ -94,15 +94,11 @@ export async function VehicleCard({
 
   return (
     <section className="relative h-full overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-      <div
-        aria-hidden
-        className="absolute -right-24 -top-28 h-80 w-80 rounded-full bg-emerald-100/50 blur-3xl dark:bg-emerald-950/20"
-      />
 
       <div className="relative grid h-full min-h-[255px] gap-6 p-5 sm:p-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="flex min-w-0 flex-col">
           <div className="flex items-center gap-2">
-            <IconBadge tone="indigo" size="sm">
+            <IconBadge tone="blue" size="sm">
               <CarIcon aria-hidden size={18} />
             </IconBadge>
 

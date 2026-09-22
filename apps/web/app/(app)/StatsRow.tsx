@@ -43,7 +43,7 @@ export async function StatsRow({
       <StatCard
         label={t("stats.today")}
         value={formatKm(today.distanceKm)}
-        tone="blue"
+        tone="neutral"
         valueClassName="mt-1 text-base font-semibold tabular-nums"
         icon={<CalendarDays aria-hidden size={18} />}
         footer={
@@ -56,7 +56,7 @@ export async function StatsRow({
       <StatCard
         label={t("stats.thisWeek")}
         value={formatKm(week.distanceKm)}
-        tone="violet"
+        tone="neutral"
         valueClassName="mt-1 text-base font-semibold tabular-nums"
         icon={<CalendarRange aria-hidden size={18} />}
         footer={
@@ -75,7 +75,7 @@ export async function StatsRow({
               : tCommon("state.none")
             : t("stats.noData")
         }
-        tone="emerald"
+        tone="neutral"
         valueClassName="mt-1 text-base font-semibold tabular-nums"
         icon={<Zap aria-hidden size={18} />}
         footer={
@@ -98,7 +98,7 @@ export async function StatsRow({
       <StatCard
         label={t("stats.unclassified")}
         value={unclassifiedCount.live}
-        tone="amber"
+        tone={unclassifiedCount.live > 0 ? "amber" : "neutral"}
         valueClassName="mt-1 text-base font-semibold tabular-nums"
         icon={<HelpCircle aria-hidden size={18} />}
         footer={

@@ -132,7 +132,6 @@ export default async function DashboardPage() {
     <div className="flex flex-col gap-5 md:grid md:grid-cols-12 md:gap-5">
       <div className="md:col-span-12">
         <PageHeader
-          visual="route"
           title={t("title")}
           subtitle={t("subtitle")}
         />

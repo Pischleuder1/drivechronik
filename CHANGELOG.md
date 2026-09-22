@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added live local time and current weather to the dashboard welcome header.
+- Added current-week charts for daily driving distance and distance-weighted energy consumption.
+- Added a color-coded overview of the five most recent drive routes with numbered route markers and start/destination indicators.
+
+### Changed
+
+- Redesigned the start dashboard with a more compact vehicle-focused layout.
+- Replaced the dashboard quick-access panel with key metrics for today, this week, the latest charge and unclassified drives.
+- Integrated the vehicle odometer directly into the vehicle status card.
+- Refined the recent-drives overview with separate list and map cards and clearer route identification.
+
 ## [0.4.4] - 2026-09-20
 
 ### Changed

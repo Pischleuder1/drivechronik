@@ -1,11 +1,12 @@
 import {
   Car as CarIcon,
   BatteryCharging,
+  Gauge,
   MapPin,
 } from "lucide-react";
 import { TeslaTopViewTpmsGraphic } from "./TeslaTopViewTpmsGraphic";
 import { getLocale, getTranslations } from "next-intl/server";
-import { formatKwh, formatTime } from "@drivechronik/core";
+import { formatKwh, formatOdometer, formatTime } from "@drivechronik/core";
 import { APP_TIMEZONE } from "../../lib/config";
 import { formatRelativeTime } from "../../lib/day";
 import type { OpenSessionStatus, VehicleStatusRow } from "../../lib/dashboard";
@@ -171,8 +172,27 @@ export async function VehicleCard({
           </div>
 
 
-          <div className="mt-auto border-t border-neutral-100 pt-4 text-xs text-neutral-500 dark:border-neutral-800 dark:text-neutral-400">
-            <span>
+          <div className="mt-auto flex flex-wrap items-end justify-between gap-4 border-t border-neutral-100 pt-4 dark:border-neutral-800">
+            <div className="min-w-0">
+              <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-400 dark:text-neutral-500">
+                {t("mileage.title")}
+              </p>
+
+              <p className="mt-0.5 flex items-center gap-1.5 text-sm font-semibold tabular-nums text-neutral-800 dark:text-neutral-100">
+                <Gauge
+                  aria-hidden
+                  size={14}
+                  strokeWidth={1.8}
+                  className="text-neutral-400 dark:text-neutral-500"
+                />
+
+                {status.odometerKm != null
+                  ? formatOdometer(status.odometerKm)
+                  : t("vehicleCard.odometerUnknown")}
+              </p>
+            </div>
+
+            <span className="text-xs text-neutral-500 dark:text-neutral-400">
               {status.syncedAt != null
                 ? t("vehicleCard.lastUpdated", {
                     time: formatRelativeTime(status.syncedAt, locale),

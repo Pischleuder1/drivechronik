@@ -8,15 +8,17 @@ import {
   getWeekStats,
   getLastCharge,
   getUnclassifiedCount,
+  getDashboardWeekSeries,
 } from "../../lib/dashboard";
 import { getCurrentWeather, type WeatherResult } from "../../lib/weather";
 import { getDefaultVehicleId } from "../../lib/search";
 import { VehicleCard } from "./VehicleCard";
+import { DashboardHero } from "./DashboardHero";
 import { RecentDrivesCard } from "./RecentDrivesCard";
+import { DashboardWeekCharts } from "./DashboardWeekCharts";
 import { StatsRow } from "./StatsRow";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { Button } from "../../components/ui/Button";
-import { PageHeader } from "../../components/ui/PageHeader";
 import { Car, Rocket, Stethoscope } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -112,6 +114,8 @@ export default async function DashboardPage() {
       getUnclassifiedCount(vehicleId),
     ]);
 
+  const weekSeries = await getDashboardWeekSeries(vehicleId);
+
   const driveTracks = await getRecentDriveTracks(recentDrives.map((d) => d.id));
   const car =
     status?.lat != null && status.lon != null
@@ -129,39 +133,38 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="flex flex-col gap-5 md:grid md:grid-cols-12 md:gap-5">
-      <div className="md:col-span-12">
-        <PageHeader
-          visual="route"
-          title={t("title")}
-          subtitle={t("subtitle")}
-        />
-      </div>
+    <div className="space-y-4">
+      <DashboardHero weather={weather} />
 
-      <div className="md:col-span-12">
-        {status ? (
-          <VehicleCard
-            status={status}
-            openSession={openSession}
-            weather={weather}
+      <div className="grid gap-4 lg:grid-cols-12 lg:items-stretch">
+        <div className="lg:col-span-8">
+          {status ? (
+            <VehicleCard
+              status={status}
+              openSession={openSession}
+            />
+          ) : (
+            <EmptyState icon={Car} title={t("vehicleStatusEmpty")} />
+          )}
+        </div>
+
+        <div className="lg:col-span-4">
+          <StatsRow
+            today={today}
+            week={week}
+            lastCharge={lastCharge}
+            unclassifiedCount={unclassifiedCount}
           />
-        ) : (
-          <EmptyState icon={Car} title={t("vehicleStatusEmpty")} />
-        )}
+        </div>
       </div>
 
-      <div className="md:col-span-12">
-        <StatsRow
-          today={today}
-          week={week}
-          lastCharge={lastCharge}
-          unclassifiedCount={unclassifiedCount}
-        />
-      </div>
+      <RecentDrivesCard
+        drives={recentDrives}
+        tracks={driveTracks}
+        car={car}
+      />
 
-      <div className="md:col-span-12">
-        <RecentDrivesCard drives={recentDrives} tracks={driveTracks} car={car} />
-      </div>
+      <DashboardWeekCharts data={weekSeries} />
     </div>
   );
 }

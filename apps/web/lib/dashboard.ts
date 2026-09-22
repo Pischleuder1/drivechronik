@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, desc, eq, gte, inArray, isNull, lt, notInArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, lt, notInArray, sql } from "drizzle-orm";
 import {
   chargeSessions,
   drives,
@@ -11,6 +11,7 @@ import {
 } from "@drivechronik/db";
 import { matchPlace, type MatchablePlace } from "@drivechronik/core";
 import { db } from "./db";
+import { APP_TIMEZONE } from "./config";
 import { dayBounds, shiftDate, todayInAppTz } from "./day";
 
 export interface VehicleStatusRow {
@@ -390,4 +391,116 @@ export async function getUnclassifiedCount(vehicleId: number): Promise<Unclassif
     live: liveRows[0]?.count ?? 0,
     imported: importedRows[0]?.count ?? 0,
   };
+}
+
+
+export interface DashboardWeekDay {
+  date: string;
+  distanceKm: number;
+  avgConsumptionWhKm: number | null;
+}
+
+const dashboardDateFormatter = new Intl.DateTimeFormat("en-CA", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  timeZone: APP_TIMEZONE,
+});
+
+function dashboardDateKey(date: Date): string {
+  const parts = dashboardDateFormatter.formatToParts(date);
+  const year = parts.find((p) => p.type === "year")?.value ?? "";
+  const month = parts.find((p) => p.type === "month")?.value ?? "";
+  const day = parts.find((p) => p.type === "day")?.value ?? "";
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Current Monday-Sunday dashboard series.
+ *
+ * Consumption is distance-weighted:
+ * sum(distance × Wh/km) / sum(distance with consumption data).
+ * Short completed drives are intentionally included because this is an
+ * operational dashboard, not the correlation-oriented Insights filter.
+ */
+export async function getDashboardWeekSeries(
+  vehicleId: number,
+): Promise<DashboardWeekDay[]> {
+  const today = todayInAppTz();
+  const [y, m, d] = today.split("-").map(Number);
+  const jsDay = new Date(Date.UTC(y!, m! - 1, d!)).getUTCDay();
+  const mondayIndex = (jsDay + 6) % 7;
+
+  const monday = shiftDate(today, -mondayIndex);
+  const nextMonday = shiftDate(monday, 7);
+
+  const { start } = dayBounds(monday);
+  const { start: end } = dayBounds(nextMonday);
+
+  const rows = await db
+    .select({
+      startTime: drives.startTime,
+      distanceKm: drives.distanceKm,
+      avgConsumptionWhKm: drives.avgConsumptionWhKm,
+    })
+    .from(drives)
+    .where(
+      and(
+        eq(drives.vehicleId, vehicleId),
+        gte(drives.startTime, start),
+        lt(drives.startTime, end),
+        isNotNull(drives.endTime),
+      ),
+    )
+    .orderBy(asc(drives.startTime));
+
+  const dates = Array.from({ length: 7 }, (_, i) => shiftDate(monday, i));
+
+  const buckets = new Map<
+    string,
+    {
+      distanceKm: number;
+      consumptionDistanceKm: number;
+      consumptionWh: number;
+    }
+  >();
+
+  for (const date of dates) {
+    buckets.set(date, {
+      distanceKm: 0,
+      consumptionDistanceKm: 0,
+      consumptionWh: 0,
+    });
+  }
+
+  for (const row of rows) {
+    const key = dashboardDateKey(row.startTime);
+    const bucket = buckets.get(key);
+    if (!bucket) continue;
+
+    const distanceKm = row.distanceKm ?? 0;
+    bucket.distanceKm += distanceKm;
+
+    if (
+      row.avgConsumptionWhKm != null &&
+      Number.isFinite(row.avgConsumptionWhKm) &&
+      distanceKm > 0
+    ) {
+      bucket.consumptionDistanceKm += distanceKm;
+      bucket.consumptionWh += distanceKm * row.avgConsumptionWhKm;
+    }
+  }
+
+  return dates.map((date) => {
+    const bucket = buckets.get(date)!;
+
+    return {
+      date,
+      distanceKm: bucket.distanceKm,
+      avgConsumptionWhKm:
+        bucket.consumptionDistanceKm > 0
+          ? bucket.consumptionWh / bucket.consumptionDistanceKm
+          : null,
+    };
+  });
 }

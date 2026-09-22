@@ -48,6 +48,36 @@
   "recentDrives": {
     "title": "Recent drives",
     "empty": "No drives yet",
-    "dayViewCta": "Go to day view"
+    "dayViewCta": "Go to day view",
+    "subtitle": "Your most recently recorded drives",
+    "mapTitle": "Drive map",
+    "mapSubtitle": "Routes from your recent drives",
+    "mapEmpty": "No route available for the map yet"
+  },
+  "mileage": {
+    "title": "Total mileage",
+    "subtitle": "Vehicle odometer"
+  },
+  "hero": {
+    "eyebrow": "Welcome back",
+    "title": "Good to see you again!",
+    "subtitle": "Here is the latest overview of your vehicle and drives."
+  },
+  "quickAccess": {
+    "title": "Quick access",
+    "planner": "Route planner",
+    "charges": "Charging",
+    "reports": "Reports",
+    "insights": "Insights",
+    "settings": "Settings"
+  },
+  "weekCharts": {
+    "distanceTitle": "Distance driven",
+    "consumptionTitle": "Energy consumption",
+    "thisWeek": "This week",
+    "distanceAria": "Distance driven during the current week by weekday",
+    "consumptionAria": "Average energy consumption during the current week by weekday",
+    "average": "Avg. {value} kWh/100 km",
+    "noConsumption": "No consumption data yet"
   }
 }

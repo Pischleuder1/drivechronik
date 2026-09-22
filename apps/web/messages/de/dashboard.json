@@ -48,6 +48,36 @@
   "recentDrives": {
     "title": "Letzte Fahrten",
     "empty": "Noch keine Fahrten",
-    "dayViewCta": "Zur Tagesansicht"
+    "dayViewCta": "Zur Tagesansicht",
+    "subtitle": "Die zuletzt aufgezeichneten Fahrten",
+    "mapTitle": "Fahrtenkarte",
+    "mapSubtitle": "Routen der letzten Fahrten",
+    "mapEmpty": "Noch keine Route für die Karte verfügbar"
+  },
+  "mileage": {
+    "title": "Gesamtkilometer",
+    "subtitle": "Kilometerstand des Fahrzeugs"
+  },
+  "hero": {
+    "eyebrow": "Willkommen zurück",
+    "title": "Schön, dass du wieder da bist!",
+    "subtitle": "Hier ist die aktuelle Übersicht zu deinem Fahrzeug und deinen Fahrten."
+  },
+  "quickAccess": {
+    "title": "Schnellzugriff",
+    "planner": "Routenplaner",
+    "charges": "Ladevorgänge",
+    "reports": "Berichte",
+    "insights": "Auswertungen",
+    "settings": "Einstellungen"
+  },
+  "weekCharts": {
+    "distanceTitle": "Fahrleistung",
+    "consumptionTitle": "Energieverbrauch",
+    "thisWeek": "Diese Woche",
+    "distanceAria": "Fahrleistung der aktuellen Woche nach Wochentagen",
+    "consumptionAria": "Durchschnittlicher Energieverbrauch der aktuellen Woche nach Wochentagen",
+    "average": "Ø {value} kWh/100 km",
+    "noConsumption": "Noch keine Verbrauchsdaten"
   }
 }

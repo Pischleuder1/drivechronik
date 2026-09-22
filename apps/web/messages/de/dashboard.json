@@ -49,5 +49,9 @@
     "title": "Letzte Fahrten",
     "empty": "Noch keine Fahrten",
     "dayViewCta": "Zur Tagesansicht"
+  },
+  "mileage": {
+    "title": "Gesamtkilometer",
+    "subtitle": "Kilometerstand des Fahrzeugs"
   }
 }

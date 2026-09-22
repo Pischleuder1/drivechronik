@@ -1,17 +1,14 @@
 import {
   Car as CarIcon,
   BatteryCharging,
-  Gauge,
   MapPin,
 } from "lucide-react";
 import { TeslaTopViewTpmsGraphic } from "./TeslaTopViewTpmsGraphic";
-import { VehicleWeather } from "./VehicleWeather";
 import { getLocale, getTranslations } from "next-intl/server";
-import { formatKwh, formatOdometer, formatTime } from "@drivechronik/core";
+import { formatKwh, formatTime } from "@drivechronik/core";
 import { APP_TIMEZONE } from "../../lib/config";
 import { formatRelativeTime } from "../../lib/day";
 import type { OpenSessionStatus, VehicleStatusRow } from "../../lib/dashboard";
-import type { WeatherResult } from "../../lib/weather";
 import { IconBadge } from "../../components/ui/IconBadge";
 
 type VehicleCardTranslator = Awaited<ReturnType<typeof getTranslations>>;
@@ -79,11 +76,9 @@ function statusLine(
 export async function VehicleCard({
   status,
   openSession,
-  weather,
 }: {
   status: VehicleStatusRow;
   openSession: OpenSessionStatus | null;
-  weather: WeatherResult | null;
 }) {
   const [t, locale] = await Promise.all([
     getTranslations("dashboard"),
@@ -95,7 +90,7 @@ export async function VehicleCard({
   return (
     <section className="relative h-full overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
 
-      <div className="relative grid h-full min-h-[255px] gap-6 p-5 sm:p-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="relative grid h-full min-h-[255px] gap-6 p-5 sm:p-6 lg:grid-cols-[minmax(0,1fr)_300px]">
         <div className="flex min-w-0 flex-col">
           <div className="flex items-center gap-2">
             <IconBadge tone="blue" size="sm">
@@ -117,7 +112,7 @@ export async function VehicleCard({
               <div className="flex flex-wrap items-end gap-x-4 gap-y-2">
                 <div className="flex items-baseline">
                   <span
-                    className={`text-5xl font-semibold tracking-tight tabular-nums ${socTextColor(
+                    className={`text-4xl font-semibold tracking-tight tabular-nums ${socTextColor(
                       soc,
                     )}`}
                   >
@@ -138,7 +133,7 @@ export async function VehicleCard({
                 )}
               </div>
 
-              <div className="mt-4 h-3 w-full max-w-xl overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-800">
+              <div className="mt-4 h-2 w-full max-w-xl overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-800">
                 <div
                   className={`h-full rounded-full transition-all ${socColor(soc)}`}
                   style={{ width: `${Math.max(0, Math.min(100, soc))}%` }}
@@ -174,22 +169,9 @@ export async function VehicleCard({
               </span>
             </div>
           </div>
-          <VehicleWeather weather={weather} />
 
 
-          <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-neutral-100 pt-4 text-xs text-neutral-500 dark:border-neutral-800 dark:text-neutral-400">
-            <span className="flex items-center gap-1.5 font-medium tabular-nums">
-              <Gauge
-                aria-hidden
-                size={14}
-                strokeWidth={1.8}
-                className="text-neutral-400 dark:text-neutral-500"
-              />
-              {status.odometerKm != null
-                ? formatOdometer(status.odometerKm)
-                : t("vehicleCard.odometerUnknown")}
-            </span>
-
+          <div className="mt-auto border-t border-neutral-100 pt-4 text-xs text-neutral-500 dark:border-neutral-800 dark:text-neutral-400">
             <span>
               {status.syncedAt != null
                 ? t("vehicleCard.lastUpdated", {

@@ -49,5 +49,9 @@
     "title": "Recent drives",
     "empty": "No drives yet",
     "dayViewCta": "Go to day view"
+  },
+  "mileage": {
+    "title": "Total mileage",
+    "subtitle": "Vehicle odometer"
   }
 }

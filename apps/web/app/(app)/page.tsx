@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { formatOdometer } from "@drivechronik/core";
 import {
   getVehicleStatus,
   getOpenSessionStatus,
@@ -12,12 +13,12 @@ import {
 import { getCurrentWeather, type WeatherResult } from "../../lib/weather";
 import { getDefaultVehicleId } from "../../lib/search";
 import { VehicleCard } from "./VehicleCard";
+import { WeatherCard } from "./WeatherCard";
 import { RecentDrivesCard } from "./RecentDrivesCard";
 import { StatsRow } from "./StatsRow";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { Button } from "../../components/ui/Button";
-import { PageHeader } from "../../components/ui/PageHeader";
-import { Car, Rocket, Stethoscope } from "lucide-react";
+import { Car, Gauge, Rocket, Stethoscope } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -129,38 +130,69 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="flex flex-col gap-5 md:grid md:grid-cols-12 md:gap-5">
-      <div className="md:col-span-12">
-        <PageHeader
-          title={t("title")}
-          subtitle={t("subtitle")}
-        />
-      </div>
+    <div className="space-y-5">
+      <header className="flex flex-col gap-1 px-1 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50 sm:text-3xl">
+            {t("title")}
+          </h1>
+          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+            {t("subtitle")}
+          </p>
+        </div>
+      </header>
 
-      <div className="md:col-span-12">
-        {status ? (
-          <VehicleCard
-            status={status}
-            openSession={openSession}
-            weather={weather}
+      <div className="grid gap-5 lg:grid-cols-12 lg:items-stretch">
+        <div className="lg:col-span-8">
+          {status ? (
+            <VehicleCard
+              status={status}
+              openSession={openSession}
+            />
+          ) : (
+            <EmptyState icon={Car} title={t("vehicleStatusEmpty")} />
+          )}
+        </div>
+
+        <div className="lg:col-span-4">
+          <StatsRow
+            today={today}
+            week={week}
+            lastCharge={lastCharge}
+            unclassifiedCount={unclassifiedCount}
           />
-        ) : (
-          <EmptyState icon={Car} title={t("vehicleStatusEmpty")} />
-        )}
+        </div>
       </div>
 
-      <div className="md:col-span-12">
-        <StatsRow
-          today={today}
-          week={week}
-          lastCharge={lastCharge}
-          unclassifiedCount={unclassifiedCount}
-        />
+      <div className="grid gap-5 md:grid-cols-2">
+        <WeatherCard weather={weather} />
+
+        <section className="h-full rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+          <div className="flex h-full items-center gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 dark:bg-blue-950/35 dark:text-blue-300">
+              <Gauge aria-hidden size={22} strokeWidth={1.8} />
+            </div>
+
+            <div className="min-w-0">
+              <p className="text-xs font-medium uppercase tracking-[0.12em] text-neutral-400 dark:text-neutral-500">
+                {t("mileage.title")}
+              </p>
+
+              <p className="mt-1 text-3xl font-semibold tracking-tight tabular-nums text-neutral-950 dark:text-neutral-50 sm:text-4xl">
+                {status?.odometerKm != null
+                  ? formatOdometer(status.odometerKm)
+                  : t("vehicleCard.odometerUnknown")}
+              </p>
+
+              <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                {t("mileage.subtitle")}
+              </p>
+            </div>
+          </div>
+        </section>
       </div>
 
-      <div className="md:col-span-12">
-        <RecentDrivesCard drives={recentDrives} tracks={driveTracks} car={car} />
-      </div>
+      <RecentDrivesCard drives={recentDrives} tracks={driveTracks} car={car} />
     </div>
   );
 }

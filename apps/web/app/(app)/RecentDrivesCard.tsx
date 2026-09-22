@@ -57,66 +57,102 @@ export async function RecentDrivesCard({
         tone="neutral"
       />
 
-      {orderedTracks.length > 0 && (
-        <div className="mt-4">
-          {/* Key = Daten-Fingerprint: Leaflet wird nur einmal initialisiert;
-              bei RSC-Refresh mit neuen Fahrten/Position remountet React die
-              Karte so, statt sie veralten zu lassen (Codex-Finding). */}
-          <DashboardMapLoader
-            key={`${orderedTracks.map((tr) => tr.driveId).join("-")}:${car?.lat ?? ""},${car?.lon ?? ""}`}
-            tracks={orderedTracks}
-            car={car}
-          />
-        </div>
-      )}
-
       {drives.length === 0 ? (
-        <div className="mt-3">
+        <div className="mt-4">
           <EmptyState icon={Route} title={t("recentDrives.empty")} />
         </div>
       ) : (
-        <ol className="mt-3 flex flex-col divide-y divide-neutral-100 dark:divide-neutral-800">
-          {drives.map((d) => {
-            const classification = d.classification as Classification;
-            const from = formatPlaceLabel(d.startPlaceName, d.startAddress, d.startLat, d.startLon);
-            const to = formatPlaceLabel(d.endPlaceName, d.endAddress, d.endLat, d.endLon);
-            return (
-              <li key={d.id}>
-                <Link
-                  href={`/drives/${d.id}`}
-                  className="flex items-center gap-3 py-2.5 text-sm hover:bg-neutral-50 dark:hover:bg-neutral-800/60"
-                >
-                  <span
-                    aria-hidden
-                    className={`h-2 w-2 shrink-0 rounded-full ${CLASSIFICATION_DOT[classification]}`}
-                    title={tCommon(`classification.${classification}`)}
-                  />
-                  <span className="w-16 shrink-0 tabular-nums text-neutral-500 dark:text-neutral-400">
-                    {dateFormatter.format(d.startTime)} {timeFormatter.format(d.startTime)}
-                  </span>
-                  <span className="min-w-0 flex-1 truncate">
-                    {from} <span className="text-neutral-400">→</span> {to}
-                  </span>
-                  {d.distanceKm != null && (
-                    <span className="shrink-0 tabular-nums text-neutral-500 dark:text-neutral-400">
-                      {formatKm(d.distanceKm)}
-                    </span>
-                  )}
-                </Link>
-              </li>
-            );
-          })}
-        </ol>
-      )}
-
-      <div className="mt-3 border-t border-neutral-100 pt-3 dark:border-neutral-800">
-        <Link
-          href="/day"
-          className="inline-flex items-center gap-1 text-sm font-medium text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
+        <div
+          className={`mt-4 grid gap-5 ${
+            orderedTracks.length > 0
+              ? "lg:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)]"
+              : ""
+          }`}
         >
-          {t("recentDrives.dayViewCta")} <ArrowRight aria-hidden size={14} />
-        </Link>
-      </div>
+          {orderedTracks.length > 0 && (
+            <div className="min-w-0 overflow-hidden rounded-xl">
+              <DashboardMapLoader
+                key={`${orderedTracks.map((tr) => tr.driveId).join("-")}:${car?.lat ?? ""},${car?.lon ?? ""}`}
+                tracks={orderedTracks}
+                car={car}
+              />
+            </div>
+          )}
+
+          <div
+            className={`min-w-0 ${
+              orderedTracks.length > 0
+                ? "lg:border-l lg:border-neutral-100 lg:pl-5 dark:lg:border-neutral-800"
+                : ""
+            }`}
+          >
+            <ol className="flex flex-col divide-y divide-neutral-100 dark:divide-neutral-800">
+              {drives.map((d) => {
+                const classification = d.classification as Classification;
+
+                const from = formatPlaceLabel(
+                  d.startPlaceName,
+                  d.startAddress,
+                  d.startLat,
+                  d.startLon,
+                );
+
+                const to = formatPlaceLabel(
+                  d.endPlaceName,
+                  d.endAddress,
+                  d.endLat,
+                  d.endLon,
+                );
+
+                return (
+                  <li key={d.id}>
+                    <Link
+                      href={`/drives/${d.id}`}
+                      className="group flex items-center gap-3 rounded-lg px-2 py-3 text-sm transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/60"
+                    >
+                      <span
+                        aria-hidden
+                        className={`h-2 w-2 shrink-0 rounded-full ${CLASSIFICATION_DOT[classification]}`}
+                        title={tCommon(`classification.${classification}`)}
+                      />
+
+                      <span className="w-16 shrink-0 tabular-nums text-neutral-400 dark:text-neutral-500">
+                        {dateFormatter.format(d.startTime)}{" "}
+                        {timeFormatter.format(d.startTime)}
+                      </span>
+
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-medium text-neutral-800 dark:text-neutral-200">
+                          {from}
+                        </span>
+                        <span className="mt-0.5 block truncate text-xs text-neutral-500 dark:text-neutral-400">
+                          → {to}
+                        </span>
+                      </span>
+
+                      {d.distanceKm != null && (
+                        <span className="shrink-0 tabular-nums text-neutral-500 dark:text-neutral-400">
+                          {formatKm(d.distanceKm)}
+                        </span>
+                      )}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ol>
+
+            <div className="mt-3 border-t border-neutral-100 pt-3 dark:border-neutral-800">
+              <Link
+                href="/day"
+                className="inline-flex items-center gap-1 text-sm font-medium text-neutral-600 hover:text-neutral-950 dark:text-neutral-400 dark:hover:text-white"
+              >
+                {t("recentDrives.dayViewCta")}
+                <ArrowRight aria-hidden size={14} />
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

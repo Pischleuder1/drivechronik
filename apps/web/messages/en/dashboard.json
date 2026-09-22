@@ -48,7 +48,11 @@
   "recentDrives": {
     "title": "Recent drives",
     "empty": "No drives yet",
-    "dayViewCta": "Go to day view"
+    "dayViewCta": "Go to day view",
+    "subtitle": "Your most recently recorded drives",
+    "mapTitle": "Drive map",
+    "mapSubtitle": "Routes from your recent drives",
+    "mapEmpty": "No route available for the map yet"
   },
   "mileage": {
     "title": "Total mileage",

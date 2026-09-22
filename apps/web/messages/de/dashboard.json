@@ -48,7 +48,11 @@
   "recentDrives": {
     "title": "Letzte Fahrten",
     "empty": "Noch keine Fahrten",
-    "dayViewCta": "Zur Tagesansicht"
+    "dayViewCta": "Zur Tagesansicht",
+    "subtitle": "Die zuletzt aufgezeichneten Fahrten",
+    "mapTitle": "Fahrtenkarte",
+    "mapSubtitle": "Routen der letzten Fahrten",
+    "mapEmpty": "Noch keine Route für die Karte verfügbar"
   },
   "mileage": {
     "title": "Gesamtkilometer",

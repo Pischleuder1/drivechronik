@@ -49,7 +49,7 @@ export async function RecentDrivesCard({
     .filter((tr): tr is DriveTrack => tr != null && tr.points.length >= 2);
 
   const card =
-    "h-full rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900";
+    "h-full rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900";
 
   return (
     <div className="grid gap-5 lg:grid-cols-2 lg:items-stretch">
@@ -75,7 +75,7 @@ export async function RecentDrivesCard({
           </div>
         ) : (
           <>
-            <ol className="mt-4 flex flex-col divide-y divide-neutral-100 dark:divide-neutral-800">
+            <ol className="mt-3 flex flex-col divide-y divide-neutral-100 dark:divide-neutral-800">
               {drives.map((d) => {
                 const classification = d.classification as Classification;
 
@@ -97,7 +97,7 @@ export async function RecentDrivesCard({
                   <li key={d.id}>
                     <Link
                       href={`/drives/${d.id}`}
-                      className="group flex items-center gap-3 rounded-lg px-2 py-3 text-sm transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/60"
+                      className="group flex items-center gap-3 rounded-lg px-2 py-2.5 text-sm transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/60"
                     >
                       <span
                         aria-hidden
@@ -131,7 +131,7 @@ export async function RecentDrivesCard({
               })}
             </ol>
 
-            <div className="mt-3 border-t border-neutral-100 pt-3 dark:border-neutral-800">
+            <div className="mt-2.5 border-t border-neutral-100 pt-3 dark:border-neutral-800">
               <Link
                 href="/day"
                 className="inline-flex items-center gap-1 text-sm font-medium text-neutral-600 transition-colors hover:text-blue-600 dark:text-neutral-400 dark:hover:text-blue-400"
@@ -144,7 +144,7 @@ export async function RecentDrivesCard({
         )}
       </section>
 
-      <section className={`${card} flex min-h-[360px] flex-col`}>
+      <section className={`${card} flex min-h-[300px] flex-col`}>
         <div className="flex items-center gap-3">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/35 dark:text-blue-300">
             <MapIcon aria-hidden size={17} strokeWidth={1.8} />
@@ -161,7 +161,7 @@ export async function RecentDrivesCard({
         </div>
 
         {orderedTracks.length > 0 ? (
-          <div className="mt-4 min-h-0 flex-1 overflow-hidden rounded-xl">
+          <div className="mt-3 min-h-0 flex-1 overflow-hidden rounded-xl">
             <DashboardMapLoader
               key={`${orderedTracks.map((tr) => tr.driveId).join("-")}:${car?.lat ?? ""},${car?.lon ?? ""}`}
               tracks={orderedTracks}

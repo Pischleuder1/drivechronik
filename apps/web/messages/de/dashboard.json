@@ -70,5 +70,14 @@
     "reports": "Berichte",
     "insights": "Auswertungen",
     "settings": "Einstellungen"
+  },
+  "weekCharts": {
+    "distanceTitle": "Fahrleistung",
+    "consumptionTitle": "Energieverbrauch",
+    "thisWeek": "Diese Woche",
+    "distanceAria": "Fahrleistung der aktuellen Woche nach Wochentagen",
+    "consumptionAria": "Durchschnittlicher Energieverbrauch der aktuellen Woche nach Wochentagen",
+    "average": "Ø {value} kWh/100 km",
+    "noConsumption": "Noch keine Verbrauchsdaten"
   }
 }

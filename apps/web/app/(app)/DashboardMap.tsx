@@ -1,17 +1,23 @@
 "use client";
+
 import { useEffect, useRef } from "react";
+
 import L from "leaflet";
+
 import "leaflet/dist/leaflet.css";
+
 import type { DriveTrack } from "../../lib/dashboard";
 
 export interface DashboardMapProps {
   tracks: DriveTrack[];
+
   car: {
     lat: number;
     lon: number;
     displayName: string;
     placeName: string | null;
   } | null;
+
   onSelectDrive: (driveId: number) => void;
 }
 
@@ -24,27 +30,93 @@ function carIcon(): L.DivIcon {
   });
 }
 
-function endDotIcon(): L.DivIcon {
+const ROUTE_COLORS = [
+  "#dc2626", // 1 rot
+  "#2563eb", // 2 blau
+  "#171717", // 3 schwarz
+  "#737373", // 4 grau
+  "#7c3aed", // 5 violett
+];
+
+function routeColor(index: number): string {
+  return ROUTE_COLORS[index] ?? "#737373";
+}
+
+function routeNumberIcon(number: number, color: string): L.DivIcon {
   return L.divIcon({
     className: "",
-    html: '<span style="display:block;width:10px;height:10px;border-radius:9999px;background:#2563eb;border:2px solid white;box-shadow:0 0 0 1px rgba(0,0,0,0.4);"></span>',
-    iconSize: [10, 10],
-    iconAnchor: [5, 5],
+    html: `<span style="
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      width:22px;
+      height:22px;
+      border-radius:9999px;
+      background:${color};
+      color:white;
+      border:2px solid white;
+      box-shadow:0 1px 4px rgba(0,0,0,0.35);
+      font-size:11px;
+      font-weight:600;
+      line-height:1;
+    ">${number}</span>`,
+    iconSize: [22, 22],
+    iconAnchor: [11, 11],
   });
 }
 
+function endCircleIcon(color: string): L.DivIcon {
+  return L.divIcon({
+    className: "",
+    html: `<span style="
+      display:block;
+      width:12px;
+      height:12px;
+      border-radius:9999px;
+      background:${color};
+      border:2px solid white;
+      box-shadow:0 0 0 1px rgba(0,0,0,0.35);
+    "></span>`,
+    iconSize: [12, 12],
+    iconAnchor: [6, 6],
+  });
+}
+
+function startCircleIcon(color: string): L.DivIcon {
+  return L.divIcon({
+    className: "",
+    html: `<span style="
+      display:block;
+      width:12px;
+      height:12px;
+      border-radius:9999px;
+      background:white;
+      border:3px solid ${color};
+      box-shadow:0 0 0 1px rgba(0,0,0,0.25);
+    "></span>`,
+    iconSize: [12, 12],
+    iconAnchor: [6, 6],
+  });
+}
+
+function routeMidpoint(points: L.LatLngTuple[]): L.LatLngTuple {
+  return points[Math.floor((points.length - 1) / 2)]!;
+}
+
 const CAR_ICON = carIcon();
-const END_ICON = endDotIcon();
 
 /**
- * Hand-rolled Leaflet wrapper mirroring drives/[id]/DriveMap.tsx: no
- * react-leaflet, loaded via next/dynamic with ssr: false. Shows an overview
- * of the most recent drives' routes plus the car's current position.
+ * Dashboard overview of the five most recent drives.
  *
- * scrollWheelZoom stays off until the user clicks into the map, so page
- * scroll isn't hijacked while scrolling past the dashboard card.
+ * 1 = newest drive, then 2–5 in descending age.
+ * Each drive has its own color, a numbered marker on the route and
+ * a small same-colored circle at the real destination.
  */
-export function DashboardMap({ tracks, car, onSelectDrive }: DashboardMapProps) {
+export function DashboardMap({
+  tracks,
+  car,
+  onSelectDrive,
+}: DashboardMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
 
@@ -62,70 +134,146 @@ export function DashboardMap({ tracks, car, onSelectDrive }: DashboardMapProps) 
       attribution: "&copy; OpenStreetMap contributors",
     }).addTo(map);
 
-    // Most recent drive is first (caller sorts newest-first): draw the older
-    // ones first (muted) so the prominent newest polyline ends up on top.
     const bounds = L.latLngBounds([]);
+
+    // tracks kommen newest-first.
+    // Ältere zuerst zeichnen, damit die neueste Route oben liegt.
     const [newest, ...older] = tracks;
 
-    for (const track of older) {
-      const latLngs: L.LatLngTuple[] = track.points.map((p) => [p[0], p[1]]);
+    for (const [olderIndex, track] of older.entries()) {
+      const latLngs: L.LatLngTuple[] = track.points.map((p) => [
+        p[0],
+        p[1],
+      ]);
+
       if (latLngs.length < 2) continue;
+
+      // olderIndex 0 = Fahrt 2 = blau
+      const driveNumber = olderIndex + 2;
+      const color = routeColor(olderIndex + 1);
+
       const line = L.polyline(latLngs, {
-        color: "#a3a3a3", // neutral-400
+        color,
         weight: 3,
-        opacity: 0.5,
+        opacity: 0.9,
       }).addTo(map);
+
       line.on("click", () => onSelectDrive(track.driveId));
-      line.on("mouseover", () => line.setStyle({ opacity: 0.8 }));
-      line.on("mouseout", () => line.setStyle({ opacity: 0.5 }));
+      line.on("mouseover", () => line.setStyle({ opacity: 1 }));
+      line.on("mouseout", () => line.setStyle({ opacity: 0.9 }));
+
+      // Nummer auf der Route
+      const routeMarker = L.marker(routeMidpoint(latLngs), {
+        icon: routeNumberIcon(driveNumber, color),
+      }).addTo(map);
+
+      routeMarker.on("click", () => onSelectDrive(track.driveId));
+
+      // Start = hohler Kreis, Ziel = gefüllter Kreis
+      const start = latLngs[0]!;
+      const end = latLngs[latLngs.length - 1]!;
+
+      const startMarker = L.marker(start, {
+        icon: startCircleIcon(color),
+      }).addTo(map);
+
+      startMarker.on("click", () => onSelectDrive(track.driveId));
+
+      const endMarker = L.marker(end, {
+        icon: endCircleIcon(color),
+      }).addTo(map);
+
+      endMarker.on("click", () => onSelectDrive(track.driveId));
+
       bounds.extend(line.getBounds());
     }
 
     if (newest && newest.points.length >= 2) {
-      const latLngs: L.LatLngTuple[] = newest.points.map((p) => [p[0], p[1]]);
+      const latLngs: L.LatLngTuple[] = newest.points.map((p) => [
+        p[0],
+        p[1],
+      ]);
+
+      // Fahrt 1 = rot
+      const color = routeColor(0);
+
       const line = L.polyline(latLngs, {
-        color: "#2563eb", // blue-600
+        color,
         weight: 4,
-        opacity: 0.9,
+        opacity: 0.95,
       }).addTo(map);
+
       line.on("click", () => onSelectDrive(newest.driveId));
-      L.marker(latLngs[latLngs.length - 1], { icon: END_ICON }).addTo(map);
+
+      // Nummer auf der Route
+      const routeMarker = L.marker(routeMidpoint(latLngs), {
+        icon: routeNumberIcon(1, color),
+      }).addTo(map);
+
+      routeMarker.on("click", () => onSelectDrive(newest.driveId));
+
+      // Start = hohler Kreis, Ziel = gefüllter Kreis
+      const start = latLngs[0]!;
+      const end = latLngs[latLngs.length - 1]!;
+
+      const startMarker = L.marker(start, {
+        icon: startCircleIcon(color),
+      }).addTo(map);
+
+      startMarker.on("click", () => onSelectDrive(newest.driveId));
+
+      const endMarker = L.marker(end, {
+        icon: endCircleIcon(color),
+      }).addTo(map);
+
+      endMarker.on("click", () => onSelectDrive(newest.driveId));
+
       bounds.extend(line.getBounds());
     }
 
     if (car) {
-      const marker = L.marker([car.lat, car.lon], { icon: CAR_ICON }).addTo(map);
-      const label = car.placeName ? `${car.displayName} · ${car.placeName}` : car.displayName;
+      const marker = L.marker([car.lat, car.lon], {
+        icon: CAR_ICON,
+      }).addTo(map);
+
+      const label = car.placeName
+        ? `${car.displayName} · ${car.placeName}`
+        : car.displayName;
+
       marker.bindTooltip(label);
       bounds.extend([car.lat, car.lon]);
     }
 
     const fit = () => {
       map.invalidateSize();
+
       if (bounds.isValid()) {
-        map.fitBounds(bounds, { padding: [24, 24] });
+        map.fitBounds(bounds, {
+          padding: [24, 24],
+        });
       } else {
         map.setView([47.3769, 8.5417], 12);
       }
     };
+
     fit();
 
-    // Das Dashboard streamt sein Layout — beim Map-Init kann der Container
-    // noch 0 Höhe haben, dann rechnet fitBounds auf degenerierter Größe und
-    // klemmt auf Max-Zoom. Nach dem ersten echten Layout einmal nachziehen,
-    // danach abmelden (sonst würde jedes Fenster-Resize Pan/Zoom resetten).
     const ro = new ResizeObserver(() => {
       const el = containerRef.current;
+
       if (el && el.clientHeight > 0) {
         fit();
         ro.disconnect();
       }
     });
-    if (containerRef.current) ro.observe(containerRef.current);
 
-    // Enable scroll-to-zoom only once the user has clicked into the map,
-    // otherwise a page-scroll gesture over the map hijacks the scroll.
-    map.on("click", () => map.scrollWheelZoom.enable());
+    if (containerRef.current) {
+      ro.observe(containerRef.current);
+    }
+
+    map.on("click", () => {
+      map.scrollWheelZoom.enable();
+    });
 
     mapRef.current = map;
 
@@ -134,6 +282,8 @@ export function DashboardMap({ tracks, car, onSelectDrive }: DashboardMapProps) 
       map.remove();
       mapRef.current = null;
     };
+
+    // Leaflet wird für diesen Daten-Fingerprint neu gemountet.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

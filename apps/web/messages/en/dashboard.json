@@ -70,5 +70,14 @@
     "reports": "Reports",
     "insights": "Insights",
     "settings": "Settings"
+  },
+  "weekCharts": {
+    "distanceTitle": "Distance driven",
+    "consumptionTitle": "Energy consumption",
+    "thisWeek": "This week",
+    "distanceAria": "Distance driven during the current week by weekday",
+    "consumptionAria": "Average energy consumption during the current week by weekday",
+    "average": "Avg. {value} kWh/100 km",
+    "noConsumption": "No consumption data yet"
   }
 }

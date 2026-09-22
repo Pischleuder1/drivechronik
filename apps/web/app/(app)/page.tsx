@@ -9,6 +9,7 @@ import {
   getWeekStats,
   getLastCharge,
   getUnclassifiedCount,
+  getDashboardWeekSeries,
 } from "../../lib/dashboard";
 import { getCurrentWeather, type WeatherResult } from "../../lib/weather";
 import { getDefaultVehicleId } from "../../lib/search";
@@ -17,6 +18,7 @@ import { DashboardHero } from "./DashboardHero";
 import { QuickAccessCard } from "./QuickAccessCard";
 import { WeatherCard } from "./WeatherCard";
 import { RecentDrivesCard } from "./RecentDrivesCard";
+import { DashboardWeekCharts } from "./DashboardWeekCharts";
 import { StatsRow } from "./StatsRow";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { Button } from "../../components/ui/Button";
@@ -115,6 +117,8 @@ export default async function DashboardPage() {
       getUnclassifiedCount(vehicleId),
     ]);
 
+  const weekSeries = await getDashboardWeekSeries(vehicleId);
+
   const driveTracks = await getRecentDriveTracks(recentDrives.map((d) => d.id));
   const car =
     status?.lat != null && status.lon != null
@@ -132,10 +136,10 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <DashboardHero />
 
-      <div className="grid gap-5 lg:grid-cols-12 lg:items-stretch">
+      <div className="grid gap-4 lg:grid-cols-12 lg:items-stretch">
         <div className="lg:col-span-8">
           {status ? (
             <VehicleCard
@@ -159,12 +163,12 @@ export default async function DashboardPage() {
         unclassifiedCount={unclassifiedCount}
       />
 
-      <div className="grid gap-5 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2">
         <WeatherCard weather={weather} />
 
-        <section className="h-full rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+        <section className="h-full rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
           <div className="flex h-full items-center gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 dark:bg-blue-950/35 dark:text-blue-300">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 dark:bg-blue-950/35 dark:text-blue-300">
               <Gauge aria-hidden size={22} strokeWidth={1.8} />
             </div>
 
@@ -173,7 +177,7 @@ export default async function DashboardPage() {
                 {t("mileage.title")}
               </p>
 
-              <p className="mt-1 text-3xl font-semibold tracking-tight tabular-nums text-neutral-950 dark:text-neutral-50 sm:text-4xl">
+              <p className="mt-1 text-lg font-semibold tracking-tight tabular-nums text-neutral-950 dark:text-neutral-50 sm:text-xl">
                 {status?.odometerKm != null
                   ? formatOdometer(status.odometerKm)
                   : t("vehicleCard.odometerUnknown")}
@@ -192,6 +196,8 @@ export default async function DashboardPage() {
         tracks={driveTracks}
         car={car}
       />
+
+      <DashboardWeekCharts data={weekSeries} />
     </div>
   );
 }

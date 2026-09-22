@@ -21,19 +21,19 @@ export async function QuickAccessCard() {
   ];
 
   return (
-    <section className="h-full rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+    <section className="h-full rounded-2xl border border-neutral-200 bg-white p-3.5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
       <h2 className="px-1 text-sm font-semibold text-neutral-900 dark:text-neutral-100">
         {t("title")}
       </h2>
 
-      <div className="mt-3 grid gap-2">
+      <div className="mt-2.5 grid gap-1.5">
         {items.map(({ href, label, icon: Icon }) => (
           <Link
             key={href}
             href={href}
-            className="group flex items-center gap-3 rounded-xl bg-neutral-50 px-3 py-2.5 transition-colors hover:bg-neutral-100 dark:bg-neutral-800/55 dark:hover:bg-neutral-800"
+            className="group flex items-center gap-3 rounded-xl bg-neutral-50 px-3 py-2 transition-colors hover:bg-neutral-100 dark:bg-neutral-800/55 dark:hover:bg-neutral-800"
           >
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-neutral-500 shadow-sm ring-1 ring-neutral-200 group-hover:text-blue-600 dark:bg-neutral-900 dark:text-neutral-400 dark:ring-neutral-700">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white text-neutral-500 shadow-sm ring-1 ring-neutral-200 group-hover:text-blue-600 dark:bg-neutral-900 dark:text-neutral-400 dark:ring-neutral-700">
               <Icon aria-hidden size={16} strokeWidth={1.8} />
             </span>
 

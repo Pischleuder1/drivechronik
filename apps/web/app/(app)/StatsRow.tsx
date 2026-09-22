@@ -34,10 +34,10 @@ export async function StatsRow({
   ]);
 
   const base =
-    "rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900";
+    "rounded-2xl border border-neutral-200 bg-white p-3.5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900";
 
   const icon =
-    "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/35 dark:text-blue-300";
+    "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/35 dark:text-blue-300";
 
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -50,7 +50,7 @@ export async function StatsRow({
             <p className="text-xs text-neutral-500 dark:text-neutral-400">
               {t("stats.today")}
             </p>
-            <p className="mt-1 text-xl font-semibold tabular-nums">
+            <p className="mt-0.5 text-lg font-semibold tabular-nums">
               {formatKm(today.distanceKm)}
             </p>
             <p className="mt-0.5 text-xs text-neutral-400">
@@ -69,7 +69,7 @@ export async function StatsRow({
             <p className="text-xs text-neutral-500 dark:text-neutral-400">
               {t("stats.thisWeek")}
             </p>
-            <p className="mt-1 text-xl font-semibold tabular-nums">
+            <p className="mt-0.5 text-lg font-semibold tabular-nums">
               {formatKm(week.distanceKm)}
             </p>
             <p className="mt-0.5 text-xs text-neutral-400">
@@ -88,7 +88,7 @@ export async function StatsRow({
             <p className="text-xs text-neutral-500 dark:text-neutral-400">
               {t("stats.lastCharge")}
             </p>
-            <p className="mt-1 text-xl font-semibold tabular-nums">
+            <p className="mt-0.5 text-lg font-semibold tabular-nums">
               {lastCharge?.energyAddedKwh != null
                 ? formatKwh(lastCharge.energyAddedKwh, { sign: true })
                 : tCommon("state.none")}
@@ -121,7 +121,7 @@ export async function StatsRow({
           <div
             className={
               unclassifiedCount.live > 0
-                ? "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-300"
+                ? "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-300"
                 : icon
             }
           >
@@ -132,7 +132,7 @@ export async function StatsRow({
             <p className="text-xs text-neutral-500 dark:text-neutral-400">
               {t("stats.unclassified")}
             </p>
-            <p className="mt-1 text-xl font-semibold tabular-nums">
+            <p className="mt-0.5 text-lg font-semibold tabular-nums">
               {unclassifiedCount.live}
             </p>
 

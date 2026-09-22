@@ -53,5 +53,18 @@
   "mileage": {
     "title": "Gesamtkilometer",
     "subtitle": "Kilometerstand des Fahrzeugs"
+  },
+  "hero": {
+    "eyebrow": "Willkommen zurück",
+    "title": "Schön, dass du wieder da bist!",
+    "subtitle": "Hier ist die aktuelle Übersicht zu deinem Fahrzeug und deinen Fahrten."
+  },
+  "quickAccess": {
+    "title": "Schnellzugriff",
+    "planner": "Routenplaner",
+    "charges": "Ladevorgänge",
+    "reports": "Berichte",
+    "insights": "Auswertungen",
+    "settings": "Einstellungen"
   }
 }

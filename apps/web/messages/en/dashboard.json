@@ -53,5 +53,18 @@
   "mileage": {
     "title": "Total mileage",
     "subtitle": "Vehicle odometer"
+  },
+  "hero": {
+    "eyebrow": "Welcome back",
+    "title": "Good to see you again!",
+    "subtitle": "Here is the latest overview of your vehicle and drives."
+  },
+  "quickAccess": {
+    "title": "Quick access",
+    "planner": "Route planner",
+    "charges": "Charging",
+    "reports": "Reports",
+    "insights": "Insights",
+    "settings": "Settings"
   }
 }

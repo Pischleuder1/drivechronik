@@ -13,6 +13,8 @@ import {
 import { getCurrentWeather, type WeatherResult } from "../../lib/weather";
 import { getDefaultVehicleId } from "../../lib/search";
 import { VehicleCard } from "./VehicleCard";
+import { DashboardHero } from "./DashboardHero";
+import { QuickAccessCard } from "./QuickAccessCard";
 import { WeatherCard } from "./WeatherCard";
 import { RecentDrivesCard } from "./RecentDrivesCard";
 import { StatsRow } from "./StatsRow";
@@ -131,16 +133,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-5">
-      <header className="flex flex-col gap-1 px-1 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50 sm:text-3xl">
-            {t("title")}
-          </h1>
-          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-            {t("subtitle")}
-          </p>
-        </div>
-      </header>
+      <DashboardHero />
 
       <div className="grid gap-5 lg:grid-cols-12 lg:items-stretch">
         <div className="lg:col-span-8">
@@ -155,14 +148,16 @@ export default async function DashboardPage() {
         </div>
 
         <div className="lg:col-span-4">
-          <StatsRow
-            today={today}
-            week={week}
-            lastCharge={lastCharge}
-            unclassifiedCount={unclassifiedCount}
-          />
+          <QuickAccessCard />
         </div>
       </div>
+
+      <StatsRow
+        today={today}
+        week={week}
+        lastCharge={lastCharge}
+        unclassifiedCount={unclassifiedCount}
+      />
 
       <div className="grid gap-5 md:grid-cols-2">
         <WeatherCard weather={weather} />
@@ -192,7 +187,11 @@ export default async function DashboardPage() {
         </section>
       </div>
 
-      <RecentDrivesCard drives={recentDrives} tracks={driveTracks} car={car} />
+      <RecentDrivesCard
+        drives={recentDrives}
+        tracks={driveTracks}
+        car={car}
+      />
     </div>
   );
 }

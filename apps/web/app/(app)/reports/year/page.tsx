@@ -24,6 +24,7 @@ import { getVehicles } from "../../../../lib/queries";
 export const dynamic = "force-dynamic";
 
 const BUSINESS_ONLY: Classification[] = ["business"];
+const PRIVATE_ONLY: Classification[] = ["private"];
 
 const ALL_CLASSIFICATIONS: Classification[] = [
   "business",
@@ -52,13 +53,20 @@ export default async function BusinessYearReportPage({
       ? sp.year
       : currentYearInAppTz();
 
-  const businessOnly =
-    sp.classification == null ||
-    sp.classification === "business";
+  const scope: "business" | "private" | "all" =
+    sp.classification === "private"
+      ? "private"
+      : sp.classification == null ||
+          sp.classification === "business"
+        ? "business"
+        : "all";
 
-  const selected = businessOnly
-    ? BUSINESS_ONLY
-    : ALL_CLASSIFICATIONS;
+  const selected =
+    scope === "business"
+      ? BUSINESS_ONLY
+      : scope === "private"
+        ? PRIVATE_ONLY
+        : ALL_CLASSIFICATIONS;
 
   const classificationQuery = selected.join(",");
 
@@ -78,12 +86,25 @@ export default async function BusinessYearReportPage({
         <PageHeader
           visual="document"
           className="mt-4"
-          title={t(businessOnly ? "year.title" : "year.allTitle", { year })}
-          subtitle={t(businessOnly ? "year.subtitle" : "year.allSubtitle")}
+          title={t(
+            scope === "business"
+              ? "year.title"
+              : scope === "private"
+                ? "year.privateTitle"
+                : "year.allTitle",
+            { year },
+          )}
+          subtitle={t(
+            scope === "business"
+              ? "year.subtitle"
+              : scope === "private"
+                ? "year.privateSubtitle"
+                : "year.allSubtitle",
+          )}
         />
 
         <Panel className="mt-4" padding="sm">
-          <YearReportFilters year={year} businessOnly={businessOnly} />
+          <YearReportFilters year={year} scope={scope} />
         </Panel>
 
         <div className="mt-6">
@@ -133,12 +154,25 @@ export default async function BusinessYearReportPage({
       <PageHeader
         visual="document"
         className="mt-4"
-        title={t(businessOnly ? "year.title" : "year.allTitle", { year })}
-        subtitle={t(businessOnly ? "year.subtitle" : "year.allSubtitle")}
+        title={t(
+            scope === "business"
+              ? "year.title"
+              : scope === "private"
+                ? "year.privateTitle"
+                : "year.allTitle",
+            { year },
+          )}
+        subtitle={t(
+            scope === "business"
+              ? "year.subtitle"
+              : scope === "private"
+                ? "year.privateSubtitle"
+                : "year.allSubtitle",
+          )}
       />
 
       <Panel className="mt-4" padding="sm">
-        <YearReportFilters year={year} businessOnly={businessOnly} />
+        <YearReportFilters year={year} scope={scope} />
       </Panel>
 
       <div className="mt-4 flex gap-1.5">
@@ -159,12 +193,20 @@ export default async function BusinessYearReportPage({
         </a>
       </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <StatCard
-          label={t(businessOnly ? "year.totalDistance" : "year.allTotalDistance")}
+          className="p-3"
+          valueClassName="mt-0.5 text-base font-semibold tracking-tight tabular-nums"
+          label={t(
+            scope === "business"
+              ? "year.totalDistance"
+              : scope === "private"
+                ? "year.privateTotalDistance"
+                : "year.allTotalDistance",
+          )}
           value={formatKm(report.totals.distanceKm)}
           tone="blue"
-          icon={<Route aria-hidden size={18} />}
+          icon={<Route className="h-4 w-4" />}
           footer={
             <p className="text-xs text-neutral-500 dark:text-neutral-400">
               {t("driveCountLabel", { count: report.totals.driveCount })}
@@ -173,30 +215,40 @@ export default async function BusinessYearReportPage({
         />
 
         <StatCard
+          className="p-3"
+          valueClassName="mt-0.5 text-base font-semibold tracking-tight tabular-nums"
           label={t("year.rate")}
           value={
             <>
               {rate}
-              <span className="ml-1 text-sm font-normal text-neutral-500 dark:text-neutral-400">
+              <span className="ml-1 text-xs font-normal text-neutral-500 dark:text-neutral-400">
                 / km
               </span>
             </>
           }
           tone="amber"
-          icon={<Gauge aria-hidden size={18} />}
+          icon={<Gauge className="h-4 w-4" />}
         />
 
         <StatCard
+          className="p-3"
+          valueClassName="mt-0.5 text-base font-semibold tracking-tight tabular-nums"
           label={t("year.totalAmount")}
           value={currency.format(report.totals.amountEur)}
           tone="emerald"
-          icon={<ReceiptText aria-hidden size={18} />}
+          icon={<ReceiptText className="h-4 w-4" />}
         />
       </div>
 
       {report.incomplete && (
         <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
-          {t(businessOnly ? "year.incomplete" : "year.allIncomplete")}
+          {t(
+            scope === "business"
+              ? "year.incomplete"
+              : scope === "private"
+                ? "year.privateIncomplete"
+                : "year.allIncomplete",
+          )}
         </p>
       )}
 
@@ -209,7 +261,13 @@ export default async function BusinessYearReportPage({
                 {t("year.table.drives")}
               </th>
               <th className="px-4 py-3 text-right">
-                {t(businessOnly ? "year.table.distance" : "year.table.allDistance")}
+                {t(
+                  scope === "business"
+                    ? "year.table.distance"
+                    : scope === "private"
+                      ? "year.table.privateDistance"
+                      : "year.table.allDistance",
+                )}
               </th>
               <th className="px-4 py-3 text-right">
                 {t("year.table.amount")}

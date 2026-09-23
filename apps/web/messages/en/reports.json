@@ -19,7 +19,8 @@
     "nextMonth": "Next month",
     "selectMonth": "Select month",
     "businessOnly": "Business drives",
-    "allDrives": "All drives"
+    "allDrives": "All drives",
+    "privateOnly": "Private"
   },
   "reimbursement": {
     "title": "Mileage reimbursement",
@@ -46,12 +47,17 @@
       "drives": "Drives",
       "distance": "Business km",
       "amount": "Reimbursement",
-      "allDistance": "Mileage"
+      "allDistance": "Mileage",
+      "privateDistance": "Private km"
     },
     "allTitle": "All drives {year}",
     "allSubtitle": "Annual overview of all drives. Mileage reimbursement is calculated only for business drives.",
     "allTotalDistance": "Total mileage",
-    "allIncomplete": "At least one drive is missing distance data. Total mileage may therefore be incomplete."
+    "allIncomplete": "At least one drive is missing distance data. Total mileage may therefore be incomplete.",
+    "privateTitle": "Private drives {year}",
+    "privateSubtitle": "Annual overview of private drives.",
+    "privateTotalDistance": "Private mileage",
+    "privateIncomplete": "At least one private drive is missing distance data. Mileage may therefore be incomplete."
   },
   "monthSeal": {
     "title": "Monthly seal",

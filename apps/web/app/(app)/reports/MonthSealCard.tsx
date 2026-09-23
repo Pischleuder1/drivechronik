@@ -26,12 +26,14 @@ export function MonthSealCard({
   status,
   history,
   canSeal,
+  embedded = false,
 }: {
   month: string;
   vehicleId: number;
   status: MonthSealStatus;
   history: MonthSealHistoryEntry[];
   canSeal: boolean;
+  embedded?: boolean;
 }) {
   const t = useTranslations("reports.monthSeal");
   const locale = useLocale();
@@ -59,22 +61,28 @@ export function MonthSealCard({
         : t("unsealed");
 
   return (
-    <div className="mt-6 rounded-3xl border border-neutral-200/80 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+    <div
+      className={
+        embedded
+          ? "w-full"
+          : "rounded-2xl border border-neutral-200/80 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
+      }
+    >
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <div className="flex items-center gap-3">
-            <IconBadge tone={statusTone} size="sm">
-              <CalendarCheck className="h-4 w-4" />
-            </IconBadge>
-            <div>
-              <p className="text-sm font-semibold">
+            {!embedded && (
+              <IconBadge tone={statusTone} size="sm">
+                <CalendarCheck className="h-4 w-4" />
+              </IconBadge>
+            )}
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
                 {t("title")}
               </p>
-              <div className="mt-1.5">
-                <StatusBadge tone={statusTone}>
-                  {statusLabel}
-                </StatusBadge>
-              </div>
+              <StatusBadge tone={statusTone}>
+                {statusLabel}
+              </StatusBadge>
             </div>
           </div>
 
@@ -96,7 +104,7 @@ export function MonthSealCard({
           {isSealed &&
             status.revision != null &&
             !status.hasSnapshot && (
-              <p className="mt-3 text-xs text-neutral-500 dark:text-neutral-400">
+              <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
                 {t("noHistoricPdf")}
               </p>
             )}
@@ -114,7 +122,13 @@ export function MonthSealCard({
             <button
               type="submit"
               disabled={!canSeal || pending}
-              className={buttonClasses("primary", "md", "!h-9 disabled:cursor-not-allowed")}
+              className={buttonClasses(
+                "primary",
+                embedded ? "sm" : "md",
+                embedded
+                  ? "!h-8 min-w-[150px] justify-center disabled:cursor-not-allowed"
+                  : "!h-9 disabled:cursor-not-allowed",
+              )}
             >
               {pending
                 ? t("sealing")
@@ -127,7 +141,7 @@ export function MonthSealCard({
       </div>
 
       {history.length > 0 && (
-        <div className="mt-5 border-t border-neutral-200 pt-4 dark:border-neutral-800">
+        <div className="mt-4 border-t border-neutral-200 pt-3 dark:border-neutral-800">
           <div className="flex items-center gap-2">
             <History className="h-4 w-4 text-violet-500" />
             <p className="text-sm font-semibold">
@@ -219,7 +233,9 @@ export function MonthSealCard({
       )}
 
       {!canSeal && (
-        <p className="mt-3 text-xs text-neutral-500 dark:text-neutral-400">
+        <p className={embedded
+          ? "mt-2 text-xs text-neutral-400 dark:text-neutral-500"
+          : "mt-3 text-xs text-neutral-500 dark:text-neutral-400"}>
           {t("cannotSeal")}
         </p>
       )}

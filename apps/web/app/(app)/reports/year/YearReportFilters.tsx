@@ -6,35 +6,39 @@ import {
   CarFront,
   ChevronLeft,
   ChevronRight,
+  List,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { buttonClasses } from "../../../../components/ui/Button";
 
+type ReportScope = "business" | "private" | "all";
+
 const ALL_CLASSIFICATIONS =
   "business,private,commute,unclassified";
 
+function classificationForScope(scope: ReportScope): string {
+  if (scope === "business") return "business";
+  if (scope === "private") return "private";
+  return ALL_CLASSIFICATIONS;
+}
+
 export function YearReportFilters({
   year,
-  businessOnly,
+  scope,
 }: {
   year: string;
-  businessOnly: boolean;
+  scope: ReportScope;
 }) {
   const router = useRouter();
   const t = useTranslations("reports");
-
   const numericYear = Number(year);
 
   function goTo(
     nextYear: number,
-    nextBusinessOnly = businessOnly,
+    nextScope: ReportScope = scope,
   ) {
-    const classification = nextBusinessOnly
-      ? "business"
-      : ALL_CLASSIFICATIONS;
-
     router.push(
-      `/reports/year?year=${nextYear}&classification=${classification}`,
+      `/reports/year?year=${nextYear}&classification=${classificationForScope(nextScope)}`,
     );
   }
 
@@ -43,10 +47,10 @@ export function YearReportFilters({
       <div className="inline-flex rounded-xl border border-neutral-200 bg-neutral-50 p-1 dark:border-neutral-700 dark:bg-neutral-950">
         <button
           type="button"
-          aria-pressed={businessOnly}
-          onClick={() => goTo(numericYear, true)}
+          aria-pressed={scope === "business"}
+          onClick={() => goTo(numericYear, "business")}
           className={`inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition ${
-            businessOnly
+            scope === "business"
               ? "bg-blue-600 text-white shadow-sm"
               : "text-neutral-600 hover:bg-white hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
           }`}
@@ -57,15 +61,29 @@ export function YearReportFilters({
 
         <button
           type="button"
-          aria-pressed={!businessOnly}
-          onClick={() => goTo(numericYear, false)}
+          aria-pressed={scope === "private"}
+          onClick={() => goTo(numericYear, "private")}
           className={`inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition ${
-            !businessOnly
-              ? "bg-violet-600 text-white shadow-sm"
+            scope === "private"
+              ? "bg-emerald-600 text-white shadow-sm"
               : "text-neutral-600 hover:bg-white hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
           }`}
         >
           <CarFront aria-hidden size={15} />
+          {t("filters.privateOnly")}
+        </button>
+
+        <button
+          type="button"
+          aria-pressed={scope === "all"}
+          onClick={() => goTo(numericYear, "all")}
+          className={`inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+            scope === "all"
+              ? "bg-violet-600 text-white shadow-sm"
+              : "text-neutral-600 hover:bg-white hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
+          }`}
+        >
+          <List aria-hidden size={15} />
           {t("filters.allDrives")}
         </button>
       </div>

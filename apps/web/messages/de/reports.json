@@ -19,7 +19,8 @@
     "nextMonth": "Nächster Monat",
     "selectMonth": "Monat wählen",
     "businessOnly": "Dienstfahrten",
-    "allDrives": "Alle Fahrten"
+    "allDrives": "Alle Fahrten",
+    "privateOnly": "Privat"
   },
   "reimbursement": {
     "title": "Kilometererstattung",
@@ -46,12 +47,17 @@
       "drives": "Fahrten",
       "distance": "Geschäftliche km",
       "amount": "Erstattung",
-      "allDistance": "Kilometer"
+      "allDistance": "Kilometer",
+      "privateDistance": "Private km"
     },
     "allTitle": "Alle Fahrten {year}",
     "allSubtitle": "Jahresübersicht aller Fahrten. Die Kilometererstattung wird nur für geschäftliche Fahrten berechnet.",
     "allTotalDistance": "Gesamtkilometer",
-    "allIncomplete": "Mindestens einer Fahrt fehlen Distanzdaten. Die Gesamtkilometer können daher unvollständig sein."
+    "allIncomplete": "Mindestens einer Fahrt fehlen Distanzdaten. Die Gesamtkilometer können daher unvollständig sein.",
+    "privateTitle": "Private Fahrten {year}",
+    "privateSubtitle": "Jahresübersicht der privaten Fahrten.",
+    "privateTotalDistance": "Private Kilometer",
+    "privateIncomplete": "Mindestens einer privaten Fahrt fehlen Distanzdaten. Die Kilometer können daher unvollständig sein."
   },
   "monthSeal": {
     "title": "Monatsabschluss",

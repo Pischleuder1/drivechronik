@@ -21,7 +21,6 @@ import { isValidMonthParam } from "../../../lib/exports/params";
 import { todayInAppTz } from "../../../lib/day";
 import { buttonClasses } from "../../../components/ui/Button";
 import { PageHeader } from "../../../components/ui/PageHeader";
-import { IconBadge } from "../../../components/ui/IconBadge";
 import { Panel } from "../../../components/ui/Panel";
 import { StatCard } from "../../../components/ui/StatCard";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
@@ -75,9 +74,15 @@ function parseSelected(raw: string | undefined): Classification[] {
     .filter((s): s is Classification =>
       ALL_CLASSIFICATIONS.includes(s as Classification),
     );
-  return parts.length === 1 && parts[0] === "business"
-    ? DEFAULT_CLASSIFICATIONS
-    : ALL_CLASSIFICATIONS;
+  if (parts.length === 1 && parts[0] === "business") {
+    return DEFAULT_CLASSIFICATIONS;
+  }
+
+  if (parts.length === 1 && parts[0] === "private") {
+    return ["private"];
+  }
+
+  return ALL_CLASSIFICATIONS;
 }
 
 function formatDateCell(dateStr: string): string {
@@ -157,60 +162,65 @@ export default async function ReportsPage({
       />
 
       <Panel className="mt-4" padding="sm">
-        <ReportFilters month={month} selected={selected} />
+        <div className="space-y-3">
+          <ReportFilters month={month} selected={selected} />
+
+          <div className="border-t border-neutral-100 pt-3 dark:border-neutral-800">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap gap-1.5">
+                <a
+                  href={`/api/export/month/${month}${exportQuery}&format=csv`}
+                  className={buttonClasses("ghost", "sm")}
+                >
+                  <Download aria-hidden size={14} />
+                  {t("exportCsv")}
+                </a>
+
+                <a
+                  href={`/api/export/month/${month}${exportQuery}&format=pdf`}
+                  className={buttonClasses("ghost", "sm")}
+                >
+                  <Download aria-hidden size={14} />
+                  {t("exportPdf")}
+                </a>
+              </div>
+
+              <Link
+                href={`/reports/year?year=${month.slice(0, 4)}&classification=${selected.join(",")}`}
+                className={buttonClasses(
+                "secondary",
+                "sm",
+                "!h-8 min-w-[150px] justify-center",
+              )}
+              >
+                <CalendarRange aria-hidden size={14} />
+                {t("year.open")}
+              </Link>
+            </div>
+
+            <div className="mt-3 border-t border-neutral-100 pt-3 dark:border-neutral-800">
+              <MonthSealCard
+                month={month}
+                vehicleId={data.meta.vehicleId}
+                status={monthSealStatus}
+                history={monthSealHistory}
+                canSeal={canSeal}
+                embedded
+              />
+            </div>
+          </div>
+        </div>
       </Panel>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap gap-1.5">
-          <a
-            href={`/api/export/month/${month}${exportQuery}&format=csv`}
-            className={buttonClasses("ghost", "sm")}
-          >
-            <Download aria-hidden size={14} />
-            {t("exportCsv")}
-          </a>
 
-          <a
-            href={`/api/export/month/${month}${exportQuery}&format=pdf`}
-            className={buttonClasses("ghost", "sm")}
-          >
-            <Download aria-hidden size={14} />
-            {t("exportPdf")}
-          </a>
-        </div>
-
-        <Link
-          href={`/reports/year?year=${month.slice(0, 4)}&classification=${selected.join(",")}`}
-          className={buttonClasses(
-            "secondary",
-            "sm",
-            "!border-red-600 !bg-red-600 !text-white hover:!border-red-700 hover:!bg-red-700 dark:!border-red-500 dark:!bg-red-600 dark:!text-white dark:hover:!border-red-500 dark:hover:!bg-red-500",
-          )}
-        >
-          <CalendarRange aria-hidden size={14} />
-          {t("year.open")}
-        </Link>
-      </div>
-
-      <MonthSealCard
-        month={month}
-        vehicleId={data.meta.vehicleId}
-        status={monthSealStatus}
-        history={monthSealHistory}
-        canSeal={canSeal}
-      />
-
-      <div
-        className={`mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 ${
-          selected.length === 1 ? "" : "lg:grid-cols-5"
-        }`}
-      >
+      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {ALL_CLASSIFICATIONS.filter((c) => selected.includes(c)).map((c) => {
           const bucket = report.byClassification[c];
 
           return (
             <StatCard
-              valueClassName="mt-1 text-base font-semibold tabular-nums"
+              className="p-3"
+              valueClassName="mt-0.5 text-base font-semibold tracking-tight tabular-nums"
               key={c}
               label={tc(`classification.${c}`)}
               value={formatKm(bucket.distanceKm)}
@@ -237,7 +247,7 @@ export default async function ReportsPage({
 
         <StatCard
 
-          valueClassName="mt-1 text-base font-semibold tabular-nums"
+          valueClassName="mt-0.5 text-base font-semibold tracking-tight tabular-nums"
           label={t("total")}
           value={formatKm(report.totals.distanceKm)}
           tone="violet"
@@ -248,58 +258,47 @@ export default async function ReportsPage({
             </p>
           }
         />
-      </div>
-
-      {report.businessReimbursement.applicable && (
-        <div className="mt-4 rounded-3xl border border-neutral-200/80 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <div className="flex items-start gap-3">
-              <IconBadge tone="emerald" size="sm">
-                <Euro className="h-4 w-4" />
-              </IconBadge>
+        {report.businessReimbursement.applicable && (
+          <StatCard
+            className="p-3"
+            valueClassName="mt-0.5 text-base font-semibold tracking-tight tabular-nums"
+            label={t("reimbursement.title")}
+            value={new Intl.NumberFormat(locale, {
+              style: "currency",
+              currency: "EUR",
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }).format(report.businessReimbursement.amountEur)}
+            tone="emerald"
+            icon={<Euro className="h-4 w-4" />}
+            footer={
               <div>
-                <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
-                  {t("reimbursement.title")}
+                <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                  {t("reimbursement.formula", {
+                    km: new Intl.NumberFormat(locale, {
+                      minimumFractionDigits: 1,
+                      maximumFractionDigits: 1,
+                    }).format(report.businessReimbursement.distanceKm),
+                    rate: new Intl.NumberFormat(locale, {
+                      style: "currency",
+                      currency: "EUR",
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    }).format(report.businessReimbursement.rateEurPerKm),
+                  })}
                 </p>
-              <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-                {t("reimbursement.formula", {
-                  km: new Intl.NumberFormat(locale, {
-                    minimumFractionDigits: 1,
-                    maximumFractionDigits: 1,
-                  }).format(report.businessReimbursement.distanceKm),
-                  rate: new Intl.NumberFormat(locale, {
-                    style: "currency",
-                    currency: "EUR",
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  }).format(report.businessReimbursement.rateEurPerKm),
-                })}
-              </p>
-            </div>
 
-            </div>
-            <div className="text-right">
-              <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                {t("reimbursement.amount")}
-              </p>
-              <p className="mt-1 text-base font-semibold tracking-tight tabular-nums">
-                {new Intl.NumberFormat(locale, {
-                  style: "currency",
-                  currency: "EUR",
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                }).format(report.businessReimbursement.amountEur)}
-              </p>
-            </div>
-          </div>
+                {report.businessReimbursement.incomplete && (
+                  <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">
+                    {t("reimbursement.incomplete")}
+                  </p>
+                )}
+              </div>
+            }
+          />
+        )}
 
-          {report.businessReimbursement.incomplete && (
-            <p className="mt-3 text-xs text-amber-700 dark:text-amber-300">
-              {t("reimbursement.incomplete")}
-            </p>
-          )}
-        </div>
-      )}
+      </div>
 
       {report.hasIncompleteData && (
         <p className="mt-3 text-xs text-neutral-500 dark:text-neutral-400">
@@ -307,7 +306,7 @@ export default async function ReportsPage({
         </p>
       )}
 
-      <div className="mt-6 overflow-x-auto rounded-3xl border border-neutral-200/80 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+      <div className="mt-4 overflow-x-auto rounded-3xl border border-neutral-200/80 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
         <table className="w-full text-sm">
           <thead className="border-b border-neutral-200 bg-neutral-50 text-left text-xs font-semibold text-neutral-500 dark:border-neutral-800 dark:bg-neutral-800/60 dark:text-neutral-400">
             <tr>

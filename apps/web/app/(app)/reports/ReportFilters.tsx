@@ -6,12 +6,14 @@ import {
   CarFront,
   ChevronLeft,
   ChevronRight,
+  List,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { Classification } from "@drivechronik/core";
 import { buttonClasses } from "../../../components/ui/Button";
 
 const BUSINESS_ONLY: Classification[] = ["business"];
+const PRIVATE_ONLY: Classification[] = ["private"];
 
 const ALL_DRIVES: Classification[] = [
   "business",
@@ -47,7 +49,16 @@ export function ReportFilters({
   const businessOnly =
     selected.length === 1 && selected[0] === "business";
 
-  const effectiveSelected = businessOnly ? BUSINESS_ONLY : ALL_DRIVES;
+  const privateOnly =
+    selected.length === 1 && selected[0] === "private";
+
+  const allDrives = !businessOnly && !privateOnly;
+
+  const effectiveSelected = businessOnly
+    ? BUSINESS_ONLY
+    : privateOnly
+      ? PRIVATE_ONLY
+      : ALL_DRIVES;
 
   function goTo(
     nextMonth: string,
@@ -58,9 +69,7 @@ export function ReportFilters({
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-4">
-
       <div className="inline-flex rounded-xl border border-neutral-200 bg-neutral-50 p-1 dark:border-neutral-700 dark:bg-neutral-950">
-
         <button
           type="button"
           aria-pressed={businessOnly}
@@ -77,28 +86,38 @@ export function ReportFilters({
 
         <button
           type="button"
-          aria-pressed={!businessOnly}
-          onClick={() => goTo(month, ALL_DRIVES)}
+          aria-pressed={privateOnly}
+          onClick={() => goTo(month, PRIVATE_ONLY)}
           className={`inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition ${
-            !businessOnly
-              ? "bg-violet-600 text-white shadow-sm"
+            privateOnly
+              ? "bg-emerald-600 text-white shadow-sm"
               : "text-neutral-600 hover:bg-white hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
           }`}
         >
           <CarFront aria-hidden size={15} />
-          {t("filters.allDrives")}
+          {t("filters.privateOnly")}
         </button>
-
-      </div>
-
-      <div className="flex items-center gap-1">
 
         <button
           type="button"
+          aria-pressed={allDrives}
+          onClick={() => goTo(month, ALL_DRIVES)}
+          className={`inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+            allDrives
+              ? "bg-violet-600 text-white shadow-sm"
+              : "text-neutral-600 hover:bg-white hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
+          }`}
+        >
+          <List aria-hidden size={15} />
+          {t("filters.allDrives")}
+        </button>
+      </div>
+
+      <div className="flex items-center gap-1">
+        <button
+          type="button"
           aria-label={t("filters.prevMonth")}
-          onClick={() =>
-            goTo(shiftMonth(month, -1), effectiveSelected)
-          }
+          onClick={() => goTo(shiftMonth(month, -1), effectiveSelected)}
           className={buttonClasses(
             "secondary",
             "md",
@@ -123,9 +142,7 @@ export function ReportFilters({
         <button
           type="button"
           aria-label={t("filters.nextMonth")}
-          onClick={() =>
-            goTo(shiftMonth(month, 1), effectiveSelected)
-          }
+          onClick={() => goTo(shiftMonth(month, 1), effectiveSelected)}
           className={buttonClasses(
             "secondary",
             "md",
@@ -134,7 +151,6 @@ export function ReportFilters({
         >
           <ChevronRight aria-hidden size={18} />
         </button>
-
       </div>
     </div>
   );

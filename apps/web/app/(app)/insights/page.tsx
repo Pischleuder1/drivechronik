@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { CalendarRange, Lightbulb } from "lucide-react";
+import { Lightbulb } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
 import {
   MIN_DRIVES_TOTAL,
@@ -25,6 +24,8 @@ import {
   type WeekdayDatum,
 } from "./InsightCharts";
 import { InsightsVehicleSwitcher } from "./InsightsVehicleSwitcher";
+import { InsightsViewTabs } from "./InsightsViewTabs";
+import { YearlyInsightsContent } from "./yearly/YearlyInsightsContent";
 
 import { NoVehicleState } from "../../../components/NoVehicleState";
 
@@ -94,13 +95,22 @@ function tempSubtitle(bins: Bin[], t: Translator): string {
 export default async function InsightsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ vehicle?: string }>;
+  searchParams: Promise<{
+    vehicle?: string;
+    view?: string;
+    year?: string;
+    destination?: string;
+  }>;
 }) {
   const [t, locale] = await Promise.all([
     getTranslations("insights"),
     getLocale(),
   ]);
-  const { vehicle } = await searchParams;
+  const params = await searchParams;
+  const { vehicle } = params;
+
+  const activeView =
+    params.view === "yearly" ? "yearly" : "analysis";
 
   const vehicles = await getVehicles();
   if (vehicles.length === 0) {
@@ -112,15 +122,11 @@ export default async function InsightsPage({
           subtitle={t("subtitleNoData")}
         />
 
-        <div className="mt-4 flex justify-end">
-          <Link
-            href="/insights/yearly"
-            className="inline-flex items-center gap-2 rounded-xl border border-red-600 bg-red-600 px-3.5 py-2 text-sm font-medium text-white shadow-sm transition hover:border-red-700 hover:bg-red-700 hover:shadow-md dark:border-red-500 dark:bg-red-600 dark:text-white dark:hover:border-red-500 dark:hover:bg-red-500"
-          >
-            <CalendarRange aria-hidden size={15} />
-            {t("yearly.open")}
-          </Link>
-        </div>
+        <InsightsViewTabs
+          active={activeView}
+          analysisLabel={t("views.analysis")}
+          yearlyLabel={t("views.yearly")}
+        />
 
         <div className="mt-6">
           <NoVehicleState />
@@ -131,6 +137,41 @@ export default async function InsightsPage({
 
   const requested = vehicle ? Number(vehicle) : NaN;
   const current = vehicles.find((v) => v.id === requested) ?? vehicles[0]!;
+
+  if (activeView === "yearly") {
+    return (
+      <div className="w-full">
+        <PageHeader
+          visual="stats"
+          title={t("title")}
+          subtitle={t("yearly.subtitle")}
+          actions={
+            vehicles.length > 1 ? (
+              <InsightsVehicleSwitcher
+                vehicles={vehicles}
+                current={current.id}
+              />
+            ) : undefined
+          }
+        />
+
+        <InsightsViewTabs
+          active="yearly"
+          vehicleId={current.id}
+          analysisLabel={t("views.analysis")}
+          yearlyLabel={t("views.yearly")}
+        />
+
+        <YearlyInsightsContent
+          searchParams={Promise.resolve({
+            year: params.year,
+            vehicle: String(current.id),
+            destination: params.destination,
+          })}
+        />
+      </div>
+    );
+  }
 
   const { drives, firstDriveDate } = await getInsightsData(current.id);
   const total = drives.length;
@@ -230,15 +271,12 @@ export default async function InsightsPage({
         }
       />
 
-      <div className="mt-4 flex justify-end">
-        <Link
-          href={`/insights/yearly?vehicle=${current.id}`}
-          className="inline-flex items-center gap-2 rounded-xl border border-red-600 bg-red-600 px-3.5 py-2 text-sm font-medium text-white shadow-sm transition hover:border-red-700 hover:bg-red-700 hover:shadow-md dark:border-red-500 dark:bg-red-600 dark:text-white dark:hover:border-red-500 dark:hover:bg-red-500"
-        >
-          <CalendarRange aria-hidden size={15} />
-            {t("yearly.open")}
-        </Link>
-      </div>
+      <InsightsViewTabs
+        active="analysis"
+        vehicleId={current.id}
+        analysisLabel={t("views.analysis")}
+        yearlyLabel={t("views.yearly")}
+      />
 
       {!enoughForPage && (
         <div className="mt-6">

@@ -116,5 +116,9 @@
       "businessDistance": "Business customer km",
       "businessDistanceHint": "Only drives to customer places classified as business."
     }
+  },
+  "views": {
+    "analysis": "Analysis",
+    "yearly": "Yearly review"
   }
 }

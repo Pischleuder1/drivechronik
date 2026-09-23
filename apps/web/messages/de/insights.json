@@ -116,5 +116,9 @@
       "businessDistance": "Dienstliche Kunden-km",
       "businessDistanceHint": "Nur als dienstlich klassifizierte Fahrten zu Kundenorten."
     }
+  },
+  "views": {
+    "analysis": "Analyse",
+    "yearly": "Jahresauswertung"
   }
 }

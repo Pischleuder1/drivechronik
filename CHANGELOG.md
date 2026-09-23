@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.6] - 2026-09-23
+
+### Added
+
+- Added a unified Insights view with tabs for analysis and yearly review.
+- Added yearly destination filtering for all trips, business trips and customer visits.
+
+### Changed
+
+- Redesigned monthly and yearly reports with a more compact layout and clearer KPI presentation.
+- Added private and all-trip scopes to annual reporting while keeping mileage reimbursement limited to business distance.
+- Redesigned the yearly Insights overview with compact KPI cards, monthly category visualization and a consolidated usage-by-category summary.
+- Moved the yearly monthly-distance chart and category breakdown to the top of the yearly review.
+- Integrated the former separate yearly Insights page into the main Insights area while preserving legacy links through a redirect.
+
+
 ## [0.4.5] - 2026-09-22
 
 ### Added

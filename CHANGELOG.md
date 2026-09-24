@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added a 30-day vehicle sleep and status timeline based on historical TeslaMate states, combined with driving and charging periods.
+- Added sleep share, recorded-state coverage and daily vehicle-status visualization for asleep, online, offline, driving and charging states.
+- Added persistent synchronization of historical TeslaMate vehicle states with incremental updates for open and later-completed state periods.
+- Expanded the self-contained demo with 30 days of synthetic TeslaMate vehicle-state history.
+
 ## [0.4.6] - 2026-09-23
 
 ### Added

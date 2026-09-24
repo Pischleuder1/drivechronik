@@ -1,0 +1,240 @@
+#!/bin/sh
+set -eu
+
+umask 077
+
+APPLIANCE_DIR="/opt/drivechronik-appliance"
+COMPOSE_DIR="$APPLIANCE_DIR/compose"
+ENV_FILE="$COMPOSE_DIR/.env"
+PROJECT_NAME="drivechronik-appliance"
+BACKUP_DIR="$COMPOSE_DIR/backups"
+STATUS_BIN="/usr/local/sbin/drivechronik-status"
+
+log() {
+  printf '%s\n' "[DriveChronik Update] $*"
+}
+
+fail() {
+  status 0 "$*" error
+  printf '%s\n' "[DriveChronik Update] FEHLER: $*" >&2
+  exit 1
+}
+
+status() {
+  if [ -x "$STATUS_BIN" ]; then
+    "$STATUS_BIN" "$1" "$2" "${3:-normal}" || true
+  fi
+}
+
+health_of() {
+  container_id="$(
+    docker compose \
+      -p "$PROJECT_NAME" \
+      ps -q "$1" 2>/dev/null || true
+  )"
+
+  if [ -z "$container_id" ]; then
+    printf '%s\n' "missing"
+    return
+  fi
+
+  docker inspect \
+    --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' \
+    "$container_id"
+}
+
+if [ "$(id -u)" -ne 0 ]; then
+  fail "Bitte mit sudo ausführen."
+fi
+
+TARGET_VERSION="${1:-}"
+
+if ! printf '%s\n' "$TARGET_VERSION" |
+  grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+  fail "Zielversion fehlt oder ist ungültig. Beispiel: sudo drivechronik-update v0.5.0"
+fi
+
+command -v docker >/dev/null 2>&1 ||
+  fail "Docker wurde nicht gefunden."
+
+docker compose version >/dev/null 2>&1 ||
+  fail "Docker Compose Plugin wurde nicht gefunden."
+
+[ -d "$COMPOSE_DIR" ] ||
+  fail "Appliance-Verzeichnis $COMPOSE_DIR wurde nicht gefunden."
+
+[ -f "$ENV_FILE" ] ||
+  fail "Die Appliance-Konfiguration $ENV_FILE wurde nicht gefunden."
+
+cd "$COMPOSE_DIR"
+
+CURRENT_VERSION="$(
+  sed -n 's/^DRIVECHRONIK_IMAGE_TAG=//p' "$ENV_FILE" |
+    head -1
+)"
+
+[ -n "$CURRENT_VERSION" ] ||
+  fail "DRIVECHRONIK_IMAGE_TAG fehlt in $ENV_FILE."
+
+log "Aktuelle Version: $CURRENT_VERSION"
+log "Zielversion:      $TARGET_VERSION"
+
+if [ "$CURRENT_VERSION" = "$TARGET_VERSION" ]; then
+  log "DriveChronik verwendet bereits $TARGET_VERSION."
+  exit 0
+fi
+
+mkdir -p "$BACKUP_DIR"
+
+TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
+ENV_BACKUP="$BACKUP_DIR/.env-before-$TARGET_VERSION-$TIMESTAMP"
+DB_BACKUP="$BACKUP_DIR/drivechronik-before-$TARGET_VERSION-$TIMESTAMP.dump"
+
+status 10 "Update auf $TARGET_VERSION wird vorbereitet ..."
+
+log "Sichere Konfiguration ..."
+cp -a "$ENV_FILE" "$ENV_BACKUP"
+
+log "Erstelle Datenbank-Backup ..."
+
+docker compose \
+  -p "$PROJECT_NAME" \
+  exec -T drivechronik-db \
+  pg_dump \
+    -U drivechronik \
+    -d drivechronik \
+    -Fc \
+  > "$DB_BACKUP"
+
+[ -s "$DB_BACKUP" ] ||
+  fail "Das Datenbank-Backup ist leer."
+
+if ! docker compose \
+    -p "$PROJECT_NAME" \
+    exec -T drivechronik-db \
+    pg_restore --list \
+    < "$DB_BACKUP" \
+    >/dev/null; then
+  fail "Das Datenbank-Backup konnte nicht geprüft werden."
+fi
+
+log "Backup erfolgreich:"
+log "  $DB_BACKUP"
+
+status 25 "Backup erstellt. Lade $TARGET_VERSION ..."
+
+log "Setze DriveChronik-Version auf $TARGET_VERSION ..."
+
+sed -i \
+  "s/^DRIVECHRONIK_IMAGE_TAG=.*/DRIVECHRONIK_IMAGE_TAG=$TARGET_VERSION/" \
+  "$ENV_FILE"
+
+docker compose \
+  -p "$PROJECT_NAME" \
+  config >/dev/null ||
+  fail "Docker-Compose-Konfiguration ist nach dem Versionswechsel ungültig."
+
+log "Lade neue DriveChronik-Images ..."
+
+if ! docker compose \
+  -p "$PROJECT_NAME" \
+  pull \
+    web \
+    worker \
+    migrate \
+    supercharge-compass; then
+
+  log "Download fehlgeschlagen. Stelle alten Image-Tag wieder her."
+  cp -a "$ENV_BACKUP" "$ENV_FILE"
+  fail "Container-Images für $TARGET_VERSION konnten nicht geladen werden."
+fi
+
+status 55 "$TARGET_VERSION geladen. Aktualisiere DriveChronik ..."
+
+log "Starte aktualisierten Stack ..."
+
+if ! docker compose \
+  -p "$PROJECT_NAME" \
+  up -d; then
+  fail "Docker Compose konnte den aktualisierten Stack nicht starten."
+fi
+
+status 75 "Migration abgeschlossen. Prüfe Dienste ..."
+
+MIGRATE_ID="$(
+  docker compose \
+    -p "$PROJECT_NAME" \
+    ps -q -a migrate 2>/dev/null || true
+)"
+
+[ -n "$MIGRATE_ID" ] ||
+  fail "Migrate-Container wurde nicht gefunden."
+
+MIGRATE_EXIT="$(
+  docker inspect \
+    --format '{{.State.ExitCode}}' \
+    "$MIGRATE_ID"
+)"
+
+if [ "$MIGRATE_EXIT" != "0" ]; then
+  docker compose \
+    -p "$PROJECT_NAME" \
+    logs --tail=100 migrate || true
+
+  fail "Datenbankmigration fehlgeschlagen (Exit $MIGRATE_EXIT)."
+fi
+
+log "Warte auf Web, Worker und SuperchargeCompass ..."
+
+i=0
+while [ "$i" -lt 90 ]; do
+  WEB_HEALTH="$(health_of web)"
+  WORKER_HEALTH="$(health_of worker)"
+  COMPASS_HEALTH="$(health_of supercharge-compass)"
+
+  if [ "$WEB_HEALTH" = "healthy" ] &&
+     [ "$WORKER_HEALTH" = "healthy" ] &&
+     [ "$COMPASS_HEALTH" = "healthy" ]; then
+    break
+  fi
+
+  i=$((i + 1))
+  sleep 2
+done
+
+WEB_HEALTH="$(health_of web)"
+WORKER_HEALTH="$(health_of worker)"
+COMPASS_HEALTH="$(health_of supercharge-compass)"
+
+if [ "$WEB_HEALTH" != "healthy" ] ||
+   [ "$WORKER_HEALTH" != "healthy" ] ||
+   [ "$COMPASS_HEALTH" != "healthy" ]; then
+
+  docker compose \
+    -p "$PROJECT_NAME" \
+    ps -a || true
+
+  docker compose \
+    -p "$PROJECT_NAME" \
+    logs --tail=100 web worker supercharge-compass || true
+
+  fail "Mindestens ein DriveChronik-Dienst wurde nicht healthy."
+fi
+
+status 100 "DriveChronik $TARGET_VERSION ist bereit." done
+
+log ""
+log "============================================================"
+log "DriveChronik wurde erfolgreich aktualisiert."
+log ""
+log "  vorher: $CURRENT_VERSION"
+log "  jetzt:  $TARGET_VERSION"
+log ""
+log "Datenbank-Backup:"
+log "  $DB_BACKUP"
+log ""
+log "Status:"
+docker compose \
+  -p "$PROJECT_NAME" \
+  ps
+log "============================================================"

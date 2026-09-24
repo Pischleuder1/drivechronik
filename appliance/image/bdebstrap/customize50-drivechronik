@@ -38,6 +38,10 @@ install -Dm0755 \
     "$ROOT/usr/local/sbin/drivechronik-status"
 
 install -Dm0755 \
+    "$SRCROOT/assets/drivechronik-update" \
+    "$ROOT/usr/local/sbin/drivechronik-update"
+
+install -Dm0755 \
     "$SRCROOT/assets/drivechronik-access-init" \
     "$ROOT/usr/local/sbin/drivechronik-access-init"
 

@@ -4,6 +4,7 @@ import {
   MIN_PER_BIN,
   binByNumeric,
   coldVsMildDelta,
+  detectConsumptionAnomalies,
   shortTripShare,
   weeklyPattern,
 } from "./insights.js";
@@ -14,6 +15,9 @@ interface Pt {
   dow?: number;
   dist?: number | null;
   cons?: number | null;
+  temp?: number | null;
+  speed?: number | null;
+  id?: number;
 }
 
 describe("thresholds", () => {
@@ -220,5 +224,151 @@ describe("shortTripShare", () => {
     expect(s.shortShare).toBe(0);
     expect(s.shortMeanConsumption).toBeNull();
     expect(s.overallMeanConsumption).toBeNull();
+  });
+});
+
+
+describe("detectConsumptionAnomalies", () => {
+  const accessors = {
+    getDistanceKm: (p: Pt) => p.dist,
+    getConsumptionWhKm: (p: Pt) => p.cons,
+    getTempC: (p: Pt) => p.temp,
+    getAvgSpeedKmh: (p: Pt) => p.speed,
+  };
+
+  function comparableDrives(
+    consumption = 200,
+    count = 8,
+    temp = 10,
+    speed = 50,
+  ): Pt[] {
+    return Array.from({ length: count }, (_, i) => ({
+      id: i + 1,
+      x: 0,
+      y: 0,
+      dist: 16,
+      cons: consumption + (i % 2 === 0 ? -2 : 2),
+      temp: temp + (i % 3) - 1,
+      speed: speed + (i % 3) - 1,
+    }));
+  }
+
+  it("flags a drive at least 25 percent above the comparable median", () => {
+    const items = [
+      ...comparableDrives(),
+      {
+        id: 99,
+        x: 0,
+        y: 0,
+        dist: 16,
+        cons: 260,
+        temp: 10,
+        speed: 50,
+      },
+    ];
+
+    const anomalies = detectConsumptionAnomalies(items, accessors);
+    const anomaly = anomalies.find((a) => a.item.id === 99);
+
+    expect(anomaly).toBeDefined();
+    expect(anomaly!.baselineWhKm).toBeCloseTo(200);
+    expect(anomaly!.deviationRatio).toBeCloseTo(0.3);
+    expect(anomaly!.comparisonCount).toBe(8);
+    expect(anomaly!.severity).toBe("noticeable");
+  });
+
+  it("marks deviations of 40 percent or more as strong", () => {
+    const items = [
+      ...comparableDrives(),
+      {
+        id: 99,
+        x: 0,
+        y: 0,
+        dist: 16,
+        cons: 290,
+        temp: 10,
+        speed: 50,
+      },
+    ];
+
+    const anomalies = detectConsumptionAnomalies(items, accessors);
+    const anomaly = anomalies.find((a) => a.item.id === 99);
+
+    expect(anomaly).toBeDefined();
+    expect(anomaly!.severity).toBe("strong");
+  });
+
+  it("does not flag normal cold-weather consumption against warm drives", () => {
+    const cold = comparableDrives(230, 8, 2, 50);
+
+    const warm = Array.from({ length: 8 }, (_, i) => ({
+      id: 100 + i,
+      x: 0,
+      y: 0,
+      dist: 16,
+      cons: 180,
+      temp: 20,
+      speed: 50,
+    }));
+
+    const candidate: Pt = {
+      id: 999,
+      x: 0,
+      y: 0,
+      dist: 16,
+      cons: 242,
+      temp: 2,
+      speed: 50,
+    };
+
+    const anomalies = detectConsumptionAnomalies(
+      [...cold, ...warm, candidate],
+      accessors,
+    );
+
+    expect(anomalies.some((a) => a.item.id === 999)).toBe(false);
+  });
+
+  it("requires at least eight comparable drives", () => {
+    const items = [
+      ...comparableDrives(200, 7),
+      {
+        id: 99,
+        x: 0,
+        y: 0,
+        dist: 16,
+        cons: 300,
+        temp: 10,
+        speed: 50,
+      },
+    ];
+
+    const anomalies = detectConsumptionAnomalies(items, accessors);
+
+    expect(anomalies.some((a) => a.item.id === 99)).toBe(false);
+  });
+
+  it("does not compare drives from different distance classes", () => {
+    const otherDistanceClass = comparableDrives().map((p) => ({
+      ...p,
+      dist: 51,
+    }));
+
+    const candidate: Pt = {
+      id: 999,
+      x: 0,
+      y: 0,
+      dist: 16,
+      cons: 300,
+      temp: 10,
+      speed: 50,
+    };
+
+    const anomalies = detectConsumptionAnomalies(
+      [...otherDistanceClass, candidate],
+      accessors,
+    );
+
+    expect(anomalies).toHaveLength(0);
   });
 });

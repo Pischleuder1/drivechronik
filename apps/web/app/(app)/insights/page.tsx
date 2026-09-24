@@ -1,9 +1,15 @@
 import { Lightbulb } from "lucide-react";
+import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import {
   MIN_DRIVES_TOTAL,
   binByNumeric,
   coldVsMildDelta,
+  detectConsumptionAnomalies,
+  CONSUMPTION_ANOMALY_MIN_DISTANCE_KM,
+  CONSUMPTION_ANOMALY_MIN_COMPARISONS,
+  CONSUMPTION_ANOMALY_TEMP_TOLERANCE_C,
+  CONSUMPTION_ANOMALY_SPEED_TOLERANCE_KMH,
   shortTripShare,
   weeklyPattern,
   type Bin,
@@ -57,6 +63,17 @@ function formatFirstDate(date: Date, locale: string): string {
     day: "numeric",
     month: "long",
     year: "numeric",
+    timeZone: APP_TIMEZONE,
+  }).format(date);
+}
+
+function formatAnomalyDate(date: Date, locale: string): string {
+  return new Intl.DateTimeFormat(toIntlLocale(locale), {
+    day: "2-digit",
+    month: "2-digit",
+    year: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
     timeZone: APP_TIMEZONE,
   }).format(date);
 }
@@ -245,6 +262,17 @@ export default async function InsightsPage({
   const showShortTrip =
     enoughForPage && shortTrip.shortShare > SHORT_TRIP_MIN_SHARE;
 
+  const consumptionAnomalies = enoughForPage
+    ? detectConsumptionAnomalies(drives, {
+        getDistanceKm: (d) => d.distanceKm,
+        getConsumptionWhKm: (d) => d.avgConsumptionWhKm,
+        getTempC: (d) => d.tempC,
+        getAvgSpeedKmh: (d) => d.avgSpeedKmh,
+      })
+    : [];
+
+  const anomalyRows = consumptionAnomalies.slice(0, 8);
+
   return (
     <div className="w-full">
       <PageHeader
@@ -372,6 +400,101 @@ export default async function InsightsPage({
           </Panel>
         )}
       </div>
+
+      {enoughForPage && (
+        <Panel
+          className="mt-5 relative overflow-hidden rounded-3xl before:absolute before:inset-x-0 before:top-0 before:h-1 before:bg-slate-500"
+          title={t("cards.anomalies.title")}
+          subtitle={t("cards.anomalies.subtitle")}
+        >
+          {anomalyRows.length === 0 ? (
+            <p className="text-sm text-neutral-500 dark:text-neutral-400">
+              {t("cards.anomalies.none")}
+            </p>
+          ) : (
+            <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
+              {anomalyRows.map((anomaly) => {
+                const deviationPct = Math.round(
+                  anomaly.deviationRatio * 100,
+                );
+
+                const severityClass =
+                  anomaly.severity === "strong"
+                    ? "text-rose-700 dark:text-rose-300"
+                    : "text-amber-700 dark:text-amber-300";
+
+                return (
+                  <Link
+                    key={anomaly.item.id}
+                    href={`/drives/${anomaly.item.id}`}
+                    className="grid gap-x-4 gap-y-1 py-3 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-900/60 sm:grid-cols-[1.4fr_0.8fr_1fr_0.8fr]"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                        {formatAnomalyDate(
+                          anomaly.item.startTime,
+                          locale,
+                        )}
+                      </p>
+                      <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                        {anomaly.item.distanceKm.toLocaleString(
+                          toIntlLocale(locale),
+                          {
+                            maximumFractionDigits: 1,
+                          },
+                        )}{" "}
+                        km
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-semibold tabular-nums text-neutral-900 dark:text-neutral-100">
+                        {Math.round(anomaly.actualWhKm)} Wh/km
+                        {anomaly.item.energyIsEstimated ? " ~" : ""}
+                      </p>
+                      <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                        {t("cards.anomalies.consumption")}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm tabular-nums text-neutral-700 dark:text-neutral-300">
+                        {Math.round(anomaly.baselineWhKm)} Wh/km
+                      </p>
+                      <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                        {t("cards.anomalies.comparison", {
+                          count: anomaly.comparisonCount,
+                        })}
+                      </p>
+                    </div>
+
+                    <div className={severityClass}>
+                      <p className="text-sm font-semibold tabular-nums">
+                        +{deviationPct} %
+                      </p>
+                      <p className="text-xs">
+                        {anomaly.severity === "strong"
+                          ? t("cards.anomalies.strong")
+                          : t("cards.anomalies.noticeable")}
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          <p className="mt-4 text-xs leading-relaxed text-neutral-500 dark:text-neutral-400">
+            {t("cards.anomalies.method", {
+              minDistance: CONSUMPTION_ANOMALY_MIN_DISTANCE_KM,
+              minComparisons: CONSUMPTION_ANOMALY_MIN_COMPARISONS,
+              tempTolerance: CONSUMPTION_ANOMALY_TEMP_TOLERANCE_C,
+              speedTolerance: CONSUMPTION_ANOMALY_SPEED_TOLERANCE_KMH,
+            })}
+          </p>
+        </Panel>
+      )}
+
     </div>
   );
 }

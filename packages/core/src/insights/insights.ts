@@ -229,3 +229,172 @@ export function shortTripShare<T>(
       overallConsCount > 0 ? overallSum / overallConsCount : null,
   };
 }
+
+
+/**
+ * Verbrauchs-Anomalien werden nicht gegen einen festen Fahrzeug-Grenzwert,
+ * sondern gegen vergleichbare Fahrten desselben Fahrzeugs bewertet.
+ *
+ * Vergleichskriterien:
+ * - mindestens 5 km
+ * - gleiche Streckenklasse
+ * - ähnliche Außentemperatur
+ * - ähnliches effektives Durchschnittstempo
+ * - mindestens 8 Vergleichsfahrten
+ *
+ * Als robuste Referenz dient der Median der Vergleichsfahrten.
+ */
+export const CONSUMPTION_ANOMALY_MIN_DISTANCE_KM = 5;
+export const CONSUMPTION_ANOMALY_MIN_COMPARISONS = 8;
+export const CONSUMPTION_ANOMALY_TEMP_TOLERANCE_C = 5;
+export const CONSUMPTION_ANOMALY_SPEED_TOLERANCE_KMH = 15;
+export const CONSUMPTION_ANOMALY_NOTICEABLE_RATIO = 0.25;
+export const CONSUMPTION_ANOMALY_STRONG_RATIO = 0.40;
+
+export type ConsumptionAnomalySeverity = "noticeable" | "strong";
+
+export interface ConsumptionAnomaly<T> {
+  item: T;
+  actualWhKm: number;
+  baselineWhKm: number;
+  deviationRatio: number;
+  comparisonCount: number;
+  severity: ConsumptionAnomalySeverity;
+}
+
+export interface ConsumptionAnomalyAccessors<T> {
+  getDistanceKm: (item: T) => number | null | undefined;
+  getConsumptionWhKm: (item: T) => number | null | undefined;
+  getTempC: (item: T) => number | null | undefined;
+  getAvgSpeedKmh: (item: T) => number | null | undefined;
+}
+
+function consumptionDistanceClass(distanceKm: number): number {
+  if (distanceKm < 10) return 0;
+  if (distanceKm < 25) return 1;
+  if (distanceKm < 60) return 2;
+  return 3;
+}
+
+function numericMedian(values: readonly number[]): number | null {
+  if (values.length === 0) return null;
+
+  const sorted = [...values].sort((a, b) => a - b);
+  const middle = Math.floor(sorted.length / 2);
+
+  if (sorted.length % 2 === 1) {
+    return sorted[middle]!;
+  }
+
+  return (sorted[middle - 1]! + sorted[middle]!) / 2;
+}
+
+export function detectConsumptionAnomalies<T>(
+  items: readonly T[],
+  accessors: ConsumptionAnomalyAccessors<T>,
+): ConsumptionAnomaly<T>[] {
+  const result: ConsumptionAnomaly<T>[] = [];
+
+  for (let i = 0; i < items.length; i += 1) {
+    const item = items[i]!;
+
+    const distanceKm = accessors.getDistanceKm(item);
+    const actualWhKm = accessors.getConsumptionWhKm(item);
+    const tempC = accessors.getTempC(item);
+    const avgSpeedKmh = accessors.getAvgSpeedKmh(item);
+
+    if (
+      distanceKm == null ||
+      actualWhKm == null ||
+      tempC == null ||
+      avgSpeedKmh == null ||
+      !Number.isFinite(distanceKm) ||
+      !Number.isFinite(actualWhKm) ||
+      !Number.isFinite(tempC) ||
+      !Number.isFinite(avgSpeedKmh) ||
+      distanceKm < CONSUMPTION_ANOMALY_MIN_DISTANCE_KM ||
+      actualWhKm <= 0
+    ) {
+      continue;
+    }
+
+    const distanceClass = consumptionDistanceClass(distanceKm);
+    const comparableConsumptions: number[] = [];
+
+    for (let j = 0; j < items.length; j += 1) {
+      if (j === i) continue;
+
+      const other = items[j]!;
+
+      const otherDistance = accessors.getDistanceKm(other);
+      const otherConsumption = accessors.getConsumptionWhKm(other);
+      const otherTemp = accessors.getTempC(other);
+      const otherSpeed = accessors.getAvgSpeedKmh(other);
+
+      if (
+        otherDistance == null ||
+        otherConsumption == null ||
+        otherTemp == null ||
+        otherSpeed == null ||
+        !Number.isFinite(otherDistance) ||
+        !Number.isFinite(otherConsumption) ||
+        !Number.isFinite(otherTemp) ||
+        !Number.isFinite(otherSpeed) ||
+        otherDistance < CONSUMPTION_ANOMALY_MIN_DISTANCE_KM ||
+        otherConsumption <= 0
+      ) {
+        continue;
+      }
+
+      if (consumptionDistanceClass(otherDistance) !== distanceClass) {
+        continue;
+      }
+
+      if (
+        Math.abs(otherTemp - tempC) >
+        CONSUMPTION_ANOMALY_TEMP_TOLERANCE_C
+      ) {
+        continue;
+      }
+
+      if (
+        Math.abs(otherSpeed - avgSpeedKmh) >
+        CONSUMPTION_ANOMALY_SPEED_TOLERANCE_KMH
+      ) {
+        continue;
+      }
+
+      comparableConsumptions.push(otherConsumption);
+    }
+
+    if (
+      comparableConsumptions.length <
+      CONSUMPTION_ANOMALY_MIN_COMPARISONS
+    ) {
+      continue;
+    }
+
+    const baselineWhKm = numericMedian(comparableConsumptions);
+    if (baselineWhKm == null || baselineWhKm <= 0) continue;
+
+    const deviationRatio = (actualWhKm - baselineWhKm) / baselineWhKm;
+
+    if (deviationRatio < CONSUMPTION_ANOMALY_NOTICEABLE_RATIO) {
+      continue;
+    }
+
+    result.push({
+      item,
+      actualWhKm,
+      baselineWhKm,
+      deviationRatio,
+      comparisonCount: comparableConsumptions.length,
+      severity:
+        deviationRatio >= CONSUMPTION_ANOMALY_STRONG_RATIO
+          ? "strong"
+          : "noticeable",
+    });
+  }
+
+  return result.sort((a, b) => b.deviationRatio - a.deviationRatio);
+}

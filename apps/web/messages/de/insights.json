@@ -30,6 +30,16 @@
     "shortTrip": {
       "title": "Kurzstrecken-Anteil",
       "subtitle": "Fahrten unter 5 km und ihr Verbrauch gegenüber dem Gesamtschnitt."
+    },
+    "anomalies": {
+      "title": "Auffällige Verbrauchsfahrten",
+      "subtitle": "Vergleich mit deiner eigenen Fahrhistorie statt mit einem festen Verbrauchsgrenzwert.",
+      "none": "Keine auffälligen Verbrauchsfahrten erkannt.",
+      "consumption": "Verbrauch",
+      "comparison": "{count, plural, one {# Vergleichsfahrt} other {# Vergleichsfahrten}}",
+      "noticeable": "auffällig",
+      "strong": "stark auffällig",
+      "method": "Bewertet Fahrten ab {minDistance} km mit mindestens {minComparisons} ähnlichen Vergleichsfahrten: gleiche Streckenklasse, ±{tempTolerance} °C und ±{speedTolerance} km/h. Referenz ist der Median der Vergleichsfahrten."
     }
   },
   "charts": {

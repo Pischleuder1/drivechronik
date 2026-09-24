@@ -30,6 +30,16 @@
     "shortTrip": {
       "title": "Short-trip share",
       "subtitle": "Drives under 5 km and their consumption compared to the overall average."
+    },
+    "anomalies": {
+      "title": "Unusual consumption drives",
+      "subtitle": "Compared with your own driving history instead of a fixed consumption threshold.",
+      "none": "No unusual consumption drives detected.",
+      "consumption": "Consumption",
+      "comparison": "{count, plural, one {# comparison drive} other {# comparison drives}}",
+      "noticeable": "unusual",
+      "strong": "strongly unusual",
+      "method": "Evaluates drives from {minDistance} km with at least {minComparisons} similar comparison drives: same distance class, ±{tempTolerance} °C and ±{speedTolerance} km/h. The reference is the median of the comparison drives."
     }
   },
   "charts": {

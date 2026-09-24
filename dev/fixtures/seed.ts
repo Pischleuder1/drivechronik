@@ -574,8 +574,14 @@ function simulateDrive(opts: {
     });
   }
 
+  // Rated/ideal range must retain the continuous SoC used by the
+  // consumption simulation. TeslaMate's battery_level itself is an integer,
+  // but rounding the SoC before deriving rated range would quantize every
+  // drive to whole percentage points and create artificial consumption jumps.
+  const endSocExact = Math.max(1, startBattery - socConsumed);
+
   odometer = startOdometer + distanceKm;
-  batteryLevel = Math.max(1, Math.round(startBattery - socConsumed));
+  batteryLevel = Math.max(1, Math.round(endSocExact));
 
   const endDate = new Date(start.getTime() + durationSec * 1000);
 
@@ -604,9 +610,9 @@ function simulateDrive(opts: {
     start_geofence_id: startGeofence ? geofenceIdByName[startGeofence]! : null,
     end_geofence_id: endGeofence ? geofenceIdByName[endGeofence]! : null,
     start_ideal_range_km: startIdeal,
-    end_ideal_range_km: idealRangeForSoc(batteryLevel),
+    end_ideal_range_km: idealRangeForSoc(endSocExact),
     start_rated_range_km: startRated,
-    end_rated_range_km: ratedRangeForSoc(batteryLevel),
+    end_rated_range_km: ratedRangeForSoc(endSocExact),
     speed_max: Math.round(speedMax),
     power_max: Math.round(60 + jitter(20)),
     power_min: Math.round(-15 - jitter(10)),

@@ -10,5 +10,13 @@
   "reports": "Reports",
   "insights": "Insights",
   "planner": "Planner",
-  "settings": "Settings"
+  "settings": "Settings",
+  "menu": "Menu",
+  "menuTitle": "Menu",
+  "menuSubtitle": "All DriveChronik areas",
+  "closeMenu": "Close menu",
+  "menuQuickAccess": "Quick access",
+  "menuTripsPlanning": "Trips & planning",
+  "menuAnalytics": "Analytics",
+  "menuAdministration": "Administration"
 }

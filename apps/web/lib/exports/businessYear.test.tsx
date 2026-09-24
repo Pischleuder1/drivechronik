@@ -14,6 +14,9 @@ import {
 
 const meta: ReportMeta = {
   vehicleName: "Model Y",
+  driverName: "Demo Driver",
+  licensePlate: null,
+  vehicleVin: null,
   generatedAt: new Date("2026-12-31T12:00:00Z"),
   timeZone: "Europe/Berlin",
 };

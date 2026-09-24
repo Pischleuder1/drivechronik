@@ -42,6 +42,46 @@ Enthalten:
 
 Das Image kann direkt mit dem Raspberry Pi Imager auf eine SD-Karte geschrieben werden.
 
+#### Raspberry-Pi-Appliance aktualisieren
+
+Eine vorhandene Appliance muss für ein DriveChronik-Update nicht neu auf die
+SD-Karte geschrieben werden. Neuere Appliance-Versionen enthalten dafür den
+Befehl:
+
+```bash
+sudo drivechronik-update v0.5.0
+```
+
+Der Updater:
+
+- erstellt vor dem Update automatisch ein Backup der DriveChronik-Datenbank,
+- sichert die Appliance-Konfiguration,
+- lädt nur die benötigten DriveChronik-Images,
+- führt neue Datenbankmigrationen aus,
+- prüft anschließend Web, Worker und SuperchargeCompass,
+- verändert die separate TeslaMate-Version nicht.
+
+##### Bestehendes Appliance-Image v0.4.4
+
+Das bereits veröffentlichte Raspberry-Pi-Image v0.4.4 enthält den Updater noch
+nicht. Dort muss er einmalig installiert werden:
+
+```bash
+curl -fsSL \
+  https://raw.githubusercontent.com/Pischleuder1/drivechronik/main/appliance/image/assets/drivechronik-update \
+  -o /tmp/drivechronik-update
+
+sudo install -m 0755 \
+  /tmp/drivechronik-update \
+  /usr/local/sbin/drivechronik-update
+
+sudo drivechronik-update v0.5.0
+```
+
+Danach steht `drivechronik-update` auch für spätere DriveChronik-Updates
+lokal auf dem Raspberry Pi zur Verfügung.
+
+
 ### Web-Demo
 
 DriveChronik kann vor der Installation direkt im Browser ausprobiert werden:

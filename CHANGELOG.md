@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added a Raspberry Pi appliance updater (`drivechronik-update`) with automatic DriveChronik database backup, image update, database migration and service health checks.
+- Added support for updating an existing Raspberry Pi appliance installation without reflashing the SD card.
+
+
 ## [0.5.0] - 2026-09-24
 
 ### Added

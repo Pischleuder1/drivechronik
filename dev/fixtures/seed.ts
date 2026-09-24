@@ -281,72 +281,420 @@ function interpolateRoutePoint(route: LatLon[], t: number): LatLon {
   return route[route.length - 1];
 }
 
-// Synthetic demo route geometry.
-// Production DriveChronik continues to use the real GPS positions
-// imported from TeslaMate.
+// Synthetic demo road network.
 //
-// The demo remains completely offline and therefore does not call an
-// external routing service while seeding. A reproducible gentle bend
-// keeps longer demo tracks from looking like simple straight lines.
-function demoRoute(from: LatLon, to: LatLon): LatLon[] {
-  const directKm = haversineKm(from, to);
+// Production DriveChronik always uses the real GPS coordinates imported from
+// TeslaMate. The demo must remain fully offline, so instead of calling an
+// external routing service we model a small deterministic road network.
+//
+// The important property for the route heatmap is that different trips share
+// plausible corridors instead of every destination being connected to
+// Bielefeld by an independent mathematical curve.
+const DEMO_ROUTE_NODES: Record<string, LatLon> = {
+  // Ostwestfalen / local
+  bielefeld: { lat: 52.0302, lon: 8.5325 },
+  herford: { lat: 52.1157, lon: 8.6762 },
+  oerlinghausen: { lat: 51.9600, lon: 8.6620 },
+  detmold: { lat: 51.9363, lon: 8.8792 },
+
+  // A2 corridor east: Bielefeld -> Hannover
+  badOeynhausen: { lat: 52.2084, lon: 8.8007 },
+  porta: { lat: 52.2400, lon: 8.9200 },
+  minden: { lat: 52.2895, lon: 8.9146 },
+  rinteln: { lat: 52.1908, lon: 9.0814 },
+  lauenau: { lat: 52.2730, lon: 9.3730 },
+  hannover: { lat: 52.3759, lon: 9.7320 },
+
+  // A7 corridor north: Hannover -> Hamburg
+  schwarmstedt: { lat: 52.6770, lon: 9.6170 },
+  soltau: { lat: 52.9860, lon: 9.8430 },
+  bispingen: { lat: 53.0830, lon: 9.9980 },
+  hamburg: { lat: 53.5511, lon: 9.9937 },
+
+  // West / Ruhr corridor
+  guetersloh: { lat: 51.9069, lon: 8.3785 },
+  rheda: { lat: 51.8490, lon: 8.3000 },
+  oelde: { lat: 51.8250, lon: 8.1470 },
+  hamm: { lat: 51.6800, lon: 7.8200 },
+  kamen: { lat: 51.5910, lon: 7.6650 },
+  dortmund: { lat: 51.5136, lon: 7.4653 },
+
+  // North-west corridor: Bielefeld -> Osnabrück
+  halle: { lat: 52.0600, lon: 8.3600 },
+  borgholzhausen: { lat: 52.1030, lon: 8.3020 },
+  dissen: { lat: 52.1150, lon: 8.2000 },
+  osnabrueck: { lat: 52.2799, lon: 8.0472 },
+
+  // Münster corridor
+  harsewinkel: { lat: 51.9620, lon: 8.2270 },
+  warendorf: { lat: 51.9520, lon: 7.9900 },
+  muenster: { lat: 51.9607, lon: 7.6261 },
+
+  // A33 / A44 corridor south-east
+  schlossHolte: { lat: 51.9060, lon: 8.6180 },
+  paderborn: { lat: 51.7189, lon: 8.7575 },
+  bueren: { lat: 51.5510, lon: 8.5600 },
+  warburg: { lat: 51.4890, lon: 9.1460 },
+  kassel: { lat: 51.3127, lon: 9.4797 },
+};
+
+const DEMO_ROUTE_LINKS = [
+  // Bielefeld / Herford
+  ["bielefeld", "herford"],
+  ["bielefeld", "oerlinghausen"],
+  ["oerlinghausen", "detmold"],
+
+  // Bielefeld -> Hannover
+  ["herford", "badOeynhausen"],
+  ["badOeynhausen", "porta"],
+  ["porta", "rinteln"],
+  ["porta", "minden"],
+  ["rinteln", "lauenau"],
+  ["lauenau", "hannover"],
+
+  // Hannover -> Hamburg
+  ["hannover", "schwarmstedt"],
+  ["schwarmstedt", "soltau"],
+  ["soltau", "bispingen"],
+  ["bispingen", "hamburg"],
+
+  // Bielefeld -> Dortmund
+  ["bielefeld", "guetersloh"],
+  ["guetersloh", "rheda"],
+  ["rheda", "oelde"],
+  ["oelde", "hamm"],
+  ["hamm", "kamen"],
+  ["kamen", "dortmund"],
+
+  // Bielefeld -> Osnabrück
+  ["bielefeld", "halle"],
+  ["halle", "borgholzhausen"],
+  ["borgholzhausen", "dissen"],
+  ["dissen", "osnabrueck"],
+
+  // Bielefeld -> Münster
+  ["guetersloh", "harsewinkel"],
+  ["harsewinkel", "warendorf"],
+  ["warendorf", "muenster"],
+
+  // Bielefeld -> Paderborn -> Kassel
+  ["bielefeld", "schlossHolte"],
+  ["schlossHolte", "paderborn"],
+  ["paderborn", "bueren"],
+  ["bueren", "warburg"],
+  ["warburg", "kassel"],
+] as const;
+
+const DEMO_PLACE_ROUTE_NODE: Record<string, string> = {
+  home: "bielefeld",
+  office: "herford",
+
+  "customer-hannover": "hannover",
+  "customer-muenster": "muenster",
+  "customer-osnabrueck": "osnabrueck",
+  "customer-dortmund": "dortmund",
+  "customer-kassel": "kassel",
+  "customer-paderborn": "paderborn",
+
+  "site-guetersloh": "guetersloh",
+  "supplier-minden": "minden",
+
+  "hotel-hannover": "hannover",
+  "hotel-hamburg": "hamburg",
+
+  "charger-porta": "porta",
+  "charger-lauenau": "lauenau",
+  "charger-bispingen": "bispingen",
+
+  supermarket: "bielefeld",
+  "leisure-detmold": "detmold",
+  "parking-bielefeld": "bielefeld",
+};
+
+function routeNeighbours(node: string): string[] {
+  const neighbours: string[] = [];
+
+  for (const [a, b] of DEMO_ROUTE_LINKS) {
+    if (a === node) neighbours.push(b);
+    if (b === node) neighbours.push(a);
+  }
+
+  return neighbours;
+}
+
+function shortestDemoRouteNodes(
+  startNode: string,
+  endNode: string,
+): string[] {
+  if (startNode === endNode) {
+    return [startNode];
+  }
+
+  const unvisited = new Set(
+    Object.keys(DEMO_ROUTE_NODES),
+  );
+
+  const distance = new Map<string, number>();
+  const previous = new Map<string, string>();
+
+  for (const key of unvisited) {
+    distance.set(key, Number.POSITIVE_INFINITY);
+  }
+
+  distance.set(startNode, 0);
+
+  while (unvisited.size > 0) {
+    let current: string | null = null;
+    let currentDistance =
+      Number.POSITIVE_INFINITY;
+
+    for (const key of unvisited) {
+      const value =
+        distance.get(key) ??
+        Number.POSITIVE_INFINITY;
+
+      if (
+        value < currentDistance ||
+        (
+          value === currentDistance &&
+          current != null &&
+          key.localeCompare(current) < 0
+        )
+      ) {
+        current = key;
+        currentDistance = value;
+      }
+    }
+
+    if (
+      current == null ||
+      !Number.isFinite(currentDistance)
+    ) {
+      break;
+    }
+
+    if (current === endNode) {
+      break;
+    }
+
+    unvisited.delete(current);
+
+    for (const neighbour of routeNeighbours(current)) {
+      if (!unvisited.has(neighbour)) {
+        continue;
+      }
+
+      const from =
+        DEMO_ROUTE_NODES[current];
+      const to =
+        DEMO_ROUTE_NODES[neighbour];
+
+      if (!from || !to) {
+        continue;
+      }
+
+      const candidate =
+        currentDistance +
+        haversineKm(from, to);
+
+      const known =
+        distance.get(neighbour) ??
+        Number.POSITIVE_INFINITY;
+
+      if (candidate < known) {
+        distance.set(
+          neighbour,
+          candidate,
+        );
+
+        previous.set(
+          neighbour,
+          current,
+        );
+      }
+    }
+  }
+
+  if (!previous.has(endNode)) {
+    return [];
+  }
+
+  const path = [endNode];
+  let cursor = endNode;
+
+  while (cursor !== startNode) {
+    const before =
+      previous.get(cursor);
+
+    if (!before) {
+      return [];
+    }
+
+    path.push(before);
+    cursor = before;
+  }
+
+  return path.reverse();
+}
+
+function dedupeRoutePoints(
+  points: LatLon[],
+): LatLon[] {
+  const result: LatLon[] = [];
+
+  for (const point of points) {
+    const previous = result.at(-1);
+
+    if (
+      !previous ||
+      haversineKm(previous, point) >= 0.03
+    ) {
+      result.push(point);
+    }
+  }
+
+  return result;
+}
+
+// Fallback for local trips and unknown future demo places.
+// Keeps a small natural curve without pretending to be a real road.
+function curvedDemoRoute(
+  from: LatLon,
+  to: LatLon,
+): LatLon[] {
+  const directKm = haversineKm(
+    from,
+    to,
+  );
 
   const segments =
-    directKm >= 150
-      ? 10
-      : directKm >= 60
-        ? 8
-        : directKm >= 20
-          ? 6
-          : 4;
+    directKm >= 20 ? 6 : 4;
 
   const dLat = to.lat - from.lat;
   const dLon = to.lon - from.lon;
-  const norm = Math.sqrt(dLat * dLat + dLon * dLon) || 1;
 
-  const normalLat = dLon / norm;
-  const normalLon = -dLat / norm;
+  const norm =
+    Math.sqrt(
+      dLat * dLat +
+      dLon * dLon,
+    ) || 1;
+
+  const normalLat =
+    dLon / norm;
+
+  const normalLon =
+    -dLat / norm;
 
   const sign =
     Math.sin(
-      (from.lat + from.lon + to.lat + to.lon) * 1000,
+      (
+        from.lat +
+        from.lon +
+        to.lat +
+        to.lon
+      ) * 1000,
     ) >= 0
       ? 1
       : -1;
 
   const bend = Math.min(
-    0.05,
-    Math.max(0.0015, directKm / 4000),
+    0.012,
+    Math.max(
+      0.0005,
+      directKm / 8000,
+    ),
   );
 
-  return Array.from({ length: segments + 1 }, (_, i) => {
-    const t = i / segments;
+  return Array.from(
+    { length: segments + 1 },
+    (_, index) => {
+      const t =
+        index / segments;
 
-    if (i === 0) {
-      return { ...from };
-    }
+      if (index === 0) {
+        return { ...from };
+      }
 
-    if (i === segments) {
-      return { ...to };
-    }
+      if (index === segments) {
+        return { ...to };
+      }
 
-    const curve =
-      Math.sin(Math.PI * t) *
-      Math.sin(Math.PI * t * 1.5) *
-      bend *
-      sign;
+      const curve =
+        Math.sin(Math.PI * t) *
+        bend *
+        sign;
 
-    return {
-      lat:
-        from.lat +
-        dLat * t +
-        normalLat * curve,
-      lon:
-        from.lon +
-        dLon * t +
-        normalLon * curve,
-    };
-  });
+      return {
+        lat:
+          from.lat +
+          dLat * t +
+          normalLat * curve,
+
+        lon:
+          from.lon +
+          dLon * t +
+          normalLon * curve,
+      };
+    },
+  );
+}
+
+function demoRoute(
+  fromKey: string,
+  toKey: string,
+  from: LatLon,
+  to: LatLon,
+): LatLon[] {
+  const startNode =
+    DEMO_PLACE_ROUTE_NODE[fromKey];
+
+  const endNode =
+    DEMO_PLACE_ROUTE_NODE[toKey];
+
+  /*
+   * Local Bielefeld trips and any future place that has no
+   * explicit road-network anchor use the lightweight fallback.
+   */
+  if (
+    !startNode ||
+    !endNode ||
+    startNode === endNode
+  ) {
+    return curvedDemoRoute(
+      from,
+      to,
+    );
+  }
+
+  const path =
+    shortestDemoRouteNodes(
+      startNode,
+      endNode,
+    );
+
+  if (path.length < 2) {
+    return curvedDemoRoute(
+      from,
+      to,
+    );
+  }
+
+  return dedupeRoutePoints([
+    from,
+
+    ...path.flatMap(
+      (node) => {
+        const point =
+          DEMO_ROUTE_NODES[node];
+
+        return point
+          ? [point]
+          : [];
+      },
+    ),
+
+    to,
+  ]);
 }
 
 // ---------------------------------------------------------------------------
@@ -547,7 +895,12 @@ function simulateDrive(opts: {
   const socConsumed =
     (rangeConsumed / FULL_RATED_RANGE_KM) * 100;
 
-  const route = demoRoute(from, to);
+  const route = demoRoute(
+    String(fromKey),
+    String(toKey),
+    from,
+    to,
+  );
 
   let speedMax = 0;
   let firstPositionId: number | null = null;

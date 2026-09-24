@@ -129,6 +129,53 @@
   },
   "views": {
     "analysis": "Analysis",
-    "yearly": "Yearly review"
+    "yearly": "Yearly review",
+    "routeHeatmap": "Route heatmap"
+  },
+  "routeHeatmap": {
+    "title": "Route heatmap",
+    "subtitle": "Shows which route sections were driven most frequently based on recorded GPS data.",
+    "ranges": {
+      "days30": "30 days",
+      "year": "{year}",
+      "all": "All time"
+    },
+    "filters": {
+      "business": "Business",
+      "private": "Private",
+      "other": "Other"
+    },
+    "map": {
+      "drives": "drives",
+      "hint": "Lines are based on normalized GPS route segments. The more often a segment was driven, the more strongly it is highlighted.",
+      "less": "Less",
+      "more": "More"
+    },
+    "stats": {
+      "title": "Driven routes",
+      "distance": "Distance",
+      "drives": "Drives",
+      "duration": "Driving time",
+      "gpsDrives": "Drives with GPS"
+    },
+    "quality": {
+      "title": "Map data",
+      "points": "GPS points",
+      "segments": "Route segments",
+      "max": "Maximum usage",
+      "hint": "A segment is counted at most once per drive. Opposite directions are combined and small GPS deviations are normalized using a spatial grid."
+    },
+    "empty": {
+      "title": "No route data",
+      "hint": "There are no usable GPS routes for this period and filter yet."
+    },
+    "topRoutes": {
+      "title": "Most driven routes",
+      "driveCount": "{count, plural, one {# drive} other {# drives}}",
+      "hint": "Outbound and return directions are combined into the same route.",
+      "empty": "No repeated routes available yet.",
+      "averageDistance": "avg. {distance} per drive",
+      "totalDistance": "{distance} total"
+    }
   }
 }

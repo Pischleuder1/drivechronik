@@ -129,6 +129,53 @@
   },
   "views": {
     "analysis": "Analyse",
-    "yearly": "Jahresauswertung"
+    "yearly": "Jahresauswertung",
+    "routeHeatmap": "Strecken-Heatmap"
+  },
+  "routeHeatmap": {
+    "title": "Strecken-Heatmap",
+    "subtitle": "Zeigt auf Basis der GPS-Fahrtdaten, welche Streckenabschnitte besonders häufig gefahren wurden.",
+    "ranges": {
+      "days30": "30 Tage",
+      "year": "{year}",
+      "all": "Gesamt"
+    },
+    "filters": {
+      "business": "Geschäftlich",
+      "private": "Privat",
+      "other": "Sonstige"
+    },
+    "map": {
+      "drives": "Fahrten",
+      "hint": "Die Linien basieren auf normalisierten GPS-Routenabschnitten. Je häufiger ein Abschnitt gefahren wurde, desto stärker wird er hervorgehoben.",
+      "less": "Wenig",
+      "more": "Viele"
+    },
+    "stats": {
+      "title": "Gefahrene Strecken",
+      "distance": "Gesamtstrecke",
+      "drives": "Fahrten",
+      "duration": "Fahrzeit",
+      "gpsDrives": "Fahrten mit GPS"
+    },
+    "quality": {
+      "title": "Kartendaten",
+      "points": "GPS-Punkte",
+      "segments": "Streckenabschnitte",
+      "max": "Max. Nutzung",
+      "hint": "Ein Abschnitt wird pro Fahrt höchstens einmal gezählt. Gegenrichtungen werden zusammengefasst und kleine GPS-Abweichungen durch ein räumliches Raster ausgeglichen."
+    },
+    "empty": {
+      "title": "Keine Routendaten",
+      "hint": "Für diesen Zeitraum und Filter liegen noch keine auswertbaren GPS-Fahrtrouten vor."
+    },
+    "topRoutes": {
+      "title": "Meistgefahrene Strecken",
+      "driveCount": "{count, plural, one {# Fahrt} other {# Fahrten}}",
+      "hint": "Hin- und Rückrichtung werden als dieselbe Strecke zusammengefasst.",
+      "empty": "Noch keine wiederholt gefahrenen Strecken vorhanden.",
+      "averageDistance": "Ø {distance} je Fahrt",
+      "totalDistance": "{distance} gesamt"
+    }
   }
 }

@@ -31,6 +31,7 @@ import {
 } from "./InsightCharts";
 import { InsightsVehicleSwitcher } from "./InsightsVehicleSwitcher";
 import { InsightsViewTabs } from "./InsightsViewTabs";
+import { RouteHeatmapContent } from "./RouteHeatmapContent";
 import { YearlyInsightsContent } from "./yearly/YearlyInsightsContent";
 
 import { NoVehicleState } from "../../../components/NoVehicleState";
@@ -117,6 +118,8 @@ export default async function InsightsPage({
     view?: string;
     year?: string;
     destination?: string;
+    range?: string;
+    routeFilter?: string;
   }>;
 }) {
   const [t, locale] = await Promise.all([
@@ -127,7 +130,11 @@ export default async function InsightsPage({
   const { vehicle } = params;
 
   const activeView =
-    params.view === "yearly" ? "yearly" : "analysis";
+    params.view === "yearly"
+      ? "yearly"
+      : params.view === "routes"
+        ? "routes"
+        : "analysis";
 
   const vehicles = await getVehicles();
   if (vehicles.length === 0) {
@@ -142,6 +149,7 @@ export default async function InsightsPage({
         <InsightsViewTabs
           active={activeView}
           analysisLabel={t("views.analysis")}
+          routeHeatmapLabel={t("views.routeHeatmap")}
           yearlyLabel={t("views.yearly")}
         />
 
@@ -154,6 +162,40 @@ export default async function InsightsPage({
 
   const requested = vehicle ? Number(vehicle) : NaN;
   const current = vehicles.find((v) => v.id === requested) ?? vehicles[0]!;
+
+  if (activeView === "routes") {
+    return (
+      <div className="w-full">
+        <PageHeader
+          visual="stats"
+          title={t("routeHeatmap.title")}
+          subtitle={t("routeHeatmap.subtitle")}
+          actions={
+            vehicles.length > 1 ? (
+              <InsightsVehicleSwitcher
+                vehicles={vehicles}
+                current={current.id}
+              />
+            ) : undefined
+          }
+        />
+
+        <InsightsViewTabs
+          active="routes"
+          vehicleId={current.id}
+          analysisLabel={t("views.analysis")}
+          routeHeatmapLabel={t("views.routeHeatmap")}
+          yearlyLabel={t("views.yearly")}
+        />
+
+        <RouteHeatmapContent
+          vehicleId={current.id}
+          range={params.range}
+          filter={params.routeFilter}
+        />
+      </div>
+    );
+  }
 
   if (activeView === "yearly") {
     return (
@@ -176,6 +218,7 @@ export default async function InsightsPage({
           active="yearly"
           vehicleId={current.id}
           analysisLabel={t("views.analysis")}
+          routeHeatmapLabel={t("views.routeHeatmap")}
           yearlyLabel={t("views.yearly")}
         />
 
@@ -303,6 +346,7 @@ export default async function InsightsPage({
         active="analysis"
         vehicleId={current.id}
         analysisLabel={t("views.analysis")}
+        routeHeatmapLabel={t("views.routeHeatmap")}
         yearlyLabel={t("views.yearly")}
       />
 

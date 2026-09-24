@@ -1,15 +1,17 @@
 import Link from "next/link";
-import { BarChart3, CalendarRange } from "lucide-react";
+import { BarChart3, CalendarRange, Route } from "lucide-react";
 
 export function InsightsViewTabs({
   active,
   vehicleId,
   analysisLabel,
+  routeHeatmapLabel,
   yearlyLabel,
 }: {
-  active: "analysis" | "yearly";
+  active: "analysis" | "routes" | "yearly";
   vehicleId?: number;
   analysisLabel: string;
+  routeHeatmapLabel: string;
   yearlyLabel: string;
 }) {
   const vehicleQuery =
@@ -29,6 +31,19 @@ export function InsightsViewTabs({
         >
           <BarChart3 aria-hidden size={15} />
           {analysisLabel}
+        </Link>
+
+        <Link
+          href={`/insights?view=routes${vehicleQuery}`}
+          aria-current={active === "routes" ? "page" : undefined}
+          className={`inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+            active === "routes"
+              ? "bg-emerald-600 text-white shadow-sm"
+              : "text-neutral-600 hover:bg-white hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
+          }`}
+        >
+          <Route aria-hidden size={15} />
+          {routeHeatmapLabel}
         </Link>
 
         <Link

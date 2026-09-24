@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-09-24
+
 ### Added
 
 - Added a GPS-based route heatmap to Insights with 30-day, current-year and all-time ranges plus business, private and other classification filters.

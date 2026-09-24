@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added historical TPMS synchronization from TeslaMate vehicle metrics.
+
+- Added 30- and 90-day tire-pressure history with individual tire charts, peer-median reference lines and a combined overview.
+
+- Added cautious slow tire-pressure loss detection based on each tire's relative trend versus the other tires.
+
 - Added consumption anomaly detection that compares each drive with similar historical drives using distance class, temperature and average speed, with the median as a robust reference.
 
 - Added a 30-day vehicle sleep and status timeline based on historical TeslaMate states, combined with driving and charging periods.
@@ -17,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Expanded the self-contained demo with 30 days of synthetic TeslaMate vehicle-state history.
 
 ### Changed
+
+- Refined the vehicle view with more compact driving, charging, long-term trend and software sections.
+
+- Expanded the synthetic demo with a controlled gradual rear-left tire-pressure loss for TPMS trend validation.
 
 - Improved synthetic demo drive consumption by preserving continuous SoC for rated-range calculation, avoiding artificial whole-percentage consumption jumps.
 

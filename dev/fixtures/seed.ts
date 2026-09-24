@@ -393,6 +393,13 @@ interface ChargeRow {
   outside_temp: number;
 }
 
+interface StateRow {
+  state: "online" | "offline" | "asleep";
+  start_date: Date;
+  end_date: Date;
+  car_id: number;
+}
+
 interface ChargingProcessRow {
   start_date: Date;
   end_date: Date;
@@ -1401,6 +1408,74 @@ for (let w = 0; w < WEEKS; w++) {
 
 
 // ---------------------------------------------------------------------------
+// Synthetic TeslaMate state history for the last 30 completed days.
+//
+// TeslaMate stores online/offline/asleep independently from drives and charging.
+// DriveChronik overlays drives and charging sessions in its status timeline.
+// ---------------------------------------------------------------------------
+
+const vehicleStates: StateRow[] = [];
+
+const STATE_HISTORY_DAYS = 30;
+const firstStateDay = addDays(
+  yesterday,
+  -(STATE_HISTORY_DAYS - 1),
+);
+
+for (let i = 0; i < STATE_HISTORY_DAYS; i += 1) {
+  const day = addDays(firstStateDay, i);
+  const nextDay = addDays(day, 1);
+
+  const middayState: StateRow["state"] =
+    i % 8 === 3 ? "offline" : "online";
+
+  vehicleStates.push(
+    {
+      state: "asleep",
+      start_date: atTime(day, 0, 0),
+      end_date: atTime(day, 6, 20),
+      car_id: CAR_ID,
+    },
+    {
+      state: "online",
+      start_date: atTime(day, 6, 20),
+      end_date: atTime(day, 6, 35),
+      car_id: CAR_ID,
+    },
+    {
+      state: "asleep",
+      start_date: atTime(day, 6, 35),
+      end_date: atTime(day, 12, 10),
+      car_id: CAR_ID,
+    },
+    {
+      state: middayState,
+      start_date: atTime(day, 12, 10),
+      end_date: atTime(day, 12, 20),
+      car_id: CAR_ID,
+    },
+    {
+      state: "asleep",
+      start_date: atTime(day, 12, 20),
+      end_date: atTime(day, 17, 15),
+      car_id: CAR_ID,
+    },
+    {
+      state: "online",
+      start_date: atTime(day, 17, 15),
+      end_date: atTime(day, 17, 30),
+      car_id: CAR_ID,
+    },
+    {
+      state: "asleep",
+      start_date: atTime(day, 17, 30),
+      end_date: atTime(nextDay, 0, 0),
+      car_id: CAR_ID,
+    },
+  );
+}
+
+// ---------------------------------------------------------------------------
 // DB writes
 // ---------------------------------------------------------------------------
 
@@ -1490,6 +1565,24 @@ async function main() {
       INSERT INTO cars (eid, vid, model, efficiency, vin, name, trim_badging, settings_id, exterior_color, wheel_type, display_priority, inserted_at, updated_at)
       VALUES (${CAR.eid}, ${CAR.vid}, ${CAR.model}, ${CAR.efficiency}, ${CAR.vin}, ${CAR.name}, ${CAR.trim_badging}, ${carSettings!.id}, ${CAR.exterior_color}, ${CAR.wheel_type}, 1, now(), now())
     `;
+
+    // vehicle state history
+    for (const state of vehicleStates) {
+      await tx`
+        INSERT INTO states (
+          state,
+          start_date,
+          end_date,
+          car_id
+        )
+        VALUES (
+          ${state.state}::states_status,
+          ${state.start_date},
+          ${state.end_date},
+          ${state.car_id}
+        )
+      `;
+    }
 
     // updates (software update history)
     for (const u of SOFTWARE_UPDATES) {
@@ -1668,6 +1761,7 @@ async function main() {
       (SELECT count(*) FROM positions) AS positions,
       (SELECT count(*) FROM charging_processes) AS charging_processes,
       (SELECT count(*) FROM charges) AS charges,
+      (SELECT count(*) FROM states) AS states,
       (SELECT count(*) FROM updates) AS updates
   `;
   const dateRange = await sql`
@@ -1691,6 +1785,7 @@ async function main() {
   console.log(`drives:              ${c.drives}`);
   console.log(`positions:           ${c.positions}`);
   console.log(`charging_processes:  ${c.charging_processes}`);
+  console.log(`states:              ${c.states}`);
   console.log(`charges:             ${c.charges}`);
   console.log(`updates:             ${c.updates}`);
   console.log("");

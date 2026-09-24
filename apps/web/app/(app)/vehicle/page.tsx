@@ -10,6 +10,7 @@ import { getTranslations } from "next-intl/server";
 
 import { getVehicles } from "../../../lib/queries";
 import { getVehicleAnalytics } from "../../../lib/vehicleAnalytics";
+import { getVehicleStateTimeline } from "../../../lib/vehicleStateTimeline";
 import { getSoftwareUpdates } from "../../../lib/softwareUpdates";
 import { SoftwareTimeline } from "../settings/SoftwareTimeline";
 import { PageHeader } from "../../../components/ui/PageHeader";
@@ -21,6 +22,7 @@ import {
   resolveVehicleUsageSelection,
 } from "../../../lib/vehicleUsage";
 import { VehicleUsageFilter } from "./VehicleUsageFilter";
+import { VehicleStateTimeline } from "./VehicleStateTimeline";
 
 import { IconBadge, type IconBadgeTone } from "../../../components/ui/IconBadge";
 
@@ -147,11 +149,13 @@ export default async function VehiclePage({
     );
   }
 
-  const [analytics, softwareUpdates, usage] = await Promise.all([
-    getVehicleAnalytics(vehicle.id),
-    getSoftwareUpdates(vehicle.id),
-    getVehicleUsageSummary(vehicle.id, usageSelection),
-  ]);
+  const [analytics, softwareUpdates, usage, stateTimeline] =
+    await Promise.all([
+      getVehicleAnalytics(vehicle.id),
+      getSoftwareUpdates(vehicle.id),
+      getVehicleUsageSummary(vehicle.id, usageSelection),
+      getVehicleStateTimeline(vehicle.id, 30),
+    ]);
 
   const battery = analytics.battery;
   const charging = analytics.charging;
@@ -530,6 +534,27 @@ export default async function VehiclePage({
           )}
         </MetricCard>
       </div>
+
+      <VehicleStateTimeline
+        timeline={stateTimeline}
+        labels={{
+          title: t("status.title"),
+          subtitle: t("status.subtitle"),
+          sleepShare: t("status.sleepShare"),
+          sleepTime: t("status.sleepTime"),
+          onlineTime: t("status.onlineTime"),
+          coverage: t("status.coverage"),
+          asleep: t("status.asleep"),
+          online: t("status.online"),
+          offline: t("status.offline"),
+          driving: t("status.driving"),
+          charging: t("status.charging"),
+          sleep: t("status.sleep"),
+          empty: t("status.empty"),
+          hint: t("status.hint"),
+          lowCoverage: t("status.lowCoverage"),
+        }}
+      />
 
       <Panel className="mt-6">
         <div className="flex items-center gap-2">

@@ -80,7 +80,7 @@ export const REQUIRED_TESLAMATE_SCHEMA: Record<string, readonly string[]> = {
     "outside_temp",
   ],
   geofences: ["id", "name", "latitude", "longitude", "radius"],
-  states: ["car_id", "state", "start_date"],
+  states: ["id", "car_id", "state", "start_date", "end_date"],
   updates: ["id", "car_id", "start_date", "end_date", "version"],
 };
 

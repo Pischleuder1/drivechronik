@@ -38,6 +38,23 @@
     "samples": "{count} suitable parking periods",
     "hint": "Median from parking periods of at least 8 hours without an overlapping charge."
   },
+  "status": {
+    "title": "Sleep & vehicle status",
+    "subtitle": "Last 30 days from TeslaMate states, drives and charging sessions.",
+    "sleepShare": "Sleep share (recorded time)",
+    "sleepTime": "Sleep time",
+    "onlineTime": "Online time",
+    "coverage": "Data coverage",
+    "asleep": "Asleep",
+    "online": "Online",
+    "offline": "Offline",
+    "driving": "Driving",
+    "charging": "Charging",
+    "sleep": "Sleep",
+    "empty": "No historical vehicle states available yet.",
+    "hint": "Driving and charging override TeslaMate states. Sleep share is calculated from the actually recorded period.",
+    "lowCoverage": "Historical vehicle states are still incomplete for this period. Sleep and online values are therefore not yet representative."
+  },
   "history": {
     "title": "Development",
     "range": "100% range",

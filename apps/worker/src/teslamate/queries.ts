@@ -301,6 +301,44 @@ export function fetchLatestStates(sql: TeslamateSql): Promise<TmLatestState[]> {
   `;
 }
 
+export interface TmVehicleStatePeriod {
+  id: number;
+  car_id: number;
+  state: string;
+  start_time: Date;
+  end_time: Date | null;
+  source_date: Date;
+}
+
+/**
+ * Historische TeslaMate-Zustände.
+ *
+ * `source_date` ist bei abgeschlossenen Perioden das Enddatum und bei einer
+ * noch offenen Periode das Startdatum. Dadurch wird ein später geschlossenes
+ * State-Intervall beim inkrementellen Sync erneut gefunden.
+ */
+export function fetchVehicleStatePeriodsSince(
+  sql: TeslamateSql,
+  since: Date,
+  limit: number,
+): Promise<TmVehicleStatePeriod[]> {
+  return sql<TmVehicleStatePeriod[]>`
+    SELECT
+      id,
+      car_id,
+      state,
+      start_date AT TIME ZONE 'UTC' AS start_time,
+      end_date   AT TIME ZONE 'UTC' AS end_time,
+      COALESCE(end_date, start_date) AT TIME ZONE 'UTC' AS source_date
+    FROM states
+    WHERE
+      COALESCE(end_date, start_date) AT TIME ZONE 'UTC' > ${since}
+      OR end_date IS NULL
+    ORDER BY COALESCE(end_date, start_date), id
+    LIMIT ${limit}
+  `;
+}
+
 export interface TmCharge {
   date: Date;
   charger_power: number | null;

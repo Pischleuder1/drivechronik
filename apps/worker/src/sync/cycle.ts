@@ -3,6 +3,7 @@ import type { VehicleDataSource } from "../dataSource/vehicleDataSource.js";
 import { syncVehicles } from "./vehicles.js";
 import { syncVehicleStatus } from "./vehicleStatus.js";
 import { syncVehicleMetrics } from "./vehicleMetrics.js";
+import { syncVehicleStatePeriods } from "./vehicleStatePeriods.js";
 import { syncGeofenceImport } from "./geofences.js";
 import { syncDrives } from "./drives.js";
 import { syncRoutePoints } from "./routePoints.js";
@@ -32,6 +33,12 @@ export async function runSyncCycle(
   const vehicleMap = await syncVehicles(db, dataSource);
   await syncVehicleStatus(db, dataSource, vehicleMap);
   const vehicleMetricsResult = await syncVehicleMetrics(db, dataSource, vehicleMap);
+  const vehicleStatePeriodsResult =
+    await syncVehicleStatePeriods(
+      db,
+      dataSource,
+      vehicleMap,
+    );
   const geofenceResult = await syncGeofenceImport(db, dataSource);
   const matchablePlaces = await loadMatchablePlaces(db);
   const driveResult = await syncDrives(db, dataSource, vehicleMap, matchablePlaces);
@@ -50,6 +57,7 @@ export async function runSyncCycle(
   console.log(
     `[drivechronik-worker] sync ok: ${vehicleMap.size} vehicle(s), ` +
       `${vehicleMetricsResult.inserted} vehicle metric(s), ` +
+      `${vehicleStatePeriodsResult.upserted} vehicle state period(s), ` +
       `${driveResult.upserted} drive(s) upserted` +
       (driveResult.deletedZombies > 0
         ? `, ${driveResult.deletedZombies} zombie(s) entfernt`

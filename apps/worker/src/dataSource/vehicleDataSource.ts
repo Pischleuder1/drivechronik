@@ -92,6 +92,15 @@ export interface SourceLatestState {
   start_date: Date;
 }
 
+export interface SourceVehicleStatePeriod {
+  id: number;
+  car_id: number;
+  state: string;
+  start_time: Date;
+  end_time: Date | null;
+  source_date: Date;
+}
+
 export interface SourceChargePoint {
   date: Date;
   charger_power: number | null;
@@ -150,6 +159,10 @@ export interface VehicleDataSource {
 
   fetchLatestPositions(): Promise<SourceLatestPosition[]>;
   fetchLatestStates(): Promise<SourceLatestState[]>;
+  fetchVehicleStatePeriodsSince(
+    since: Date,
+    limit: number,
+  ): Promise<SourceVehicleStatePeriod[]>;
 
   fetchChargePoints(
     chargingProcessId: number,

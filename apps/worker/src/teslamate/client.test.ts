@@ -96,9 +96,11 @@ const REQUIRED = [
   "geofences.longitude",
   "geofences.radius",
 
+  "states.id",
   "states.car_id",
   "states.state",
   "states.start_date",
+  "states.end_date",
 
   "updates.id",
   "updates.car_id",

@@ -404,6 +404,37 @@ export const vehicleStatus = pgTable("vehicle_status", {
   syncedAt: timestamp("synced_at", { withTimezone: true }),
 });
 
+// Historische Fahrzeug-Zustandsperioden aus TeslaMate `states`.
+// Anders als `vehicle_status` bleibt hier jede Periode erhalten.
+// `source` + `source_id` erlaubt später weitere Datenquellen wie Fleet Telemetry.
+export const vehicleStatePeriods = pgTable(
+  "vehicle_state_periods",
+  {
+    id: id(),
+    vehicleId: bigint("vehicle_id", { mode: "number" })
+      .notNull()
+      .references(() => vehicles.id, { onDelete: "cascade" }),
+
+    state: text("state").notNull(),
+
+    startTime: timestamp("start_time", { withTimezone: true }).notNull(),
+    endTime: timestamp("end_time", { withTimezone: true }),
+
+    source: text("source").notNull(),
+    sourceId: text("source_id").notNull(),
+
+    syncedAt: timestamp("synced_at", { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique("vehicle_state_periods_source_uq").on(t.source, t.sourceId),
+    index("vehicle_state_periods_vehicle_start_idx").on(
+      t.vehicleId,
+      t.startTime,
+    ),
+  ],
+);
+
 // Historische Fahrzeug-Messwerte. Anders als `vehicle_status` werden diese
 // nicht überschrieben und bilden die Grundlage für Reichweiten-, Kilometerstands-
 // und Batterie-Trends. `source` hält die Tabelle für spätere Datenquellen offen.

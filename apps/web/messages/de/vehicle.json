@@ -38,6 +38,23 @@
     "samples": "{count} geeignete Standzeiten",
     "hint": "Median aus Standzeiten ab 8 Stunden ohne überlappenden Ladevorgang."
   },
+  "status": {
+    "title": "Schlaf- & Fahrzeugstatus",
+    "subtitle": "Letzte 30 Tage aus TeslaMate-Zuständen, Fahrten und Ladevorgängen.",
+    "sleepShare": "Schlafanteil (erfasste Zeit)",
+    "sleepTime": "Schlafzeit",
+    "onlineTime": "Online-Zeit",
+    "coverage": "Datenabdeckung",
+    "asleep": "Schläft",
+    "online": "Online",
+    "offline": "Offline",
+    "driving": "Fährt",
+    "charging": "Lädt",
+    "sleep": "Schlaf",
+    "empty": "Noch keine historischen Fahrzeugzustände vorhanden.",
+    "hint": "Fahren und Laden überlagern die TeslaMate-Zustände. Der Schlafanteil bezieht sich auf den tatsächlich erfassten Zeitraum.",
+    "lowCoverage": "Die historischen Fahrzeugzustände sind für diesen Zeitraum noch unvollständig. Schlaf- und Online-Werte sind daher noch nicht repräsentativ."
+  },
   "history": {
     "title": "Entwicklung",
     "range": "100-%-Reichweite",

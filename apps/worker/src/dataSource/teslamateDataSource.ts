@@ -13,6 +13,7 @@ import {
   fetchInProgressDrives,
   fetchLatestPositions,
   fetchLatestStates,
+  fetchVehicleStatePeriodsSince,
   fetchChargesForProcess,
   fetchPositionsForDrive,
   fetchUpdates,
@@ -26,6 +27,7 @@ import type {
   SourceGeofence,
   SourceLatestPosition,
   SourceLatestState,
+  SourceVehicleStatePeriod,
   SourcePosition,
   SourceSoftwareUpdate,
   SourceVehicle,
@@ -101,6 +103,13 @@ export class TeslaMateDataSource implements VehicleDataSource {
 
   fetchLatestStates(): Promise<SourceLatestState[]> {
     return fetchLatestStates(this.sql);
+  }
+
+  fetchVehicleStatePeriodsSince(
+    since: Date,
+    limit: number,
+  ): Promise<SourceVehicleStatePeriod[]> {
+    return fetchVehicleStatePeriodsSince(this.sql, since, limit);
   }
 
   fetchChargePoints(

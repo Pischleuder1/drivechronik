@@ -96,7 +96,7 @@ Tessie & Co. sind gut, aber: Abo-Kosten, Feature-Überschneidung mit der Tesla-A
 **Oberfläche**
 - **Deutsch & Englisch** — umschaltbar im UI (Standard Deutsch)
 - **Dark Mode** — Hell/Dunkel/System-Switcher, ohne Flackern
-- **Mobile-first** — als PWA installierbar, 16px-Formularfelder (kein iOS-Zoom), Safe-Area-aware Bottom-Navigation
+- **Mobile-first** — als PWA installierbar, 16px-Formularfelder (kein iOS-Zoom), Safe-Area-aware Bottom-Navigation mit kompaktem Fünf-Punkte-Schnellzugriff und vollständigem mobilen Menü für alle Hauptbereiche
 
 **Daten**
 - **Datenhoheit** — eigene PostgreSQL-DB, quellen-agnostisches Schema (`source`/`source_id`), Annotationen überleben strukturell jeden Re-Sync

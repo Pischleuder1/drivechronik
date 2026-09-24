@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Reworked mobile navigation with a five-item bottom bar and a full navigation hub for vehicle, planner, calendar, journeys, places, reports, insights and settings.
 - Improved the synthetic demo GPS data with shared offline route corridors so repeated trips visibly reuse common route sections instead of forming independent straight-line spokes.
 
 - Refined the vehicle view with more compact driving, charging, long-term trend and software sections.

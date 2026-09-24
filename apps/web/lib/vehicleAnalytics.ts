@@ -8,6 +8,10 @@ import {
 } from "@drivechronik/db";
 import { db } from "./db";
 import {
+  buildDailyTpmsHistory,
+  detectTpmsSlowLeak,
+} from "./tpmsHistoryLogic";
+import {
   buildDailyVehicleMetrics,
   calculateChargingEfficiency,
   calculateVampireDrain,
@@ -45,6 +49,17 @@ export interface VehicleAnalyticsResult {
     sampleCount: number;
   };
   history: ReturnType<typeof buildDailyVehicleMetrics>;
+  tpms: {
+    history: Array<{
+      ts: string;
+      fl: number | null;
+      fr: number | null;
+      rl: number | null;
+      rr: number | null;
+    }>;
+    alerts30: ReturnType<typeof detectTpmsSlowLeak>;
+    alerts90: ReturnType<typeof detectTpmsSlowLeak>;
+  };
 }
 
 function overlaps(
@@ -66,6 +81,10 @@ export async function getVehicleAnalytics(
         soc: vehicleMetrics.soc,
         ratedRangeKm: vehicleMetrics.ratedRangeKm,
         odometerKm: vehicleMetrics.odometerKm,
+        tpmsFlBar: vehicleMetrics.tpmsFlBar,
+        tpmsFrBar: vehicleMetrics.tpmsFrBar,
+        tpmsRlBar: vehicleMetrics.tpmsRlBar,
+        tpmsRrBar: vehicleMetrics.tpmsRrBar,
       })
       .from(vehicleMetrics)
       .where(eq(vehicleMetrics.vehicleId, vehicleId))
@@ -102,6 +121,15 @@ export async function getVehicleAnalytics(
   ]);
 
   const history = buildDailyVehicleMetrics(metricRows);
+
+  const tpmsDaily = buildDailyTpmsHistory(metricRows);
+  const tpmsAlerts30 = detectTpmsSlowLeak(tpmsDaily, {
+    windowDays: 30,
+  });
+  const tpmsAlerts90 = detectTpmsSlowLeak(tpmsDaily, {
+    windowDays: 90,
+  });
+
   const latest = metricRows.at(-1) ?? null;
 
   const battery = estimateBatteryHealth(chargingRows);
@@ -161,5 +189,13 @@ export async function getVehicleAnalytics(
     charging,
     vampireDrain,
     history,
+    tpms: {
+      history: tpmsDaily.map((point) => ({
+        ...point,
+        ts: point.ts.toISOString(),
+      })),
+      alerts30: tpmsAlerts30,
+      alerts90: tpmsAlerts90,
+    },
   };
 }

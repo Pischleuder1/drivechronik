@@ -127,6 +127,13 @@
       "when": 1790236993524,
       "tag": "0017_mixed_sugar_man",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1790246019453,
+      "tag": "0018_complete_enchantress",
+      "breakpoints": true
     }
   ]
 }

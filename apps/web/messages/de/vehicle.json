@@ -56,7 +56,7 @@
     "lowCoverage": "Die historischen Fahrzeugzustände sind für diesen Zeitraum noch unvollständig. Schlaf- und Online-Werte sind daher noch nicht repräsentativ."
   },
   "history": {
-    "title": "Entwicklung",
+    "title": "Langzeitverlauf",
     "range": "100-%-Reichweite",
     "odometer": "Kilometerstand",
     "days": "{count} Tageswerte",
@@ -82,7 +82,7 @@
       "next": "Nächster Zeitraum"
     },
     "driving": {
-      "title": "Fahren",
+      "title": "Fahrten",
       "drives": "Fahrten",
       "distance": "Gesamtkilometer",
       "duration": "Fahrzeit",
@@ -100,5 +100,29 @@
     },
     "estimated": "enthält geschätzte Werte",
     "incomplete": "unvollständig"
+  },
+  "tpmsHistory": {
+    "title": "Reifendruckhistorie",
+    "subtitle": "Tagesmediane der von TeslaMate erfassten TPMS-Werte.",
+    "days": "{count} Tage",
+    "empty": "Noch keine historischen Reifendruckwerte vorhanden.",
+    "notEnough": "Für einen Verlauf sind noch nicht genügend Messwerte vorhanden.",
+    "chartAria": "Verlauf des Reifendrucks für alle vier Reifen",
+    "tire": {
+      "fl": "Vorne links",
+      "fr": "Vorne rechts",
+      "rl": "Hinten links",
+      "rr": "Hinten rechts"
+    },
+    "noAlert": "Kein auffälliger relativer Drucktrend erkannt.",
+    "possibleLeak": "Möglicher schleichender Druckverlust",
+    "alertText": "{tire}: relativer Drucktrend um {drop} bar gefallen; aktuell etwa {gap} bar unter den Vergleichsreifen.",
+    "method": "Trendhinweis, keine Reifendiagnose: Jedes Rad wird mit dem Median der übrigen Reifen verglichen. Gemeinsame Druckänderungen, etwa durch Temperatur, werden dadurch weitgehend herausgerechnet. Einzelne Ausreißer lösen keinen Hinweis aus.",
+    "legendMeasured": "Reifendruck",
+    "legendPeer": "Median der anderen Reifen",
+    "overview": "Gesamtübersicht",
+    "overviewHint": "Alle Reifen auf gemeinsamer Skala",
+    "overallMedian": "Gesamtmedian",
+    "singleChartAria": "Reifendruckverlauf {tire} mit Vergleichsmedian"
   }
 }

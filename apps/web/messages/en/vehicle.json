@@ -56,7 +56,7 @@
     "lowCoverage": "Historical vehicle states are still incomplete for this period. Sleep and online values are therefore not yet representative."
   },
   "history": {
-    "title": "Development",
+    "title": "Long-term trend",
     "range": "100% range",
     "odometer": "Odometer",
     "days": "{count} daily values",
@@ -100,5 +100,29 @@
     },
     "estimated": "includes estimated values",
     "incomplete": "incomplete"
+  },
+  "tpmsHistory": {
+    "title": "Tire pressure history",
+    "subtitle": "Daily medians of TPMS values recorded by TeslaMate.",
+    "days": "{count} days",
+    "empty": "No historical tire-pressure data available yet.",
+    "notEnough": "Not enough measurements are available for a trend yet.",
+    "chartAria": "Tire-pressure history for all four tires",
+    "tire": {
+      "fl": "Front left",
+      "fr": "Front right",
+      "rl": "Rear left",
+      "rr": "Rear right"
+    },
+    "noAlert": "No unusual relative pressure trend detected.",
+    "possibleLeak": "Possible gradual pressure loss",
+    "alertText": "{tire}: relative pressure trend dropped by {drop} bar and is currently about {gap} bar below the comparison tires.",
+    "method": "Trend indicator, not a tire diagnosis: each tire is compared with the median of the other tires. Common pressure changes, such as temperature effects, are therefore largely cancelled out. Single outliers do not trigger an alert.",
+    "legendMeasured": "Tire pressure",
+    "legendPeer": "Median of the other tires",
+    "overview": "Overall view",
+    "overviewHint": "All tires on a common scale",
+    "overallMedian": "Overall median",
+    "singleChartAria": "Tire-pressure trend for {tire} with comparison median"
   }
 }

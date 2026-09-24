@@ -123,6 +123,10 @@ export interface SourceVehicleMetric {
   soc: number | null;
   rated_range_km: number | null;
   odometer: number | null;
+  tpms_pressure_fl: number | null;
+  tpms_pressure_fr: number | null;
+  tpms_pressure_rl: number | null;
+  tpms_pressure_rr: number | null;
 }
 
 /**

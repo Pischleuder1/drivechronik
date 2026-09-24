@@ -449,6 +449,14 @@ export const vehicleMetrics = pgTable(
     soc: smallint("soc"),
     ratedRangeKm: doublePrecision("rated_range_km"),
     odometerKm: doublePrecision("odometer_km"),
+
+    // Historische Reifendruckwerte aus TeslaMate positions.
+    // Anders als vehicle_status bleiben diese Messwerte erhalten.
+    tpmsFlBar: doublePrecision("tpms_fl_bar"),
+    tpmsFrBar: doublePrecision("tpms_fr_bar"),
+    tpmsRlBar: doublePrecision("tpms_rl_bar"),
+    tpmsRrBar: doublePrecision("tpms_rr_bar"),
+
     source: text("source").notNull(),
     createdAt: createdAt(),
   },

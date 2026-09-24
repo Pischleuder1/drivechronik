@@ -392,6 +392,10 @@ export interface TmVehicleMetric {
   soc: number | null;
   rated_range_km: number | null;
   odometer: number | null;
+  tpms_pressure_fl: number | null;
+  tpms_pressure_fr: number | null;
+  tpms_pressure_rl: number | null;
+  tpms_pressure_rr: number | null;
 }
 
 /**
@@ -411,7 +415,11 @@ export function fetchVehicleMetricsSince(
       bucket_ts,
       soc,
       rated_range_km,
-      odometer
+      odometer,
+      tpms_pressure_fl,
+      tpms_pressure_fr,
+      tpms_pressure_rl,
+      tpms_pressure_rr
     FROM (
       SELECT DISTINCT ON (
         car_id,
@@ -426,7 +434,11 @@ export function fetchVehicleMetricsSince(
         ) AT TIME ZONE 'UTC' AS bucket_ts,
         COALESCE(usable_battery_level, battery_level) AS soc,
         rated_battery_range_km::float8 AS rated_range_km,
-        odometer::float8 AS odometer
+        odometer::float8 AS odometer,
+        tpms_pressure_fl::float8 AS tpms_pressure_fl,
+        tpms_pressure_fr::float8 AS tpms_pressure_fr,
+        tpms_pressure_rl::float8 AS tpms_pressure_rl,
+        tpms_pressure_rr::float8 AS tpms_pressure_rr
       FROM positions
       WHERE date > ${since}
         AND (
@@ -434,6 +446,10 @@ export function fetchVehicleMetricsSince(
           OR battery_level IS NOT NULL
           OR rated_battery_range_km IS NOT NULL
           OR odometer IS NOT NULL
+          OR tpms_pressure_fl IS NOT NULL
+          OR tpms_pressure_fr IS NOT NULL
+          OR tpms_pressure_rl IS NOT NULL
+          OR tpms_pressure_rr IS NOT NULL
         )
       ORDER BY
         car_id,

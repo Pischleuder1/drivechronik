@@ -210,14 +210,35 @@ function chargeJitter(scale: number): number {
 const TPMS_FRONT_BAR = 2.9;
 const TPMS_REAR_BAR = 2.9;
 
-function tpmsReading(): Pick<
+function tpmsReading(date: Date): Pick<
   PositionRow,
   "tpms_pressure_fl" | "tpms_pressure_fr" | "tpms_pressure_rl" | "tpms_pressure_rr"
 > {
+  // Kontrolliertes Demo-Szenario:
+  // In den letzten rund 35 Tagen verliert nur der Reifen hinten links
+  // langsam Druck. Die übrigen drei Reifen bleiben unverändert.
+  //
+  // Damit lässt sich die relative Schleichverlust-Erkennung reproduzierbar
+  // testen, ohne normale gemeinsame Druckänderungen als Fehler zu markieren.
+  const leakDurationDays = 35;
+  const leakStart = addDays(yesterday, -leakDurationDays);
+  const leakProgress = Math.max(
+    0,
+    Math.min(
+      1,
+      (date.getTime() - leakStart.getTime()) /
+        (leakDurationDays * 24 * 60 * 60 * 1000),
+    ),
+  );
+
+  const rearLeftLeakBar = 0.32 * leakProgress;
+
   return {
     tpms_pressure_fl: Number((TPMS_FRONT_BAR + jitter(0.05)).toFixed(2)),
     tpms_pressure_fr: Number((TPMS_FRONT_BAR + jitter(0.05)).toFixed(2)),
-    tpms_pressure_rl: Number((TPMS_REAR_BAR + jitter(0.05)).toFixed(2)),
+    tpms_pressure_rl: Number(
+      (TPMS_REAR_BAR - rearLeftLeakBar + jitter(0.05)).toFixed(2),
+    ),
     tpms_pressure_rr: Number((TPMS_REAR_BAR + jitter(0.05)).toFixed(2)),
   };
 }
@@ -570,7 +591,7 @@ function simulateDrive(opts: {
       usable_battery_level: Math.max(0, socRounded - usableOffset),
       car_id: CAR_ID,
       drive_id: null, // filled in after we know the drive id
-      ...tpmsReading(),
+      ...tpmsReading(date),
     });
   }
 
@@ -729,7 +750,7 @@ function simulateCharging(opts: {
     usable_battery_level: startSoc,
     car_id: CAR_ID,
     drive_id: null,
-    ...tpmsReading(),
+    ...tpmsReading(start),
   });
 
   chargingProcessIdCounter += 1;

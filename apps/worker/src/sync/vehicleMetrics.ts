@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import { vehicleMetrics, type Db } from "@drivechronik/db";
 import type { VehicleDataSource } from "../dataSource/vehicleDataSource.js";
 import { getWatermark, recordSyncRun } from "./state.js";
@@ -45,6 +46,10 @@ export async function syncVehicleMetrics(
             soc: row.soc,
             ratedRangeKm: row.rated_range_km,
             odometerKm: row.odometer,
+            tpmsFlBar: row.tpms_pressure_fl,
+            tpmsFrBar: row.tpms_pressure_fr,
+            tpmsRlBar: row.tpms_pressure_rl,
+            tpmsRrBar: row.tpms_pressure_rr,
             source,
           };
         })
@@ -55,7 +60,22 @@ export async function syncVehicleMetrics(
       const result = await db
         .insert(vehicleMetrics)
         .values(values)
-        .onConflictDoNothing()
+        .onConflictDoUpdate({
+          target: [
+            vehicleMetrics.vehicleId,
+            vehicleMetrics.ts,
+            vehicleMetrics.source,
+          ],
+          set: {
+            soc: sql`excluded.soc`,
+            ratedRangeKm: sql`excluded.rated_range_km`,
+            odometerKm: sql`excluded.odometer_km`,
+            tpmsFlBar: sql`excluded.tpms_fl_bar`,
+            tpmsFrBar: sql`excluded.tpms_fr_bar`,
+            tpmsRlBar: sql`excluded.tpms_rl_bar`,
+            tpmsRrBar: sql`excluded.tpms_rr_bar`,
+          },
+        })
         .returning({ id: vehicleMetrics.id });
 
       inserted += result.length;

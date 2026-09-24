@@ -23,6 +23,7 @@ import {
 } from "../../../lib/vehicleUsage";
 import { VehicleUsageFilter } from "./VehicleUsageFilter";
 import { VehicleStateTimeline } from "./VehicleStateTimeline";
+import { TpmsHistory } from "./TpmsHistory";
 
 import { IconBadge, type IconBadgeTone } from "../../../components/ui/IconBadge";
 
@@ -237,7 +238,7 @@ export default async function VehiclePage({
               {t("usage.driving.title")}
             </h3>
 
-            <dl className="mt-3 divide-y divide-neutral-100 text-sm dark:divide-neutral-800">
+            <dl className="mt-3 grid grid-cols-1 gap-x-6 sm:grid-cols-2">
               {[
                 [
                   t("usage.driving.drives"),
@@ -270,7 +271,7 @@ export default async function VehiclePage({
               ].map(([label, value]) => (
                 <div
                   key={label}
-                  className="flex items-center justify-between gap-4 py-2.5"
+                  className="flex items-center justify-between gap-3 border-b border-neutral-100 py-1.5 last:border-0 dark:border-neutral-800"
                 >
                   <dt className="text-neutral-500 dark:text-neutral-400">
                     {label}
@@ -303,7 +304,7 @@ export default async function VehiclePage({
               {t("usage.charging.title")}
             </h3>
 
-            <dl className="mt-3 divide-y divide-neutral-100 text-sm dark:divide-neutral-800">
+            <dl className="mt-3 grid grid-cols-1 gap-x-6 sm:grid-cols-2">
               {[
                 [
                   t("usage.charging.sessions"),
@@ -344,7 +345,7 @@ export default async function VehiclePage({
               ].map(([label, value]) => (
                 <div
                   key={label}
-                  className="flex items-center justify-between gap-4 py-2.5"
+                  className="flex items-center justify-between gap-3 border-b border-neutral-100 py-1.5 last:border-0 dark:border-neutral-800"
                 >
                   <dt className="text-neutral-500 dark:text-neutral-400">
                     {label}
@@ -594,7 +595,7 @@ export default async function VehiclePage({
                   </tr>
                 </thead>
                 <tbody>
-                  {analytics.history.slice(-14).reverse().map((row) => (
+                  {analytics.history.slice(-7).reverse().map((row) => (
                     <tr
                       key={row.ts.toISOString()}
                       className="border-b border-neutral-100 last:border-0 dark:border-neutral-800"
@@ -629,7 +630,13 @@ export default async function VehiclePage({
         )}
       </Panel>
 
-      <SoftwareTimeline updates={softwareUpdates} />
+      <TpmsHistory
+        history={analytics.tpms.history}
+        alerts30={analytics.tpms.alerts30}
+        alerts90={analytics.tpms.alerts90}
+      />
+
+      <SoftwareTimeline updates={softwareUpdates} compact />
     </div>
   );
 }

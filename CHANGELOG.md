@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added a GPS-based route heatmap to Insights with 30-day, current-year and all-time ranges plus business, private and other classification filters.
+- Added normalized, direction-independent route-segment aggregation with usage-based heat coloring and a summary of the most frequently driven routes.
+
 - Added historical TPMS synchronization from TeslaMate vehicle metrics.
 
 - Added 30- and 90-day tire-pressure history with individual tire charts, peer-median reference lines and a combined overview.
@@ -23,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Expanded the self-contained demo with 30 days of synthetic TeslaMate vehicle-state history.
 
 ### Changed
+
+- Improved the synthetic demo GPS data with shared offline route corridors so repeated trips visibly reuse common route sections instead of forming independent straight-line spokes.
 
 - Refined the vehicle view with more compact driving, charging, long-term trend and software sections.
 

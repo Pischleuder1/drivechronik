@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-09-25
+
+### Fixed
+
+- Fixed place usage statistics in multi-vehicle installations so drive starts, destinations, charging sessions, parking sessions, average dwell time and vampire loss follow the globally selected vehicle while place deletion protection continues to consider usage across all vehicles.
+
 ## [0.5.1] - 2026-09-25
 
 ### Added

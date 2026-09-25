@@ -252,7 +252,7 @@ export async function YearlyInsightsContent({
           </Link>
 
           <a
-            href={`/api/export/year/${year}?format=pdf`}
+            href={`/api/export/year/${year}?format=pdf&vehicle=${currentVehicle.id}`}
             className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-sm font-medium hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:bg-neutral-800"
           >
             <Download aria-hidden size={15} />

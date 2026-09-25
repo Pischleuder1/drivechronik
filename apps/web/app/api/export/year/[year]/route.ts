@@ -72,11 +72,31 @@ export async function GET(
     ? ["business"]
     : ALL_CLASSIFICATIONS;
 
+  const vehicleParam = request.nextUrl.searchParams.get("vehicle");
+  let vehicleId: number | undefined;
+
+  if (vehicleParam != null) {
+    const parsed = Number(vehicleParam);
+
+    if (!Number.isInteger(parsed) || parsed <= 0) {
+      return NextResponse.json(
+        { error: t("errors.noVehicle") },
+        { status: 400 },
+      );
+    }
+
+    vehicleId = parsed;
+  }
+
   const [data, reimbursementRate, locale] =
     await Promise.all([
       businessOnly
-          ? loadBusinessYearReportData(year)
-          : loadBusinessYearReportData(year, selected),
+          ? vehicleId != null
+            ? loadBusinessYearReportData(year, ["business"], vehicleId)
+            : loadBusinessYearReportData(year)
+          : vehicleId != null
+            ? loadBusinessYearReportData(year, selected, vehicleId)
+            : loadBusinessYearReportData(year, selected),
       getBusinessReimbursementRateEurPerKm(),
       getLocale(),
     ]);

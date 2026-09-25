@@ -19,7 +19,7 @@ import { StatCard } from "../../../../components/ui/StatCard";
 import { YearReportFilters } from "./YearReportFilters";
 
 import { NoVehicleState } from "../../../../components/NoVehicleState";
-import { getVehicles } from "../../../../lib/queries";
+import { getActiveVehicle } from "../../../../lib/activeVehicle";
 
 export const dynamic = "force-dynamic";
 
@@ -70,9 +70,9 @@ export default async function BusinessYearReportPage({
 
   const classificationQuery = selected.join(",");
 
-  const vehicles = await getVehicles();
+  const activeVehicle = await getActiveVehicle();
 
-  if (vehicles.length === 0) {
+  if (!activeVehicle) {
     return (
       <div className="w-full">
         <Link
@@ -115,7 +115,7 @@ export default async function BusinessYearReportPage({
   }
 
   const [data, reimbursementRate] = await Promise.all([
-    loadBusinessYearReportData(year, selected),
+    loadBusinessYearReportData(year, selected, activeVehicle.id),
     getBusinessReimbursementRateEurPerKm(),
   ]);
 
@@ -177,7 +177,7 @@ export default async function BusinessYearReportPage({
 
       <div className="mt-4 flex gap-1.5">
         <a
-          href={`/api/export/year/${year}?format=csv&classification=${classificationQuery}`}
+          href={`/api/export/year/${year}?format=csv&classification=${classificationQuery}&vehicle=${activeVehicle.id}`}
           className={buttonClasses("ghost", "sm")}
         >
           <Download aria-hidden size={14} />
@@ -185,7 +185,7 @@ export default async function BusinessYearReportPage({
         </a>
 
         <a
-          href={`/api/export/year/${year}?format=pdf&classification=${classificationQuery}`}
+          href={`/api/export/year/${year}?format=pdf&classification=${classificationQuery}&vehicle=${activeVehicle.id}`}
           className={buttonClasses("ghost", "sm")}
         >
           <Download aria-hidden size={14} />

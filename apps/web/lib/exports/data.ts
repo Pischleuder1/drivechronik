@@ -254,9 +254,10 @@ export function yearBounds(year: string): { start: Date; end: Date } {
 export async function loadBusinessYearReportData(
   year: string,
   classifications: Classification[] = ["business"],
+  vehicleId?: number,
 ): Promise<BusinessYearExportData> {
   const { start, end } = yearBounds(year);
-  const meta = await loadMeta();
+  const meta = await loadMeta(vehicleId);
 
   const conditions = [
     eq(drives.vehicleId, meta.vehicleId),

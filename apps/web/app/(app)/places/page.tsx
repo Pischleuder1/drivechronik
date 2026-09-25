@@ -13,8 +13,10 @@ import {
 import { formatDuration } from "@drivechronik/core";
 import { getAllPlacesWithUsage } from "../../../lib/queries";
 import { getPlaceDwellStats } from "../../../lib/parkAnalytics";
+import { getActiveVehicle } from "../../../lib/activeVehicle";
 import { Button } from "../../../components/ui/Button";
 import { EmptyState } from "../../../components/ui/EmptyState";
+import { NoVehicleState } from "../../../components/NoVehicleState";
 import { IconBadge } from "../../../components/ui/IconBadge";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
@@ -27,8 +29,28 @@ export const dynamic = "force-dynamic";
 
 export default async function PlacesPage() {
   const t = await getTranslations("places");
-  const placeRows = await getAllPlacesWithUsage();
-  const dwellStatsByPlaceId = await getPlaceDwellStats();
+  const current = await getActiveVehicle();
+
+  if (!current) {
+    return (
+      <div className="w-full">
+        <PageHeader
+          visual="places"
+          title={t("title")}
+          subtitle={t("description")}
+        />
+
+        <div className="mt-6">
+          <NoVehicleState />
+        </div>
+      </div>
+    );
+  }
+
+  const [placeRows, dwellStatsByPlaceId] = await Promise.all([
+    getAllPlacesWithUsage(current.id),
+    getPlaceDwellStats(current.id),
+  ]);
 
   return (
     <div className="w-full">

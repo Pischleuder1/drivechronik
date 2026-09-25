@@ -466,14 +466,21 @@ export interface PlaceRow {
  * One query using subselects — avoids N+1 and avoids join fan-out between the
  * independently-sized drive/charge/park counts.
  */
-export async function getAllPlacesWithUsage(): Promise<PlaceRow[]> {
+export async function getAllPlacesWithUsage(vehicleId?: number): Promise<PlaceRow[]> {
   const driveStart = db
     .select({
       placeId: drives.startPlaceId,
       driveStartCount: sql<number>`count(*)::int`.as("drive_start_count"),
     })
     .from(drives)
-    .where(isNotNull(drives.startPlaceId))
+    .where(
+      vehicleId != null
+        ? and(
+            isNotNull(drives.startPlaceId),
+            eq(drives.vehicleId, vehicleId),
+          )
+        : isNotNull(drives.startPlaceId),
+    )
     .groupBy(drives.startPlaceId)
     .as("drive_start");
 
@@ -483,7 +490,14 @@ export async function getAllPlacesWithUsage(): Promise<PlaceRow[]> {
       driveEndCount: sql<number>`count(*)::int`.as("drive_end_count"),
     })
     .from(drives)
-    .where(isNotNull(drives.endPlaceId))
+    .where(
+      vehicleId != null
+        ? and(
+            isNotNull(drives.endPlaceId),
+            eq(drives.vehicleId, vehicleId),
+          )
+        : isNotNull(drives.endPlaceId),
+    )
     .groupBy(drives.endPlaceId)
     .as("drive_end");
 
@@ -493,7 +507,14 @@ export async function getAllPlacesWithUsage(): Promise<PlaceRow[]> {
       chargeCount: sql<number>`count(*)::int`.as("charge_count"),
     })
     .from(chargeSessions)
-    .where(isNotNull(chargeSessions.placeId))
+    .where(
+      vehicleId != null
+        ? and(
+            isNotNull(chargeSessions.placeId),
+            eq(chargeSessions.vehicleId, vehicleId),
+          )
+        : isNotNull(chargeSessions.placeId),
+    )
     .groupBy(chargeSessions.placeId)
     .as("charge_usage");
 
@@ -503,7 +524,14 @@ export async function getAllPlacesWithUsage(): Promise<PlaceRow[]> {
       parkCount: sql<number>`count(*)::int`.as("park_count"),
     })
     .from(parkSessions)
-    .where(isNotNull(parkSessions.placeId))
+    .where(
+      vehicleId != null
+        ? and(
+            isNotNull(parkSessions.placeId),
+            eq(parkSessions.vehicleId, vehicleId),
+          )
+        : isNotNull(parkSessions.placeId),
+    )
     .groupBy(parkSessions.placeId)
     .as("park_usage");
 

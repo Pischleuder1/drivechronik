@@ -98,7 +98,9 @@ export interface PlaceDwellStats {
  * getParkLossForSessions ermittelt, hier direkt aggregiert statt pro Park
  * ins Web geladen (kein N+1).
  */
-export async function getPlaceDwellStats(): Promise<Map<number, PlaceDwellStats>> {
+export async function getPlaceDwellStats(
+  vehicleId: number,
+): Promise<Map<number, PlaceDwellStats>> {
   const result = new Map<number, PlaceDwellStats>();
 
   const rows = await db.execute<{
@@ -141,7 +143,8 @@ export async function getPlaceDwellStats(): Promise<Map<number, PlaceDwellStats>
             and (cs.end_time is null or cs.end_time > ps.start_time)
         ) as had_charge
       from park_sessions ps
-      where ps.place_id is not null
+      where ps.vehicle_id = ${vehicleId}
+        and ps.place_id is not null
         and ps.end_time is not null
     )
     select

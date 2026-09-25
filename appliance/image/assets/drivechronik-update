@@ -51,7 +51,7 @@ TARGET_VERSION="${1:-}"
 
 if ! printf '%s\n' "$TARGET_VERSION" |
   grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
-  fail "Zielversion fehlt oder ist ungültig. Beispiel: sudo drivechronik-update v0.5.0"
+  fail "Zielversion fehlt oder ist ungültig. Beispiel: sudo drivechronik-update vX.Y.Z"
 fi
 
 command -v docker >/dev/null 2>&1 ||

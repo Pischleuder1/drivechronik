@@ -20,7 +20,8 @@ import { APP_TIMEZONE } from "../../../lib/config";
 import { todayInAppTz } from "../../../lib/day";
 import { monthBounds } from "../../../lib/exports/data";
 import { isValidMonthParam } from "../../../lib/exports/params";
-import { getChargeSessionsInRange, getVehicles } from "../../../lib/queries";
+import { getActiveVehicleId } from "../../../lib/activeVehicle";
+import { getChargeSessionsInRange } from "../../../lib/queries";
 import { getChargingAnalytics } from "../../../lib/chargeAnalytics";
 import { getChargeCurve } from "../../../lib/chargeCurve";
 import { EmptyState } from "../../../components/ui/EmptyState";
@@ -87,8 +88,7 @@ export default async function ChargesPage({
       ? sp.month
       : currentMonthInAppTz();
 
-  const vehicles = await getVehicles();
-  const vehicleId = vehicles[0]?.id;
+  const vehicleId = await getActiveVehicleId();
   const { start, end } = monthBounds(month);
 
   const sessions =

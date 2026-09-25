@@ -56,7 +56,12 @@ export async function loadJourneyReportData(id: number): Promise<JourneyExportDa
       ? db
           .select()
           .from(drives)
-          .where(inArray(drives.id, driveIds))
+          .where(
+            and(
+              inArray(drives.id, driveIds),
+              eq(drives.vehicleId, journey.vehicleId),
+            ),
+          )
           .orderBy(asc(drives.startTime))
       : Promise.resolve([]),
     chargeIds.length > 0
@@ -77,10 +82,15 @@ export async function loadJourneyReportData(id: number): Promise<JourneyExportDa
             placeId: chargeSessions.placeId,
           })
           .from(chargeSessions)
-          .where(inArray(chargeSessions.id, chargeIds))
+          .where(
+            and(
+              inArray(chargeSessions.id, chargeIds),
+              eq(chargeSessions.vehicleId, journey.vehicleId),
+            ),
+          )
           .orderBy(asc(chargeSessions.startTime))
       : Promise.resolve([]),
-    loadMeta(),
+    loadMeta(journey.vehicleId),
   ]);
 
   const placeIds = new Set<number>();
@@ -171,7 +181,10 @@ export interface JourneyGpxData {
  */
 export async function loadJourneyGpxTracks(id: number): Promise<JourneyGpxData | null> {
   const journeyRows = await db
-    .select({ name: journeys.name })
+    .select({
+      name: journeys.name,
+      vehicleId: journeys.vehicleId,
+    })
     .from(journeys)
     .where(eq(journeys.id, id))
     .limit(1);
@@ -194,8 +207,19 @@ export async function loadJourneyGpxTracks(id: number): Promise<JourneyGpxData |
       endLon: drives.endLon,
     })
     .from(drives)
-    .where(inArray(drives.id, driveIds))
+    .where(
+      and(
+        inArray(drives.id, driveIds),
+        eq(drives.vehicleId, journey.vehicleId),
+      ),
+    )
     .orderBy(asc(drives.startTime));
+
+  if (driveRows.length === 0) {
+    return { journeyName: journey.name, tracks: [] };
+  }
+
+  const vehicleDriveIds = driveRows.map((drive) => drive.id);
 
   const placeIds = new Set<number>();
   for (const d of driveRows) {
@@ -214,7 +238,7 @@ export async function loadJourneyGpxTracks(id: number): Promise<JourneyGpxData |
         ts: routePoints.ts,
       })
       .from(routePoints)
-      .where(inArray(routePoints.driveId, driveIds))
+      .where(inArray(routePoints.driveId, vehicleDriveIds))
       .orderBy(asc(routePoints.driveId), asc(routePoints.ts)),
   ]);
 

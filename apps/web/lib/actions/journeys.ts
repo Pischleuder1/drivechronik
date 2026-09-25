@@ -15,6 +15,7 @@ import {
 import { db } from "../db";
 import { validateSession } from "../auth/session";
 import { parseDateTimeLocal } from "../day";
+import { getActiveVehicleId } from "../activeVehicle";
 
 const typeSchema = z.enum(["vacation", "business_trip", "roadtrip", "other"]);
 
@@ -55,6 +56,71 @@ function buildBaseFields(t: Awaited<ReturnType<typeof getTranslations>>) {
   });
 }
 
+async function journeyBelongsToVehicle(
+  journeyId: number,
+  vehicleId: number,
+): Promise<boolean> {
+  const rows = await db
+    .select({ id: journeys.id })
+    .from(journeys)
+    .where(
+      and(
+        eq(journeys.id, journeyId),
+        eq(journeys.vehicleId, vehicleId),
+      ),
+    )
+    .limit(1);
+
+  return rows.length > 0;
+}
+
+async function itemBelongsToVehicle(
+  itemType: "drive" | "charge" | "park",
+  itemId: number,
+  vehicleId: number,
+): Promise<boolean> {
+  if (itemType === "drive") {
+    const rows = await db
+      .select({ id: drives.id })
+      .from(drives)
+      .where(
+        and(
+          eq(drives.id, itemId),
+          eq(drives.vehicleId, vehicleId),
+        ),
+      )
+      .limit(1);
+    return rows.length > 0;
+  }
+
+  if (itemType === "charge") {
+    const rows = await db
+      .select({ id: chargeSessions.id })
+      .from(chargeSessions)
+      .where(
+        and(
+          eq(chargeSessions.id, itemId),
+          eq(chargeSessions.vehicleId, vehicleId),
+        ),
+      )
+      .limit(1);
+    return rows.length > 0;
+  }
+
+  const rows = await db
+    .select({ id: parkSessions.id })
+    .from(parkSessions)
+    .where(
+      and(
+        eq(parkSessions.id, itemId),
+        eq(parkSessions.vehicleId, vehicleId),
+      ),
+    )
+    .limit(1);
+
+  return rows.length > 0;
+}
+
 /**
  * Legt die Auto-Zuordnung einer Reise an bzw. aktualisiert sie: fügt für alle
  * Fahrten, Ladestopps und Parkvorgänge, deren Startzeit im Reisezeitraum liegt,
@@ -68,7 +134,11 @@ function buildBaseFields(t: Awaited<ReturnType<typeof getTranslations>>) {
  */
 export async function autoAssignJourney(journeyId: number): Promise<void> {
   const rows = await db
-    .select({ startTime: journeys.startTime, endTime: journeys.endTime })
+    .select({
+      startTime: journeys.startTime,
+      endTime: journeys.endTime,
+      vehicleId: journeys.vehicleId,
+    })
     .from(journeys)
     .where(eq(journeys.id, journeyId))
     .limit(1);
@@ -82,19 +152,34 @@ export async function autoAssignJourney(journeyId: number): Promise<void> {
     await db
       .select({ id: drives.id })
       .from(drives)
-      .where(inWindow(drives.startTime))
+      .where(
+        and(
+          eq(drives.vehicleId, j.vehicleId),
+          inWindow(drives.startTime),
+        ),
+      )
   ).map((r) => r.id);
   const chargeIds = (
     await db
       .select({ id: chargeSessions.id })
       .from(chargeSessions)
-      .where(inWindow(chargeSessions.startTime))
+      .where(
+        and(
+          eq(chargeSessions.vehicleId, j.vehicleId),
+          inWindow(chargeSessions.startTime),
+        ),
+      )
   ).map((r) => r.id);
   const parkIds = (
     await db
       .select({ id: parkSessions.id })
       .from(parkSessions)
-      .where(inWindow(parkSessions.startTime))
+      .where(
+        and(
+          eq(parkSessions.vehicleId, j.vehicleId),
+          inWindow(parkSessions.startTime),
+        ),
+      )
   ).map((r) => r.id);
 
   await db.transaction(async (tx) => {
@@ -175,6 +260,11 @@ export async function createJourney(
   const user = await validateSession();
   if (!user) return { ok: false, error: t("errors.notAuthenticated") };
 
+  const vehicleId = await getActiveVehicleId();
+  if (vehicleId == null) {
+    return { ok: false, error: t("errors.noVehicle") };
+  }
+
   const parsed = buildBaseFields(t).safeParse({
     name: formData.get("name"),
     type: formData.get("type"),
@@ -196,6 +286,7 @@ export async function createJourney(
     const inserted = await tx
       .insert(journeys)
       .values({
+        vehicleId,
         name: parsed.data.name,
         type: parsed.data.type,
         startTime: window.start,
@@ -235,6 +326,11 @@ export async function updateJourney(
   const user = await validateSession();
   if (!user) return { ok: false, error: t("errors.notAuthenticated") };
 
+  const vehicleId = await getActiveVehicleId();
+  if (vehicleId == null) {
+    return { ok: false, error: t("errors.noVehicle") };
+  }
+
   const updateFields = buildBaseFields(t).extend({
     id: z.number().int().positive(),
   });
@@ -260,7 +356,12 @@ export async function updateJourney(
   const existing = await db
     .select({ id: journeys.id })
     .from(journeys)
-    .where(eq(journeys.id, parsed.data.id))
+    .where(
+      and(
+        eq(journeys.id, parsed.data.id),
+        eq(journeys.vehicleId, vehicleId),
+      ),
+    )
     .limit(1);
   if (!existing[0]) return { ok: false, error: t("errors.notFound") };
 
@@ -276,7 +377,12 @@ export async function updateJourney(
         description: parsed.data.description,
         updatedAt: new Date(),
       })
-      .where(eq(journeys.id, parsed.data.id));
+      .where(
+        and(
+          eq(journeys.id, parsed.data.id),
+          eq(journeys.vehicleId, vehicleId),
+        ),
+      );
 
     await appendAuditEntry(tx, {
       entityType: "journey",
@@ -303,10 +409,24 @@ export async function deleteJourney(id: number): Promise<void> {
   const user = await validateSession();
   if (!user) throw new Error(t("errors.notAuthenticated"));
 
+  const vehicleId = await getActiveVehicleId();
+  if (vehicleId == null) throw new Error(t("errors.noVehicle"));
+
   const parsed = deleteSchema.parse({ id });
 
+  if (!(await journeyBelongsToVehicle(parsed.id, vehicleId))) {
+    throw new Error(t("errors.notFound"));
+  }
+
   await db.transaction(async (tx) => {
-    await tx.delete(journeys).where(eq(journeys.id, parsed.id));
+    await tx
+      .delete(journeys)
+      .where(
+        and(
+          eq(journeys.id, parsed.id),
+          eq(journeys.vehicleId, vehicleId),
+        ),
+      );
     await appendAuditEntry(tx, {
       entityType: "journey",
       entityId: parsed.id,
@@ -343,7 +463,24 @@ export async function removeItem(
   const user = await validateSession();
   if (!user) throw new Error(t("errors.notAuthenticated"));
 
+  const vehicleId = await getActiveVehicleId();
+  if (vehicleId == null) throw new Error(t("errors.noVehicle"));
+
   const parsed = itemSchema.parse({ journeyId, itemType, itemId });
+
+  if (!(await journeyBelongsToVehicle(parsed.journeyId, vehicleId))) {
+    throw new Error(t("errors.notFound"));
+  }
+
+  if (
+    !(await itemBelongsToVehicle(
+      parsed.itemType,
+      parsed.itemId,
+      vehicleId,
+    ))
+  ) {
+    throw new Error(t("errors.itemVehicleMismatch"));
+  }
 
   await db.transaction(async (tx) => {
     // Falls die Row (noch) nicht existiert (z. B. manuell außerhalb des
@@ -394,7 +531,24 @@ export async function addItem(
   const user = await validateSession();
   if (!user) throw new Error(t("errors.notAuthenticated"));
 
+  const vehicleId = await getActiveVehicleId();
+  if (vehicleId == null) throw new Error(t("errors.noVehicle"));
+
   const parsed = itemSchema.parse({ journeyId, itemType, itemId });
+
+  if (!(await journeyBelongsToVehicle(parsed.journeyId, vehicleId))) {
+    throw new Error(t("errors.notFound"));
+  }
+
+  if (
+    !(await itemBelongsToVehicle(
+      parsed.itemType,
+      parsed.itemId,
+      vehicleId,
+    ))
+  ) {
+    throw new Error(t("errors.itemVehicleMismatch"));
+  }
 
   await db.transaction(async (tx) => {
     await tx

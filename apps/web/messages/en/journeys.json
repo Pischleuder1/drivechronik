@@ -68,6 +68,8 @@
     "rangeInvalid": "The start must be before the end.",
     "notAuthenticated": "Not signed in.",
     "invalidInput": "Invalid input.",
-    "notFound": "Journey not found."
+    "notFound": "Journey not found.",
+    "noVehicle": "No vehicle available.",
+    "itemVehicleMismatch": "The item does not belong to the active vehicle."
   }
 }

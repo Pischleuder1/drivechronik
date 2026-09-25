@@ -134,6 +134,13 @@
       "when": 1790246019453,
       "tag": "0018_complete_enchantress",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1790341769687,
+      "tag": "0019_normal_black_tarantula",
+      "breakpoints": true
     }
   ]
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 interface VehicleOption {
@@ -22,6 +22,7 @@ export function ActiveVehicleSwitcher({
   compact?: boolean;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const t = useTranslations("nav");
   const [vehicleId, setVehicleId] = useState(initialVehicleId);
 
@@ -32,6 +33,15 @@ export function ActiveVehicleSwitcher({
 
     document.cookie =
       `${COOKIE}=${nextVehicleId}; path=/; max-age=${ONE_YEAR}; SameSite=Lax`;
+
+    // Eine konkrete Reise gehört genau einem Fahrzeug. Nach einem
+    // Fahrzeugwechsel wäre die bisherige Detail-/Bearbeitungs-URL daher
+    // für das neue aktive Fahrzeug ungültig. Zur fahrzeugbezogenen
+    // Reiseliste zurückkehren statt eine 404-Seite anzuzeigen.
+    if (/^\/journeys\/\d+(?:\/edit)?$/.test(pathname)) {
+      router.replace("/journeys");
+      return;
+    }
 
     router.refresh();
   }

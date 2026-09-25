@@ -22,6 +22,7 @@ import {
   formatTime,
 } from "@drivechronik/core";
 import { APP_TIMEZONE } from "../../../../lib/config";
+import { getActiveVehicleId } from "../../../../lib/activeVehicle";
 import {
   getJourneyCandidates,
   getJourneyDetail,
@@ -73,14 +74,17 @@ export default async function JourneyDetailPage({
   const journeyId = Number(id);
   if (!Number.isInteger(journeyId) || journeyId <= 0) notFound();
 
-  const detail = await getJourneyDetail(journeyId);
+  const vehicleId = await getActiveVehicleId();
+  if (vehicleId == null) notFound();
+
+  const detail = await getJourneyDetail(journeyId, vehicleId);
   if (!detail) notFound();
 
   const { journey, items, kpiDrives, kpiCharges } = detail;
   const kpis = buildJourneyKpis(kpiDrives, kpiCharges);
   const driveIds = items.filter((i) => i.kind === "drive").map((i) => i.id);
   const [candidates, routeTracks] = await Promise.all([
-    getJourneyCandidates(journeyId),
+    getJourneyCandidates(journeyId, vehicleId),
     getJourneyRouteTracks(driveIds),
   ]);
 

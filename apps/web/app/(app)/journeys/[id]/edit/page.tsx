@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { getJourneyById } from "../../../../../lib/journeys";
+import { getActiveVehicleId } from "../../../../../lib/activeVehicle";
 import { toDateTimeLocal } from "../../../../../lib/day";
 import { JourneyForm, type JourneyFormValues } from "../../JourneyForm";
 import { PageHeader } from "../../../../../components/ui/PageHeader";
@@ -21,7 +22,10 @@ export default async function EditJourneyPage({
   const journeyId = Number(id);
   if (!Number.isInteger(journeyId) || journeyId <= 0) notFound();
 
-  const journey = await getJourneyById(journeyId);
+  const vehicleId = await getActiveVehicleId();
+  if (vehicleId == null) notFound();
+
+  const journey = await getJourneyById(journeyId, vehicleId);
   if (!journey) notFound();
 
   const initial: JourneyFormValues = {

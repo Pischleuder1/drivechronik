@@ -6,7 +6,7 @@
  * teslamate-db service). Idempotent: truncates the relevant tables (restart
  * identity) before inserting, so re-running produces the same data.
  *
- * Fixture world: one fictional Tesla Model Y RWD in Germany with roughly
+ * Fixture world: two fictional Teslas in Germany with roughly
  * one year of realistic commuting, business, private and charging activity.
  *
  * Run with: pnpm db:seed:teslamate  (from repo root)
@@ -2126,6 +2126,368 @@ async function main() {
         VALUES ${tx(batch as never)}
       `;
     }
+
+    // -----------------------------------------------------------------------
+    // Second demo vehicle for multi-vehicle testing.
+    //
+    // The primary fixture generator intentionally remains unchanged. The
+    // second car is derived from the completed first-car dataset so both cars
+    // exercise the same TeslaMate relationships while still having clearly
+    // distinguishable vehicle data.
+    // -----------------------------------------------------------------------
+
+    const [secondCarSettings] = await tx`
+      INSERT INTO car_settings (
+        suspend_min,
+        suspend_after_idle_min,
+        req_not_unlocked,
+        free_supercharging,
+        use_streaming_api,
+        enabled,
+        lfp_battery
+      )
+      VALUES (21, 15, false, false, true, true, true)
+      RETURNING id
+    `;
+
+    const [secondCar] = await tx`
+      INSERT INTO cars (
+        eid,
+        vid,
+        model,
+        efficiency,
+        vin,
+        name,
+        trim_badging,
+        settings_id,
+        exterior_color,
+        wheel_type,
+        display_priority,
+        inserted_at,
+        updated_at
+      )
+      VALUES (
+        1111111112,
+        2222222223,
+        '3',
+        0.155,
+        '5YJ3E1EA0TF000002',
+        'Demo Model 3',
+        'RWD',
+        ${secondCarSettings!.id},
+        'DeepBlueMetallic',
+        'Aero18',
+        2,
+        now(),
+        now()
+      )
+      RETURNING id
+    `;
+
+    const secondCarId = Number(secondCar!.id);
+
+    const [offsets] = await tx`
+      SELECT
+        (SELECT COALESCE(MAX(id), 0)::int FROM drives) AS drive_offset,
+        (SELECT COALESCE(MAX(id), 0)::int FROM positions) AS position_offset,
+        (
+          SELECT COALESCE(MAX(id), 0)::int
+          FROM charging_processes
+        ) AS charging_process_offset,
+        (SELECT COALESCE(MAX(id), 0)::int FROM charges) AS charge_offset
+    `;
+
+    const driveOffset = Number(offsets!.drive_offset);
+    const positionOffset = Number(offsets!.position_offset);
+    const chargingProcessOffset = Number(
+      offsets!.charging_process_offset,
+    );
+    const chargeOffset = Number(offsets!.charge_offset);
+
+    // Drives: same realistic routes, but two hours later and with a clearly
+    // different odometer/range profile.
+    await tx`
+      INSERT INTO drives (
+        id,
+        start_date,
+        end_date,
+        start_km,
+        end_km,
+        distance,
+        duration_min,
+        car_id,
+        start_address_id,
+        end_address_id,
+        start_geofence_id,
+        end_geofence_id,
+        start_ideal_range_km,
+        end_ideal_range_km,
+        start_rated_range_km,
+        end_rated_range_km,
+        speed_max,
+        power_max,
+        power_min,
+        outside_temp_avg,
+        inside_temp_avg,
+        ascent,
+        descent
+      )
+      SELECT
+        id + ${driveOffset},
+        start_date + interval '2 hours',
+        end_date + interval '2 hours',
+        start_km + 10000,
+        end_km + 10000,
+        distance,
+        duration_min,
+        ${secondCarId},
+        start_address_id,
+        end_address_id,
+        start_geofence_id,
+        end_geofence_id,
+        start_ideal_range_km * 0.92,
+        end_ideal_range_km * 0.92,
+        start_rated_range_km * 0.92,
+        end_rated_range_km * 0.92,
+        speed_max,
+        power_max,
+        power_min,
+        outside_temp_avg,
+        inside_temp_avg,
+        ascent,
+        descent
+      FROM drives
+      WHERE car_id = ${CAR_ID}
+      ORDER BY id
+    `;
+
+    // Positions including GPS, odometer, SoC and TPMS.
+    await tx`
+      INSERT INTO positions (
+        id,
+        date,
+        latitude,
+        longitude,
+        speed,
+        odometer,
+        ideal_battery_range_km,
+        battery_level,
+        usable_battery_level,
+        rated_battery_range_km,
+        car_id,
+        drive_id,
+        tpms_pressure_fl,
+        tpms_pressure_fr,
+        tpms_pressure_rl,
+        tpms_pressure_rr
+      )
+      SELECT
+        id + ${positionOffset},
+        date + interval '2 hours',
+        latitude,
+        longitude,
+        speed,
+        odometer + 10000,
+        ideal_battery_range_km * 0.92,
+        GREATEST(0, battery_level - 7),
+        GREATEST(0, usable_battery_level - 7),
+        rated_battery_range_km * 0.92,
+        ${secondCarId},
+        CASE
+          WHEN drive_id IS NULL THEN NULL
+          ELSE drive_id + ${driveOffset}
+        END,
+        tpms_pressure_fl + 0.05,
+        tpms_pressure_fr + 0.05,
+        tpms_pressure_rl + 0.05,
+        tpms_pressure_rr + 0.05
+      FROM positions
+      WHERE car_id = ${CAR_ID}
+      ORDER BY id
+    `;
+
+    // Now that the cloned positions exist, connect cloned drives to their
+    // cloned start/end positions.
+    await tx`
+      UPDATE drives AS target
+      SET
+        start_position_id =
+          CASE
+            WHEN source.start_position_id IS NULL THEN NULL
+            ELSE source.start_position_id + ${positionOffset}
+          END,
+        end_position_id =
+          CASE
+            WHEN source.end_position_id IS NULL THEN NULL
+            ELSE source.end_position_id + ${positionOffset}
+          END
+      FROM drives AS source
+      WHERE source.car_id = ${CAR_ID}
+        AND target.car_id = ${secondCarId}
+        AND target.id = source.id + ${driveOffset}
+    `;
+
+    // Charging sessions.
+    await tx`
+      INSERT INTO charging_processes (
+        id,
+        start_date,
+        end_date,
+        charge_energy_added,
+        charge_energy_used,
+        start_battery_level,
+        end_battery_level,
+        duration_min,
+        car_id,
+        position_id,
+        address_id,
+        geofence_id,
+        start_ideal_range_km,
+        end_ideal_range_km,
+        start_rated_range_km,
+        end_rated_range_km,
+        cost
+      )
+      SELECT
+        id + ${chargingProcessOffset},
+        start_date + interval '2 hours',
+        end_date + interval '2 hours',
+        charge_energy_added,
+        charge_energy_used,
+        GREATEST(0, start_battery_level - 7),
+        GREATEST(0, end_battery_level - 7),
+        duration_min,
+        ${secondCarId},
+        CASE
+          WHEN position_id IS NULL THEN NULL
+          ELSE position_id + ${positionOffset}
+        END,
+        address_id,
+        geofence_id,
+        start_ideal_range_km * 0.92,
+        end_ideal_range_km * 0.92,
+        start_rated_range_km * 0.92,
+        end_rated_range_km * 0.92,
+        CASE
+          WHEN cost IS NULL THEN NULL
+          ELSE cost * 1.08
+        END
+      FROM charging_processes
+      WHERE car_id = ${CAR_ID}
+      ORDER BY id
+    `;
+
+    // Individual charging measurements.
+    await tx`
+      INSERT INTO charges (
+        id,
+        date,
+        battery_level,
+        usable_battery_level,
+        charge_energy_added,
+        charger_power,
+        charger_phases,
+        charger_voltage,
+        fast_charger_present,
+        ideal_battery_range_km,
+        rated_battery_range_km,
+        charging_process_id,
+        outside_temp
+      )
+      SELECT
+        c.id + ${chargeOffset},
+        c.date + interval '2 hours',
+        GREATEST(0, c.battery_level - 7),
+        GREATEST(0, c.usable_battery_level - 7),
+        c.charge_energy_added,
+        c.charger_power,
+        c.charger_phases,
+        c.charger_voltage,
+        c.fast_charger_present,
+        c.ideal_battery_range_km * 0.92,
+        c.rated_battery_range_km * 0.92,
+        c.charging_process_id + ${chargingProcessOffset},
+        c.outside_temp
+      FROM charges AS c
+      JOIN charging_processes AS source_cp
+        ON source_cp.id = c.charging_process_id
+      WHERE source_cp.car_id = ${CAR_ID}
+      ORDER BY c.id
+    `;
+
+    // Vehicle online/offline/asleep history.
+    await tx`
+      INSERT INTO states (
+        state,
+        start_date,
+        end_date,
+        car_id
+      )
+      SELECT
+        state,
+        start_date + interval '2 hours',
+        end_date + interval '2 hours',
+        ${secondCarId}
+      FROM states
+      WHERE car_id = ${CAR_ID}
+      ORDER BY id
+    `;
+
+    // Software update history.
+    await tx`
+      INSERT INTO updates (
+        start_date,
+        end_date,
+        version,
+        car_id
+      )
+      SELECT
+        start_date + interval '2 hours',
+        CASE
+          WHEN end_date IS NULL THEN NULL
+          ELSE end_date + interval '2 hours'
+        END,
+        version,
+        ${secondCarId}
+      FROM updates
+      WHERE car_id = ${CAR_ID}
+      ORDER BY id
+    `;
+
+    // Explicit ids were used for the large cloned tables. Keep their serial
+    // sequences in sync so later inserts remain safe.
+    await tx`
+      SELECT setval(
+        pg_get_serial_sequence('drives', 'id'),
+        (SELECT MAX(id) FROM drives),
+        true
+      )
+    `;
+
+    await tx`
+      SELECT setval(
+        pg_get_serial_sequence('positions', 'id'),
+        (SELECT MAX(id) FROM positions),
+        true
+      )
+    `;
+
+    await tx`
+      SELECT setval(
+        pg_get_serial_sequence('charging_processes', 'id'),
+        (SELECT MAX(id) FROM charging_processes),
+        true
+      )
+    `;
+
+    await tx`
+      SELECT setval(
+        pg_get_serial_sequence('charges', 'id'),
+        (SELECT MAX(id) FROM charges),
+        true
+      )
+    `;
+
   });
 
   // -------------------------------------------------------------------------

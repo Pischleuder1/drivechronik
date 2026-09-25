@@ -4,6 +4,11 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { validateSession } from "../../lib/auth/session";
 import { getVehicles } from "../../lib/queries";
+import {
+  ACTIVE_VEHICLE_COOKIE,
+  resolveActiveVehicle,
+} from "../../lib/activeVehicle";
+import { ActiveVehicleSwitcher } from "../../components/ActiveVehicleSwitcher";
 import { BottomNav, SideNav } from "../../components/Nav";
 import { ThemeToggle, type ThemeChoice } from "../../components/ThemeToggle";
 import { LocaleSwitcher, type Locale } from "../../components/LocaleSwitcher";
@@ -20,9 +25,13 @@ export default async function AppLayout({
   if (!user) redirect("/login");
 
   const vehicles = await getVehicles();
-  const vehicleName = vehicles[0]?.displayName ?? null;
 
   const cookieStore = await cookies();
+
+  const activeVehicle = resolveActiveVehicle(
+    vehicles,
+    cookieStore.get(ACTIVE_VEHICLE_COOKIE)?.value,
+  );
   const cookieTheme = cookieStore.get("drivechronik_theme")?.value;
   const theme: ThemeChoice =
     cookieTheme === "light" || cookieTheme === "dark" ? cookieTheme : "system";
@@ -50,10 +59,17 @@ export default async function AppLayout({
               />
               <BrandWordmark size="xs" />
             </Link>
-          {vehicleName && (
-            <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
-              {vehicleName}
-            </p>
+          {activeVehicle && (
+            vehicles.length > 1 ? (
+              <ActiveVehicleSwitcher
+                vehicles={vehicles}
+                initialVehicleId={activeVehicle.id}
+              />
+            ) : (
+              <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+                {activeVehicle.displayName}
+              </p>
+            )
           )}
         </div>
         <SideNav />
@@ -85,9 +101,19 @@ export default async function AppLayout({
               <BrandWordmark size="sm" />
             </Link>
           <div className="flex items-center gap-3">
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">
-              {vehicleName}
-            </p>
+            {activeVehicle && (
+              vehicles.length > 1 ? (
+                <ActiveVehicleSwitcher
+                  vehicles={vehicles}
+                  initialVehicleId={activeVehicle.id}
+                  compact
+                />
+              ) : (
+                <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                  {activeVehicle.displayName}
+                </p>
+              )
+            )}
             <LocaleSwitcher initial={locale} variant="compact" />
             <ThemeToggle initial={theme} variant="compact" />
           </div>

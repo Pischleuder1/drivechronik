@@ -42,6 +42,7 @@ import { GET } from "./route";
 function request(
   year: string,
   format: string | null,
+  vehicleId?: number,
 ): NextRequest {
   const url = new URL(
     `http://localhost/api/export/year/${year}`,
@@ -49,6 +50,10 @@ function request(
 
   if (format != null) {
     url.searchParams.set("format", format);
+  }
+
+  if (vehicleId != null) {
+    url.searchParams.set("vehicle", String(vehicleId));
   }
 
   return new NextRequest(url);
@@ -188,6 +193,23 @@ describe("GET /api/export/year/[year]", () => {
     expect(
       mocks.renderBusinessYearPdf,
     ).not.toHaveBeenCalled();
+  });
+
+  it("uses the requested vehicle for the annual export", async () => {
+    const response = await GET(
+      request("2026", "csv", 2),
+      context("2026"),
+    );
+
+    expect(response.status).toBe(200);
+
+    expect(
+      mocks.loadBusinessYearReportData,
+    ).toHaveBeenCalledWith(
+      "2026",
+      ["business"],
+      2,
+    );
   });
 
   it("returns the annual PDF with download headers", async () => {

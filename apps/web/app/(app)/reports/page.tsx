@@ -27,7 +27,7 @@ import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { ReportFilters } from "./ReportFilters";
 
 import { NoVehicleState } from "../../../components/NoVehicleState";
-import { getVehicles } from "../../../lib/queries";
+import { getActiveVehicle } from "../../../lib/activeVehicle";
 import {
   getMonthSealHistory,
   getMonthSealStatus,
@@ -104,9 +104,9 @@ export default async function ReportsPage({
   const month = sp.month && isValidMonthParam(sp.month) ? sp.month : currentMonthInAppTz();
   const selected = parseSelected(sp.classification);
 
-  const vehicles = await getVehicles();
+  const activeVehicle = await getActiveVehicle();
 
-  if (vehicles.length === 0) {
+  if (!activeVehicle) {
     return (
       <div className="w-full">
         <PageHeader
@@ -127,7 +127,7 @@ export default async function ReportsPage({
   }
 
   const [data, reimbursementRate] = await Promise.all([
-    loadMonthReportData(month, selected),
+    loadMonthReportData(month, selected, activeVehicle.id),
     getBusinessReimbursementRateEurPerKm(),
   ]);
 
@@ -151,7 +151,7 @@ export default async function ReportsPage({
 
   const canSeal = month < currentMonthInAppTz();
 
-  const exportQuery = `?classification=${selected.join(",")}`;
+  const exportQuery = `?classification=${selected.join(",")}&vehicle=${activeVehicle.id}`;
 
   return (
     <div className="w-full">

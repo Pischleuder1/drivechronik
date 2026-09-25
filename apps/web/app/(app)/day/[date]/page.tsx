@@ -9,7 +9,8 @@ import {
   shiftDate,
   todayInAppTz,
 } from "../../../../lib/day";
-import { getAllTags, getDayTimeline, getVehicles } from "../../../../lib/queries";
+import { getAllTags, getDayTimeline } from "../../../../lib/queries";
+import { getActiveVehicle } from "../../../../lib/activeVehicle";
 import { getParkLossForSessions } from "../../../../lib/parkAnalytics";
 import { buttonClasses } from "../../../../components/ui/Button";
 import { EmptyState } from "../../../../components/ui/EmptyState";
@@ -20,7 +21,6 @@ import {
   SelectionToggle,
 } from "../../../../components/bulkSelection";
 import { DateNav } from "./DateNav";
-import { VehicleSwitcher } from "./VehicleSwitcher";
 import { Timeline } from "./Timeline";
 
 import { NoVehicleState } from "../../../../components/NoVehicleState";
@@ -29,10 +29,8 @@ export const dynamic = "force-dynamic";
 
 export default async function DayPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ date: string }>;
-  searchParams: Promise<{ vehicle?: string }>;
 }) {
   const [t, locale] = await Promise.all([
     getTranslations("day"),
@@ -41,11 +39,10 @@ export default async function DayPage({
   const { date } = await params;
   if (!isValidDateParam(date)) notFound();
 
-  const { vehicle } = await searchParams;
   const today = todayInAppTz();
-  const vehicles = await getVehicles();
+  const current = await getActiveVehicle();
 
-  if (vehicles.length === 0) {
+  if (!current) {
     return (
       <div className="w-full">
         <Panel padding="sm">
@@ -70,10 +67,6 @@ export default async function DayPage({
     );
   }
 
-  const requested = vehicle ? Number(vehicle) : NaN;
-  const current =
-    vehicles.find((v) => v.id === requested) ?? vehicles[0];
-
   const timeline = await getDayTimeline(current.id, date);
   const parkLossById = await getParkLossForSessions(
     timeline.parks.map((p) => p.id),
@@ -87,8 +80,7 @@ export default async function DayPage({
   const driveIds = timeline.drives.map((d) => d.id);
   const now = Date.now();
 
-  const vehicleQuery =
-    vehicles.length > 1 ? `?vehicle=${current.id}` : "";
+  const vehicleQuery = "";
 
   // Day totals (drives only).
   const driveCount = timeline.drives.length;
@@ -130,30 +122,20 @@ export default async function DayPage({
 
         <div className="mt-3 flex items-center justify-end gap-1.5 border-t border-neutral-100 pt-3 dark:border-neutral-800">
           <a
-            href={`/api/export/day/${date}?format=csv`}
+            href={`/api/export/day/${date}?format=csv&vehicle=${current.id}`}
             className={buttonClasses("ghost", "sm")}
           >
             <Download aria-hidden size={14} />
             CSV
           </a>
           <a
-            href={`/api/export/day/${date}?format=pdf`}
+            href={`/api/export/day/${date}?format=pdf&vehicle=${current.id}`}
             className={buttonClasses("ghost", "sm")}
           >
             <Download aria-hidden size={14} />
             PDF
           </a>
         </div>
-
-        {vehicles.length > 1 && (
-          <div className="mt-3 border-t border-neutral-100 pt-3 dark:border-neutral-800">
-            <VehicleSwitcher
-              vehicles={vehicles}
-              current={current.id}
-              date={date}
-            />
-          </div>
-        )}
 
       </Panel>
 

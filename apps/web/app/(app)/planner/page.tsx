@@ -89,6 +89,7 @@ export default async function PlannerPage() {
 
       <div className="mt-6">
         <Planner
+          key={vehicleId}
           vehicleId={vehicleId}
           places={places}
           status={context.status}

@@ -11,9 +11,9 @@
 
 **Self-hosted Fahrtenarchiv & Analytics für Tesla.** Datum wählen, jede Fahrt des Tages sehen, klassifizieren, exportieren — deine Bewegungsdaten bleiben auf deinem Server.
 
-DriveChronik liest die Datenbank einer bestehenden [TeslaMate](https://github.com/teslamate-org/teslamate)-Installation (read-only) und macht daraus ein durchsuchbares Fahrten-, Park- und Ladearchiv mit Tagesansicht, Orten, Tags, Auto-Klassifizierung und Business-Exporten (CSV/PDF/GPX). Kein Abo, keine Cloud, kein Tracking.
+DriveChronik liest die Datenbank einer bestehenden [TeslaMate](https://github.com/teslamate-org/teslamate)-Installation (read-only) und macht daraus ein durchsuchbares Fahrten-, Park- und Ladearchiv mit Tagesansicht, Orten, Tags, Auto-Klassifizierung und Business-Exporten (CSV/PDF/GPX). Mehrere in TeslaMate vorhandene Fahrzeuge können zentral umgeschaltet und getrennt ausgewertet werden. Kein Abo, keine Cloud, kein Tracking.
 
-> *English: DriveChronik is a self-hosted trip archive and analytics UI on top of your existing TeslaMate database — day timeline, trip classification (logbook-style), tagging, charging analytics, journeys, exports (CSV/PDF/GPX), auto-classification rules, per-place charging costs, insights, dark mode, German/English UI. Read-only against TeslaMate, your data stays on your server.*
+> *English: DriveChronik is a self-hosted trip archive and analytics UI on top of your existing TeslaMate database — day timeline, trip classification (logbook-style), tagging, charging analytics, journeys, exports (CSV/PDF/GPX), auto-classification rules, per-place charging costs, insights, dark mode, German/English UI. Read-only against TeslaMate, with a global vehicle selector for multiple TeslaMate vehicles; your data stays on your server.*
 
 ## Installation
 
@@ -117,7 +117,7 @@ Tessie & Co. sind gut, aber: Abo-Kosten, Feature-Überschneidung mit der Tesla-A
   - Bei echten Fahrten basiert die dargestellte Route auf den von TeslaMate aufgezeichneten GPS-/Positionsdaten. OSRM rekonstruiert keine aufgezeichneten Fahrten.
 - **Ladeübersicht & DC-Analyse** — einzelne Ladekurve (kW über SoC bzw. Zeit), AC/DC, Kosten und Standort-Karte; zusätzlicher Vergleich der letzten 5 oder 10 abgeschlossenen DC-Ladevorgänge mit gemeinsamer Leistung-über-SoC-Darstellung und Median-Kurve. Der DC-Vergleich ist bewusst unabhängig vom ausgewählten Monatsfilter.
 - **Automatische Ladekosten** — Strompreis pro Ort hinterlegen (z. B. Zuhause 0,32 €/kWh) → Sessions ohne bekannten Preis werden automatisch berechnet, manuelle und gesyncte Kosten bleiben unangetastet
-- **Journeys** — Urlaube/Reisen als Klammer über Fahrten + Ladestopps mit Kennzahlen-Dashboard, Karte aller Etappen und Export als CSV, PDF und GPX
+- **Journeys** — Urlaube/Reisen als Klammer über Fahrten + Ladestopps mit Kennzahlen-Dashboard, Karte aller Etappen und Export als CSV, PDF und GPX. Jede Reise gehört fest zu einem Fahrzeug; Fahrten, Ladungen und Parkphasen anderer Fahrzeuge werden nicht zugeordnet.
 - **Insights** — persönliche Verbrauchskurve: Verbrauch vs. Außentemperatur und Tempo, Saisonmuster und Kurzstrecken-Anteil; zusätzlich eine Jahresübersicht („Wrapped“) mit Gesamtkilometern, Fahrten, Fahrzeit, Klassifizierungsquote, längster Fahrt, stärkstem Monat/Tag und Top-Ziel
 - **Strecken-Heatmap** — GPS-basierte Auswertung häufig gefahrener Streckenabschnitte mit Zeiträumen für 30 Tage, aktuelles Jahr und Gesamt sowie Filtern für geschäftlich, privat und sonstige Fahrten. Hin- und Rückrichtung werden für die Nutzungshäufigkeit zusammengefasst; eine Farbcodierung zeigt selten bis häufig befahrene Abschnitte und eine kompakte Rangliste die meistgefahrenen Start-/Ziel-Kombinationen.
 - **Ziel- & Kundenanalyse** — Top-Ziele mit Besuchen, Kilometern, letzter Anfahrt und Aufteilung nach geschäftlich / privat / Arbeitsweg; Filter für alle Ziele, geschäftliche Ziele und Kunden sowie eine Ziel-Heatmap. Kundenkennzahlen zeigen Gesamtbesuche, unterschiedliche Kunden, meistbesuchten Kunden und geschäftliche Kundenkilometer
@@ -127,6 +127,8 @@ Tessie & Co. sind gut, aber: Abo-Kosten, Feature-Überschneidung mit der Tesla-A
 - **Routenübergabe ohne Tesla Fleet API** — geplante Zwischen- und Ladestopps können als Google-Maps-Mehrzielroute geteilt oder per QR-Code auf ein Smartphone übertragen werden; zusätzlich steht eine Tesla-Übergabe der Ziele zur Verfügung. Längere Google-Maps-Routen werden automatisch in Teilrouten aufgeteilt.
 
 **Cockpit & Fahrzeug**
+
+- **Mehrere Fahrzeuge** — ein zentraler Fahrzeugumschalter merkt sich das aktive Fahrzeug und verwendet es durchgängig für Dashboard, Kalender, Tagesansicht, Laden, Suche, Routenplaner, Fahrzeugansicht, Insights sowie Monats- und Jahresberichte. Fahrzeuggebundene Exporte enthalten die jeweils passende Fahrzeugidentität.
 - **Start-Dashboard** — kompakte Fahrzeugübersicht mit SoC, Reichweite, Standort, Status, Gesamtkilometern und Reifendruck; Wetter und Live-Uhrzeit im Willkommensbereich; Kennzahlen für heute, diese Woche, letzte Ladung und unklassifizierte Fahrten; die fünf letzten Fahrten als Liste und farbcodierte Routenkarte mit Start-/Zielmarkierungen sowie Wochencharts für Fahrleistung und Energieverbrauch
 - **Fahrzeug-Analytics** — Fahrzeugdaten mit Modell, Kennzeichen und VIN; zusätzlich eine filterbare Nutzungsübersicht für Tag, Monat, Jahr oder Gesamtzeitraum mit Fahrten, Kilometern, Fahrzeit, Energieverbrauch, Durchschnittsverbrauch sowie Ladeanzahl, DC-Ladungen, geladener Energie, Ladezeit und Ladekosten. Ergänzt um geschätzten Batteriezustand und Degradation, prognostizierte 100-%-Reichweite, Kilometerstand, Ladeeffizienz, Vampir-Verlust und Software-/Update-Historie. Zusätzlich zeigt die Fahrzeugansicht eine 30-Tage-Schlaf- und Status-Timeline aus TeslaMate-Zuständen, Fahrten und Ladevorgängen mit Schlafanteil, Datenabdeckung sowie Online-, Offline-, Fahr- und Ladephasen. Zusätzlich steht eine 30-/90-Tage-Reifendruckhistorie mit Einzelverläufen je Reifen, Vergleichsmedian, Gesamtübersicht und relativer Trendanalyse zur Erkennung möglicher schleichender Druckverluste zur Verfügung.
 - **Verbrauchs-Anomalien** — die Analyse erkennt ungewöhnlich hohe Verbrauchsfahrten anhand der eigenen Fahrhistorie. Verglichen werden ähnliche Fahrten nach Streckenklasse, Außentemperatur und Durchschnittstempo; als robuste Referenz dient der Median der Vergleichsfahrten.
@@ -155,7 +157,7 @@ Ob ein erzeugter Nachweis für steuerliche Zwecke, gegenüber einem Arbeitgeber 
 
 ## Demo ohne Auto
 
-Kein Tesla, kein TeslaMate? Der Demo-Stack startet eine komplett gefüllte App mit rund zwölf Monaten synthetischer Fahr-, Lade- und Ortsdaten:
+Kein Tesla, kein TeslaMate? Der Demo-Stack startet eine komplett gefüllte App mit zwei synthetischen Fahrzeugen (Model Y und Model 3) sowie rund zwölf Monaten Fahr-, Lade- und Ortsdaten. Die Fahrzeuge besitzen bewusst unterschiedliche Zeit- und Ladeprofile, damit der Multi-Vehicle-Betrieb direkt getestet werden kann:
 
 ```bash
 docker compose -f docker-compose.demo.yml up -d --build
@@ -170,12 +172,12 @@ pnpm-Monorepo: Next.js 15 (`apps/web`) · Sync-Worker (`apps/worker`) · Drizzle
 
 ## Entwicklung
 
-Ohne echtes Auto — eine Fixture-TeslaMate-DB mit rund zwölf Monaten synthetischer Fahrdaten liegt bei:
+Ohne echtes Auto — eine Fixture-TeslaMate-DB mit zwei Fahrzeugen und rund zwölf Monaten synthetischer Fahrdaten liegt bei:
 
 ```bash
 pnpm install
 pnpm dev:db                                # drivechronik-db :5432 + fixture teslamate-db :5433
-pnpm db:seed:teslamate                     # ~430 Fahrten, ~18.000 km, Laden und Geofences (Deutschland)
+pnpm db:seed:teslamate                     # zwei Demo-Fahrzeuge mit Fahrten, Laden und Geofences (Deutschland)
 DATABASE_URL=postgres://drivechronik:drivechronik@localhost:5432/drivechronik pnpm db:migrate
 pnpm --filter @drivechronik/worker dev        # Sync-Loop (braucht DATABASE_URL + TESLAMATE_DATABASE_URL, siehe .env.example)
 pnpm --filter @drivechronik/web dev           # http://localhost:3000

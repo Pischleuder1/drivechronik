@@ -11,7 +11,7 @@ import {
   getDashboardWeekSeries,
 } from "../../lib/dashboard";
 import { getCurrentWeather, type WeatherResult } from "../../lib/weather";
-import { getDefaultVehicleId } from "../../lib/search";
+import { getActiveVehicleId } from "../../lib/activeVehicle";
 import { VehicleCard } from "./VehicleCard";
 import { DashboardHero } from "./DashboardHero";
 import { RecentDrivesCard } from "./RecentDrivesCard";
@@ -96,7 +96,7 @@ async function OnboardingCard() {
 }
 
 export default async function DashboardPage() {
-  const vehicleId = await getDefaultVehicleId();
+  const vehicleId = await getActiveVehicleId();
   const t = await getTranslations("dashboard");
 
   if (vehicleId == null) {

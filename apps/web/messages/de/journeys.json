@@ -68,6 +68,8 @@
     "rangeInvalid": "Der Beginn muss vor dem Ende liegen.",
     "notAuthenticated": "Nicht angemeldet.",
     "invalidInput": "Ungültige Eingabe.",
-    "notFound": "Reise nicht gefunden."
+    "notFound": "Reise nicht gefunden.",
+    "noVehicle": "Kein Fahrzeug vorhanden.",
+    "itemVehicleMismatch": "Das Element gehört nicht zum aktiven Fahrzeug."
   }
 }

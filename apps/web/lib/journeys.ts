@@ -40,10 +40,13 @@ export interface JourneyListItem {
  * Ladestopps sowie Gesamtkilometer), neueste zuerst. Nur nicht-excluded Items
  * zählen. Ein Join pro Item-Typ, aggregiert im JS um Fan-out zu vermeiden.
  */
-export async function getJourneys(): Promise<JourneyListItem[]> {
+export async function getJourneys(
+  vehicleId: number,
+): Promise<JourneyListItem[]> {
   const rows = await db
     .select()
     .from(journeys)
+    .where(eq(journeys.vehicleId, vehicleId))
     .orderBy(asc(journeys.startTime));
 
   if (rows.length === 0) return [];
@@ -113,6 +116,7 @@ export async function getJourneys(): Promise<JourneyListItem[]> {
 
 export interface JourneyRecord {
   id: number;
+  vehicleId: number;
   name: string;
   type: JourneyType;
   startTime: Date;
@@ -124,16 +128,23 @@ export interface JourneyRecord {
 /** Eine Reise anhand ihrer id, oder null. */
 export async function getJourneyById(
   id: number,
+  vehicleId: number,
 ): Promise<JourneyRecord | null> {
   const rows = await db
     .select()
     .from(journeys)
-    .where(eq(journeys.id, id))
+    .where(
+      and(
+        eq(journeys.id, id),
+        eq(journeys.vehicleId, vehicleId),
+      ),
+    )
     .limit(1);
   const j = rows[0];
   if (!j) return null;
   return {
     id: j.id,
+    vehicleId: j.vehicleId,
     name: j.name,
     type: j.type,
     startTime: j.startTime,
@@ -204,8 +215,9 @@ export interface JourneyDetail {
  */
 export async function getJourneyDetail(
   id: number,
+  vehicleId: number,
 ): Promise<JourneyDetail | null> {
-  const journey = await getJourneyById(id);
+  const journey = await getJourneyById(id, vehicleId);
   if (!journey) return null;
 
   const memberships = await db
@@ -267,7 +279,12 @@ export async function getJourneyDetail(
             endAddress: drives.endAddress,
           })
           .from(drives)
-          .where(inArray(drives.id, driveIds))
+          .where(
+            and(
+              inArray(drives.id, driveIds),
+              eq(drives.vehicleId, vehicleId),
+            ),
+          )
       : [];
 
   const chargeRows =
@@ -292,7 +309,12 @@ export async function getJourneyDetail(
           })
           .from(chargeSessions)
           .leftJoin(places, eq(chargeSessions.placeId, places.id))
-          .where(inArray(chargeSessions.id, chargeIds))
+          .where(
+            and(
+              inArray(chargeSessions.id, chargeIds),
+              eq(chargeSessions.vehicleId, vehicleId),
+            ),
+          )
       : [];
 
   // Ortsnamen für Fahrten in einem Durchlauf auflösen.
@@ -406,9 +428,10 @@ export interface CandidateItem {
  */
 export async function getJourneyCandidates(
   id: number,
+  vehicleId: number,
 ): Promise<CandidateItem[]> {
   const t = await getTranslations("journeys");
-  const journey = await getJourneyById(id);
+  const journey = await getJourneyById(id, vehicleId);
   if (!journey) return [];
 
   const windowMs = CANDIDATE_WINDOW_DAYS * 24 * 60 * 60 * 1000;
@@ -458,7 +481,13 @@ export async function getJourneyCandidates(
       endPlaceId: drives.endPlaceId,
     })
     .from(drives)
-    .where(and(gte(drives.startTime, from), lt(drives.startTime, to)))
+    .where(
+      and(
+        eq(drives.vehicleId, vehicleId),
+        gte(drives.startTime, from),
+        lt(drives.startTime, to),
+      ),
+    )
     .orderBy(asc(drives.startTime));
 
   const chargeRows = await db
@@ -474,7 +503,11 @@ export async function getJourneyCandidates(
     .from(chargeSessions)
     .leftJoin(places, eq(chargeSessions.placeId, places.id))
     .where(
-      and(gte(chargeSessions.startTime, from), lt(chargeSessions.startTime, to)),
+      and(
+        eq(chargeSessions.vehicleId, vehicleId),
+        gte(chargeSessions.startTime, from),
+        lt(chargeSessions.startTime, to),
+      ),
     )
     .orderBy(asc(chargeSessions.startTime));
 

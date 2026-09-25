@@ -515,6 +515,9 @@ export const journeys = pgTable(
   "journeys",
   {
     id: id(),
+    vehicleId: bigint("vehicle_id", { mode: "number" })
+      .notNull()
+      .references(() => vehicles.id),
     name: text("name").notNull(),
     type: journeyType("type").notNull().default("other"),
     startTime: timestamp("start_time", { withTimezone: true }).notNull(),
@@ -524,7 +527,10 @@ export const journeys = pgTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [index("journeys_start_idx").on(t.startTime)],
+  (t) => [
+    index("journeys_start_idx").on(t.startTime),
+    index("journeys_vehicle_start_idx").on(t.vehicleId, t.startTime),
+  ],
 );
 
 // Mitgliedschaft ist explizit (Zeitraum-Auto-Zuordnung legt Rows an, manuelle

@@ -3,9 +3,11 @@ import { Plus, Route, ChevronRight } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { formatKm } from "@drivechronik/core";
 import { APP_TIMEZONE } from "../../../lib/config";
+import { getActiveVehicleId } from "../../../lib/activeVehicle";
 import { getJourneys } from "../../../lib/journeys";
 import { Button } from "../../../components/ui/Button";
 import { EmptyState } from "../../../components/ui/EmptyState";
+import { NoVehicleState } from "../../../components/NoVehicleState";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 
@@ -24,7 +26,13 @@ function formatRange(start: Date, end: Date): string {
 
 export default async function JourneysPage() {
   const t = await getTranslations("journeys");
-  const journeys = await getJourneys();
+  const vehicleId = await getActiveVehicleId();
+
+  if (vehicleId == null) {
+    return <NoVehicleState />;
+  }
+
+  const journeys = await getJourneys(vehicleId);
 
   return (
     <div className="w-full">

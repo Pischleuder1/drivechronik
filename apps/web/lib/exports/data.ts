@@ -46,7 +46,7 @@ export async function loadMeta(vehicleId?: number): Promise<ReportMeta & { vehic
     throw new Error(t("errors.noVehicle"));
   }
 
-  const driverName = await getDriverName();
+  const driverName = await getDriverName(vehicle.id);
 
   return {
     vehicleId: vehicle.id,
@@ -196,9 +196,12 @@ export interface DayExportData {
 }
 
 /** Loads all drives of one calendar day (APP_TIMEZONE) mapped to `ReportDrive`. */
-export async function loadDayReportData(date: string): Promise<DayExportData> {
+export async function loadDayReportData(
+  date: string,
+  vehicleId?: number,
+): Promise<DayExportData> {
   const { start, end } = dayBounds(date);
-  const meta = await loadMeta();
+  const meta = await loadMeta(vehicleId);
 
   const rows = await db
     .select()
@@ -251,9 +254,10 @@ export function yearBounds(year: string): { start: Date; end: Date } {
 export async function loadBusinessYearReportData(
   year: string,
   classifications: Classification[] = ["business"],
+  vehicleId?: number,
 ): Promise<BusinessYearExportData> {
   const { start, end } = yearBounds(year);
-  const meta = await loadMeta();
+  const meta = await loadMeta(vehicleId);
 
   const conditions = [
     eq(drives.vehicleId, meta.vehicleId),

@@ -39,6 +39,24 @@ export async function GET(
     );
   }
 
+  const vehicleParam = request.nextUrl.searchParams.get("vehicle");
+  const parsedVehicleId =
+    vehicleParam == null ? null : Number(vehicleParam);
+
+  if (
+    vehicleParam != null &&
+    (
+      parsedVehicleId == null ||
+      !Number.isInteger(parsedVehicleId) ||
+      parsedVehicleId <= 0
+    )
+  ) {
+    return NextResponse.json(
+      { error: t("errors.noVehicle") },
+      { status: 400 },
+    );
+  }
+
   let classifications;
   try {
     classifications = parseClassifications(request.nextUrl.searchParams.get("classification"));
@@ -47,7 +65,11 @@ export async function GET(
   }
 
   const [data, reimbursementRate] = await Promise.all([
-    loadMonthReportData(month, classifications ?? undefined),
+    loadMonthReportData(
+      month,
+      classifications ?? undefined,
+      parsedVehicleId ?? undefined,
+    ),
     getBusinessReimbursementRateEurPerKm(),
   ]);
 

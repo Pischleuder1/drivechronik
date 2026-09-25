@@ -59,6 +59,7 @@ const monthSealContentSchema = z.object({
     driverName: z.string().min(1),
     licensePlate: z.string().nullable(),
     vehicleDisplayName: z.string().min(1),
+    vehicleModel: z.string().nullable().optional(),
     vehicleVin: z.string().nullable(),
   }),
   drives: z.array(monthSealDriveSchema),

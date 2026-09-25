@@ -9,17 +9,15 @@ import { buttonClasses } from "../../../components/ui/Button";
 interface Props {
   month: string; // YYYY-MM
   currentMonth: string;
-  vehicleQuery: string; // "" or "?vehicle=2"
 }
 
-export function MonthNav({ month, currentMonth, vehicleQuery }: Props) {
+export function MonthNav({ month, currentMonth }: Props) {
   const router = useRouter();
   const t = useTranslations("calendar");
   const locale = useLocale();
 
   function goTo(nextMonth: string) {
-    const suffix = vehicleQuery ? `&${vehicleQuery.slice(1)}` : "";
-    router.push(`/calendar?month=${nextMonth}${suffix}`);
+    router.push(`/calendar?month=${nextMonth}`);
   }
 
   return (

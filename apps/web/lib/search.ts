@@ -8,7 +8,6 @@ import {
   drives,
   places,
   tags,
-  vehicles,
 } from "@drivechronik/db";
 import { db } from "./db";
 import type { Classification } from "@drivechronik/core";
@@ -293,14 +292,4 @@ export async function runSearch(
       chargeResult.total > SEARCH_RESULT_LIMIT ||
       merged.length > SEARCH_RESULT_LIMIT,
   };
-}
-
-/** Default vehicle (first by id) — mirrors lib/exports/data.ts's single-vehicle MVP default. */
-export async function getDefaultVehicleId(): Promise<number | null> {
-  const rows = await db
-    .select({ id: vehicles.id })
-    .from(vehicles)
-    .orderBy(asc(vehicles.id))
-    .limit(1);
-  return rows[0]?.id ?? null;
 }

@@ -11,12 +11,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added a Raspberry Pi appliance updater (`drivechronik-update`) with automatic DriveChronik database backup, image update, database migration and service health checks.
 - Added support for updating an existing Raspberry Pi appliance installation without reflashing the SD card.
+- Added multi-vehicle support with a persistent global active-vehicle selector used across dashboard, charging, planner, search, calendar, vehicle analytics, Insights and reports.
+- Added vehicle-scoped journeys so each journey belongs to exactly one vehicle and only matching drives, charging sessions and parking periods can be assigned.
+- Expanded the self-contained demo with a second synthetic vehicle and distinct driving, charging and timeline data for multi-vehicle testing.
 
 ### Changed
 
 - Refined dashboard tire-pressure warnings: only the lower-pressure tire is highlighted when it differs by at least 0.2 bar from the tire on the same axle.
+- Day, month and year views, reports and exports now consistently use the globally selected vehicle instead of page-local vehicle selectors.
+- Journey CSV, PDF and GPX exports now use the journey's owning vehicle independently of the currently selected UI vehicle.
+- Existing journeys are migrated to explicit vehicle ownership when their vehicle can be determined unambiguously. Single-vehicle installations are backfilled automatically; ambiguous or empty legacy journeys in an existing multi-vehicle installation must be resolved before the migration can complete.
 
 
+
+### Fixed
+
+- Fixed report driver identity in multi-vehicle installations: driver names are now stored and resolved per vehicle, with the previous global driver name retained as a compatibility fallback for existing installations.
+- Fixed sealed monthly PDF reports dropping the vehicle model while parsing an otherwise valid immutable month snapshot.
 
 ## [0.5.0] - 2026-09-24
 

@@ -11,7 +11,6 @@ interface Props {
   prevDate: string;
   nextDate: string;
   today: string;
-  vehicleQuery: string; // "" or "?vehicle=2"
 }
 
 const arrowClasses = buttonClasses(
@@ -26,24 +25,21 @@ export function DateNav({
   prevDate,
   nextDate,
   today,
-  vehicleQuery,
 }: Props) {
   const router = useRouter();
   const t = useTranslations("day");
-  const suffix = vehicleQuery;
-
   return (
     <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
       <div className="flex items-center gap-1">
         <Link
-          href={`/day/${prevDate}${suffix}`}
+          href={`/day/${prevDate}`}
           aria-label={t("prevDay")}
           className={arrowClasses}
         >
           <ChevronLeft aria-hidden size={18} />
         </Link>
         <Link
-          href={`/day/${nextDate}${suffix}`}
+          href={`/day/${nextDate}`}
           aria-label={t("nextDay")}
           className={arrowClasses}
         >
@@ -57,7 +53,7 @@ export function DateNav({
 
       <div className="ml-auto flex items-center gap-2">
         {date !== today && (
-          <Link href={`/day/${today}${suffix}`} className={buttonClasses("secondary", "md")}>
+          <Link href={`/day/${today}`} className={buttonClasses("secondary", "md")}>
             {t("today")}
           </Link>
         )}
@@ -67,7 +63,7 @@ export function DateNav({
           aria-label={t("dateSelectLabel")}
           onChange={(e) => {
             const v = e.target.value;
-            if (v) router.push(`/day/${v}${suffix}`);
+            if (v) router.push(`/day/${v}`);
           }}
           className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm text-neutral-900 outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:focus-visible:ring-white dark:focus-visible:ring-offset-neutral-950"
         />

@@ -3,25 +3,20 @@ import { BarChart3, CalendarRange, Route } from "lucide-react";
 
 export function InsightsViewTabs({
   active,
-  vehicleId,
   analysisLabel,
   routeHeatmapLabel,
   yearlyLabel,
 }: {
   active: "analysis" | "routes" | "yearly";
-  vehicleId?: number;
   analysisLabel: string;
   routeHeatmapLabel: string;
   yearlyLabel: string;
 }) {
-  const vehicleQuery =
-    vehicleId != null ? `&vehicle=${vehicleId}` : "";
-
   return (
     <div className="mt-4">
       <div className="inline-flex rounded-xl border border-neutral-200 bg-neutral-50 p-1 dark:border-neutral-700 dark:bg-neutral-950">
         <Link
-          href={`/insights?view=analysis${vehicleQuery}`}
+          href="/insights?view=analysis"
           aria-current={active === "analysis" ? "page" : undefined}
           className={`inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition ${
             active === "analysis"
@@ -34,7 +29,7 @@ export function InsightsViewTabs({
         </Link>
 
         <Link
-          href={`/insights?view=routes${vehicleQuery}`}
+          href="/insights?view=routes"
           aria-current={active === "routes" ? "page" : undefined}
           className={`inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition ${
             active === "routes"
@@ -47,7 +42,7 @@ export function InsightsViewTabs({
         </Link>
 
         <Link
-          href={`/insights?view=yearly${vehicleQuery}`}
+          href="/insights?view=yearly"
           aria-current={active === "yearly" ? "page" : undefined}
           className={`inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition ${
             active === "yearly"

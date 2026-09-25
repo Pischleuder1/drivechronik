@@ -11,7 +11,7 @@ import {
 } from "@drivechronik/core";
 
 import { APP_TIMEZONE } from "../../../../lib/config";
-import { getVehicles } from "../../../../lib/queries";
+import { getActiveVehicleId } from "../../../../lib/activeVehicle";
 import { getChargingAnalytics } from "../../../../lib/chargeAnalytics";
 import { PageHeader } from "../../../../components/ui/PageHeader";
 import { Panel } from "../../../../components/ui/Panel";
@@ -53,8 +53,7 @@ export default async function ChargeAnalysisPage({
   const params = await searchParams;
   const limit: 5 | 10 = params.limit === "10" ? 10 : 5;
 
-  const vehicles = await getVehicles();
-  const vehicleId = vehicles[0]?.id;
+  const vehicleId = await getActiveVehicleId();
 
   const analytics =
     vehicleId != null

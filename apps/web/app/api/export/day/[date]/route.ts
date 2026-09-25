@@ -34,7 +34,24 @@ export async function GET(
     );
   }
 
-  const data = await loadDayReportData(date);
+  const vehicleParam = request.nextUrl.searchParams.get("vehicle");
+  const parsedVehicleId =
+    vehicleParam == null ? null : Number(vehicleParam);
+
+  if (
+    vehicleParam != null &&
+    (!Number.isInteger(parsedVehicleId) || parsedVehicleId == null || parsedVehicleId <= 0)
+  ) {
+    return NextResponse.json(
+      { error: t("errors.noVehicle") },
+      { status: 400 },
+    );
+  }
+
+  const data = await loadDayReportData(
+    date,
+    parsedVehicleId ?? undefined,
+  );
   const report = buildDayReport(data.drives, date, data.meta);
   const filename = dayFilename(date, format);
 

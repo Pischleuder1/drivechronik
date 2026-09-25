@@ -2234,8 +2234,8 @@ async function main() {
       )
       SELECT
         id + ${driveOffset},
-        start_date + interval '2 hours',
-        end_date + interval '2 hours',
+        start_date + interval '1 day 2 hours',
+        end_date + interval '1 day 2 hours',
         start_km + 10000,
         end_km + 10000,
         distance,
@@ -2283,7 +2283,7 @@ async function main() {
       )
       SELECT
         id + ${positionOffset},
-        date + interval '2 hours',
+        date + interval '1 day 2 hours',
         latitude,
         longitude,
         speed,
@@ -2350,8 +2350,8 @@ async function main() {
       )
       SELECT
         id + ${chargingProcessOffset},
-        start_date + interval '2 hours',
-        end_date + interval '2 hours',
+        start_date + interval '1 day 2 hours',
+        end_date + interval '1 day 2 hours',
         charge_energy_added * 0.88,
         charge_energy_used * 0.94,
         GREATEST(0, start_battery_level - 7),
@@ -2396,7 +2396,7 @@ async function main() {
       )
       SELECT
         c.id + ${chargeOffset},
-        c.date + interval '2 hours',
+        c.date + interval '1 day 2 hours',
         GREATEST(0, c.battery_level - 7),
         GREATEST(0, c.usable_battery_level - 7),
         c.charge_energy_added * 0.88,
@@ -2425,8 +2425,8 @@ async function main() {
       )
       SELECT
         state,
-        start_date + interval '2 hours',
-        end_date + interval '2 hours',
+        start_date + interval '1 day 2 hours',
+        end_date + interval '1 day 2 hours',
         ${secondCarId}
       FROM states
       WHERE car_id = ${CAR_ID}
@@ -2442,10 +2442,10 @@ async function main() {
         car_id
       )
       SELECT
-        start_date + interval '2 hours',
+        start_date + interval '1 day 2 hours',
         CASE
           WHEN end_date IS NULL THEN NULL
-          ELSE end_date + interval '2 hours'
+          ELSE end_date + interval '1 day 2 hours'
         END,
         version,
         ${secondCarId}

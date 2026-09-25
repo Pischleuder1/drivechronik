@@ -19,10 +19,8 @@ function intensityClasses(intensity: number): string {
 
 export async function MonthGrid({
   cells,
-  vehicleQuery,
 }: {
   cells: CalendarCell[];
-  vehicleQuery: string;
 }) {
   const t = await getTranslations("calendar");
   return (
@@ -39,7 +37,7 @@ export async function MonthGrid({
         {cells.map((cell) => (
           <Link
             key={cell.date}
-            href={`/day/${cell.date}${vehicleQuery}`}
+            href={`/day/${cell.date}`}
             data-testid="calendar-day-cell"
             className={`flex aspect-square flex-col items-center justify-start rounded-xl border p-1 text-xs transition-all hover:border-neutral-400 hover:shadow-sm dark:hover:border-neutral-600 sm:aspect-auto sm:min-h-20 sm:items-start sm:p-2 ${
               cell.isToday

@@ -57,7 +57,6 @@ export default async function DayPage({
             prevDate={shiftDate(date, -1)}
             nextDate={shiftDate(date, 1)}
             today={today}
-            vehicleQuery=""
           />
         </Panel>
         <div className="mt-6">
@@ -79,8 +78,6 @@ export default async function DayPage({
   }));
   const driveIds = timeline.drives.map((d) => d.id);
   const now = Date.now();
-
-  const vehicleQuery = "";
 
   // Day totals (drives only).
   const driveCount = timeline.drives.length;
@@ -117,7 +114,6 @@ export default async function DayPage({
           prevDate={shiftDate(date, -1)}
           nextDate={shiftDate(date, 1)}
           today={today}
-          vehicleQuery={vehicleQuery}
         />
 
         <div className="mt-3 flex items-center justify-end gap-1.5 border-t border-neutral-100 pt-3 dark:border-neutral-800">

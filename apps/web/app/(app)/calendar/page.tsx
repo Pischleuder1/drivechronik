@@ -41,7 +41,6 @@ export default async function CalendarPage({
           <MonthNav
             month={month}
             currentMonth={currentMonth}
-            vehicleQuery=""
           />
         </Panel>
         <div className="mt-6">
@@ -50,8 +49,6 @@ export default async function CalendarPage({
       </div>
     );
   }
-
-  const vehicleQuery = "";
 
   const statsByDay = await getCalendarMonthStats(current.id, month);
   const today = todayInAppTz();
@@ -68,13 +65,12 @@ export default async function CalendarPage({
         <MonthNav
           month={month}
           currentMonth={currentMonth}
-          vehicleQuery={vehicleQuery}
         />
 
       </Panel>
 
       <div className="mt-6">
-        <MonthGrid cells={cells} vehicleQuery={vehicleQuery} />
+        <MonthGrid cells={cells} />
       </div>
     </div>
   );

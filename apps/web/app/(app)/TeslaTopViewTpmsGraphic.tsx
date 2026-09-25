@@ -1,11 +1,15 @@
 import Image from "next/image";
+import { assessTpms } from "@drivechronik/core";
 
 type PressureTone = "neutral" | "ok" | "warn" | "alert";
 
-function pressureTone(value: number | null): PressureTone {
+function pressureTone(
+  value: number | null,
+  relativeWarn: boolean,
+): PressureTone {
   if (value == null || !Number.isFinite(value)) return "neutral";
   if (value < 2.4 || value > 3.3) return "alert";
-  if (value < 2.6 || value > 3.1) return "warn";
+  if (relativeWarn || value < 2.6 || value > 3.1) return "warn";
   return "ok";
 }
 
@@ -63,13 +67,15 @@ const toneClasses: Record<PressureTone, string> = {
 function TpmsBadge({
   label,
   value,
+  warn,
   className,
 }: {
   label: string;
   value: number | null;
+  warn: boolean;
   className: string;
 }) {
-  const tone = pressureTone(value);
+  const tone = pressureTone(value, warn);
 
   return (
     <div className={`absolute z-10 ${className}`}>
@@ -107,6 +113,13 @@ export function TeslaTopViewTpmsGraphic({
 }) {
   const kind = detectTeslaModel(model);
 
+  const assessment = assessTpms({
+    fl,
+    fr,
+    rl,
+    rr,
+  });
+
   const image =
     kind === "model3"
       ? {
@@ -140,12 +153,14 @@ export function TeslaTopViewTpmsGraphic({
       <TpmsBadge
         label="VL"
         value={fl}
+        warn={assessment.fl.warn}
         className="left-0 top-[22%]"
       />
 
       <TpmsBadge
         label="VR"
         value={fr}
+        warn={assessment.fr.warn}
         className="right-0 top-[22%]"
       />
 
@@ -153,12 +168,14 @@ export function TeslaTopViewTpmsGraphic({
       <TpmsBadge
         label="HL"
         value={rl}
+        warn={assessment.rl.warn}
         className="bottom-[18%] left-0"
       />
 
       <TpmsBadge
         label="HR"
         value={rr}
+        warn={assessment.rr.warn}
         className="bottom-[18%] right-0"
       />
     </div>

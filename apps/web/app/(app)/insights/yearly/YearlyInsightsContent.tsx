@@ -14,7 +14,7 @@ import {
 
 import { todayInAppTz } from "../../../../lib/day";
 import { getBusinessReimbursementRateEurPerKm } from "../../../../lib/appSettings";
-import { getVehicles } from "../../../../lib/queries";
+import { getActiveVehicle } from "../../../../lib/activeVehicle";
 import { getYearlyInsights } from "../../../../lib/yearlyInsights";
 import { YearlyDestinationMapLoader } from "./YearlyDestinationMapLoader";
 
@@ -72,10 +72,9 @@ function dateLabel(dateKey: string, locale: string): string {
 
 function yearHref(
   year: number,
-  vehicleId: number,
   view: DestinationView,
 ): string {
-  return `/insights?view=yearly&year=${year}&vehicle=${vehicleId}&destination=${view}`;
+  return `/insights?view=yearly&year=${year}&destination=${view}`;
 }
 
 export async function YearlyInsightsContent({
@@ -83,7 +82,6 @@ export async function YearlyInsightsContent({
 }: {
   searchParams: Promise<{
     year?: string;
-    vehicle?: string;
     destination?: string;
     view?: string;
   }>;
@@ -98,22 +96,14 @@ export async function YearlyInsightsContent({
   const year = parseYear(params.year);
   const destinationView = parseDestinationView(params.destination ?? params.view);
 
-  const vehicles = await getVehicles();
-  if (vehicles.length === 0) {
+  const currentVehicle = await getActiveVehicle();
+  if (!currentVehicle) {
     return (
       <div className="mt-6">
         <NoVehicleState />
       </div>
     );
   }
-
-  const requestedVehicle = params.vehicle
-    ? Number(params.vehicle)
-    : NaN;
-
-  const currentVehicle =
-    vehicles.find((vehicle) => vehicle.id === requestedVehicle) ??
-    vehicles[0]!;
 
   const [result, reimbursementRateEurPerKm] = await Promise.all([
     getYearlyInsights(currentVehicle.id, year),
@@ -232,7 +222,7 @@ export async function YearlyInsightsContent({
       <div className="mt-4 flex flex-col gap-2 rounded-xl border border-neutral-200 bg-white p-2 sm:flex-row sm:items-center sm:justify-between dark:border-neutral-800 dark:bg-neutral-900">
         <div className="flex items-center justify-between sm:min-w-[280px]">
           <Link
-            href={yearHref(year - 1, currentVehicle.id, destinationView)}
+            href={yearHref(year - 1, destinationView)}
             className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800"
           >
             <ChevronLeft aria-hidden size={16} />
@@ -244,7 +234,7 @@ export async function YearlyInsightsContent({
           </span>
 
           <Link
-            href={yearHref(year + 1, currentVehicle.id, destinationView)}
+            href={yearHref(year + 1, destinationView)}
             className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800"
           >
             {year + 1}
@@ -647,7 +637,6 @@ export async function YearlyInsightsContent({
               <Link
                 href={yearHref(
                   year,
-                  currentVehicle.id,
                   "all",
                 )}
                 className={`rounded-full border px-2.5 py-1 text-sm font-medium ${
@@ -662,7 +651,6 @@ export async function YearlyInsightsContent({
               <Link
                 href={yearHref(
                   year,
-                  currentVehicle.id,
                   "business",
                 )}
                 className={`rounded-full border px-2.5 py-1 text-sm font-medium ${
@@ -677,7 +665,6 @@ export async function YearlyInsightsContent({
               <Link
                 href={yearHref(
                   year,
-                  currentVehicle.id,
                   "customers",
                 )}
                 className={`rounded-full border px-2.5 py-1 text-sm font-medium ${

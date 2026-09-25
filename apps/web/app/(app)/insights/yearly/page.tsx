@@ -7,7 +7,6 @@ export default async function LegacyYearlyInsightsPage({
 }: {
   searchParams: Promise<{
     year?: string;
-    vehicle?: string;
     view?: string;
   }>;
 }) {
@@ -20,9 +19,6 @@ export default async function LegacyYearlyInsightsPage({
     query.set("year", params.year);
   }
 
-  if (params.vehicle) {
-    query.set("vehicle", params.vehicle);
-  }
 
   if (
     params.view === "all" ||

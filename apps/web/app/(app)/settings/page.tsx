@@ -54,6 +54,8 @@ function maskVin(vin: string | null): string {
 }
 
 export default async function SettingsPage() {
+  const activeVehicleId = await getActiveVehicleId();
+
   const [
     t,
     locale,
@@ -61,15 +63,13 @@ export default async function SettingsPage() {
     syncRows,
     reimbursementRate,
     driverName,
-    activeVehicleId,
   ] = await Promise.all([
     getTranslations("settings"),
     getLocale(),
     getVehiclesDetailed(),
     getSyncState(),
     getBusinessReimbursementRateEurPerKm(),
-    getDriverName(),
-    getActiveVehicleId(),
+    getDriverName(activeVehicleId ?? undefined),
   ]);
 
   const softwareUpdates =
@@ -229,11 +229,13 @@ export default async function SettingsPage() {
           key={activeVehicleId ?? "none"}
           driverName={driverName}
           activeVehicleId={activeVehicleId}
-          vehicles={vehicles.map((vehicle) => ({
-            id: vehicle.id,
-            displayName: vehicle.displayName,
-            licensePlate: vehicle.licensePlate,
-          }))}
+          vehicles={vehicles
+            .filter((vehicle) => vehicle.id === activeVehicleId)
+            .map((vehicle) => ({
+              id: vehicle.id,
+              displayName: vehicle.displayName,
+              licensePlate: vehicle.licensePlate,
+            }))}
         />
       </Card>
 

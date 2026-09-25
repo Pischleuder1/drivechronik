@@ -24,6 +24,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+### Fixed
+
+- Fixed report driver identity in multi-vehicle installations: driver names are now stored and resolved per vehicle, with the previous global driver name retained as a compatibility fallback for existing installations.
+
 ## [0.5.0] - 2026-09-24
 
 ### Added

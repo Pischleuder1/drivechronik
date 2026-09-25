@@ -7,6 +7,7 @@ import { appendAuditEntries, appendAuditEntry, sessions, settings, syncState, us
 import {
   BUSINESS_REIMBURSEMENT_RATE_KEY,
   DRIVER_NAME_KEY,
+  driverNameSettingKey,
 } from "../appSettings";
 import {
   MAX_BUSINESS_REIMBURSEMENT_RATE_EUR_PER_KM,
@@ -264,11 +265,22 @@ export async function updateReportIdentity(
   }
 
   await db.transaction(async (tx) => {
-    const [vehicleBefore, driverNameBefore] = await Promise.all([
+    const driverNameKey = driverNameSettingKey(parsed.data.vehicleId);
+
+    const [
+      vehicleBefore,
+      driverNameBefore,
+      legacyDriverNameBefore,
+    ] = await Promise.all([
       tx
         .select({ licensePlate: vehicles.licensePlate })
         .from(vehicles)
         .where(eq(vehicles.id, parsed.data.vehicleId))
+        .limit(1),
+      tx
+        .select({ value: settings.value })
+        .from(settings)
+        .where(eq(settings.key, driverNameKey))
         .limit(1),
       tx
         .select({ value: settings.value })
@@ -284,7 +296,9 @@ export async function updateReportIdentity(
     const oldDriverName =
       typeof driverNameBefore[0]?.value === "string"
         ? driverNameBefore[0].value
-        : null;
+        : typeof legacyDriverNameBefore[0]?.value === "string"
+          ? legacyDriverNameBefore[0].value
+          : null;
 
     const newLicensePlate =
       parsed.data.licensePlate.length > 0
@@ -294,7 +308,7 @@ export async function updateReportIdentity(
     await tx
       .insert(settings)
       .values({
-        key: DRIVER_NAME_KEY,
+        key: driverNameKey,
         value: parsed.data.driverName,
       })
       .onConflictDoUpdate({
@@ -317,8 +331,8 @@ export async function updateReportIdentity(
 
     if (oldDriverName !== parsed.data.driverName) {
       auditEntries.push({
-        entityType: "user",
-        entityId: user.id,
+        entityType: "vehicle",
+        entityId: parsed.data.vehicleId,
         field: "driver_name",
         oldValue: oldDriverName,
         newValue: parsed.data.driverName,

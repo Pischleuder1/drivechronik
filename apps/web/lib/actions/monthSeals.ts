@@ -28,7 +28,10 @@ import {
   vehicles,
 } from "@drivechronik/db";
 
-import { DRIVER_NAME_KEY } from "../appSettings";
+import {
+  DRIVER_NAME_KEY,
+  driverNameSettingKey,
+} from "../appSettings";
 import { validateSession } from "../auth/session";
 import { db } from "../db";
 import { monthBounds } from "../exports/data";
@@ -151,13 +154,34 @@ export async function sealMonth(
         throw new SealMonthUserError(t("vehicleNotFound"));
       }
 
-      const driverRows = await tx
-        .select({ value: settings.value })
-        .from(settings)
-        .where(eq(settings.key, DRIVER_NAME_KEY))
-        .limit(1);
+      const driverNameKey = driverNameSettingKey(vehicleId);
 
-      const rawDriverName = driverRows[0]?.value;
+      const driverRows = await tx
+        .select({
+          key: settings.key,
+          value: settings.value,
+        })
+        .from(settings)
+        .where(
+          inArray(settings.key, [
+            driverNameKey,
+            DRIVER_NAME_KEY,
+          ]),
+        );
+
+      const specificDriverName = driverRows.find(
+        (row) => row.key === driverNameKey,
+      )?.value;
+
+      const legacyDriverName = driverRows.find(
+        (row) => row.key === DRIVER_NAME_KEY,
+      )?.value;
+
+      const rawDriverName =
+        typeof specificDriverName === "string"
+          ? specificDriverName
+          : legacyDriverName;
+
       const driverName =
         typeof rawDriverName === "string"
           ? rawDriverName.trim()

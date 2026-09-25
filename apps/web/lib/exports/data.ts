@@ -46,7 +46,7 @@ export async function loadMeta(vehicleId?: number): Promise<ReportMeta & { vehic
     throw new Error(t("errors.noVehicle"));
   }
 
-  const driverName = await getDriverName();
+  const driverName = await getDriverName(vehicle.id);
 
   return {
     vehicleId: vehicle.id,

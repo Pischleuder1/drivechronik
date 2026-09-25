@@ -28,13 +28,38 @@ export async function getBusinessReimbursementRateEurPerKm(): Promise<number> {
 
 export const DRIVER_NAME_KEY = "driver_name";
 
-export async function getDriverName(): Promise<string> {
-  const rows = await db
+export function driverNameSettingKey(vehicleId: number): string {
+  return `${DRIVER_NAME_KEY}_vehicle_${vehicleId}`;
+}
+
+/**
+ * Fahrername eines Fahrzeugs.
+ *
+ * Bestehende Installationen besitzen ggf. nur den früheren globalen
+ * `driver_name`-Eintrag. Dieser bleibt als Fallback erhalten, bis für das
+ * jeweilige Fahrzeug erstmals ein eigener Fahrername gespeichert wurde.
+ */
+export async function getDriverName(vehicleId?: number): Promise<string> {
+  if (vehicleId != null) {
+    const vehicleRows = await db
+      .select({ value: settings.value })
+      .from(settings)
+      .where(eq(settings.key, driverNameSettingKey(vehicleId)))
+      .limit(1);
+
+    if (typeof vehicleRows[0]?.value === "string") {
+      return vehicleRows[0].value;
+    }
+  }
+
+  const legacyRows = await db
     .select({ value: settings.value })
     .from(settings)
     .where(eq(settings.key, DRIVER_NAME_KEY))
     .limit(1);
 
-  return typeof rows[0]?.value === "string" ? rows[0].value : "";
+  return typeof legacyRows[0]?.value === "string"
+    ? legacyRows[0].value
+    : "";
 }
 

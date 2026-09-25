@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { getBusinessReimbursementRateEurPerKm, getDriverName } from "../../../lib/appSettings";
 import { APP_TIMEZONE } from "../../../lib/config";
+import { getActiveVehicleId } from "../../../lib/activeVehicle";
 import { formatRelativeTime } from "../../../lib/day";
 import { getSyncState, getVehiclesDetailed } from "../../../lib/queries";
 import { entityLabel, buildEntityLabels } from "../../../lib/diagnostics";
@@ -53,18 +54,26 @@ function maskVin(vin: string | null): string {
 }
 
 export default async function SettingsPage() {
-  const [t, locale, vehicles, syncRows, reimbursementRate, driverName] =
-    await Promise.all([
-      getTranslations("settings"),
-      getLocale(),
-      getVehiclesDetailed(),
-      getSyncState(),
-      getBusinessReimbursementRateEurPerKm(),
-      getDriverName(),
-    ]);
-  const defaultVehicleId = vehicles[0]?.id;
+  const [
+    t,
+    locale,
+    vehicles,
+    syncRows,
+    reimbursementRate,
+    driverName,
+    activeVehicleId,
+  ] = await Promise.all([
+    getTranslations("settings"),
+    getLocale(),
+    getVehiclesDetailed(),
+    getSyncState(),
+    getBusinessReimbursementRateEurPerKm(),
+    getDriverName(),
+    getActiveVehicleId(),
+  ]);
+
   const softwareUpdates =
-    defaultVehicleId != null ? await getSoftwareUpdates(defaultVehicleId) : [];
+    activeVehicleId != null ? await getSoftwareUpdates(activeVehicleId) : [];
   const entityLabels = buildEntityLabels(t);
 
   const linkGroups = [
@@ -217,7 +226,9 @@ export default async function SettingsPage() {
 
       <Card title={t("reportIdentity.title")}>
         <ReportIdentityForm
+          key={activeVehicleId ?? "none"}
           driverName={driverName}
+          activeVehicleId={activeVehicleId}
           vehicles={vehicles.map((vehicle) => ({
             id: vehicle.id,
             displayName: vehicle.displayName,

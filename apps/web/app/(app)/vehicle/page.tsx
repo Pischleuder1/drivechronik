@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
-import { getVehicles } from "../../../lib/queries";
+import { getActiveVehicle } from "../../../lib/activeVehicle";
 import { getVehicleAnalytics } from "../../../lib/vehicleAnalytics";
 import { getVehicleStateTimeline } from "../../../lib/vehicleStateTimeline";
 import { getSoftwareUpdates } from "../../../lib/softwareUpdates";
@@ -130,8 +130,7 @@ export default async function VehiclePage({
   );
   const currentUsageKeys = currentVehicleUsageKeys();
 
-  const vehicles = await getVehicles();
-  const vehicle = vehicles[0];
+  const vehicle = await getActiveVehicle();
 
   if (!vehicle) {
     return (

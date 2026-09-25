@@ -13,6 +13,7 @@ interface VehicleOption {
 interface ReportIdentityFormProps {
   driverName: string;
   vehicles: VehicleOption[];
+  activeVehicleId: number | null;
 }
 
 const initialState: {
@@ -25,6 +26,7 @@ const initialState: {
 export function ReportIdentityForm({
   driverName,
   vehicles,
+  activeVehicleId,
 }: ReportIdentityFormProps) {
   const t = useTranslations("settings.reportIdentity");
 
@@ -33,7 +35,8 @@ export function ReportIdentityForm({
     initialState,
   );
 
-  const defaultVehicle = vehicles[0];
+  const defaultVehicle =
+    vehicles.find((vehicle) => vehicle.id === activeVehicleId) ?? vehicles[0];
 
   if (!defaultVehicle) {
     return (

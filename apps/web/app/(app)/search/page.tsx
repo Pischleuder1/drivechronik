@@ -3,7 +3,8 @@ import { getTranslations } from "next-intl/server";
 import type { Classification } from "@drivechronik/core";
 import { APP_TIMEZONE } from "../../../lib/config";
 import { dayBounds, isValidDateParam } from "../../../lib/day";
-import { getDefaultVehicleId, runSearch, type SearchType } from "../../../lib/search";
+import { runSearch, type SearchType } from "../../../lib/search";
+import { getActiveVehicleId } from "../../../lib/activeVehicle";
 import { getAllTags } from "../../../lib/queries";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { PageHeader } from "../../../components/ui/PageHeader";
@@ -62,7 +63,7 @@ export default async function SearchPage({
   const hasQuery = trimmedQ !== "";
   const shouldSearch = hasQuery || hasFilters;
 
-  const vehicleId = await getDefaultVehicleId();
+  const vehicleId = await getActiveVehicleId();
 
   const result =
     shouldSearch && vehicleId != null

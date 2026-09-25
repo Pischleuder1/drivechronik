@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { getVehicles } from "../../../lib/queries";
+import { getActiveVehicleId } from "../../../lib/activeVehicle";
 import {
   DEFAULT_BATTERY_CAPACITY_KWH,
   getPlannerContext,
@@ -23,8 +23,9 @@ const FALLBACK_TEMP_C = 15;
 
 export default async function PlannerPage() {
   const t = await getTranslations("planner");
-  const vehicles = await getVehicles();
-  if (vehicles.length === 0) {
+  const vehicleId = await getActiveVehicleId();
+
+  if (vehicleId == null) {
     return (
       <div className="w-full">
         <PageHeader
@@ -44,8 +45,6 @@ export default async function PlannerPage() {
       </div>
     );
   }
-  const vehicleId = vehicles[0]!.id;
-
   const [context, places, analytics] = await Promise.all([
     getPlannerContext(vehicleId),
     getPlannerPlaces(),

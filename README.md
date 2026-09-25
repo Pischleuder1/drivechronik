@@ -201,6 +201,16 @@ Für eine bestehende TeslaMate-Installation:
 
 Anschließend mit `docker compose ps -a` prüfen: `db`, `web` und `worker` sollten healthy sein; `migrate` muss erfolgreich mit `Exited (0)` beendet sein.
 
+### Upgrade-Hinweis: bestehende Journeys bei mehreren Fahrzeugen
+
+Mit der Multi-Vehicle-Unterstützung gehört jede Journey fest zu genau einem Fahrzeug.
+
+- **Single-Vehicle-Installation:** bestehende Journeys werden automatisch dem einzigen Fahrzeug zugeordnet.
+- **Multi-Vehicle mit eindeutigen Journey-Einträgen:** die Fahrzeugzuordnung wird automatisch übernommen.
+- **Multi-Vehicle mit gemischten oder leeren Journeys:** die Migration stoppt absichtlich, damit keine falsche Fahrzeugzuordnung entsteht.
+
+Falls die Migration deshalb fehlschlägt, wird sie vollständig zurückgerollt. Die betroffene Journey muss zunächst fachlich bereinigt und anschließend das Update erneut gestartet werden.
+
 ### Voraussetzungen
 
 - Docker + Docker Compose (Plugin) auf dem Zielgerät (Raspberry Pi, NAS, Home Server)

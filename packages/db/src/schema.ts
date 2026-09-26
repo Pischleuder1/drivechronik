@@ -680,7 +680,7 @@ export const importRuns = pgTable(
   {
     id: id(),
 
-    // tronity | tesla_charging | tessie
+    // tronity | tesla_charging | tessie | teslafi
     source: text("source").notNull(),
 
     // running | completed | failed | rollback_partial | rolled_back

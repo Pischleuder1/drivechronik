@@ -53,7 +53,7 @@ export function ActiveVehicleSwitcher({
       aria-label={t("vehicle")}
       className={
         compact
-          ? "max-w-[145px] rounded-lg border border-neutral-200 bg-white px-2 py-1 text-xs font-medium text-neutral-700 outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200"
+          ? "min-w-0 max-w-[145px] rounded-lg border border-neutral-200 bg-white px-2 py-1 text-xs font-medium text-neutral-700 outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200"
           : "mt-2 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-700 outline-none transition focus:border-blue-400 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200"
       }
     >

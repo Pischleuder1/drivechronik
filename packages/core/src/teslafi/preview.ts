@@ -9,6 +9,11 @@ import {
   previewTeslaFiTimes,
   type TeslaFiTimePreview,
 } from "./time-preview.js";
+import {
+  teslaFiOdometerToKm,
+  teslaFiSpeedToKmh,
+  type TeslaFiDistanceUnit,
+} from "./units.js";
 
 export const TESLAFI_KNOWN_HEADERS = [
   "Date",
@@ -110,6 +115,7 @@ export interface TeslaFiCapabilities {
 
 export interface TeslaFiPreviewOptions {
   timeZone?: string;
+  distanceUnit?: TeslaFiDistanceUnit;
 }
 
 export interface TeslaFiPreview {
@@ -140,6 +146,7 @@ export interface TeslaFiPreview {
   driveEpisodes: Array<{
     startDateTime: string;
     endDateTime: string;
+    distanceKm: number | null;
     sampleCount: number;
   }>;
 
@@ -253,6 +260,9 @@ export function previewTeslaFiCsv(
   options: TeslaFiPreviewOptions = {},
 ): TeslaFiPreview {
   const normalized = csvText.replace(/^\uFEFF/, "");
+
+  const distanceUnit =
+    options.distanceUnit ?? "metric";
 
   const lines = normalized
     .split(/\r?\n/)
@@ -478,14 +488,26 @@ export function previewTeslaFiCsv(
     const shiftState =
       field("Shift_State");
 
-    const speed =
+    const rawSpeed =
       numberValue(field("Speed")) ?? 0;
+
+    const speed =
+      teslaFiSpeedToKmh(
+        rawSpeed,
+        distanceUnit,
+      ) ?? 0;
+
+    const odometerKm =
+      teslaFiOdometerToKm(
+        odometer,
+        distanceUnit,
+      );
 
     driveSignals.push({
       ts: timestamp,
       shift: shiftState,
       speed,
-      odometer,
+      odometer: odometerKm,
     });
 
     const odometerIncreased =
@@ -580,6 +602,20 @@ export function previewTeslaFiCsv(
           formatLocalDateTime(
             episode.endTs,
           ),
+        distanceKm:
+          episode.samples.length >= 2 &&
+          episode.samples[0]!.odometer != null &&
+          episode.samples[
+            episode.samples.length - 1
+          ]!.odometer != null
+            ? Math.max(
+                0,
+                episode.samples[
+                  episode.samples.length - 1
+                ]!.odometer! -
+                  episode.samples[0]!.odometer!,
+              )
+            : null,
         sampleCount:
           episode.samples.length,
       }),

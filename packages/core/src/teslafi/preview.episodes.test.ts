@@ -25,13 +25,17 @@ describe("TeslaFi preview episodes", () => {
 
     expect(result.driveEpisodes).toHaveLength(1);
 
-    expect(result.driveEpisodes[0]).toEqual({
+    expect(result.driveEpisodes[0]).toMatchObject({
       startDateTime:
         "2026-08-01 12:00:00",
       endDateTime:
         "2026-08-01 12:09:00",
       sampleCount: 10,
     });
+
+    expect(
+      result.driveEpisodes[0]!.distanceKm,
+    ).toBeCloseTo(7.2, 6);
 
     expect(result.chargeEpisodes).toHaveLength(1);
 

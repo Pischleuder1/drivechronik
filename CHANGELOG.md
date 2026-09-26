@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.3] - 2026-09-26
+
+### Fixed
+
+- Fixed horizontal overflow in the mobile header when multiple vehicles are configured.
+- Fixed the fifth mobile bottom-navigation item ("Menü") being pushed outside the visible viewport on narrow displays.
+- Improved wrapping and shrinking behavior of the compact vehicle selector in the mobile header.
+
+
 ## [0.5.2] - 2026-09-25
 
 ### Fixed

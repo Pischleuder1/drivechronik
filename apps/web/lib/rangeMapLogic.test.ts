@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  buildRangeBoundary,
   buildRangeSamplePoints,
   calculateRangeBudgetKm,
   destinationPoint,
@@ -97,6 +98,103 @@ describe("buildRangeSamplePoints", () => {
       buildRangeSamplePoints(
         { lat: 52, lon: 8.5 },
         0,
+      ),
+    ).toEqual([]);
+  });
+});
+
+
+describe("buildRangeBoundary", () => {
+  it("interpolates between the last reachable and first unreachable ring", () => {
+    const origin = { lat: 52, lon: 8.5 };
+    const samples = buildRangeSamplePoints(
+      origin,
+      100,
+      4,
+      [0.5, 0.75, 1],
+    );
+
+    const distances = samples.flatMap((_, index) => {
+      const ringIndex = index % 3;
+      return [60, 90, 130][ringIndex]!;
+    });
+
+    const boundary = buildRangeBoundary(
+      origin,
+      100,
+      samples,
+      distances,
+    );
+
+    expect(boundary).toHaveLength(4);
+
+    for (const point of boundary) {
+      expect(point.ringFactor).toBeCloseTo(0.8125);
+    }
+
+    const expectedNorth = destinationPoint(origin, 0, 81.25);
+
+    expect(boundary[0]!.lat).toBeCloseTo(expectedNorth.lat, 6);
+    expect(boundary[0]!.lon).toBeCloseTo(expectedNorth.lon, 6);
+  });
+
+  it("interpolates from the vehicle when even the innermost point is too far", () => {
+    const origin = { lat: 52, lon: 8.5 };
+    const samples = buildRangeSamplePoints(
+      origin,
+      100,
+      4,
+      [0.5],
+    );
+
+    const boundary = buildRangeBoundary(
+      origin,
+      100,
+      samples,
+      [200, 200, 200, 200],
+    );
+
+    expect(boundary).toHaveLength(4);
+
+    for (const point of boundary) {
+      expect(point.ringFactor).toBeCloseTo(0.25);
+    }
+  });
+
+  it("falls back to the vehicle position when a direction is unreachable", () => {
+    const origin = { lat: 52, lon: 8.5 };
+    const samples = buildRangeSamplePoints(
+      origin,
+      100,
+      4,
+      [0.5],
+    );
+
+    const boundary = buildRangeBoundary(
+      origin,
+      100,
+      samples,
+      [null, 50, 50, 50],
+    );
+
+    expect(boundary[0]).toMatchObject({
+      lat: origin.lat,
+      lon: origin.lon,
+      bearingDeg: 0,
+      ringFactor: 0,
+    });
+  });
+
+  it("rejects mismatching sample and distance counts", () => {
+    const origin = { lat: 52, lon: 8.5 };
+    const samples = buildRangeSamplePoints(origin, 100, 4, [0.5]);
+
+    expect(
+      buildRangeBoundary(
+        origin,
+        100,
+        samples,
+        [50],
       ),
     ).toEqual([]);
   });

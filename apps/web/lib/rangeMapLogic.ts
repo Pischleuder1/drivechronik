@@ -149,3 +149,141 @@ export function buildRangeSamplePoints(
 
   return points;
 }
+
+
+export interface RangeBoundaryPoint extends GeoPoint {
+  bearingDeg: number;
+  ringFactor: number;
+}
+
+/**
+ * Ermittelt aus den radialen Testpunkten und den von OSRM gelieferten
+ * Straßenentfernungen je Richtung einen Grenzpunkt.
+ *
+ * Zwischen dem letzten erreichbaren und dem ersten nicht mehr erreichbaren
+ * Testpunkt wird linear interpoliert. Existiert kein erreichbarer Testpunkt,
+ * wird zwischen Ursprung (0 km) und dem ersten gültigen OSRM-Punkt interpoliert.
+ *
+ * `null` bedeutet: OSRM konnte diesen Zielpunkt nicht über das Straßennetz
+ * erreichen. Gibt es für eine Richtung überhaupt keine gültige Distanz,
+ * fällt die Grenze für diese Richtung auf den Fahrzeugstandort zurück.
+ */
+export function buildRangeBoundary(
+  origin: GeoPoint,
+  rangeBudgetKm: number,
+  samples: readonly RangeSamplePoint[],
+  roadDistancesKm: readonly (number | null)[],
+): RangeBoundaryPoint[] {
+  if (
+    !Number.isFinite(rangeBudgetKm) ||
+    rangeBudgetKm <= 0 ||
+    samples.length === 0 ||
+    samples.length !== roadDistancesKm.length
+  ) {
+    return [];
+  }
+
+  const byBearing = new Map<
+    number,
+    Array<{
+      sample: RangeSamplePoint;
+      roadDistanceKm: number | null;
+    }>
+  >();
+
+  samples.forEach((sample, index) => {
+    const distance = roadDistancesKm[index];
+    const roadDistanceKm =
+      distance != null && Number.isFinite(distance) && distance >= 0
+        ? distance
+        : null;
+
+    const rows = byBearing.get(sample.bearingDeg) ?? [];
+    rows.push({ sample, roadDistanceKm });
+    byBearing.set(sample.bearingDeg, rows);
+  });
+
+  const boundary: RangeBoundaryPoint[] = [];
+
+  for (const [bearingDeg, rows] of [...byBearing.entries()].sort(
+    (a, b) => a[0] - b[0],
+  )) {
+    rows.sort((a, b) => a.sample.ringFactor - b.sample.ringFactor);
+
+    const valid = rows.filter(
+      (
+        row,
+      ): row is {
+        sample: RangeSamplePoint;
+        roadDistanceKm: number;
+      } => row.roadDistanceKm != null,
+    );
+
+    if (valid.length === 0) {
+      boundary.push({
+        ...origin,
+        bearingDeg,
+        ringFactor: 0,
+      });
+      continue;
+    }
+
+    const reachable = valid.filter(
+      (row) => row.roadDistanceKm <= rangeBudgetKm,
+    );
+
+    let boundaryFactor: number;
+
+    if (reachable.length === 0) {
+      const first = valid[0]!;
+      boundaryFactor =
+        first.roadDistanceKm > 0
+          ? first.sample.ringFactor *
+            Math.min(1, rangeBudgetKm / first.roadDistanceKm)
+          : 0;
+    } else {
+      const lower = reachable[reachable.length - 1]!;
+      const upper = valid.find(
+        (row) =>
+          row.sample.ringFactor > lower.sample.ringFactor &&
+          row.roadDistanceKm > rangeBudgetKm,
+      );
+
+      if (!upper) {
+        boundaryFactor = lower.sample.ringFactor;
+      } else {
+        const roadDelta = upper.roadDistanceKm - lower.roadDistanceKm;
+
+        if (roadDelta <= 0) {
+          boundaryFactor = lower.sample.ringFactor;
+        } else {
+          const fraction = Math.min(
+            1,
+            Math.max(
+              0,
+              (rangeBudgetKm - lower.roadDistanceKm) / roadDelta,
+            ),
+          );
+
+          boundaryFactor =
+            lower.sample.ringFactor +
+            (upper.sample.ringFactor - lower.sample.ringFactor) * fraction;
+        }
+      }
+    }
+
+    const point = destinationPoint(
+      origin,
+      bearingDeg,
+      rangeBudgetKm * boundaryFactor,
+    );
+
+    boundary.push({
+      ...point,
+      bearingDeg,
+      ringFactor: boundaryFactor,
+    });
+  }
+
+  return boundary;
+}

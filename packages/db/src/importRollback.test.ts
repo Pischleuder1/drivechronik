@@ -151,4 +151,62 @@ describe("import rollback helpers", () => {
       ),
     ).toBe(false);
   });
+
+  it("allows insert rollback after system-managed weather enrichment", () => {
+    expect(
+      canRollbackInsert(
+        {
+          source: "teslafi",
+          sourceId:
+            "vehicle:1:drive:test",
+          classification:
+            "unclassified",
+          notes: null,
+        },
+        {
+          source: "teslafi",
+          sourceId:
+            "vehicle:1:drive:test",
+          classification:
+            "unclassified",
+          notes: null,
+
+          weatherTempC: 18.7,
+          weatherPrecipitationMm: 0.9,
+          weatherWindKmh: 12.1,
+          weatherCode: 53,
+          weatherSyncedAt:
+            "2026-09-26T19:31:55.271Z",
+        },
+      ),
+    ).toBe(true);
+  });
+
+  it("still blocks insert rollback after a snapshotted user field changes", () => {
+    expect(
+      canRollbackInsert(
+        {
+          source: "teslafi",
+          sourceId:
+            "vehicle:1:drive:test",
+          classification:
+            "unclassified",
+          notes: null,
+        },
+        {
+          source: "teslafi",
+          sourceId:
+            "vehicle:1:drive:test",
+          classification:
+            "unclassified",
+          notes:
+            "manuell geändert",
+
+          weatherTempC: 18.7,
+          weatherCode: 53,
+        },
+      ),
+    ).toBe(false);
+  });
+
 });

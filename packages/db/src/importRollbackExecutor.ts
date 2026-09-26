@@ -1,4 +1,5 @@
 import {
+  and,
   desc,
   eq,
   sql,
@@ -11,8 +12,11 @@ import {
   chargePoints,
   chargeSessionTags,
   chargeSessions,
+  driveTags,
+  drives,
   importChanges,
   importRuns,
+  journeyItems,
   teslaChargingRecords,
 } from "./schema.js";
 
@@ -100,6 +104,53 @@ const chargeSessionSelection = {
   notes: chargeSessions.notes,
   source: chargeSessions.source,
   sourceId: chargeSessions.sourceId,
+};
+
+const driveSelection = {
+  vehicleId: drives.vehicleId,
+  startTime: drives.startTime,
+  endTime: drives.endTime,
+  startOdometerKm: drives.startOdometerKm,
+  endOdometerKm: drives.endOdometerKm,
+  distanceKm: drives.distanceKm,
+  durationSeconds: drives.durationSeconds,
+  startLat: drives.startLat,
+  startLon: drives.startLon,
+  endLat: drives.endLat,
+  endLon: drives.endLon,
+  startPlaceId: drives.startPlaceId,
+  endPlaceId: drives.endPlaceId,
+  startPlaceLocked: drives.startPlaceLocked,
+  endPlaceLocked: drives.endPlaceLocked,
+  startAddress: drives.startAddress,
+  endAddress: drives.endAddress,
+  startSoc: drives.startSoc,
+  endSoc: drives.endSoc,
+  consumedEnergyKwh: drives.consumedEnergyKwh,
+  energyIsEstimated: drives.energyIsEstimated,
+  avgConsumptionWhKm: drives.avgConsumptionWhKm,
+  ascentM: drives.ascentM,
+  descentM: drives.descentM,
+  outsideTempAvg: drives.outsideTempAvg,
+  insideTempAvg: drives.insideTempAvg,
+  speedMaxKmh: drives.speedMaxKmh,
+  powerMaxKw: drives.powerMaxKw,
+  powerMinKw: drives.powerMinKw,
+  weatherTempC: drives.weatherTempC,
+  weatherPrecipitationMm:
+    drives.weatherPrecipitationMm,
+  weatherWindKmh: drives.weatherWindKmh,
+  weatherCode: drives.weatherCode,
+  weatherSyncedAt: drives.weatherSyncedAt,
+  classification: drives.classification,
+  classifiedByRuleId: drives.classifiedByRuleId,
+  purpose: drives.purpose,
+  customer: drives.customer,
+  project: drives.project,
+  notes: drives.notes,
+  source: drives.source,
+  sourceId: drives.sourceId,
+  syncedAt: drives.syncedAt,
 };
 
 const teslaChargingRecordSelection = {
@@ -287,9 +338,96 @@ function teslaChargingRecordRestorePatch(
   return result as TeslaChargingRecordPatch;
 }
 
+async function driveBlockers(
+  db: ImportDb,
+  driveId: number,
+): Promise<string[]> {
+  const blockers: string[] = [];
+
+  const tags = await db
+    .select({
+      tagId: driveTags.tagId,
+    })
+    .from(driveTags)
+    .where(
+      eq(
+        driveTags.driveId,
+        driveId,
+      ),
+    )
+    .limit(1);
+
+  if (tags.length > 0) {
+    blockers.push("tag_links");
+  }
+
+  const journeys = await db
+    .select({
+      id: journeyItems.id,
+    })
+    .from(journeyItems)
+    .where(
+      and(
+        eq(
+          journeyItems.itemType,
+          "drive",
+        ),
+        eq(
+          journeyItems.itemId,
+          driveId,
+        ),
+      ),
+    )
+    .limit(1);
+
+  if (journeys.length > 0) {
+    blockers.push("journey_links");
+  }
+
+  return blockers;
+}
+
+function chargePointOwnership(
+  metadata: unknown,
+): Set<number> | null {
+  if (
+    metadata === null ||
+    typeof metadata !== "object" ||
+    Array.isArray(metadata)
+  ) {
+    return null;
+  }
+
+  const value = (
+    metadata as Record<string, unknown>
+  ).ownedChargePointIds;
+
+  if (!Array.isArray(value)) {
+    return null;
+  }
+
+  const ids = new Set<number>();
+
+  for (const entry of value) {
+    if (
+      typeof entry !== "number" ||
+      !Number.isInteger(entry) ||
+      entry <= 0
+    ) {
+      return null;
+    }
+
+    ids.add(entry);
+  }
+
+  return ids;
+}
+
 async function chargeSessionBlockers(
   db: ImportDb,
   chargeSessionId: number,
+  ownedChargePointIds:
+    Set<number> | null = null,
 ): Promise<string[]> {
   const blockers: string[] = [];
 
@@ -303,10 +441,20 @@ async function chargeSessionBlockers(
         chargePoints.chargeSessionId,
         chargeSessionId,
       ),
-    )
-    .limit(1);
+    );
 
-  if (points.length > 0) {
+  if (
+    points.length > 0 &&
+    (
+      ownedChargePointIds === null ||
+      points.some(
+        (point) =>
+          !ownedChargePointIds.has(
+            point.id,
+          ),
+      )
+    )
+  ) {
     blockers.push("charge_points");
   }
 
@@ -439,10 +587,16 @@ async function evaluateChargeSessionChange(
       };
     }
 
+    const ownedChargePointIds =
+      chargePointOwnership(
+        change.metadata,
+      );
+
     const blockers =
       await chargeSessionBlockers(
         db,
         change.entityId,
+        ownedChargePointIds,
       );
 
     if (blockers.length > 0) {
@@ -558,6 +712,116 @@ async function evaluateChargeSessionChange(
       ],
     };
   }
+}
+
+async function evaluateDriveChange(
+  db: ImportDb,
+  change: StoredImportChange,
+  lockRow = false,
+): Promise<ImportRollbackDetail> {
+  const base = {
+    changeId: change.id,
+    entityType: change.entityType,
+    entityId: change.entityId,
+    action: change.action,
+    restoreFields: [] as string[],
+    alreadyRestoredFields: [] as string[],
+  };
+
+  if (change.action !== "insert") {
+    return {
+      ...base,
+      outcome: "conflict",
+      conflicts: [
+        "unsupported_action",
+      ],
+    };
+  }
+
+  if (lockRow) {
+    await db.execute(sql`
+      select id
+      from drives
+      where id = ${change.entityId}
+      for update
+    `);
+  }
+
+  const rows = await db
+    .select(driveSelection)
+    .from(drives)
+    .where(
+      eq(
+        drives.id,
+        change.entityId,
+      ),
+    )
+    .limit(1);
+
+  const current = rows[0];
+
+  if (!current) {
+    return {
+      ...base,
+      outcome: "already_deleted",
+      conflicts: [],
+    };
+  }
+
+  if (change.after == null) {
+    return {
+      ...base,
+      outcome: "conflict",
+      conflicts: [
+        "invalid_after_snapshot",
+      ],
+    };
+  }
+
+  const blockers =
+    await driveBlockers(
+      db,
+      change.entityId,
+    );
+
+  if (blockers.length > 0) {
+    return {
+      ...base,
+      outcome: "conflict",
+      conflicts: blockers,
+    };
+  }
+
+  try {
+    if (
+      !canRollbackInsert(
+        change.after,
+        current,
+      )
+    ) {
+      return {
+        ...base,
+        outcome: "conflict",
+        conflicts: [
+          "row_changed",
+        ],
+      };
+    }
+  } catch {
+    return {
+      ...base,
+      outcome: "conflict",
+      conflicts: [
+        "invalid_after_snapshot",
+      ],
+    };
+  }
+
+  return {
+    ...base,
+    outcome: "delete",
+    conflicts: [],
+  };
 }
 
 async function evaluateTeslaChargingRecordChange(
@@ -741,6 +1005,16 @@ async function evaluateChange(
   lockRow = false,
 ): Promise<ImportRollbackDetail> {
   if (
+    change.entityType === "drive"
+  ) {
+    return evaluateDriveChange(
+      db,
+      change,
+      lockRow,
+    );
+  }
+
+  if (
     change.entityType ===
     "tesla_charging_record"
   ) {
@@ -922,6 +1196,28 @@ export async function rollbackImportRun(
 
       for (const detail of preview.details) {
         if (detail.outcome === "delete") {
+          if (
+            detail.entityType === "drive"
+          ) {
+            const rows = await tx
+              .delete(drives)
+              .where(
+                eq(
+                  drives.id,
+                  detail.entityId,
+                ),
+              )
+              .returning({
+                id: drives.id,
+              });
+
+            if (rows.length > 0) {
+              deleted++;
+            }
+
+            continue;
+          }
+
           if (
             detail.entityType ===
             "charge_session"

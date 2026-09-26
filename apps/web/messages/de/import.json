@@ -150,7 +150,8 @@
     "source": {
       "tronity": "TRONITY Ladungen",
       "teslaCharging": "Tesla Supercharger",
-      "tessie": "Tessie"
+      "tessie": "Tessie",
+      "teslafi": "TeslaFi"
     },
     "status": {
       "running": "Läuft",
@@ -162,7 +163,8 @@
     "result": {
       "tronity": "{inserted} neu · {updated} ergänzt · {unchanged} unverändert",
       "changes": "{count} Änderungen",
-      "none": "Keine Daten geändert"
+      "none": "Keine Daten geändert",
+      "teslafi": "{drives, plural, one {# Fahrt} other {# Fahrten}} · {charges, plural, one {# Ladevorgang} other {# Ladevorgänge}} · {skipped} übersprungen"
     },
     "undo": "Import rückgängig machen",
     "checking": "Prüfen …",
@@ -191,5 +193,107 @@
   },
   "apiErrors": {
     "notAuthenticated": "Nicht angemeldet."
+  },
+  "teslafi": {
+    "title": "TeslaFi",
+    "description": "Historische TeslaFi-Fahrzeugdaten aus einem CSV-Export prüfen und in DriveChronik importieren.",
+    "details": "Wähle einen TeslaFi-CSV-Export, das Zielfahrzeug und die Zeitzone der Quelldaten. DriveChronik zeigt zuerst eine sichere Vorschau; erst mit „TeslaFi-Daten importieren“ werden neue, konfliktfreie Episoden gespeichert.",
+    "vehicle": "Zielfahrzeug",
+    "vehiclePlaceholder": "Fahrzeug auswählen",
+    "timezone": "Zeitzone der TeslaFi-Daten",
+    "selectFile": "TeslaFi-CSV auswählen",
+    "fileHint": "Monatlicher CSV-Export aus TeslaFi",
+    "selected": "Ausgewählt · ca. {size} KB",
+    "check": "Datei prüfen",
+    "reset": "Andere Datei prüfen",
+    "recognized": "TeslaFi-Datei erkannt",
+    "notRecognized": "Datei konnte nicht eindeutig als TeslaFi-Export erkannt werden",
+    "dryRun": "Dry Run – es wurden keine Daten in DriveChronik verändert.",
+    "period": "Zeitraum",
+    "targetVehicle": "DriveChronik-Fahrzeug",
+    "sourceVehicle": "TeslaFi-Fahrzeugkennung",
+    "unknownHeaders": "Zusätzliche unbekannte Spalten: {headers}",
+    "missingRequiredHeaders": "Pflichtspalten fehlen: {headers}",
+    "summary": {
+      "headers": "Spalten",
+      "knownHeaders": "Bekannte Spalten",
+      "rows": "Datenzeilen",
+      "validRows": "Gültig",
+      "invalidRows": "Ungültig",
+      "gpsRows": "GPS-Zeilen",
+      "movingRows": "Fahraktiv",
+      "chargingRows": "Ladeaktiv"
+    },
+    "capabilities": {
+      "gps": "GPS",
+      "speed": "Geschwindigkeit",
+      "odometer": "Kilometerstand",
+      "soc": "Ladezustand",
+      "charging": "Ladedaten",
+      "shiftState": "Fahrstufe",
+      "vehicleState": "Fahrzeugzustand",
+      "climate": "Klima",
+      "tpms": "Reifendruck",
+      "navigation": "Navigation",
+      "vehicleIdentity": "Fahrzeugkennung"
+    },
+    "errors": {
+      "unknown": "Die TeslaFi-Datei konnte nicht verarbeitet werden.",
+      "selectFile": "Bitte eine TeslaFi-CSV-Datei auswählen.",
+      "fileTooLarge": "Die TeslaFi-Datei ist größer als 100 MB.",
+      "vehicleRequired": "Bitte ein Zielfahrzeug auswählen.",
+      "vehicleNotFound": "Das ausgewählte Fahrzeug wurde nicht gefunden.",
+      "invalidTimezone": "Bitte eine gültige IANA-Zeitzone angeben, zum Beispiel Europe/Berlin.",
+      "invalidDistanceUnit": "Bitte eine gültige TeslaFi-Einheit auswählen."
+    },
+    "episodes": {
+      "drives": "Erkannte Fahrten",
+      "charges": "Erkannte Ladevorgänge",
+      "drive": "Fahrt {number}",
+      "charge": "Ladevorgang {number}",
+      "soc": "SoC {start} → {end} %",
+      "none": "Keine Episode erkannt.",
+      "distance": "{distance} km"
+    },
+    "utcPeriod": "UTC-Zeitraum",
+    "timeWarnings": {
+      "invalid": "{count, plural, one {# Zeitstempel liegt in einer nicht existierenden lokalen Uhrzeit und kann nicht sicher importiert werden.} other {# Zeitstempel liegen in nicht existierenden lokalen Uhrzeiten und können nicht sicher importiert werden.}}",
+      "ambiguous": "{count, plural, one {# Zeitstempel ist wegen der Zeitumstellung mehrdeutig.} other {# Zeitstempel sind wegen der Zeitumstellung mehrdeutig.}}"
+    },
+    "distanceUnit": "Einheiten des TeslaFi-Exports",
+    "units": {
+      "metric": "Kilometer / km/h",
+      "imperial": "Meilen / mph"
+    },
+    "importability": {
+      "allowed": "Import möglich",
+      "allowedDescription": "Die Datei hat die Sicherheitsprüfung bestanden. Bereits vorhandene Fahrten oder Ladevorgänge werden beim Import ausgelassen.",
+      "blocked": "Import gesperrt",
+      "blockedDescription": "Die Datei enthält Daten, die nicht sicher importiert werden können. Der Import bleibt deaktiviert, bis die Ursachen behoben sind.",
+      "reasons": {
+        "unrecognizedFile": "Die Datei wurde nicht eindeutig als TeslaFi-Export erkannt.",
+        "invalidTimezone": "Die angegebene Zeitzone ist ungültig.",
+        "invalidRows": "Die CSV enthält ungültige oder unvollständige Datenzeilen.",
+        "invalidTimes": "Mindestens ein Zeitstempel liegt in einer nicht existierenden lokalen Uhrzeit.",
+        "ambiguousTimes": "Mindestens ein Zeitstempel ist wegen der Zeitumstellung mehrdeutig."
+      }
+    },
+    "conflictCheck": {
+      "title": "Importprüfung",
+      "description": "DriveChronik prüft erkannte TeslaFi-Zeiträume gegen bereits vorhandene Fahrten und Ladevorgänge des ausgewählten Fahrzeugs.",
+      "drives": "Fahrten",
+      "charges": "Ladevorgänge",
+      "total": "Gesamt",
+      "new": "Neu",
+      "conflicts": "Konflikte",
+      "timeErrors": "Zeitfehler",
+      "statusNew": "Neu",
+      "statusConflict": "Konflikt mit {source}",
+      "statusTimeError": "Zeitfehler"
+    },
+    "import": "TeslaFi-Daten importieren",
+    "importing": "TeslaFi-Daten werden importiert …",
+    "completed": "Import abgeschlossen: {drives} Fahrten und {charges} Ladevorgänge importiert.",
+    "completedSkipped": "Übersprungen: {count} bereits vorhandene oder überlappende Episoden."
   }
 }

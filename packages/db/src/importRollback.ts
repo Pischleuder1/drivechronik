@@ -9,7 +9,8 @@ export type ImportDb = Db | DbTransaction;
 export type ImportSource =
   | "tronity"
   | "tesla_charging"
-  | "tessie";
+  | "tessie"
+  | "teslafi";
 
 export type ImportRunStatus =
   | "running"

@@ -3,3 +3,4 @@ export * from "./segment.js";
 export * from "./timezone.js";
 export * from "./time-preview.js";
 export * from "./units.js";
+export * from "./conflicts.js";

@@ -14,6 +14,9 @@ import {
   teslaFiSpeedToKmh,
   type TeslaFiDistanceUnit,
 } from "./units.js";
+import {
+  teslaFiLocalTimeToUtc,
+} from "./timezone.js";
 
 export const TESLAFI_KNOWN_HEADERS = [
   "Date",
@@ -255,6 +258,57 @@ function formatLocalDateTime(
   ].join("");
 }
 
+function formatPreviewDateTime(
+  timestamp: number,
+  timeZone?: string,
+): string {
+  if (!timeZone) {
+    return formatLocalDateTime(timestamp);
+  }
+
+  const formatter =
+    new Intl.DateTimeFormat(
+      "en-CA",
+      {
+        timeZone,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hourCycle: "h23",
+      },
+    );
+
+  const parts =
+    formatter.formatToParts(
+      new Date(timestamp),
+    );
+
+  const part = (
+    type: Intl.DateTimeFormatPartTypes,
+  ): string =>
+    parts.find(
+      (value) =>
+        value.type === type,
+    )?.value ?? "";
+
+  return [
+    part("year"),
+    "-",
+    part("month"),
+    "-",
+    part("day"),
+    " ",
+    part("hour"),
+    ":",
+    part("minute"),
+    ":",
+    part("second"),
+  ].join("");
+}
+
 export function previewTeslaFiCsv(
   csvText: string,
   options: TeslaFiPreviewOptions = {},
@@ -424,14 +478,38 @@ export function previewTeslaFiCsv(
 
     localDateTimes.push(dateTime);
 
-    const timestamp = parseLocalDateTime(dateTime);
+    const localTimestamp =
+      parseLocalDateTime(dateTime);
+
+    let segmentTimestamp =
+      localTimestamp;
+
+    if (
+      localTimestamp != null &&
+      options.timeZone
+    ) {
+      const converted =
+        dateTime == null
+          ? null
+          : teslaFiLocalTimeToUtc(
+              dateTime,
+              options.timeZone,
+            );
+
+      segmentTimestamp =
+        converted?.valid === true &&
+        converted.ambiguous === false &&
+        converted.utcMs != null
+          ? converted.utcMs
+          : null;
+    }
 
     const odometer = numberValue(
       field("Odometer"),
     );
 
     if (
-      timestamp == null ||
+      localTimestamp == null ||
       odometer == null
     ) {
       invalidRows++;
@@ -442,17 +520,17 @@ export function previewTeslaFiCsv(
 
     if (
       minTs == null ||
-      timestamp < minTs
+      localTimestamp < minTs
     ) {
-      minTs = timestamp;
+      minTs = localTimestamp;
       minDateTime = dateTime;
     }
 
     if (
       maxTs == null ||
-      timestamp > maxTs
+      localTimestamp > maxTs
     ) {
-      maxTs = timestamp;
+      maxTs = localTimestamp;
       maxDateTime = dateTime;
     }
 
@@ -503,12 +581,14 @@ export function previewTeslaFiCsv(
         distanceUnit,
       );
 
-    driveSignals.push({
-      ts: timestamp,
-      shift: shiftState,
-      speed,
-      odometer: odometerKm,
-    });
+    if (segmentTimestamp != null) {
+      driveSignals.push({
+        ts: segmentTimestamp,
+        shift: shiftState,
+        speed,
+        odometer: odometerKm,
+      });
+    }
 
     const odometerIncreased =
       previousOdometer != null &&
@@ -552,14 +632,16 @@ export function previewTeslaFiCsv(
         field("Battery_Level"),
       );
 
-    chargeSignals.push({
-      ts: timestamp,
-      powerKw: chargerPower,
-      currentA: chargerCurrent,
-      chargeRate,
-      energyAdded: chargeEnergy,
-      soc,
-    });
+    if (segmentTimestamp != null) {
+      chargeSignals.push({
+        ts: segmentTimestamp,
+        powerKw: chargerPower,
+        currentA: chargerCurrent,
+        chargeRate,
+        energyAdded: chargeEnergy,
+        soc,
+      });
+    }
 
     const energyIncreased =
       previousChargeEnergy != null &&
@@ -595,12 +677,14 @@ export function previewTeslaFiCsv(
     segmentTeslaFiDrives(driveSignals).map(
       (episode) => ({
         startDateTime:
-          formatLocalDateTime(
+          formatPreviewDateTime(
             episode.startTs,
+            options.timeZone,
           ),
         endDateTime:
-          formatLocalDateTime(
+          formatPreviewDateTime(
             episode.endTs,
+            options.timeZone,
           ),
         distanceKm:
           episode.samples.length >= 2 &&
@@ -625,12 +709,14 @@ export function previewTeslaFiCsv(
     segmentTeslaFiCharges(chargeSignals).map(
       (episode) => ({
         startDateTime:
-          formatLocalDateTime(
+          formatPreviewDateTime(
             episode.startTs,
+            options.timeZone,
           ),
         endDateTime:
-          formatLocalDateTime(
+          formatPreviewDateTime(
             episode.endTs,
+            options.timeZone,
           ),
         startSoc: episode.startSoc,
         endSoc: episode.endSoc,

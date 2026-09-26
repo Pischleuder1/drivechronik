@@ -164,4 +164,109 @@ describe("previewTeslaFiCsv", () => {
     expect(result.displayNames).toEqual([]);
   });
 
+
+  it("segments across a DST spring jump on the UTC timeline", () => {
+    const csv = [
+      [
+        "Date_Time",
+        "Odometer",
+        "Speed",
+        "Battery_Level",
+        "Charge_Energy_Added",
+        "Charger_Actual_Current",
+        "Charger_Power",
+        "Shift_State",
+      ].join(","),
+      "2026-03-29 01:58:00,1000.0,50,80,0,0,0,D",
+      "2026-03-29 03:02:00,1001.0,50,79,0,0,0,D",
+    ].join("\n");
+
+    const result =
+      previewTeslaFiCsv(
+        csv,
+        {
+          timeZone:
+            "Europe/Berlin",
+        },
+      );
+
+    expect(
+      result.timePreview?.invalidRows,
+    ).toBe(0);
+
+    expect(
+      result.timePreview?.ambiguousRows,
+    ).toBe(0);
+
+    expect(
+      result.driveEpisodes,
+    ).toHaveLength(1);
+
+    expect(
+      result.driveEpisodes[0]?.sampleCount,
+    ).toBe(2);
+
+    expect(
+      result.driveEpisodes[0]?.startDateTime,
+    ).toBe(
+      "2026-03-29 01:58:00",
+    );
+
+    expect(
+      result.driveEpisodes[0]?.endDateTime,
+    ).toBe(
+      "2026-03-29 03:02:00",
+    );
+  });
+
+  it("excludes ambiguous DST rows from segmentation", () => {
+    const csv = [
+      [
+        "Date_Time",
+        "Odometer",
+        "Speed",
+        "Battery_Level",
+        "Charge_Energy_Added",
+        "Charger_Actual_Current",
+        "Charger_Power",
+        "Shift_State",
+      ].join(","),
+      "2026-10-25 02:30:00,1000.0,50,80,0,0,0,D",
+      "2026-10-25 03:10:00,1001.0,50,79,0,0,0,D",
+    ].join("\n");
+
+    const result =
+      previewTeslaFiCsv(
+        csv,
+        {
+          timeZone:
+            "Europe/Berlin",
+        },
+      );
+
+    expect(
+      result.timePreview?.ambiguousRows,
+    ).toBe(1);
+
+    expect(
+      result.driveEpisodes,
+    ).toHaveLength(1);
+
+    expect(
+      result.driveEpisodes[0]?.sampleCount,
+    ).toBe(1);
+
+    expect(
+      result.driveEpisodes[0]?.startDateTime,
+    ).toBe(
+      "2026-10-25 03:10:00",
+    );
+
+    expect(
+      result.driveEpisodes[0]?.endDateTime,
+    ).toBe(
+      "2026-10-25 03:10:00",
+    );
+  });
+
 });

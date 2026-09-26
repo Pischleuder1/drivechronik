@@ -8,6 +8,7 @@ export * from "./places/match.js";
 export * from "./charging/cost.js";
 export * from "./rules/rules.js";
 export * from "./tessie/index.js";
+export * from "./teslafi/index.js";
 export * from "./reports/index.js";
 export * from "./journeys/kpis.js";
 export * from "./journeys/types.js";

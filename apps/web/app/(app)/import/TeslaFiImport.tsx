@@ -58,6 +58,21 @@ type Preview = {
   movingRows: number;
   chargingRows: number;
 
+  driveEpisodes: Array<{
+    startDateTime: string;
+    endDateTime: string;
+    sampleCount: number;
+  }>;
+
+  chargeEpisodes: Array<{
+    startDateTime: string;
+    endDateTime: string;
+    startSoc: number | null;
+    endSoc: number | null;
+    maxPowerKw: number | null;
+    sampleCount: number;
+  }>;
+
   capabilities: Capabilities;
 };
 
@@ -441,6 +456,113 @@ export function TeslaFiImport({
                 </p>
               </div>
             ))}
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="rounded-xl border border-neutral-200 p-4 dark:border-neutral-800">
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="font-medium">
+                  {t("teslafi.episodes.drives")}
+                </h3>
+
+                <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-semibold tabular-nums dark:bg-neutral-800">
+                  {preview.preview.driveEpisodes.length}
+                </span>
+              </div>
+
+              {preview.preview.driveEpisodes.length === 0 ? (
+                <p className="mt-3 text-sm text-neutral-500 dark:text-neutral-400">
+                  {t("teslafi.episodes.none")}
+                </p>
+              ) : (
+                <div className="mt-3 space-y-2">
+                  {preview.preview.driveEpisodes.map(
+                    (episode, index) => (
+                      <div
+                        key={`${episode.startDateTime}-${index}`}
+                        className="rounded-lg bg-neutral-50 px-3 py-2 text-sm dark:bg-neutral-800/60"
+                      >
+                        <p className="font-medium">
+                          {t(
+                            "teslafi.episodes.drive",
+                            {
+                              number: index + 1,
+                            },
+                          )}
+                        </p>
+
+                        <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
+                          {episode.startDateTime}
+                          {" – "}
+                          {episode.endDateTime}
+                        </p>
+                      </div>
+                    ),
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="rounded-xl border border-neutral-200 p-4 dark:border-neutral-800">
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="font-medium">
+                  {t("teslafi.episodes.charges")}
+                </h3>
+
+                <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-semibold tabular-nums dark:bg-neutral-800">
+                  {preview.preview.chargeEpisodes.length}
+                </span>
+              </div>
+
+              {preview.preview.chargeEpisodes.length === 0 ? (
+                <p className="mt-3 text-sm text-neutral-500 dark:text-neutral-400">
+                  {t("teslafi.episodes.none")}
+                </p>
+              ) : (
+                <div className="mt-3 space-y-2">
+                  {preview.preview.chargeEpisodes.map(
+                    (episode, index) => (
+                      <div
+                        key={`${episode.startDateTime}-${index}`}
+                        className="rounded-lg bg-neutral-50 px-3 py-2 text-sm dark:bg-neutral-800/60"
+                      >
+                        <p className="font-medium">
+                          {t(
+                            "teslafi.episodes.charge",
+                            {
+                              number: index + 1,
+                            },
+                          )}
+                        </p>
+
+                        <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
+                          {episode.startDateTime}
+                          {" – "}
+                          {episode.endDateTime}
+                        </p>
+
+                        {(episode.startSoc != null ||
+                          episode.endSoc != null) && (
+                          <p className="mt-1 text-xs text-neutral-600 dark:text-neutral-300">
+                            {t(
+                              "teslafi.episodes.soc",
+                              {
+                                start:
+                                  episode.startSoc ??
+                                  "—",
+                                end:
+                                  episode.endSoc ??
+                                  "—",
+                              },
+                            )}
+                          </p>
+                        )}
+                      </div>
+                    ),
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="rounded-xl border border-neutral-200 p-4 text-sm dark:border-neutral-800">

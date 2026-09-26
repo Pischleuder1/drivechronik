@@ -243,6 +243,14 @@
       "vehicleRequired": "Please select a target vehicle.",
       "vehicleNotFound": "The selected vehicle was not found.",
       "invalidTimezone": "Please enter a valid IANA timezone, for example Europe/Berlin."
+    },
+    "episodes": {
+      "drives": "Detected drives",
+      "charges": "Detected charging sessions",
+      "drive": "Drive {number}",
+      "charge": "Charging session {number}",
+      "soc": "SoC {start} → {end}%",
+      "none": "No episode detected."
     }
   }
 }

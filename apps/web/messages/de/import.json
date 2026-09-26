@@ -243,6 +243,14 @@
       "vehicleRequired": "Bitte ein Zielfahrzeug auswählen.",
       "vehicleNotFound": "Das ausgewählte Fahrzeug wurde nicht gefunden.",
       "invalidTimezone": "Bitte eine gültige IANA-Zeitzone angeben, zum Beispiel Europe/Berlin."
+    },
+    "episodes": {
+      "drives": "Erkannte Fahrten",
+      "charges": "Erkannte Ladevorgänge",
+      "drive": "Fahrt {number}",
+      "charge": "Ladevorgang {number}",
+      "soc": "SoC {start} → {end} %",
+      "none": "Keine Episode erkannt."
     }
   }
 }

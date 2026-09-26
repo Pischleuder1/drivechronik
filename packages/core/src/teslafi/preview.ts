@@ -1,4 +1,3 @@
-import { parseCsvLine } from "../tessie/parse.js";
 import {
   segmentTeslaFiCharges,
   segmentTeslaFiDrives,
@@ -10,8 +9,8 @@ import {
   type TeslaFiTimePreview,
 } from "./time-preview.js";
 import {
-  normalizeTeslaFiRow,
-} from "./normalized.js";
+  parseTeslaFiNormalizedCsv,
+} from "./normalized-csv.js";
 import {
   type TeslaFiDistanceUnit,
 } from "./units.js";
@@ -93,11 +92,6 @@ export const TESLAFI_KNOWN_HEADERS = [
   "Active_Route_Latitude",
   "Active_Route_Longitude",
   "Active_Route_Destination_Name",
-] as const;
-
-const REQUIRED_HEADERS = [
-  "Date_Time",
-  "Odometer",
 ] as const;
 
 export interface TeslaFiCapabilities {
@@ -250,194 +244,229 @@ export function previewTeslaFiCsv(
   csvText: string,
   options: TeslaFiPreviewOptions = {},
 ): TeslaFiPreview {
-  const normalized = csvText.replace(/^\uFEFF/, "");
-
   const distanceUnit =
     options.distanceUnit ?? "metric";
 
-  const lines = normalized
-    .split(/\r?\n/)
-    .filter((line) => line.trim().length > 0);
+  const parsed =
+    parseTeslaFiNormalizedCsv(
+      csvText,
+      {
+        timeZone: options.timeZone,
+        distanceUnit,
+      },
+    );
 
-  if (lines.length === 0) {
-    throw new Error("TeslaFi CSV ist leer.");
-  }
+  const headers = parsed.headers;
 
-  const headers = parseCsvLine(lines[0]!).map(
-    (value) => value?.trim() ?? "",
+  const headerMap =
+    new Map<string, number>();
+
+  headers.forEach(
+    (header, index) => {
+      if (
+        header !== "" &&
+        !headerMap.has(header)
+      ) {
+        headerMap.set(
+          header,
+          index,
+        );
+      }
+    },
   );
 
-  const headerMap = new Map<string, number>();
+  const knownSet =
+    new Set<string>(
+      TESLAFI_KNOWN_HEADERS,
+    );
 
-  headers.forEach((header, index) => {
-    if (header !== "" && !headerMap.has(header)) {
-      headerMap.set(header, index);
-    }
-  });
-
-  const knownSet = new Set<string>(
-    TESLAFI_KNOWN_HEADERS,
-  );
-
-  const unknownHeaders = headers.filter(
-    (header) =>
-      header !== "" &&
-      !knownSet.has(header),
-  );
+  const unknownHeaders =
+    headers.filter(
+      (header) =>
+        header !== "" &&
+        !knownSet.has(header),
+    );
 
   const missingKnownHeaders =
     TESLAFI_KNOWN_HEADERS.filter(
-      (header) => !headerMap.has(header),
+      (header) =>
+        !headerMap.has(header),
     );
 
   const missingRequiredHeaders =
-    REQUIRED_HEADERS.filter(
-      (header) => !headerMap.has(header),
-    );
+    parsed.missingRequiredHeaders;
 
   const knownHeaderCount =
     TESLAFI_KNOWN_HEADERS.length -
     missingKnownHeaders.length;
 
-  const capabilities: TeslaFiCapabilities = {
-    gps:
-      hasHeader(headerMap, "Latitude") &&
-      hasHeader(headerMap, "Longitude"),
+  const capabilities:
+    TeslaFiCapabilities = {
+      gps:
+        hasHeader(
+          headerMap,
+          "Latitude",
+        ) &&
+        hasHeader(
+          headerMap,
+          "Longitude",
+        ),
 
-    speed: hasHeader(headerMap, "Speed"),
+      speed:
+        hasHeader(
+          headerMap,
+          "Speed",
+        ),
 
-    odometer: hasHeader(headerMap, "Odometer"),
+      odometer:
+        hasHeader(
+          headerMap,
+          "Odometer",
+        ),
 
-    soc:
-      hasHeader(headerMap, "Battery_Level") ||
-      hasHeader(
-        headerMap,
-        "Usable_Battery_Level",
-      ),
+      soc:
+        hasHeader(
+          headerMap,
+          "Battery_Level",
+        ) ||
+        hasHeader(
+          headerMap,
+          "Usable_Battery_Level",
+        ),
 
-    charging:
-      hasHeader(headerMap, "Charger_Power") ||
-      hasHeader(
-        headerMap,
-        "Charger_Actual_Current",
-      ) ||
-      hasHeader(headerMap, "Charge_Rate") ||
-      hasHeader(
-        headerMap,
-        "Charge_Energy_Added",
-      ),
+      charging:
+        hasHeader(
+          headerMap,
+          "Charger_Power",
+        ) ||
+        hasHeader(
+          headerMap,
+          "Charger_Actual_Current",
+        ) ||
+        hasHeader(
+          headerMap,
+          "Charge_Rate",
+        ) ||
+        hasHeader(
+          headerMap,
+          "Charge_Energy_Added",
+        ),
 
-    shiftState: hasHeader(
-      headerMap,
-      "Shift_State",
-    ),
+      shiftState:
+        hasHeader(
+          headerMap,
+          "Shift_State",
+        ),
 
-    vehicleState: hasHeader(
-      headerMap,
-      "State",
-    ),
+      vehicleState:
+        hasHeader(
+          headerMap,
+          "State",
+        ),
 
-    climate:
-      hasHeader(headerMap, "Inside_Temp") ||
-      hasHeader(headerMap, "Outside_Temp") ||
-      hasHeader(headerMap, "Is_Climate_On"),
+      climate:
+        hasHeader(
+          headerMap,
+          "Inside_Temp",
+        ) ||
+        hasHeader(
+          headerMap,
+          "Outside_Temp",
+        ) ||
+        hasHeader(
+          headerMap,
+          "Is_Climate_On",
+        ),
 
-    tpms:
-      hasHeader(headerMap, "Tpms_Pressure_Fl") ||
-      hasHeader(headerMap, "Tpms_Pressure_Fr") ||
-      hasHeader(headerMap, "Tpms_Pressure_Rl") ||
-      hasHeader(headerMap, "Tpms_Pressure_Rr"),
+      tpms:
+        hasHeader(
+          headerMap,
+          "Tpms_Pressure_Fl",
+        ) ||
+        hasHeader(
+          headerMap,
+          "Tpms_Pressure_Fr",
+        ) ||
+        hasHeader(
+          headerMap,
+          "Tpms_Pressure_Rl",
+        ) ||
+        hasHeader(
+          headerMap,
+          "Tpms_Pressure_Rr",
+        ),
 
-    navigation:
-      hasHeader(
-        headerMap,
-        "Active_Route_Latitude",
-      ) ||
-      hasHeader(
-        headerMap,
-        "Active_Route_Longitude",
-      ) ||
-      hasHeader(
-        headerMap,
-        "Active_Route_Destination_Name",
-      ),
+      navigation:
+        hasHeader(
+          headerMap,
+          "Active_Route_Latitude",
+        ) ||
+        hasHeader(
+          headerMap,
+          "Active_Route_Longitude",
+        ) ||
+        hasHeader(
+          headerMap,
+          "Active_Route_Destination_Name",
+        ),
 
-    vehicleIdentity:
-      hasHeader(headerMap, "Vehicle_Id") ||
-      hasHeader(headerMap, "Display_Name") ||
-      hasHeader(headerMap, "Car_Type"),
-  };
+      vehicleIdentity:
+        hasHeader(
+          headerMap,
+          "Vehicle_Id",
+        ) ||
+        hasHeader(
+          headerMap,
+          "Display_Name",
+        ) ||
+        hasHeader(
+          headerMap,
+          "Car_Type",
+        ),
+    };
 
-  const vehicleIds = new Set<string>();
-  const displayNames = new Set<string>();
-  const dateFormats = new Set<string>();
+  const vehicleIds =
+    new Set<string>();
 
-  const localDateTimes: Array<string | null> = [];
+  const displayNames =
+    new Set<string>();
 
-  let validRows = 0;
-  let invalidRows = 0;
+  const dateFormats =
+    new Set<string>();
 
   let minTs: number | null = null;
   let maxTs: number | null = null;
 
-  let minDateTime: string | null = null;
-  let maxDateTime: string | null = null;
+  let minDateTime:
+    string | null = null;
+
+  let maxDateTime:
+    string | null = null;
 
   let gpsRows = 0;
   let movingRows = 0;
   let chargingRows = 0;
 
-  const driveSignals: TeslaFiDriveSignal[] = [];
-  const chargeSignals: TeslaFiChargeSignal[] = [];
+  const driveSignals:
+    TeslaFiDriveSignal[] = [];
 
-  let previousOdometerKm: number | null = null;
-  let previousChargeEnergy: number | null = null;
+  const chargeSignals:
+    TeslaFiChargeSignal[] = [];
 
-  for (let lineIndex = 1; lineIndex < lines.length; lineIndex++) {
-    const fields = parseCsvLine(lines[lineIndex]!);
+  let previousOdometerKm:
+    number | null = null;
 
-    if (fields.length !== headers.length) {
-      invalidRows++;
-      continue;
-    }
+  let previousChargeEnergy:
+    number | null = null;
 
-    const field = (
-      name: string,
-    ): string | null => {
-      const index = headerMap.get(name);
-
-      if (index == null) return null;
-
-      return fields[index] ?? null;
-    };
-
-    const dateTime = field("Date_Time");
-
-    localDateTimes.push(dateTime);
-
-    const row =
-      normalizeTeslaFiRow(
-        field,
-        {
-          timeZone: options.timeZone,
-          distanceUnit,
-          lineNumber: lineIndex + 1,
-        },
-      );
-
-    if (row == null) {
-      invalidRows++;
-      continue;
-    }
-
-    validRows++;
-
+  for (const row of parsed.rows) {
     if (
       minTs == null ||
       row.localTimestamp < minTs
     ) {
       minTs = row.localTimestamp;
-      minDateTime = row.localDateTime;
+      minDateTime =
+        row.localDateTime;
     }
 
     if (
@@ -445,21 +474,26 @@ export function previewTeslaFiCsv(
       row.localTimestamp > maxTs
     ) {
       maxTs = row.localTimestamp;
-      maxDateTime = row.localDateTime;
+      maxDateTime =
+        row.localDateTime;
     }
 
     if (row.vehicleId) {
-      vehicleIds.add(row.vehicleId);
+      vehicleIds.add(
+        row.vehicleId,
+      );
     }
 
     if (row.displayName) {
-      displayNames.add(row.displayName);
+      displayNames.add(
+        row.displayName,
+      );
     }
 
-    const dateFormat = field("Date_Format");
-
-    if (dateFormat) {
-      dateFormats.add(dateFormat);
+    if (row.dateFormat) {
+      dateFormats.add(
+        row.dateFormat,
+      );
     }
 
     if (
@@ -472,12 +506,17 @@ export function previewTeslaFiCsv(
     const speed =
       row.speedKmh ?? 0;
 
-    if (row.segmentTimestamp != null) {
+    if (
+      row.segmentTimestamp != null
+    ) {
       driveSignals.push({
-        ts: row.segmentTimestamp,
-        shift: row.shiftState,
+        ts:
+          row.segmentTimestamp,
+        shift:
+          row.shiftState,
         speed,
-        odometer: row.odometerKm,
+        odometer:
+          row.odometerKm,
       });
     }
 
@@ -508,14 +547,21 @@ export function previewTeslaFiCsv(
     const chargeEnergy =
       row.chargeEnergyAddedKwh;
 
-    if (row.segmentTimestamp != null) {
+    if (
+      row.segmentTimestamp != null
+    ) {
       chargeSignals.push({
-        ts: row.segmentTimestamp,
-        powerKw: chargerPower,
-        currentA: chargerCurrent,
+        ts:
+          row.segmentTimestamp,
+        powerKw:
+          chargerPower,
+        currentA:
+          chargerCurrent,
         chargeRate,
-        energyAdded: chargeEnergy,
-        soc: row.soc,
+        energyAdded:
+          chargeEnergy,
+        soc:
+          row.soc,
       });
     }
 
@@ -523,7 +569,8 @@ export function previewTeslaFiCsv(
       previousChargeEnergy != null &&
       chargeEnergy != null &&
       chargeEnergy >
-        previousChargeEnergy + 0.0001;
+        previousChargeEnergy +
+          0.0001;
 
     if (
       chargerPower > 0 ||
@@ -546,27 +593,32 @@ export function previewTeslaFiCsv(
   const timePreview =
     options.timeZone
       ? previewTeslaFiTimes(
-          localDateTimes,
+          parsed.localDateTimes,
           options.timeZone,
         )
       : null;
 
   const driveEpisodes =
-    segmentTeslaFiDrives(driveSignals).map(
+    segmentTeslaFiDrives(
+      driveSignals,
+    ).map(
       (episode) => ({
         startDateTime:
           formatPreviewDateTime(
             episode.startTs,
             options.timeZone,
           ),
+
         endDateTime:
           formatPreviewDateTime(
             episode.endTs,
             options.timeZone,
           ),
+
         distanceKm:
           episode.samples.length >= 2 &&
-          episode.samples[0]!.odometer != null &&
+          episode.samples[0]!
+            .odometer != null &&
           episode.samples[
             episode.samples.length - 1
           ]!.odometer != null
@@ -575,31 +627,42 @@ export function previewTeslaFiCsv(
                 episode.samples[
                   episode.samples.length - 1
                 ]!.odometer! -
-                  episode.samples[0]!.odometer!,
+                  episode.samples[0]!
+                    .odometer!,
               )
             : null,
+
         sampleCount:
           episode.samples.length,
       }),
     );
 
   const chargeEpisodes =
-    segmentTeslaFiCharges(chargeSignals).map(
+    segmentTeslaFiCharges(
+      chargeSignals,
+    ).map(
       (episode) => ({
         startDateTime:
           formatPreviewDateTime(
             episode.startTs,
             options.timeZone,
           ),
+
         endDateTime:
           formatPreviewDateTime(
             episode.endTs,
             options.timeZone,
           ),
-        startSoc: episode.startSoc,
-        endSoc: episode.endSoc,
+
+        startSoc:
+          episode.startSoc,
+
+        endSoc:
+          episode.endSoc,
+
         maxPowerKw:
           episode.maxPowerKw,
+
         sampleCount:
           episode.samples.length,
       }),
@@ -607,28 +670,43 @@ export function previewTeslaFiCsv(
 
   return {
     recognized:
-      missingRequiredHeaders.length === 0 &&
+      missingRequiredHeaders.length ===
+        0 &&
       knownHeaderCount >= 8,
 
-    headerCount: headers.length,
+    headerCount:
+      headers.length,
+
     knownHeaderCount,
 
     unknownHeaders,
+
     missingKnownHeaders:
       [...missingKnownHeaders],
+
     missingRequiredHeaders:
       [...missingRequiredHeaders],
 
-    rowCount: Math.max(0, lines.length - 1),
-    validRows,
-    invalidRows,
+    rowCount:
+      parsed.rowCount,
+
+    validRows:
+      parsed.validRows,
+
+    invalidRows:
+      parsed.invalidRows,
 
     minDateTime,
     maxDateTime,
 
-    vehicleIds: [...vehicleIds],
-    displayNames: [...displayNames],
-    dateFormats: [...dateFormats],
+    vehicleIds:
+      [...vehicleIds],
+
+    displayNames:
+      [...displayNames],
+
+    dateFormats:
+      [...dateFormats],
 
     gpsRows,
     movingRows,

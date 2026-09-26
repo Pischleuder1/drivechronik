@@ -9,17 +9,12 @@ import {
 } from "vitest";
 
 import {
-  parseCsvLine,
-} from "../tessie/parse.js";
-
-import {
   buildTeslaFiImportPlan,
 } from "./import-plan.js";
 
 import {
-  normalizeTeslaFiRow,
-  type TeslaFiNormalizedRow,
-} from "./normalized.js";
+  parseTeslaFiNormalizedCsv,
+} from "./normalized-csv.js";
 
 describe(
   "TeslaFi82026 persistence plan",
@@ -33,109 +28,41 @@ describe(
         "utf8",
       );
 
-      const lines = csv
-        .replace(/^\uFEFF/, "")
-        .split(/\r?\n/)
-        .filter(
-          (line) =>
-            line.trim().length > 0,
+      const parsed =
+        parseTeslaFiNormalizedCsv(
+          csv,
+          {
+            timeZone:
+              "Europe/Berlin",
+            distanceUnit:
+              "metric",
+          },
         );
 
-      const headers =
-        parseCsvLine(
-          lines[0]!,
-        ).map(
-          (value) =>
-            value?.trim() ?? "",
-        );
+      expect(
+        parsed.missingRequiredHeaders,
+      ).toEqual([]);
 
-      const headerMap =
-        new Map<string, number>();
+      expect(parsed.rowCount).toBe(15);
+      expect(parsed.validRows).toBe(15);
+      expect(parsed.invalidRows).toBe(0);
 
-      headers.forEach(
-        (header, index) => {
-          if (
-            header !== "" &&
-            !headerMap.has(header)
-          ) {
-            headerMap.set(
-              header,
-              index,
-            );
-          }
-        },
+      expect(parsed.rows).toHaveLength(
+        15,
       );
 
-      const rows:
-        TeslaFiNormalizedRow[] = [];
-
-      let invalidRows = 0;
-
-      for (
-        let lineIndex = 1;
-        lineIndex < lines.length;
-        lineIndex += 1
-      ) {
-        const fields =
-          parseCsvLine(
-            lines[lineIndex]!,
-          );
-
-        if (
-          fields.length !==
-          headers.length
-        ) {
-          invalidRows++;
-          continue;
-        }
-
-        const field = (
-          name: string,
-        ): string | null => {
-          const index =
-            headerMap.get(name);
-
-          if (index == null) {
-            return null;
-          }
-
-          return (
-            fields[index] ?? null
-          );
-        };
-
-        const normalized =
-          normalizeTeslaFiRow(
-            field,
-            {
-              timeZone:
-                "Europe/Berlin",
-              distanceUnit:
-                "metric",
-              lineNumber:
-                lineIndex + 1,
-            },
-          );
-
-        if (!normalized) {
-          invalidRows++;
-          continue;
-        }
-
-        rows.push(normalized);
-      }
-
-      expect(invalidRows).toBe(0);
-      expect(rows).toHaveLength(15);
-
-      expect(rows[0]?.utcMs).toBe(
+      expect(
+        parsed.rows[0]?.utcMs,
+      ).toBe(
         Date.parse(
           "2026-08-01T10:00:00.000Z",
         ),
       );
 
       expect(
-        rows[rows.length - 1]?.utcMs,
+        parsed.rows[
+          parsed.rows.length - 1
+        ]?.utcMs,
       ).toBe(
         Date.parse(
           "2026-08-01T11:04:00.000Z",
@@ -144,7 +71,7 @@ describe(
 
       const plan =
         buildTeslaFiImportPlan(
-          rows,
+          parsed.rows,
         );
 
       expect(plan.importable).toBe(
@@ -241,10 +168,12 @@ describe(
       ).toHaveLength(4);
 
       /*
-       * Die kurze Regression-Fixture besitzt
-       * kein Charger_Power-Feld. Deshalb darf
-       * aus dem normalen TeslaFi-Power-Feld
-       * keine Ladeleistung abgeleitet werden.
+       * Die kurze Fixture besitzt kein
+       * Charger_Power-Feld.
+       *
+       * Das TeslaFi-Feld Power darf deshalb
+       * niemals als Ladeleistung verwendet
+       * werden.
        */
       expect(
         charge.maxPowerKw,

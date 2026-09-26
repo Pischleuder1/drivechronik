@@ -22,6 +22,7 @@ export interface TeslaFiNormalizedRow {
   lineNumber: number | null;
 
   localDateTime: string;
+  dateFormat: string | null;
   localTimestamp: number;
 
   /*
@@ -264,6 +265,10 @@ export function normalizeTeslaFiRow(
       options.lineNumber ?? null,
 
     localDateTime,
+    dateFormat:
+      teslaFiTextValue(
+        field("Date_Format"),
+      ),
     localTimestamp,
 
     utcMs,

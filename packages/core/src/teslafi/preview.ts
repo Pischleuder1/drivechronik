@@ -10,13 +10,11 @@ import {
   type TeslaFiTimePreview,
 } from "./time-preview.js";
 import {
-  teslaFiOdometerToKm,
-  teslaFiSpeedToKmh,
+  normalizeTeslaFiRow,
+} from "./normalized.js";
+import {
   type TeslaFiDistanceUnit,
 } from "./units.js";
-import {
-  teslaFiLocalTimeToUtc,
-} from "./timezone.js";
 
 export const TESLAFI_KNOWN_HEADERS = [
   "Date",
@@ -165,67 +163,6 @@ export interface TeslaFiPreview {
   timePreview: TeslaFiTimePreview | null;
 
   capabilities: TeslaFiCapabilities;
-}
-
-function numberValue(value: string | null): number | null {
-  if (value == null) return null;
-
-  const trimmed = value.trim();
-
-  if (trimmed === "") return null;
-
-  const n = Number(trimmed);
-
-  return Number.isFinite(n) ? n : null;
-}
-
-/**
- * TeslaFi liefert Date_Time ohne Zeitzoneninformation.
- *
- * Für den Dry-Run benötigen wir zunächst nur eine robuste Prüfung und
- * chronologische Sortierbarkeit. Die echte Zeitzonenumrechnung erfolgt
- * später beim Import.
- */
-function parseLocalDateTime(value: string | null): number | null {
-  if (value == null) return null;
-
-  const match =
-    /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})$/.exec(
-      value.trim(),
-    );
-
-  if (!match) return null;
-
-  const year = Number(match[1]);
-  const month = Number(match[2]);
-  const day = Number(match[3]);
-  const hour = Number(match[4]);
-  const minute = Number(match[5]);
-  const second = Number(match[6]);
-
-  const ms = Date.UTC(
-    year,
-    month - 1,
-    day,
-    hour,
-    minute,
-    second,
-  );
-
-  const d = new Date(ms);
-
-  if (
-    d.getUTCFullYear() !== year ||
-    d.getUTCMonth() !== month - 1 ||
-    d.getUTCDate() !== day ||
-    d.getUTCHours() !== hour ||
-    d.getUTCMinutes() !== minute ||
-    d.getUTCSeconds() !== second
-  ) {
-    return null;
-  }
-
-  return ms;
 }
 
 function hasHeader(
@@ -453,7 +390,7 @@ export function previewTeslaFiCsv(
   const driveSignals: TeslaFiDriveSignal[] = [];
   const chargeSignals: TeslaFiChargeSignal[] = [];
 
-  let previousOdometer: number | null = null;
+  let previousOdometerKm: number | null = null;
   let previousChargeEnergy: number | null = null;
 
   for (let lineIndex = 1; lineIndex < lines.length; lineIndex++) {
@@ -478,40 +415,17 @@ export function previewTeslaFiCsv(
 
     localDateTimes.push(dateTime);
 
-    const localTimestamp =
-      parseLocalDateTime(dateTime);
+    const row =
+      normalizeTeslaFiRow(
+        field,
+        {
+          timeZone: options.timeZone,
+          distanceUnit,
+          lineNumber: lineIndex + 1,
+        },
+      );
 
-    let segmentTimestamp =
-      localTimestamp;
-
-    if (
-      localTimestamp != null &&
-      options.timeZone
-    ) {
-      const converted =
-        dateTime == null
-          ? null
-          : teslaFiLocalTimeToUtc(
-              dateTime,
-              options.timeZone,
-            );
-
-      segmentTimestamp =
-        converted?.valid === true &&
-        converted.ambiguous === false &&
-        converted.utcMs != null
-          ? converted.utcMs
-          : null;
-    }
-
-    const odometer = numberValue(
-      field("Odometer"),
-    );
-
-    if (
-      localTimestamp == null ||
-      odometer == null
-    ) {
+    if (row == null) {
       invalidRows++;
       continue;
     }
@@ -520,84 +434,62 @@ export function previewTeslaFiCsv(
 
     if (
       minTs == null ||
-      localTimestamp < minTs
+      row.localTimestamp < minTs
     ) {
-      minTs = localTimestamp;
-      minDateTime = dateTime;
+      minTs = row.localTimestamp;
+      minDateTime = row.localDateTime;
     }
 
     if (
       maxTs == null ||
-      localTimestamp > maxTs
+      row.localTimestamp > maxTs
     ) {
-      maxTs = localTimestamp;
-      maxDateTime = dateTime;
+      maxTs = row.localTimestamp;
+      maxDateTime = row.localDateTime;
     }
 
-    const vehicleId = field("Vehicle_Id");
-    if (vehicleId) vehicleIds.add(vehicleId);
+    if (row.vehicleId) {
+      vehicleIds.add(row.vehicleId);
+    }
 
-    const displayName = field("Display_Name");
-    if (displayName) {
-      displayNames.add(displayName);
+    if (row.displayName) {
+      displayNames.add(row.displayName);
     }
 
     const dateFormat = field("Date_Format");
-    if (dateFormat) dateFormats.add(dateFormat);
 
-    const lat = numberValue(
-      field("Latitude"),
-    );
-    const lon = numberValue(
-      field("Longitude"),
-    );
+    if (dateFormat) {
+      dateFormats.add(dateFormat);
+    }
 
     if (
-      lat != null &&
-      lon != null &&
-      lat >= -90 &&
-      lat <= 90 &&
-      lon >= -180 &&
-      lon <= 180
+      row.lat != null &&
+      row.lon != null
     ) {
       gpsRows++;
     }
 
-    const shiftState =
-      field("Shift_State");
-
-    const rawSpeed =
-      numberValue(field("Speed")) ?? 0;
-
     const speed =
-      teslaFiSpeedToKmh(
-        rawSpeed,
-        distanceUnit,
-      ) ?? 0;
+      row.speedKmh ?? 0;
 
-    const odometerKm =
-      teslaFiOdometerToKm(
-        odometer,
-        distanceUnit,
-      );
-
-    if (segmentTimestamp != null) {
+    if (row.segmentTimestamp != null) {
       driveSignals.push({
-        ts: segmentTimestamp,
-        shift: shiftState,
+        ts: row.segmentTimestamp,
+        shift: row.shiftState,
         speed,
-        odometer: odometerKm,
+        odometer: row.odometerKm,
       });
     }
 
     const odometerIncreased =
-      previousOdometer != null &&
-      odometer > previousOdometer;
+      previousOdometerKm != null &&
+      row.odometerKm >
+        previousOdometerKm;
 
     if (
-      shiftState === "D" ||
-      shiftState === "R" ||
-      shiftState === "N" ||
+      row.shiftState === "D" ||
+      row.shiftState === "R" ||
+      row.shiftState === "N" ||
       speed > 0 ||
       odometerIncreased
     ) {
@@ -605,41 +497,25 @@ export function previewTeslaFiCsv(
     }
 
     const chargerPower =
-      numberValue(
-        field("Charger_Power"),
-      ) ?? 0;
+      row.chargerPowerKw ?? 0;
 
     const chargerCurrent =
-      numberValue(
-        field("Charger_Actual_Current"),
-      ) ?? 0;
+      row.chargerCurrentA ?? 0;
 
     const chargeRate =
-      numberValue(
-        field("Charge_Rate"),
-      ) ?? 0;
+      row.chargeRateRaw ?? 0;
 
     const chargeEnergy =
-      numberValue(
-        field("Charge_Energy_Added"),
-      );
+      row.chargeEnergyAddedKwh;
 
-    const soc =
-      numberValue(
-        field("Usable_Battery_Level"),
-      ) ??
-      numberValue(
-        field("Battery_Level"),
-      );
-
-    if (segmentTimestamp != null) {
+    if (row.segmentTimestamp != null) {
       chargeSignals.push({
-        ts: segmentTimestamp,
+        ts: row.segmentTimestamp,
         powerKw: chargerPower,
         currentA: chargerCurrent,
         chargeRate,
         energyAdded: chargeEnergy,
-        soc,
+        soc: row.soc,
       });
     }
 
@@ -658,10 +534,12 @@ export function previewTeslaFiCsv(
       chargingRows++;
     }
 
-    previousOdometer = odometer;
+    previousOdometerKm =
+      row.odometerKm;
 
     if (chargeEnergy != null) {
-      previousChargeEnergy = chargeEnergy;
+      previousChargeEnergy =
+        chargeEnergy;
     }
   }
 

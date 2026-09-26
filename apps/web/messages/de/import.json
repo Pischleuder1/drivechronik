@@ -263,6 +263,19 @@
     "units": {
       "metric": "Kilometer / km/h",
       "imperial": "Meilen / mph"
+    },
+    "conflictCheck": {
+      "title": "Importprüfung",
+      "description": "DriveChronik prüft erkannte TeslaFi-Zeiträume gegen bereits vorhandene Fahrten und Ladevorgänge des ausgewählten Fahrzeugs.",
+      "drives": "Fahrten",
+      "charges": "Ladevorgänge",
+      "total": "Gesamt",
+      "new": "Neu",
+      "conflicts": "Konflikte",
+      "timeErrors": "Zeitfehler",
+      "statusNew": "Neu",
+      "statusConflict": "Konflikt mit {source}",
+      "statusTimeError": "Zeitfehler"
     }
   }
 }

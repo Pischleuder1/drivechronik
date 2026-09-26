@@ -263,6 +263,19 @@
     "units": {
       "metric": "Kilometres / km/h",
       "imperial": "Miles / mph"
+    },
+    "conflictCheck": {
+      "title": "Import check",
+      "description": "DriveChronik checks detected TeslaFi periods against existing drives and charging sessions for the selected vehicle.",
+      "drives": "Drives",
+      "charges": "Charging sessions",
+      "total": "Total",
+      "new": "New",
+      "conflicts": "Conflicts",
+      "timeErrors": "Time errors",
+      "statusNew": "New",
+      "statusConflict": "Conflict with {source}",
+      "statusTimeError": "Time error"
     }
   }
 }

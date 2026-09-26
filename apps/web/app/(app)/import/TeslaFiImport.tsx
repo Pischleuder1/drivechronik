@@ -91,6 +91,31 @@ type Preview = {
   capabilities: Capabilities;
 };
 
+type ExistingConflict = {
+  id: number;
+  source: string;
+  startMs: number;
+  endMs: number | null;
+};
+
+type EpisodeConflict = {
+  index: number;
+  startDateTime: string;
+  endDateTime: string;
+  startUtc: string | null;
+  endUtc: string | null;
+  timeError: boolean;
+  conflict: boolean;
+  existing: ExistingConflict[];
+};
+
+type ConflictSummary = {
+  total: number;
+  new: number;
+  conflicts: number;
+  timeErrors: number;
+};
+
 type PreviewResponse = {
   mode: "preview";
   dryRun: true;
@@ -105,7 +130,47 @@ type PreviewResponse = {
   distanceUnit: DistanceUnit;
 
   preview: Preview;
+
+  conflicts: {
+    drives: EpisodeConflict[];
+    charges: EpisodeConflict[];
+
+    summary: {
+      drives: ConflictSummary;
+      charges: ConflictSummary;
+    };
+  };
 };
+
+function sourceLabel(
+  source: string,
+): string {
+  switch (source) {
+    case "teslamate":
+      return "TeslaMate";
+    case "tessie":
+      return "Tessie";
+    case "teslafi":
+      return "TeslaFi";
+    default:
+      return source;
+  }
+}
+
+function conflictSources(
+  conflict: EpisodeConflict | undefined,
+): string {
+  if (!conflict) return "";
+
+  return [
+    ...new Set(
+      conflict.existing.map(
+        (item) =>
+          sourceLabel(item.source),
+      ),
+    ),
+  ].join(", ");
+}
 
 interface Props {
   vehicles: Vehicle[];
@@ -506,6 +571,109 @@ export function TeslaFiImport({
             ))}
           </div>
 
+          <div className="rounded-xl border border-neutral-200 p-4 dark:border-neutral-800">
+            <h3 className="font-medium">
+              {t(
+                "teslafi.conflictCheck.title",
+              )}
+            </h3>
+
+            <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+              {t(
+                "teslafi.conflictCheck.description",
+              )}
+            </p>
+
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              {[
+                [
+                  t(
+                    "teslafi.conflictCheck.drives",
+                  ),
+                  preview.conflicts.summary.drives,
+                ],
+                [
+                  t(
+                    "teslafi.conflictCheck.charges",
+                  ),
+                  preview.conflicts.summary.charges,
+                ],
+              ].map(([label, rawSummary]) => {
+                const summary =
+                  rawSummary as ConflictSummary;
+
+                return (
+                  <div
+                    key={String(label)}
+                    className="rounded-lg bg-neutral-50 p-3 dark:bg-neutral-800/60"
+                  >
+                    <p className="text-sm font-medium">
+                      {String(label)}
+                    </p>
+
+                    <div className="mt-3 grid grid-cols-4 gap-2 text-center">
+                      {[
+                        [
+                          t(
+                            "teslafi.conflictCheck.total",
+                          ),
+                          summary.total,
+                          "",
+                        ],
+                        [
+                          t(
+                            "teslafi.conflictCheck.new",
+                          ),
+                          summary.new,
+                          "text-emerald-700 dark:text-emerald-400",
+                        ],
+                        [
+                          t(
+                            "teslafi.conflictCheck.conflicts",
+                          ),
+                          summary.conflicts,
+                          "text-red-700 dark:text-red-400",
+                        ],
+                        [
+                          t(
+                            "teslafi.conflictCheck.timeErrors",
+                          ),
+                          summary.timeErrors,
+                          "text-amber-700 dark:text-amber-400",
+                        ],
+                      ].map(
+                        ([
+                          itemLabel,
+                          value,
+                          valueClass,
+                        ]) => (
+                          <div
+                            key={String(
+                              itemLabel,
+                            )}
+                          >
+                            <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                              {String(
+                                itemLabel,
+                              )}
+                            </p>
+                            <p
+                              className={`mt-1 font-semibold tabular-nums ${String(
+                                valueClass,
+                              )}`}
+                            >
+                              {Number(value)}
+                            </p>
+                          </div>
+                        ),
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           <div className="grid gap-4 lg:grid-cols-2">
             <div className="rounded-xl border border-neutral-200 p-4 dark:border-neutral-800">
               <div className="flex items-center justify-between gap-3">
@@ -530,14 +698,44 @@ export function TeslaFiImport({
                         key={`${episode.startDateTime}-${index}`}
                         className="rounded-lg bg-neutral-50 px-3 py-2 text-sm dark:bg-neutral-800/60"
                       >
-                        <p className="font-medium">
-                          {t(
-                            "teslafi.episodes.drive",
-                            {
-                              number: index + 1,
-                            },
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <p className="font-medium">
+                            {t(
+                              "teslafi.episodes.drive",
+                              {
+                                number: index + 1,
+                              },
+                            )}
+                          </p>
+
+                          {preview.conflicts.drives[index]?.timeError ? (
+                            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                              {t(
+                                "teslafi.conflictCheck.statusTimeError",
+                              )}
+                            </span>
+                          ) : preview.conflicts.drives[index]?.conflict ? (
+                            <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800 dark:bg-red-950 dark:text-red-300">
+                              {t(
+                                "teslafi.conflictCheck.statusConflict",
+                                {
+                                  source:
+                                    conflictSources(
+                                      preview.conflicts.drives[
+                                        index
+                                      ],
+                                    ),
+                                },
+                              )}
+                            </span>
+                          ) : (
+                            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                              {t(
+                                "teslafi.conflictCheck.statusNew",
+                              )}
+                            </span>
                           )}
-                        </p>
+                        </div>
 
                         <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
                           {episode.startDateTime}
@@ -592,14 +790,44 @@ export function TeslaFiImport({
                         key={`${episode.startDateTime}-${index}`}
                         className="rounded-lg bg-neutral-50 px-3 py-2 text-sm dark:bg-neutral-800/60"
                       >
-                        <p className="font-medium">
-                          {t(
-                            "teslafi.episodes.charge",
-                            {
-                              number: index + 1,
-                            },
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <p className="font-medium">
+                            {t(
+                              "teslafi.episodes.charge",
+                              {
+                                number: index + 1,
+                              },
+                            )}
+                          </p>
+
+                          {preview.conflicts.charges[index]?.timeError ? (
+                            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                              {t(
+                                "teslafi.conflictCheck.statusTimeError",
+                              )}
+                            </span>
+                          ) : preview.conflicts.charges[index]?.conflict ? (
+                            <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800 dark:bg-red-950 dark:text-red-300">
+                              {t(
+                                "teslafi.conflictCheck.statusConflict",
+                                {
+                                  source:
+                                    conflictSources(
+                                      preview.conflicts.charges[
+                                        index
+                                      ],
+                                    ),
+                                },
+                              )}
+                            </span>
+                          ) : (
+                            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                              {t(
+                                "teslafi.conflictCheck.statusNew",
+                              )}
+                            </span>
                           )}
-                        </p>
+                        </div>
 
                         <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
                           {episode.startDateTime}

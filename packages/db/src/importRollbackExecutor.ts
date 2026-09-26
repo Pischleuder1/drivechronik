@@ -387,9 +387,47 @@ async function driveBlockers(
   return blockers;
 }
 
+function chargePointOwnership(
+  metadata: unknown,
+): Set<number> | null {
+  if (
+    metadata === null ||
+    typeof metadata !== "object" ||
+    Array.isArray(metadata)
+  ) {
+    return null;
+  }
+
+  const value = (
+    metadata as Record<string, unknown>
+  ).ownedChargePointIds;
+
+  if (!Array.isArray(value)) {
+    return null;
+  }
+
+  const ids = new Set<number>();
+
+  for (const entry of value) {
+    if (
+      typeof entry !== "number" ||
+      !Number.isInteger(entry) ||
+      entry <= 0
+    ) {
+      return null;
+    }
+
+    ids.add(entry);
+  }
+
+  return ids;
+}
+
 async function chargeSessionBlockers(
   db: ImportDb,
   chargeSessionId: number,
+  ownedChargePointIds:
+    Set<number> | null = null,
 ): Promise<string[]> {
   const blockers: string[] = [];
 
@@ -403,10 +441,20 @@ async function chargeSessionBlockers(
         chargePoints.chargeSessionId,
         chargeSessionId,
       ),
-    )
-    .limit(1);
+    );
 
-  if (points.length > 0) {
+  if (
+    points.length > 0 &&
+    (
+      ownedChargePointIds === null ||
+      points.some(
+        (point) =>
+          !ownedChargePointIds.has(
+            point.id,
+          ),
+      )
+    )
+  ) {
     blockers.push("charge_points");
   }
 
@@ -539,10 +587,16 @@ async function evaluateChargeSessionChange(
       };
     }
 
+    const ownedChargePointIds =
+      chargePointOwnership(
+        change.metadata,
+      );
+
     const blockers =
       await chargeSessionBlockers(
         db,
         change.entityId,
+        ownedChargePointIds,
       );
 
     if (blockers.length > 0) {

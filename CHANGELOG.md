@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-09-26
+
+### Added
+
+- Added TeslaFi CSV import with Dry Run preview, explicit timezone and metric/imperial unit selection.
+- Added safe TeslaFi timestamp normalization with detection of invalid, ambiguous and non-existent local times around daylight-saving transitions.
+- Added TeslaFi drive and charging episode detection from normalized CSV samples.
+- Added conflict detection against existing DriveChronik drives and charging sessions so overlapping records are skipped instead of overwritten.
+- Added insert-only TeslaFi persistence with vehicle-scoped source IDs, route points and charging points.
+- Added TeslaFi imports to the import history with previewable, conflict-aware rollback support.
+- Added regression coverage for TeslaFi parsing, timezone handling, unit conversion, segmentation, conflict detection, persistence planning and rollback behavior.
+
+### Changed
+
+- TeslaFi CSV parsing and normalization are shared between Dry Run preview and final persistence so both paths use the same interpretation of source data.
+- TeslaFi imports are revalidated server-side immediately before persistence instead of relying on the browser preview.
+- Import rollback ownership now distinguishes imported child records from later foreign additions.
+
+### Fixed
+
+- Automatic DriveChronik weather enrichment after a TeslaFi import no longer falsely prevents the imported drive from being rolled back.
+- TeslaFi rollback continues to protect later manual or linked changes while allowing normal system-managed enrichment.
+
 ## [0.5.3] - 2026-09-26
 
 ### Fixed

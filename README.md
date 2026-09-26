@@ -49,7 +49,7 @@ SD-Karte geschrieben werden. Neuere Appliance-Versionen enthalten dafür den
 Befehl:
 
 ```bash
-sudo drivechronik-update v0.5.3
+sudo drivechronik-update v0.6.0
 ```
 
 Der Updater:
@@ -75,7 +75,7 @@ sudo install -m 0755 \
   /tmp/drivechronik-update \
   /usr/local/sbin/drivechronik-update
 
-sudo drivechronik-update v0.5.3
+sudo drivechronik-update v0.6.0
 ```
 
 Danach steht `drivechronik-update` auch für spätere DriveChronik-Updates
@@ -142,10 +142,11 @@ Tessie & Co. sind gut, aber: Abo-Kosten, Feature-Überschneidung mit der Tesla-A
 
 **Daten**
 - **Datenhoheit** — eigene PostgreSQL-DB, quellen-agnostisches Schema (`source`/`source_id`), Annotationen überleben strukturell jeden Re-Sync
+- **TeslaFi-Import** — CSV-Import mit Dry Run, expliziter Zeitzone und metrischer/imperialer Einheitenauswahl; erkennt Fahrten und Ladevorgänge, schützt vorhandene Zeiträume vor Überschneidungen und unterstützt einen sicheren Rollback
 - **Tessie-Import** — rekonstruiert Fahrten und Ladevorgänge aus einem Tessie-Rohdaten-Export; vorhandene TeslaMate-Zeiträume werden geschützt
 - **Tesla-Ladehistorie** — CSV-Import mit Vorschau, automatischer Zuordnung zu vorhandenen Ladevorgängen und dublettensicheren Aktualisierungen
 - **TRONITY-Ladeimport** — XLSX-Import mit Fahrzeugauswahl und Vorschau; vorhandene TeslaMate-/Tessie-Ladungen werden erkannt und sicher ergänzt, während manuelle Kosten, Notizen und gelockte Orte geschützt bleiben
-- **Import-Historie & sicherer Rollback** — protokollierte TRONITY- und Tesla-Ladehistorienimporte können vor dem Zurücksetzen geprüft und anschließend gezielt rückgängig gemacht werden. Spätere manuelle Änderungen werden erkannt und bleiben geschützt; vollständige und teilweise Rollbacks werden nachvollziehbar protokolliert.
+- **Import-Historie & sicherer Rollback** — protokollierte TeslaFi-, TRONITY- und Tesla-Ladehistorienimporte können vor dem Zurücksetzen geprüft und anschließend gezielt rückgängig gemacht werden. Spätere manuelle Änderungen werden erkannt und bleiben geschützt; vollständige und teilweise Rollbacks werden nachvollziehbar protokolliert.
 - **Vollständiger Datenexport** — portables ZIP-Archiv aller fachlichen DriveChronik-Daten als JSON und CSV. Ein Manifest dokumentiert Tabellenstruktur, Datensatzanzahlen und SHA-256-Prüfsummen. Passwort-Hashes, Sessions, Secrets, technische Synchronisationszustände und temporäre Import-Jobs werden bewusst nicht exportiert.
 - **Energie ehrlich** — echte Zählerwerte wo verfügbar, sonst gekennzeichnete Schätzung; Effizienz-Fallback in den Settings, bis TeslaMate den Fahrzeugwert gelernt hat
 
@@ -452,7 +453,7 @@ Die TeslaMate-Datenbank wird bei Backup und Restore nicht verändert.
 
 ### Historische Daten importieren
 
-Unter **Mehr → Datenimport** stehen mehrere Importwege für vorhandene historische Lade- und Fahrdaten zur Verfügung.
+Unter **Einstellungen → Datenimport** stehen mehrere Importwege für vorhandene historische Lade- und Fahrdaten zur Verfügung.
 
 **Tesla-Ladehistorie**
 
@@ -466,22 +467,31 @@ Vor dem Import zeigt DriveChronik eine Vorschau mit zugeordneten, neuen, zu erg�
 
 **Import-Historie und Rückgängig-Funktion**
 
-Ausgeführte TRONITY- und Tesla-Ladehistorienimporte werden unter **Mehr → Datenimport** in einer Import-Historie angezeigt. Vor einem Rollback prüft DriveChronik, welche Änderungen sicher zurückgenommen werden können. Nachträglich manuell geänderte Felder werden geschützt und als Konflikt ausgewiesen; bei TRONITY werden zusätzlich abhängige Ladepunkte, Tags und Tesla-Ladeverknüpfungen berücksichtigt. Ein Rollback kann deshalb vollständig oder teilweise erfolgen; das Ergebnis wird zusätzlich in der manipulationserschwerenden Audit-Kette protokolliert.
+Ausgeführte TeslaFi-, TRONITY- und Tesla-Ladehistorienimporte werden unter **Einstellungen → Datenimport** in einer Import-Historie angezeigt. Vor einem Rollback prüft DriveChronik, welche Änderungen sicher zurückgenommen werden können. Nachträglich manuell geänderte Felder werden geschützt und als Konflikt ausgewiesen; bei TRONITY werden zusätzlich abhängige Ladepunkte, Tags und Tesla-Ladeverknüpfungen berücksichtigt. Ein Rollback kann deshalb vollständig oder teilweise erfolgen; das Ergebnis wird zusätzlich in der manipulationserschwerenden Audit-Kette protokolliert.
 
-Die Rückgängig-Funktion gilt derzeit für TRONITY-Importe und die Tesla-Ladehistorie. Tessie-Importe werden noch nicht über diese Funktion zurückgesetzt.
+Die Rückgängig-Funktion gilt derzeit für TeslaFi-, TRONITY- und Tesla-Ladehistorienimporte. Tessie-Importe werden noch nicht über diese Funktion zurückgesetzt.
 
 Tatsächliche TRONITY-Kosten dürfen automatische Kostenschätzungen ersetzen. Manuelle Kosten, vorhandene Notizen und gelockte Ortszuordnungen bleiben geschützt. Mehrdeutige Treffer werden nicht automatisch verändert.
 
+**TeslaFi**
+
+Ein TeslaFi-CSV-Export kann unter **Einstellungen → Datenimport** zunächst als Dry Run geprüft und anschließend importiert werden. Vor der Analyse werden die Zeitzone des Exports sowie metrische oder imperiale Einheiten explizit ausgewählt.
+
+DriveChronik normalisiert die CSV-Daten, prüft lokale Zeitstempel einschließlich Sommerzeit-Wechseln und erkennt daraus Fahrten und Ladevorgänge. Vorhandene überlappende Fahrten oder Ladevorgänge werden als Konflikte angezeigt und nicht überschrieben.
+
+Beim Import werden neue Fahrten einschließlich ihrer GPS-Routenpunkte sowie neue Ladevorgänge einschließlich Ladepunkten angelegt. Der Server führt die Sicherheitsprüfung unmittelbar vor dem Schreiben erneut aus.
+
+TeslaFi-Importe erscheinen in der Import-Historie und können nach einer Rollback-Vorschau wieder entfernt werden. Spätere manuelle Änderungen oder fremde Verknüpfungen bleiben geschützt. Automatisch von DriveChronik ergänzte Wetterdaten gelten dagegen nicht als manuelle Änderung und verhindern einen ansonsten sicheren Rollback nicht.
+
 **Tessie**
 
-Ein vorhandener Tessie-Rohdatenexport kann unter **Mehr → Datenimport** über den Web-Import übernommen werden. DriveChronik erwartet die vier Dateien des Tessie-Rohdatenexports, prüft sie vor dem Start und zeigt den Importfortschritt im Browser an.
+Ein vorhandener Tessie-Rohdatenexport kann unter **Einstellungen → Datenimport** über den Web-Import übernommen werden. DriveChronik erwartet die vier Dateien des Tessie-Rohdatenexports, prüft sie vor dem Start und zeigt den Importfortschritt im Browser an.
 
 Der Tessie-Import rekonstruiert Fahrten und Ladevorgänge und schützt bereits vorhandene TeslaMate-Zeiträume. Die Rückgängig-Funktion der Import-Historie gilt derzeit noch nicht für Tessie-Importe.
 
 ## Grenzen (ehrlich)
 
 - **Braucht TeslaMate** als Datenquelle — DriveChronik spricht nicht selbst mit der Tesla-API und weckt dein Auto nie
-- **Ein Fahrzeug** pro Instanz im Fokus
 - **Zahlenformatierung** aktuell durchgehend de-DE (Dezimalkomma), auch in der englischen UI
 - **Routenplaner** ist experimentell — automatische Ladeplanung mit Tesla-Superchargern und öffentlichen HPC-Ladern ist vorhanden, die Ladezeit wird derzeit noch konservativ geschätzt; Standard-Routing über den öffentlichen OSRM-Demo-Server
 - **Kein steuerrechtliches Gutachten**: Exporte sind fahrtenbuch-artig mit Audit-Log, aber die Anerkennung beim Finanzamt ist einzelfallabhängig

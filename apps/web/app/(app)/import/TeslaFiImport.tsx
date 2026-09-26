@@ -116,6 +116,13 @@ type ConflictSummary = {
   timeErrors: number;
 };
 
+type ImportBlockReason =
+  | "unrecognized_file"
+  | "invalid_timezone"
+  | "invalid_rows"
+  | "invalid_times"
+  | "ambiguous_times";
+
 type PreviewResponse = {
   mode: "preview";
   dryRun: true;
@@ -128,6 +135,9 @@ type PreviewResponse = {
   vehicle: Vehicle;
   timezone: string;
   distanceUnit: DistanceUnit;
+
+  importable: boolean;
+  blockedBy: ImportBlockReason[];
 
   preview: Preview;
 
@@ -154,6 +164,32 @@ function sourceLabel(
       return "TeslaFi";
     default:
       return source;
+  }
+}
+
+function importBlockReasonKey(
+  reason: ImportBlockReason,
+):
+  | "teslafi.importability.reasons.unrecognizedFile"
+  | "teslafi.importability.reasons.invalidTimezone"
+  | "teslafi.importability.reasons.invalidRows"
+  | "teslafi.importability.reasons.invalidTimes"
+  | "teslafi.importability.reasons.ambiguousTimes" {
+  switch (reason) {
+    case "unrecognized_file":
+      return "teslafi.importability.reasons.unrecognizedFile";
+
+    case "invalid_timezone":
+      return "teslafi.importability.reasons.invalidTimezone";
+
+    case "invalid_rows":
+      return "teslafi.importability.reasons.invalidRows";
+
+    case "invalid_times":
+      return "teslafi.importability.reasons.invalidTimes";
+
+    case "ambiguous_times":
+      return "teslafi.importability.reasons.ambiguousTimes";
   }
 }
 
@@ -569,6 +605,73 @@ export function TeslaFiImport({
                 </p>
               </div>
             ))}
+          </div>
+
+          <div
+            className={`rounded-xl border p-4 ${
+              preview.importable
+                ? "border-emerald-200 bg-emerald-50/70 dark:border-emerald-900 dark:bg-emerald-950/30"
+                : "border-red-200 bg-red-50/70 dark:border-red-900 dark:bg-red-950/30"
+            }`}
+          >
+            <div className="flex items-start gap-3">
+              {preview.importable ? (
+                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700 dark:text-emerald-400" />
+              ) : (
+                <XCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-700 dark:text-red-400" />
+              )}
+
+              <div className="min-w-0">
+                <p
+                  className={`font-medium ${
+                    preview.importable
+                      ? "text-emerald-900 dark:text-emerald-200"
+                      : "text-red-900 dark:text-red-200"
+                  }`}
+                >
+                  {preview.importable
+                    ? t(
+                        "teslafi.importability.allowed",
+                      )
+                    : t(
+                        "teslafi.importability.blocked",
+                      )}
+                </p>
+
+                <p
+                  className={`mt-1 text-sm ${
+                    preview.importable
+                      ? "text-emerald-800 dark:text-emerald-300"
+                      : "text-red-800 dark:text-red-300"
+                  }`}
+                >
+                  {preview.importable
+                    ? t(
+                        "teslafi.importability.allowedDescription",
+                      )
+                    : t(
+                        "teslafi.importability.blockedDescription",
+                      )}
+                </p>
+
+                {!preview.importable &&
+                preview.blockedBy.length > 0 ? (
+                  <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-red-800 dark:text-red-300">
+                    {preview.blockedBy.map(
+                      (reason) => (
+                        <li key={reason}>
+                          {t(
+                            importBlockReasonKey(
+                              reason,
+                            ),
+                          )}
+                        </li>
+                      ),
+                    )}
+                  </ul>
+                ) : null}
+              </div>
+            </div>
           </div>
 
           <div className="rounded-xl border border-neutral-200 p-4 dark:border-neutral-800">

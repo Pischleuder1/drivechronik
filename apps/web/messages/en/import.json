@@ -264,6 +264,19 @@
       "metric": "Kilometres / km/h",
       "imperial": "Miles / mph"
     },
+    "importability": {
+      "allowed": "Import available",
+      "allowedDescription": "The file passed the safety check. Existing drives or charging sessions will be skipped during import.",
+      "blocked": "Import blocked",
+      "blockedDescription": "The file contains data that cannot be imported safely. Import remains disabled until the issues are resolved.",
+      "reasons": {
+        "unrecognizedFile": "The file was not clearly recognized as a TeslaFi export.",
+        "invalidTimezone": "The specified timezone is invalid.",
+        "invalidRows": "The CSV contains invalid or incomplete data rows.",
+        "invalidTimes": "At least one timestamp falls into a nonexistent local time.",
+        "ambiguousTimes": "At least one timestamp is ambiguous because of a daylight-saving transition."
+      }
+    },
     "conflictCheck": {
       "title": "Import check",
       "description": "DriveChronik checks detected TeslaFi periods against existing drives and charging sessions for the selected vehicle.",

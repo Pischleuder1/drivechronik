@@ -37,6 +37,13 @@ interface CandidateWithIndex {
   endIso: string;
 }
 
+type TeslaFiImportBlockReason =
+  | "unrecognized_file"
+  | "invalid_timezone"
+  | "invalid_rows"
+  | "invalid_times"
+  | "ambiguous_times";
+
 function buildCandidateIntervals(
   episodes: Array<{
     startDateTime: string;
@@ -527,6 +534,59 @@ export async function POST(request: Request) {
         (item) => item.conflict,
       ).length;
 
+    const newDriveCount =
+      preview.driveEpisodes.length -
+      driveConflictCount -
+      driveCandidates.invalidIndexes.length;
+
+    const newChargeCount =
+      preview.chargeEpisodes.length -
+      chargeConflictCount -
+      chargeCandidates.invalidIndexes.length;
+
+    const blockedBy:
+      TeslaFiImportBlockReason[] = [];
+
+    if (!preview.recognized) {
+      blockedBy.push(
+        "unrecognized_file",
+      );
+    }
+
+    if (preview.invalidRows > 0) {
+      blockedBy.push(
+        "invalid_rows",
+      );
+    }
+
+    if (
+      preview.timePreview == null ||
+      !preview.timePreview.validTimeZone
+    ) {
+      blockedBy.push(
+        "invalid_timezone",
+      );
+    } else {
+      if (
+        preview.timePreview.invalidRows > 0
+      ) {
+        blockedBy.push(
+          "invalid_times",
+        );
+      }
+
+      if (
+        preview.timePreview.ambiguousRows > 0
+      ) {
+        blockedBy.push(
+          "ambiguous_times",
+        );
+      }
+    }
+
+    const importable =
+      blockedBy.length === 0;
+
     const fileName =
       "name" in file &&
       typeof file.name === "string"
@@ -547,6 +607,9 @@ export async function POST(request: Request) {
       timezone,
       distanceUnit,
 
+      importable,
+      blockedBy,
+
       preview,
 
       conflicts: {
@@ -558,10 +621,7 @@ export async function POST(request: Request) {
             total:
               preview.driveEpisodes.length,
             new:
-              preview.driveEpisodes.length -
-              driveConflictCount -
-              driveCandidates
-                .invalidIndexes.length,
+              newDriveCount,
             conflicts:
               driveConflictCount,
             timeErrors:
@@ -573,10 +633,7 @@ export async function POST(request: Request) {
             total:
               preview.chargeEpisodes.length,
             new:
-              preview.chargeEpisodes.length -
-              chargeConflictCount -
-              chargeCandidates
-                .invalidIndexes.length,
+              newChargeCount,
             conflicts:
               chargeConflictCount,
             timeErrors:

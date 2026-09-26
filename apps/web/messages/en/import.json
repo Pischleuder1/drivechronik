@@ -163,7 +163,8 @@
     "result": {
       "tronity": "{inserted} new · {updated} enriched · {unchanged} unchanged",
       "changes": "{count} changes",
-      "none": "No data changed"
+      "none": "No data changed",
+      "teslafi": "{drives, plural, one {# drive} other {# drives}} · {charges, plural, one {# charging session} other {# charging sessions}} · {skipped} skipped"
     },
     "undo": "Undo import",
     "checking": "Checking …",
@@ -195,8 +196,8 @@
   },
   "teslafi": {
     "title": "TeslaFi",
-    "description": "Check historical TeslaFi vehicle data from a CSV export and later import it into DriveChronik.",
-    "details": "Select a TeslaFi CSV export, the target vehicle and the source timezone. The preview is a dry run and does not modify any data.",
+    "description": "Check historical TeslaFi vehicle data from a CSV export and import it into DriveChronik.",
+    "details": "Select a TeslaFi CSV export, the target vehicle and the source timezone. DriveChronik first shows a safe preview; only after choosing “Import TeslaFi data” are new, conflict-free episodes stored.",
     "vehicle": "Target vehicle",
     "vehiclePlaceholder": "Select vehicle",
     "timezone": "TeslaFi data timezone",
@@ -289,6 +290,10 @@
       "statusNew": "New",
       "statusConflict": "Conflict with {source}",
       "statusTimeError": "Time error"
-    }
+    },
+    "import": "Import TeslaFi data",
+    "importing": "Importing TeslaFi data …",
+    "completed": "Import completed: {drives} drives and {charges} charging sessions imported.",
+    "completedSkipped": "Skipped: {count} existing or overlapping episodes."
   }
 }

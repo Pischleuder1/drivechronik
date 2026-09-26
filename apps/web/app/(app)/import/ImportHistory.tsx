@@ -135,6 +135,10 @@ export function ImportHistory({
         return t(
           "history.source.tessie",
         );
+      case "teslafi":
+        return t(
+          "history.source.teslafi",
+        );
       default:
         return source;
     }
@@ -174,6 +178,79 @@ export function ImportHistory({
   ): string {
     const summary =
       run.summary ?? {};
+
+    if (
+      run.source === "teslafi"
+    ) {
+      const insertedSummary =
+        summary.inserted &&
+        typeof summary.inserted ===
+          "object" &&
+        !Array.isArray(
+          summary.inserted,
+        )
+          ? summary.inserted as Record<
+              string,
+              unknown
+            >
+          : {};
+
+      const skippedSummary =
+        summary.skipped &&
+        typeof summary.skipped ===
+          "object" &&
+        !Array.isArray(
+          summary.skipped,
+        )
+          ? summary.skipped as Record<
+              string,
+              unknown
+            >
+          : {};
+
+      const drives =
+        numericValue(
+          insertedSummary.drives,
+        );
+
+      const charges =
+        numericValue(
+          insertedSummary.charges,
+        );
+
+      const skipped =
+        numericValue(
+          skippedSummary.driveConflicts,
+        ) +
+        numericValue(
+          skippedSummary.chargeConflicts,
+        ) +
+        numericValue(
+          skippedSummary.existingDrives,
+        ) +
+        numericValue(
+          skippedSummary.existingCharges,
+        );
+
+      if (
+        drives === 0 &&
+        charges === 0 &&
+        skipped === 0
+      ) {
+        return t(
+          "history.result.none",
+        );
+      }
+
+      return t(
+        "history.result.teslafi",
+        {
+          drives,
+          charges,
+          skipped,
+        },
+      );
+    }
 
     const inserted =
       numericValue(
@@ -235,7 +312,9 @@ export function ImportHistory({
   ): boolean {
     if (
       run.source !== "tronity" &&
-      run.source !== "tesla_charging"
+      run.source !==
+        "tesla_charging" &&
+      run.source !== "teslafi"
     ) {
       return false;
     }
@@ -250,6 +329,33 @@ export function ImportHistory({
 
     const summary =
       run.summary ?? {};
+
+    if (
+      run.source === "teslafi"
+    ) {
+      const insertedSummary =
+        summary.inserted &&
+        typeof summary.inserted ===
+          "object" &&
+        !Array.isArray(
+          summary.inserted,
+        )
+          ? summary.inserted as Record<
+              string,
+              unknown
+            >
+          : {};
+
+      return (
+        numericValue(
+          insertedSummary.drives,
+        ) +
+          numericValue(
+            insertedSummary.charges,
+          ) >
+        0
+      );
+    }
 
     return (
       numericValue(

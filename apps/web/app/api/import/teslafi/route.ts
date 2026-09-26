@@ -941,6 +941,30 @@ export async function POST(
                   .length;
             }
 
+            /*
+             * Wetterdaten werden nach dem Import
+             * vom DriveChronik-Worker ergänzt.
+             *
+             * Sie gehören deshalb nicht zum
+             * Rollback-Snapshot des TeslaFi-
+             * Imports. Sonst würde der normale
+             * Wetter-Backfill fälschlich als
+             * Benutzeränderung gelten.
+             */
+            const driveAfter: Record<string, unknown> = {
+              ...driveValues,
+            };
+
+            for (const key of [
+              "weatherTempC",
+              "weatherPrecipitationMm",
+              "weatherWindKmh",
+              "weatherCode",
+              "weatherSyncedAt",
+            ]) {
+              delete driveAfter[key];
+            }
+
             await recordImportChange(
               tx,
               {
@@ -957,7 +981,7 @@ export async function POST(
                   "insert",
 
                 after:
-                  driveValues,
+                  driveAfter,
               },
             );
 

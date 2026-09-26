@@ -163,7 +163,8 @@
     "result": {
       "tronity": "{inserted} neu · {updated} ergänzt · {unchanged} unverändert",
       "changes": "{count} Änderungen",
-      "none": "Keine Daten geändert"
+      "none": "Keine Daten geändert",
+      "teslafi": "{drives, plural, one {# Fahrt} other {# Fahrten}} · {charges, plural, one {# Ladevorgang} other {# Ladevorgänge}} · {skipped} übersprungen"
     },
     "undo": "Import rückgängig machen",
     "checking": "Prüfen …",
@@ -195,8 +196,8 @@
   },
   "teslafi": {
     "title": "TeslaFi",
-    "description": "Historische TeslaFi-Fahrzeugdaten aus einem CSV-Export prüfen und später in DriveChronik übernehmen.",
-    "details": "Wähle einen TeslaFi-CSV-Export, das Zielfahrzeug und die Zeitzone. Die Vorschau ist ein Dry Run und verändert keine Daten.",
+    "description": "Historische TeslaFi-Fahrzeugdaten aus einem CSV-Export prüfen und in DriveChronik importieren.",
+    "details": "Wähle einen TeslaFi-CSV-Export, das Zielfahrzeug und die Zeitzone der Quelldaten. DriveChronik zeigt zuerst eine sichere Vorschau; erst mit „TeslaFi-Daten importieren“ werden neue, konfliktfreie Episoden gespeichert.",
     "vehicle": "Zielfahrzeug",
     "vehiclePlaceholder": "Fahrzeug auswählen",
     "timezone": "Zeitzone der TeslaFi-Daten",
@@ -289,6 +290,10 @@
       "statusNew": "Neu",
       "statusConflict": "Konflikt mit {source}",
       "statusTimeError": "Zeitfehler"
-    }
+    },
+    "import": "TeslaFi-Daten importieren",
+    "importing": "TeslaFi-Daten werden importiert …",
+    "completed": "Import abgeschlossen: {drives} Fahrten und {charges} Ladevorgänge importiert.",
+    "completedSkipped": "Übersprungen: {count} bereits vorhandene oder überlappende Episoden."
   }
 }

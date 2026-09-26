@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   CheckCircle2,
   FileSpreadsheet,
   Loader2,
   Search,
+  Upload,
   XCircle,
 } from "lucide-react";
 
@@ -152,6 +154,40 @@ type PreviewResponse = {
   };
 };
 
+type ImportResponse = {
+  mode: "import";
+  imported: true;
+
+  importRunId: number;
+
+  vehicle: Vehicle;
+
+  file: {
+    name: string | null;
+    size: number;
+  };
+
+  summary: {
+    sourceRows: number;
+    timezone: string;
+    distanceUnit: DistanceUnit;
+
+    inserted: {
+      drives: number;
+      routePoints: number;
+      charges: number;
+      chargePoints: number;
+    };
+
+    skipped: {
+      driveConflicts: number;
+      chargeConflicts: number;
+      existingDrives: number;
+      existingCharges: number;
+    };
+  };
+};
+
 function sourceLabel(
   source: string,
 ): string {
@@ -216,6 +252,7 @@ export function TeslaFiImport({
   vehicles,
 }: Props) {
   const t = useTranslations("import");
+  const router = useRouter();
 
   const [vehicleId, setVehicleId] =
     useState(
@@ -236,6 +273,9 @@ export function TeslaFiImport({
   const [preview, setPreview] =
     useState<PreviewResponse | null>(null);
 
+  const [result, setResult] =
+    useState<ImportResponse | null>(null);
+
   const [busy, setBusy] =
     useState(false);
 
@@ -250,6 +290,7 @@ export function TeslaFiImport({
     setBusy(true);
     setError(null);
     setPreview(null);
+    setResult(null);
 
     try {
       const form = new FormData();
@@ -301,9 +342,96 @@ export function TeslaFiImport({
     }
   }
 
+  async function importFile() {
+    if (
+      !file ||
+      !vehicleId ||
+      !preview?.importable
+    ) {
+      return;
+    }
+
+    setBusy(true);
+    setError(null);
+    setResult(null);
+
+    try {
+      const form = new FormData();
+
+      form.set("file", file);
+      form.set(
+        "vehicleId",
+        vehicleId,
+      );
+      form.set(
+        "timezone",
+        timezone,
+      );
+      form.set(
+        "distanceUnit",
+        distanceUnit,
+      );
+
+      const response = await fetch(
+        "/api/import/teslafi",
+        {
+          method: "POST",
+          body: form,
+        },
+      );
+
+      const body = await response
+        .json()
+        .catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(
+          body &&
+          typeof body.error ===
+            "string"
+            ? body.error
+            : t(
+                "teslafi.errors.unknown",
+              ),
+        );
+      }
+
+      if (
+        !body ||
+        body.mode !== "import" ||
+        body.imported !== true
+      ) {
+        throw new Error(
+          t(
+            "teslafi.errors.unknown",
+          ),
+        );
+      }
+
+      setResult(
+        body as ImportResponse,
+      );
+
+      setPreview(null);
+
+      router.refresh();
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : t(
+              "teslafi.errors.unknown",
+            ),
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
   function reset() {
     setFile(null);
     setPreview(null);
+    setResult(null);
     setError(null);
   }
 
@@ -348,6 +476,24 @@ export function TeslaFiImport({
       ),
     ],
   ];
+
+  const newEpisodeCount =
+    preview == null
+      ? 0
+      : preview.conflicts.summary.drives.new +
+        preview.conflicts.summary.charges.new;
+
+  const skippedCount =
+    result == null
+      ? 0
+      : result.summary.skipped
+          .driveConflicts +
+        result.summary.skipped
+          .chargeConflicts +
+        result.summary.skipped
+          .existingDrives +
+        result.summary.skipped
+          .existingCharges;
 
   return (
     <div className="mt-5 space-y-5">
@@ -1143,6 +1289,47 @@ export function TeslaFiImport({
         </>
       )}
 
+      {result && (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300">
+          <div className="flex items-start gap-2">
+            <CheckCircle2
+              aria-hidden
+              size={17}
+              className="mt-0.5 shrink-0"
+            />
+
+            <div>
+              <p className="font-medium">
+                {t(
+                  "teslafi.completed",
+                  {
+                    drives:
+                      result.summary
+                        .inserted.drives,
+
+                    charges:
+                      result.summary
+                        .inserted.charges,
+                  },
+                )}
+              </p>
+
+              {skippedCount > 0 && (
+                <p className="mt-1 text-xs">
+                  {t(
+                    "teslafi.completedSkipped",
+                    {
+                      count:
+                        skippedCount,
+                    },
+                  )}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {error && (
         <p
           role="alert"
@@ -1159,7 +1346,7 @@ export function TeslaFiImport({
       )}
 
       <div className="flex flex-wrap gap-2">
-        {!preview && (
+        {!preview && !result && (
           <button
             type="button"
             disabled={
@@ -1193,7 +1380,45 @@ export function TeslaFiImport({
           </button>
         )}
 
-        {preview && (
+        {preview &&
+          !result &&
+          preview.importable &&
+          newEpisodeCount > 0 && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() =>
+              void importFile()
+            }
+            className={buttonClasses(
+              "primary",
+              "sm",
+            )}
+          >
+            {busy ? (
+              <Loader2
+                aria-hidden
+                size={16}
+                className="animate-spin"
+              />
+            ) : (
+              <Upload
+                aria-hidden
+                size={16}
+              />
+            )}
+
+            {busy
+              ? t(
+                  "teslafi.importing",
+                )
+              : t(
+                  "teslafi.import",
+                )}
+          </button>
+        )}
+
+        {(preview || result) && (
           <button
             type="button"
             disabled={busy}

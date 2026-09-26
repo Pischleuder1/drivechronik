@@ -48,6 +48,7 @@ export async function POST(request: Request) {
     const file = form.get("file");
     const vehicleIdRaw = form.get("vehicleId");
     const timezoneRaw = form.get("timezone");
+    const distanceUnitRaw = form.get("distanceUnit");
 
     if (
       !file ||
@@ -120,6 +121,23 @@ export async function POST(request: Request) {
       );
     }
 
+    const distanceUnit =
+      distanceUnitRaw === "metric" ||
+      distanceUnitRaw === "imperial"
+        ? distanceUnitRaw
+        : null;
+
+    if (!distanceUnit) {
+      return NextResponse.json(
+        {
+          error: t(
+            "teslafi.errors.invalidDistanceUnit",
+          ),
+        },
+        { status: 400 },
+      );
+    }
+
     const vehicleRows = await db
       .select({
         id: vehicles.id,
@@ -153,6 +171,7 @@ export async function POST(request: Request) {
         csvText,
         {
           timeZone: timezone,
+          distanceUnit,
         },
       );
 
@@ -174,6 +193,7 @@ export async function POST(request: Request) {
       vehicle,
 
       timezone,
+      distanceUnit,
 
       preview,
     });

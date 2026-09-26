@@ -19,6 +19,10 @@ type Vehicle = {
   displayName: string;
 };
 
+type DistanceUnit =
+  | "metric"
+  | "imperial";
+
 type Capabilities = {
   gps: boolean;
   speed: boolean;
@@ -61,6 +65,7 @@ type Preview = {
   driveEpisodes: Array<{
     startDateTime: string;
     endDateTime: string;
+    distanceKm: number | null;
     sampleCount: number;
   }>;
 
@@ -97,6 +102,7 @@ type PreviewResponse = {
 
   vehicle: Vehicle;
   timezone: string;
+  distanceUnit: DistanceUnit;
 
   preview: Preview;
 };
@@ -119,6 +125,9 @@ export function TeslaFiImport({
 
   const [timezone, setTimezone] =
     useState("Europe/Berlin");
+
+  const [distanceUnit, setDistanceUnit] =
+    useState<DistanceUnit>("metric");
 
   const [file, setFile] =
     useState<File | null>(null);
@@ -147,6 +156,10 @@ export function TeslaFiImport({
       form.set("file", file);
       form.set("vehicleId", vehicleId);
       form.set("timezone", timezone);
+      form.set(
+        "distanceUnit",
+        distanceUnit,
+      );
 
       const response = await fetch(
         "/api/import/teslafi/preview",
@@ -237,7 +250,7 @@ export function TeslaFiImport({
 
   return (
     <div className="mt-5 space-y-5">
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-3">
         <label className="block">
           <span className="mb-1.5 block text-sm font-medium">
             {t("teslafi.vehicle")}
@@ -288,6 +301,31 @@ export function TeslaFiImport({
             }}
             className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
           />
+        </label>
+        <label className="block">
+          <span className="mb-1.5 block text-sm font-medium">
+            {t("teslafi.distanceUnit")}
+          </span>
+
+          <select
+            value={distanceUnit}
+            disabled={busy}
+            onChange={(event) => {
+              setDistanceUnit(
+                event.target.value as DistanceUnit,
+              );
+              setPreview(null);
+            }}
+            className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+          >
+            <option value="metric">
+              {t("teslafi.units.metric")}
+            </option>
+
+            <option value="imperial">
+              {t("teslafi.units.imperial")}
+            </option>
+          </select>
         </label>
       </div>
 
@@ -506,6 +544,24 @@ export function TeslaFiImport({
                           {" – "}
                           {episode.endDateTime}
                         </p>
+
+                        {episode.distanceKm != null && (
+                          <p className="mt-1 text-xs text-neutral-600 dark:text-neutral-300">
+                            {t(
+                              "teslafi.episodes.distance",
+                              {
+                                distance:
+                                  episode.distanceKm.toLocaleString(
+                                    undefined,
+                                    {
+                                      minimumFractionDigits: 1,
+                                      maximumFractionDigits: 1,
+                                    },
+                                  ),
+                              },
+                            )}
+                          </p>
+                        )}
                       </div>
                     ),
                   )}

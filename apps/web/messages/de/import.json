@@ -242,7 +242,8 @@
       "fileTooLarge": "Die TeslaFi-Datei ist größer als 100 MB.",
       "vehicleRequired": "Bitte ein Zielfahrzeug auswählen.",
       "vehicleNotFound": "Das ausgewählte Fahrzeug wurde nicht gefunden.",
-      "invalidTimezone": "Bitte eine gültige IANA-Zeitzone angeben, zum Beispiel Europe/Berlin."
+      "invalidTimezone": "Bitte eine gültige IANA-Zeitzone angeben, zum Beispiel Europe/Berlin.",
+      "invalidDistanceUnit": "Bitte eine gültige TeslaFi-Einheit auswählen."
     },
     "episodes": {
       "drives": "Erkannte Fahrten",
@@ -250,12 +251,18 @@
       "drive": "Fahrt {number}",
       "charge": "Ladevorgang {number}",
       "soc": "SoC {start} → {end} %",
-      "none": "Keine Episode erkannt."
+      "none": "Keine Episode erkannt.",
+      "distance": "{distance} km"
     },
     "utcPeriod": "UTC-Zeitraum",
     "timeWarnings": {
       "invalid": "{count, plural, one {# Zeitstempel liegt in einer nicht existierenden lokalen Uhrzeit und kann nicht sicher importiert werden.} other {# Zeitstempel liegen in nicht existierenden lokalen Uhrzeiten und können nicht sicher importiert werden.}}",
       "ambiguous": "{count, plural, one {# Zeitstempel ist wegen der Zeitumstellung mehrdeutig.} other {# Zeitstempel sind wegen der Zeitumstellung mehrdeutig.}}"
+    },
+    "distanceUnit": "Einheiten des TeslaFi-Exports",
+    "units": {
+      "metric": "Kilometer / km/h",
+      "imperial": "Meilen / mph"
     }
   }
 }

@@ -4,6 +4,15 @@ import type { GeoPoint, RangeSamplePoint } from "./rangeMapLogic";
 const OSRM_DEFAULT_URL = "https://router.project-osrm.org";
 const OSRM_TIMEOUT_MS = 15000;
 
+/**
+ * Kandidaten, die OSRM mehr als 5 km zum nächsten Straßensegment verschieben
+ * müsste, sind für eine Reichweiten-Isochrone nicht mehr repräsentativ.
+ *
+ * Typischer Fall: Ein radial erzeugter Testpunkt liegt in Nord- oder Ostsee
+ * und OSRM snappt ihn viele Kilometer weit an eine Küste oder Insel.
+ */
+export const MAX_OSRM_SNAP_DISTANCE_M = 5000;
+
 export type RangeRoadDistancesResult =
   | {
       ok: true;
@@ -21,9 +30,14 @@ export type RangeRoadDistancesResult =
       osrmIsDefault: boolean;
     };
 
+interface OsrmWaypointShape {
+  distance?: unknown;
+}
+
 interface OsrmTableResponse {
   code?: string;
   distances?: unknown;
+  destinations?: unknown;
 }
 
 /**
@@ -31,8 +45,11 @@ interface OsrmTableResponse {
  * radialen Kandidaten.
  *
  * Koordinate 0 ist der Fahrzeugstandort. Nur diese Koordinate wird als Source
- * verwendet; alle weiteren Koordinaten sind Destinations. Dadurch liefert OSRM
- * lediglich eine einzelne Distanzzeile.
+ * verwendet; alle weiteren Koordinaten sind Destinations.
+ *
+ * Stark gesnappte Zielpunkte werden anschließend als nicht verwendbar (`null`)
+ * behandelt. So können Wasserflächen oder straßenlose Gebiete das Polygon
+ * nicht künstlich verzerren.
  */
 export async function fetchRangeRoadDistances(
   origin: GeoPoint,
@@ -145,14 +162,19 @@ export function parseOsrmTableDistances(
     !Array.isArray(parsed.distances) ||
     parsed.distances.length !== 1 ||
     !Array.isArray(parsed.distances[0]) ||
-    parsed.distances[0].length !== expectedCount
+    parsed.distances[0].length !== expectedCount ||
+    !Array.isArray(parsed.destinations) ||
+    parsed.destinations.length !== expectedCount
   ) {
     return null;
   }
 
   const result: Array<number | null> = [];
 
-  for (const value of parsed.distances[0]) {
+  for (let index = 0; index < expectedCount; index += 1) {
+    const value = parsed.distances[0][index];
+    const destination = parsed.destinations[index];
+
     if (value === null) {
       result.push(null);
       continue;
@@ -164,6 +186,30 @@ export function parseOsrmTableDistances(
       value < 0
     ) {
       return null;
+    }
+
+    if (
+      typeof destination !== "object" ||
+      destination === null
+    ) {
+      result.push(null);
+      continue;
+    }
+
+    const snapDistance = (destination as OsrmWaypointShape).distance;
+
+    if (
+      typeof snapDistance !== "number" ||
+      !Number.isFinite(snapDistance) ||
+      snapDistance < 0
+    ) {
+      result.push(null);
+      continue;
+    }
+
+    if (snapDistance > MAX_OSRM_SNAP_DISTANCE_M) {
+      result.push(null);
+      continue;
     }
 
     result.push(value / 1000);

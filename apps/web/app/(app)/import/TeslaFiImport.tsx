@@ -73,6 +73,16 @@ type Preview = {
     sampleCount: number;
   }>;
 
+  timePreview: {
+    timeZone: string;
+    validTimeZone: boolean;
+    convertedRows: number;
+    invalidRows: number;
+    ambiguousRows: number;
+    minUtcIso: string | null;
+    maxUtcIso: string | null;
+  } | null;
+
   capabilities: Capabilities;
 };
 
@@ -586,6 +596,24 @@ export function TeslaFiImport({
               <div>
                 <dt className="text-xs text-neutral-500 dark:text-neutral-400">
                   {t(
+                    "teslafi.utcPeriod",
+                  )}
+                </dt>
+
+                <dd className="mt-1 font-medium">
+                  {preview.preview.timePreview?.minUtcIso
+                    ? preview.preview.timePreview.minUtcIso
+                    : "—"}
+                  {" – "}
+                  {preview.preview.timePreview?.maxUtcIso
+                    ? preview.preview.timePreview.maxUtcIso
+                    : "—"}
+                </dd>
+              </div>
+
+              <div>
+                <dt className="text-xs text-neutral-500 dark:text-neutral-400">
+                  {t(
                     "teslafi.targetVehicle",
                   )}
                 </dt>
@@ -628,6 +656,36 @@ export function TeslaFiImport({
               </div>
             </dl>
           </div>
+
+          {preview.preview.timePreview &&
+            (preview.preview.timePreview.invalidRows > 0 ||
+              preview.preview.timePreview.ambiguousRows > 0) && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300">
+                {preview.preview.timePreview.invalidRows > 0 && (
+                  <p>
+                    {t(
+                      "teslafi.timeWarnings.invalid",
+                      {
+                        count:
+                          preview.preview.timePreview.invalidRows,
+                      },
+                    )}
+                  </p>
+                )}
+
+                {preview.preview.timePreview.ambiguousRows > 0 && (
+                  <p>
+                    {t(
+                      "teslafi.timeWarnings.ambiguous",
+                      {
+                        count:
+                          preview.preview.timePreview.ambiguousRows,
+                      },
+                    )}
+                  </p>
+                )}
+              </div>
+            )}
 
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {capabilityRows.map(

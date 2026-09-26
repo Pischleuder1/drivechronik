@@ -251,6 +251,11 @@
       "charge": "Charging session {number}",
       "soc": "SoC {start} → {end}%",
       "none": "No episode detected."
+    },
+    "utcPeriod": "UTC period",
+    "timeWarnings": {
+      "invalid": "{count, plural, one {# timestamp falls into a nonexistent local time and cannot be imported safely.} other {# timestamps fall into nonexistent local times and cannot be imported safely.}}",
+      "ambiguous": "{count, plural, one {# timestamp is ambiguous because of a daylight-saving transition.} other {# timestamps are ambiguous because of a daylight-saving transition.}}"
     }
   }
 }

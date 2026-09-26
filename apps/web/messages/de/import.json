@@ -251,6 +251,11 @@
       "charge": "Ladevorgang {number}",
       "soc": "SoC {start} → {end} %",
       "none": "Keine Episode erkannt."
+    },
+    "utcPeriod": "UTC-Zeitraum",
+    "timeWarnings": {
+      "invalid": "{count, plural, one {# Zeitstempel liegt in einer nicht existierenden lokalen Uhrzeit und kann nicht sicher importiert werden.} other {# Zeitstempel liegen in nicht existierenden lokalen Uhrzeiten und können nicht sicher importiert werden.}}",
+      "ambiguous": "{count, plural, one {# Zeitstempel ist wegen der Zeitumstellung mehrdeutig.} other {# Zeitstempel sind wegen der Zeitumstellung mehrdeutig.}}"
     }
   }
 }

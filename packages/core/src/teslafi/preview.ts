@@ -5,6 +5,10 @@ import {
   type TeslaFiChargeSignal,
   type TeslaFiDriveSignal,
 } from "./segment.js";
+import {
+  previewTeslaFiTimes,
+  type TeslaFiTimePreview,
+} from "./time-preview.js";
 
 export const TESLAFI_KNOWN_HEADERS = [
   "Date",
@@ -104,6 +108,10 @@ export interface TeslaFiCapabilities {
   vehicleIdentity: boolean;
 }
 
+export interface TeslaFiPreviewOptions {
+  timeZone?: string;
+}
+
 export interface TeslaFiPreview {
   recognized: boolean;
 
@@ -143,6 +151,8 @@ export interface TeslaFiPreview {
     maxPowerKw: number | null;
     sampleCount: number;
   }>;
+
+  timePreview: TeslaFiTimePreview | null;
 
   capabilities: TeslaFiCapabilities;
 }
@@ -240,6 +250,7 @@ function formatLocalDateTime(
 
 export function previewTeslaFiCsv(
   csvText: string,
+  options: TeslaFiPreviewOptions = {},
 ): TeslaFiPreview {
   const normalized = csvText.replace(/^\uFEFF/, "");
 
@@ -360,6 +371,8 @@ export function previewTeslaFiCsv(
   const displayNames = new Set<string>();
   const dateFormats = new Set<string>();
 
+  const localDateTimes: Array<string | null> = [];
+
   let validRows = 0;
   let invalidRows = 0;
 
@@ -398,6 +411,9 @@ export function previewTeslaFiCsv(
     };
 
     const dateTime = field("Date_Time");
+
+    localDateTimes.push(dateTime);
+
     const timestamp = parseLocalDateTime(dateTime);
 
     const odometer = numberValue(
@@ -545,6 +561,14 @@ export function previewTeslaFiCsv(
     }
   }
 
+  const timePreview =
+    options.timeZone
+      ? previewTeslaFiTimes(
+          localDateTimes,
+          options.timeZone,
+        )
+      : null;
+
   const driveEpisodes =
     segmentTeslaFiDrives(driveSignals).map(
       (episode) => ({
@@ -612,6 +636,8 @@ export function previewTeslaFiCsv(
 
     driveEpisodes,
     chargeEpisodes,
+
+    timePreview,
 
     capabilities,
   };

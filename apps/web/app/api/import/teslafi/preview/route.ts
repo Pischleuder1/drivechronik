@@ -149,7 +149,12 @@ export async function POST(request: Request) {
       .toString("utf8");
 
     const preview =
-      previewTeslaFiCsv(csvText);
+      previewTeslaFiCsv(
+        csvText,
+        {
+          timeZone: timezone,
+        },
+      );
 
     const fileName =
       "name" in file &&

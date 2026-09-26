@@ -49,7 +49,7 @@ SD-Karte geschrieben werden. Neuere Appliance-Versionen enthalten dafür den
 Befehl:
 
 ```bash
-sudo drivechronik-update v0.5.2
+sudo drivechronik-update v0.5.3
 ```
 
 Der Updater:
@@ -75,7 +75,7 @@ sudo install -m 0755 \
   /tmp/drivechronik-update \
   /usr/local/sbin/drivechronik-update
 
-sudo drivechronik-update v0.5.2
+sudo drivechronik-update v0.5.3
 ```
 
 Danach steht `drivechronik-update` auch für spätere DriveChronik-Updates

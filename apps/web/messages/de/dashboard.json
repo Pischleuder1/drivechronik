@@ -50,9 +50,20 @@
     "empty": "Noch keine Fahrten",
     "dayViewCta": "Zur Tagesansicht",
     "subtitle": "Die zuletzt aufgezeichneten Fahrten",
-    "mapTitle": "Fahrtenkarte",
-    "mapSubtitle": "Routen der letzten Fahrten",
-    "mapEmpty": "Noch keine Route für die Karte verfügbar"
+    "mapTitle": "Karte",
+    "mapSubtitle": "Letzte Fahrten und aktuell erreichbarer Bereich",
+    "mapEmpty": "Noch keine Route für die Karte verfügbar",
+    "mapModeAria": "Kartendarstellung auswählen",
+    "mapModeDrives": "Letzte Fahrten",
+    "mapModeRange": "Reichweite",
+    "rangeLoading": "Reichweitenbereich wird berechnet …",
+    "rangeError": "Der Reichweitenbereich konnte gerade nicht berechnet werden.",
+    "rangeRetry": "Erneut versuchen",
+    "rangeBudget": "≈ {range} km",
+    "rangeReserve": "{reserve} % Reserve",
+    "rangeSoc": "SoC {soc} %",
+    "rangeVehicle": "Fahrzeug",
+    "rangeHint": "Straßenbasierte Näherung auf Basis der aktuellen Tesla-Restreichweite und 10 % SoC-Reserve."
   },
   "mileage": {
     "title": "Gesamtkilometer",

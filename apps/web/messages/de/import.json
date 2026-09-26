@@ -150,7 +150,8 @@
     "source": {
       "tronity": "TRONITY Ladungen",
       "teslaCharging": "Tesla Supercharger",
-      "tessie": "Tessie"
+      "tessie": "Tessie",
+      "teslafi": "TeslaFi"
     },
     "status": {
       "running": "Läuft",
@@ -191,5 +192,57 @@
   },
   "apiErrors": {
     "notAuthenticated": "Nicht angemeldet."
+  },
+  "teslafi": {
+    "title": "TeslaFi",
+    "description": "Historische TeslaFi-Fahrzeugdaten aus einem CSV-Export prüfen und später in DriveChronik übernehmen.",
+    "details": "Wähle einen TeslaFi-CSV-Export, das Zielfahrzeug und die Zeitzone. Die Vorschau ist ein Dry Run und verändert keine Daten.",
+    "vehicle": "Zielfahrzeug",
+    "vehiclePlaceholder": "Fahrzeug auswählen",
+    "timezone": "Zeitzone der TeslaFi-Daten",
+    "selectFile": "TeslaFi-CSV auswählen",
+    "fileHint": "Monatlicher CSV-Export aus TeslaFi",
+    "selected": "Ausgewählt · ca. {size} KB",
+    "check": "Datei prüfen",
+    "reset": "Andere Datei prüfen",
+    "recognized": "TeslaFi-Datei erkannt",
+    "notRecognized": "Datei konnte nicht eindeutig als TeslaFi-Export erkannt werden",
+    "dryRun": "Dry Run – es wurden keine Daten in DriveChronik verändert.",
+    "period": "Zeitraum",
+    "targetVehicle": "DriveChronik-Fahrzeug",
+    "sourceVehicle": "TeslaFi-Fahrzeugkennung",
+    "unknownHeaders": "Zusätzliche unbekannte Spalten: {headers}",
+    "missingRequiredHeaders": "Pflichtspalten fehlen: {headers}",
+    "summary": {
+      "headers": "Spalten",
+      "knownHeaders": "Bekannte Spalten",
+      "rows": "Datenzeilen",
+      "validRows": "Gültig",
+      "invalidRows": "Ungültig",
+      "gpsRows": "GPS-Zeilen",
+      "movingRows": "Fahraktiv",
+      "chargingRows": "Ladeaktiv"
+    },
+    "capabilities": {
+      "gps": "GPS",
+      "speed": "Geschwindigkeit",
+      "odometer": "Kilometerstand",
+      "soc": "Ladezustand",
+      "charging": "Ladedaten",
+      "shiftState": "Fahrstufe",
+      "vehicleState": "Fahrzeugzustand",
+      "climate": "Klima",
+      "tpms": "Reifendruck",
+      "navigation": "Navigation",
+      "vehicleIdentity": "Fahrzeugkennung"
+    },
+    "errors": {
+      "unknown": "Die TeslaFi-Datei konnte nicht verarbeitet werden.",
+      "selectFile": "Bitte eine TeslaFi-CSV-Datei auswählen.",
+      "fileTooLarge": "Die TeslaFi-Datei ist größer als 100 MB.",
+      "vehicleRequired": "Bitte ein Zielfahrzeug auswählen.",
+      "vehicleNotFound": "Das ausgewählte Fahrzeug wurde nicht gefunden.",
+      "invalidTimezone": "Bitte eine gültige IANA-Zeitzone angeben, zum Beispiel Europe/Berlin."
+    }
   }
 }

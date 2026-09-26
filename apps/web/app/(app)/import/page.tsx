@@ -21,6 +21,7 @@ import {
   type ImportHistoryRun,
 } from "./ImportHistory";
 import { TeslaChargingImport } from "./TeslaChargingImport";
+import { TeslaFiImport } from "./TeslaFiImport";
 import { TessieImport } from "./TessieImport";
 import { TronityChargingImport } from "./TronityChargingImport";
 
@@ -170,7 +171,33 @@ export default async function ImportPage() {
           <TessieImport />
         </Panel>
 
-        <Panel
+                  <Panel
+            title={
+              <ImportPanelTitle
+                icon={
+                  <DatabaseZap
+                    aria-hidden
+                    size={20}
+                  />
+                }
+                title={t("teslafi.title")}
+                tone="blue"
+              />
+            }
+            subtitle={t(
+              "teslafi.description",
+            )}
+          >
+            <p className="mb-5 text-sm leading-relaxed text-neutral-500 dark:text-neutral-400">
+              {t("teslafi.details")}
+            </p>
+
+            <TeslaFiImport
+              vehicles={vehicles}
+            />
+          </Panel>
+
+<Panel
           title={
             <ImportPanelTitle
               icon={

@@ -150,7 +150,8 @@
     "source": {
       "tronity": "TRONITY charging",
       "teslaCharging": "Tesla Supercharger",
-      "tessie": "Tessie"
+      "tessie": "Tessie",
+      "teslafi": "TeslaFi"
     },
     "status": {
       "running": "Running",
@@ -191,5 +192,57 @@
   },
   "apiErrors": {
     "notAuthenticated": "Not signed in."
+  },
+  "teslafi": {
+    "title": "TeslaFi",
+    "description": "Check historical TeslaFi vehicle data from a CSV export and later import it into DriveChronik.",
+    "details": "Select a TeslaFi CSV export, the target vehicle and the source timezone. The preview is a dry run and does not modify any data.",
+    "vehicle": "Target vehicle",
+    "vehiclePlaceholder": "Select vehicle",
+    "timezone": "TeslaFi data timezone",
+    "selectFile": "Select TeslaFi CSV",
+    "fileHint": "Monthly CSV export from TeslaFi",
+    "selected": "Selected · approx. {size} KB",
+    "check": "Check file",
+    "reset": "Check another file",
+    "recognized": "TeslaFi file recognized",
+    "notRecognized": "The file could not be clearly recognized as a TeslaFi export",
+    "dryRun": "Dry run – no DriveChronik data was modified.",
+    "period": "Period",
+    "targetVehicle": "DriveChronik vehicle",
+    "sourceVehicle": "TeslaFi vehicle identifier",
+    "unknownHeaders": "Additional unknown columns: {headers}",
+    "missingRequiredHeaders": "Required columns are missing: {headers}",
+    "summary": {
+      "headers": "Columns",
+      "knownHeaders": "Known columns",
+      "rows": "Data rows",
+      "validRows": "Valid",
+      "invalidRows": "Invalid",
+      "gpsRows": "GPS rows",
+      "movingRows": "Driving activity",
+      "chargingRows": "Charging activity"
+    },
+    "capabilities": {
+      "gps": "GPS",
+      "speed": "Speed",
+      "odometer": "Odometer",
+      "soc": "State of charge",
+      "charging": "Charging data",
+      "shiftState": "Shift state",
+      "vehicleState": "Vehicle state",
+      "climate": "Climate",
+      "tpms": "Tire pressure",
+      "navigation": "Navigation",
+      "vehicleIdentity": "Vehicle identity"
+    },
+    "errors": {
+      "unknown": "The TeslaFi file could not be processed.",
+      "selectFile": "Please select a TeslaFi CSV file.",
+      "fileTooLarge": "The TeslaFi file is larger than 100 MB.",
+      "vehicleRequired": "Please select a target vehicle.",
+      "vehicleNotFound": "The selected vehicle was not found.",
+      "invalidTimezone": "Please enter a valid IANA timezone, for example Europe/Berlin."
+    }
   }
 }

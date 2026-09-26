@@ -1,4 +1,10 @@
 import { parseCsvLine } from "../tessie/parse.js";
+import {
+  segmentTeslaFiCharges,
+  segmentTeslaFiDrives,
+  type TeslaFiChargeSignal,
+  type TeslaFiDriveSignal,
+} from "./segment.js";
 
 export const TESLAFI_KNOWN_HEADERS = [
   "Date",
@@ -123,6 +129,21 @@ export interface TeslaFiPreview {
   movingRows: number;
   chargingRows: number;
 
+  driveEpisodes: Array<{
+    startDateTime: string;
+    endDateTime: string;
+    sampleCount: number;
+  }>;
+
+  chargeEpisodes: Array<{
+    startDateTime: string;
+    endDateTime: string;
+    startSoc: number | null;
+    endSoc: number | null;
+    maxPowerKw: number | null;
+    sampleCount: number;
+  }>;
+
   capabilities: TeslaFiCapabilities;
 }
 
@@ -192,6 +213,29 @@ function hasHeader(
   name: string,
 ): boolean {
   return headerMap.has(name);
+}
+
+function formatLocalDateTime(
+  timestamp: number,
+): string {
+  const d = new Date(timestamp);
+
+  const pad = (value: number) =>
+    String(value).padStart(2, "0");
+
+  return [
+    d.getUTCFullYear(),
+    "-",
+    pad(d.getUTCMonth() + 1),
+    "-",
+    pad(d.getUTCDate()),
+    " ",
+    pad(d.getUTCHours()),
+    ":",
+    pad(d.getUTCMinutes()),
+    ":",
+    pad(d.getUTCSeconds()),
+  ].join("");
 }
 
 export function previewTeslaFiCsv(
@@ -329,6 +373,9 @@ export function previewTeslaFiCsv(
   let movingRows = 0;
   let chargingRows = 0;
 
+  const driveSignals: TeslaFiDriveSignal[] = [];
+  const chargeSignals: TeslaFiChargeSignal[] = [];
+
   let previousOdometer: number | null = null;
   let previousChargeEnergy: number | null = null;
 
@@ -418,6 +465,13 @@ export function previewTeslaFiCsv(
     const speed =
       numberValue(field("Speed")) ?? 0;
 
+    driveSignals.push({
+      ts: timestamp,
+      shift: shiftState,
+      speed,
+      odometer,
+    });
+
     const odometerIncreased =
       previousOdometer != null &&
       odometer > previousOdometer;
@@ -452,6 +506,23 @@ export function previewTeslaFiCsv(
         field("Charge_Energy_Added"),
       );
 
+    const soc =
+      numberValue(
+        field("Usable_Battery_Level"),
+      ) ??
+      numberValue(
+        field("Battery_Level"),
+      );
+
+    chargeSignals.push({
+      ts: timestamp,
+      powerKw: chargerPower,
+      currentA: chargerCurrent,
+      chargeRate,
+      energyAdded: chargeEnergy,
+      soc,
+    });
+
     const energyIncreased =
       previousChargeEnergy != null &&
       chargeEnergy != null &&
@@ -473,6 +544,42 @@ export function previewTeslaFiCsv(
       previousChargeEnergy = chargeEnergy;
     }
   }
+
+  const driveEpisodes =
+    segmentTeslaFiDrives(driveSignals).map(
+      (episode) => ({
+        startDateTime:
+          formatLocalDateTime(
+            episode.startTs,
+          ),
+        endDateTime:
+          formatLocalDateTime(
+            episode.endTs,
+          ),
+        sampleCount:
+          episode.samples.length,
+      }),
+    );
+
+  const chargeEpisodes =
+    segmentTeslaFiCharges(chargeSignals).map(
+      (episode) => ({
+        startDateTime:
+          formatLocalDateTime(
+            episode.startTs,
+          ),
+        endDateTime:
+          formatLocalDateTime(
+            episode.endTs,
+          ),
+        startSoc: episode.startSoc,
+        endSoc: episode.endSoc,
+        maxPowerKw:
+          episode.maxPowerKw,
+        sampleCount:
+          episode.samples.length,
+      }),
+    );
 
   return {
     recognized:
@@ -502,6 +609,9 @@ export function previewTeslaFiCsv(
     gpsRows,
     movingRows,
     chargingRows,
+
+    driveEpisodes,
+    chargeEpisodes,
 
     capabilities,
   };

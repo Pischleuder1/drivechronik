@@ -9,6 +9,7 @@ import {
 import { getTranslations } from "next-intl/server";
 
 import { getActiveVehicle } from "../../../lib/activeVehicle";
+import { getVehicles } from "../../../lib/queries";
 import { getVehicleAnalytics } from "../../../lib/vehicleAnalytics";
 import { getVehicleStateTimeline } from "../../../lib/vehicleStateTimeline";
 import { getSoftwareUpdates } from "../../../lib/softwareUpdates";
@@ -24,6 +25,7 @@ import {
 import { VehicleUsageFilter } from "./VehicleUsageFilter";
 import { VehicleStateTimeline } from "./VehicleStateTimeline";
 import { TpmsHistory } from "./TpmsHistory";
+import { MobileVehicleHero } from "./MobileVehicleHero";
 
 import { IconBadge, type IconBadgeTone } from "../../../components/ui/IconBadge";
 
@@ -68,21 +70,26 @@ function MetricCard({
   hint?: string;
 }) {
   return (
-    <Panel>
-      <div className="flex items-center gap-2.5">
-        <IconBadge tone={tone} size="sm">
-          <Icon aria-hidden size={18} />
-        </IconBadge>
-        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
-          {title}
-        </h2>
+    <Panel padding="none">
+      <div className="p-3 md:p-5">
+        <div className="flex items-center gap-2.5">
+          <IconBadge tone={tone} size="sm">
+            <Icon aria-hidden size={18} />
+          </IconBadge>
+
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+            {title}
+          </h2>
+        </div>
+
+        <div className="mt-3 md:mt-4">{children}</div>
+
+        {hint && (
+          <p className="mt-2 text-[10px] leading-snug text-neutral-500 md:mt-3 md:text-xs md:leading-relaxed dark:text-neutral-400">
+            {hint}
+          </p>
+        )}
       </div>
-      <div className="mt-4">{children}</div>
-      {hint && (
-        <p className="mt-3 text-xs leading-relaxed text-neutral-500 dark:text-neutral-400">
-          {hint}
-        </p>
-      )}
     </Panel>
   );
 }
@@ -97,15 +104,17 @@ function DataValue({
   secondary?: string;
 }) {
   return (
-    <div>
-      <p className="text-xs text-neutral-500 dark:text-neutral-400">
+    <div className="min-w-0">
+      <p className="text-[11px] leading-tight text-neutral-500 md:text-xs dark:text-neutral-400">
         {label}
       </p>
-      <p className="mt-1 text-xl font-semibold tabular-nums text-neutral-900 dark:text-neutral-100">
+
+      <p className="mt-1 text-[18px] font-semibold leading-tight tabular-nums text-neutral-900 md:text-xl dark:text-neutral-100">
         {value}
       </p>
+
       {secondary && (
-        <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+        <p className="mt-1 text-[10px] leading-snug text-neutral-500 md:text-xs dark:text-neutral-400">
           {secondary}
         </p>
       )}
@@ -131,6 +140,7 @@ export default async function VehiclePage({
   const currentUsageKeys = currentVehicleUsageKeys();
 
   const vehicle = await getActiveVehicle();
+  const vehicles = await getVehicles();
 
   if (!vehicle) {
     return (
@@ -167,43 +177,56 @@ export default async function VehiclePage({
       : "—";
 
   return (
-    <div className="w-full">
-      <PageHeader
-        visual="vehicle"
-        eyebrow={vehicle.displayName}
-        title={t("title")}
-        subtitle={t("subtitle")}
+    <div className="mobile-vehicle-page -mx-4 -mt-4 min-h-dvh bg-[#f4f6f8] px-4 pt-4 md:mx-0 md:mt-0 md:min-h-0 md:bg-transparent md:px-0 md:pt-0">
+      <MobileVehicleHero
+        vehicles={vehicles.map((entry) => ({
+          id: entry.id,
+          displayName: entry.displayName,
+        }))}
+        initialVehicleId={vehicle.id}
+        displayName={vehicle.displayName}
+        model={vehicle.model}
+        pageTitle={t("title")}
       />
 
-      <Panel className="mt-6">
+      <div className="hidden md:block">
+        <PageHeader
+          visual="vehicle"
+          eyebrow={vehicle.displayName}
+          title={t("title")}
+          subtitle={t("subtitle")}
+        />
+      </div>
+
+      <Panel className="relative z-10 -mt-5 md:mt-6">
         <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
           {t("identity.title")}
         </h2>
 
-        <div className="mt-4 grid gap-4 sm:grid-cols-3">
+        <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3 md:mt-4 md:grid-cols-3 md:gap-4">
           <div>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+            <p className="text-[11px] text-neutral-500 md:text-xs dark:text-neutral-400">
               {t("identity.model")}
             </p>
-            <p className="mt-1 font-medium text-neutral-900 dark:text-neutral-100">
+            <p className="mt-0.5 text-[15px] font-medium text-neutral-900 md:mt-1 md:text-base dark:text-neutral-100">
               {formatTeslaModel(vehicle.model) || "—"}
             </p>
           </div>
 
           <div>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+            <p className="text-[11px] text-neutral-500 md:text-xs dark:text-neutral-400">
               {t("identity.licensePlate")}
             </p>
-            <p className="mt-1 font-medium text-neutral-900 dark:text-neutral-100">
+            <p className="mt-0.5 text-[15px] font-medium text-neutral-900 md:mt-1 md:text-base dark:text-neutral-100">
               {vehicle.licensePlate || "—"}
             </p>
           </div>
 
-          <div>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+          <div className="col-span-2 md:col-span-1">
+            <p className="text-[11px] text-neutral-500 md:text-xs dark:text-neutral-400">
               {t("identity.vin")}
             </p>
-            <p className="mt-1 break-all font-mono text-sm font-medium text-neutral-900 dark:text-neutral-100">
+            <p className="mt-0.5 break-all font-mono text-[12px] font-medium text-neutral-900 md:mt-1 md:text-sm dark:text-neutral-100">
               {vehicle.vin || "—"}
             </p>
           </div>
@@ -211,7 +234,7 @@ export default async function VehiclePage({
       </Panel>
 
       <Panel className="mt-3 border-t-4 border-t-violet-500 dark:border-t-violet-400">
-        <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+        <h2 className="text-[17px] font-semibold text-neutral-900 md:text-lg dark:text-neutral-100">
           {t("usage.title")}
         </h2>
 
@@ -231,13 +254,13 @@ export default async function VehiclePage({
           }}
         />
 
-        <div className="mt-5 grid gap-3 lg:grid-cols-2">
-          <div className="rounded-2xl border border-neutral-200 border-t-4 border-t-sky-500 p-4 dark:border-neutral-800 dark:border-t-sky-400">
+        <div className="mt-3 grid gap-3 md:mt-5 lg:grid-cols-2">
+          <div className="rounded-[16px] border border-neutral-200 border-t-[3px] border-t-sky-500 p-3 md:rounded-2xl md:border-t-4 md:p-4 dark:border-neutral-800 dark:border-t-sky-400">
             <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
               {t("usage.driving.title")}
             </h3>
 
-            <dl className="mt-3 grid grid-cols-1 gap-x-6 sm:grid-cols-2">
+            <dl className="mt-2 grid grid-cols-2 gap-2 text-[12px] [&>div:last-child]:col-span-2 md:mt-3 md:grid-cols-1 md:gap-x-6 md:text-base md:[&>div:last-child]:col-span-1 lg:grid-cols-2">
               {[
                 [
                   t("usage.driving.drives"),
@@ -270,12 +293,12 @@ export default async function VehiclePage({
               ].map(([label, value]) => (
                 <div
                   key={label}
-                  className="flex items-center justify-between gap-3 border-b border-neutral-100 py-1.5 last:border-0 dark:border-neutral-800"
+                  className="flex min-h-[58px] flex-col justify-between rounded-xl bg-neutral-50 px-2.5 py-2 md:min-h-0 md:flex-row md:items-center md:gap-3 md:rounded-none md:border-b md:border-neutral-100 md:bg-transparent md:px-0 md:py-1.5 md:last:border-0 dark:bg-neutral-800/60 md:dark:bg-transparent md:dark:border-neutral-800"
                 >
-                  <dt className="text-neutral-500 dark:text-neutral-400">
+                  <dt className="text-[11px] leading-tight text-neutral-500 md:text-base dark:text-neutral-400">
                     {label}
                   </dt>
-                  <dd className="font-semibold tabular-nums text-neutral-900 dark:text-neutral-100">
+                  <dd className="mt-1 text-[15px] font-semibold tabular-nums text-neutral-900 md:mt-0 md:text-base dark:text-neutral-100">
                     {value}
                   </dd>
                 </div>
@@ -298,12 +321,12 @@ export default async function VehiclePage({
             )}
           </div>
 
-          <div className="rounded-2xl border border-neutral-200 border-t-4 border-t-emerald-500 p-4 dark:border-neutral-800 dark:border-t-emerald-400">
+          <div className="rounded-[16px] border border-neutral-200 border-t-[3px] border-t-emerald-500 p-3 md:rounded-2xl md:border-t-4 md:p-4 dark:border-neutral-800 dark:border-t-emerald-400">
             <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
               {t("usage.charging.title")}
             </h3>
 
-            <dl className="mt-3 grid grid-cols-1 gap-x-6 sm:grid-cols-2">
+            <dl className="mt-2 grid grid-cols-2 gap-2 text-[12px] md:mt-3 md:grid-cols-1 md:gap-x-6 md:text-base lg:grid-cols-2">
               {[
                 [
                   t("usage.charging.sessions"),
@@ -344,12 +367,12 @@ export default async function VehiclePage({
               ].map(([label, value]) => (
                 <div
                   key={label}
-                  className="flex items-center justify-between gap-3 border-b border-neutral-100 py-1.5 last:border-0 dark:border-neutral-800"
+                  className="flex min-h-[58px] flex-col justify-between rounded-xl bg-neutral-50 px-2.5 py-2 md:min-h-0 md:flex-row md:items-center md:gap-3 md:rounded-none md:border-b md:border-neutral-100 md:bg-transparent md:px-0 md:py-1.5 md:last:border-0 dark:bg-neutral-800/60 md:dark:bg-transparent md:dark:border-neutral-800"
                 >
-                  <dt className="text-neutral-500 dark:text-neutral-400">
+                  <dt className="text-[11px] leading-tight text-neutral-500 md:text-base dark:text-neutral-400">
                     {label}
                   </dt>
-                  <dd className="font-semibold tabular-nums text-neutral-900 dark:text-neutral-100">
+                  <dd className="mt-1 text-[15px] font-semibold tabular-nums text-neutral-900 md:mt-0 md:text-base dark:text-neutral-100">
                     {value}
                   </dd>
                 </div>
@@ -365,14 +388,14 @@ export default async function VehiclePage({
         </div>
       </Panel>
 
-      <div className="mt-3 grid gap-3 md:grid-cols-3">
+      <div className="mt-3 grid gap-2.5 md:grid-cols-3 md:gap-3">
         <MetricCard
           title={t("battery.title")}
           icon={Battery}
           tone="emerald"
           hint={t("battery.estimated")}
         >
-          <div className="grid gap-4">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-1 md:gap-4">
             <DataValue
               label={t("battery.capacity")}
               value={valueOrDash(
@@ -407,7 +430,7 @@ export default async function VehiclePage({
           tone="blue"
           hint={t("range.hint")}
         >
-          <div className="grid gap-4">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-1 md:gap-4">
             <DataValue
               label={t("range.current")}
               value={valueOrDash(
@@ -432,7 +455,7 @@ export default async function VehiclePage({
           icon={Milestone}
           tone="indigo"
         >
-          <div className="grid gap-4">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-1 md:gap-4">
             <DataValue
               label={t("odometer.current")}
               value={valueOrDash(
@@ -453,14 +476,14 @@ export default async function VehiclePage({
         </MetricCard>
       </div>
 
-      <div className="mt-3 grid gap-3 md:grid-cols-2">
+      <div className="mt-2.5 grid gap-2.5 md:mt-3 md:grid-cols-2 md:gap-3">
         <MetricCard
           title={t("charging.title")}
           icon={PlugZap}
           tone="cyan"
           hint={t("charging.hint")}
         >
-          <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+          <div className="grid grid-cols-2 gap-3 md:gap-x-6 md:gap-y-4">
             <DataValue
               label={t("charging.efficiency")}
               value={valueOrDash(
@@ -505,7 +528,7 @@ export default async function VehiclePage({
           tone="violet"
           hint={t("drain.hint")}
         >
-          <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+          <div className="grid grid-cols-2 gap-3 md:gap-x-6 md:gap-y-4">
             <DataValue
               label={t("drain.soc")}
               value={valueOrDash(
@@ -580,19 +603,71 @@ export default async function VehiclePage({
               })}
             </p>
 
-            <div className="mt-4 overflow-x-auto">
+            <div className="mt-3 space-y-2 md:hidden">
+              {analytics.history.slice(-7).reverse().map((row) => (
+                <div
+                  key={row.ts.toISOString()}
+                  className="rounded-[14px] border border-neutral-200 bg-neutral-50 px-3 py-2.5 dark:border-neutral-800 dark:bg-neutral-800/60"
+                >
+                  <p className="text-[11px] font-medium text-neutral-500 dark:text-neutral-400">
+                    {row.ts.toLocaleDateString("de-DE", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                    })}
+                  </p>
+
+                  <div className="mt-1.5 grid grid-cols-2 gap-3">
+                    <div>
+                      <p className="text-[10px] text-neutral-500 dark:text-neutral-400">
+                        {t("history.range")}
+                      </p>
+
+                      <p className="mt-0.5 text-[14px] font-semibold tabular-nums text-neutral-900 dark:text-neutral-100">
+                        {valueOrDash(
+                          row.projectedRange100Km,
+                          0,
+                          " km",
+                        )}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-[10px] text-neutral-500 dark:text-neutral-400">
+                        {t("history.odometer")}
+                      </p>
+
+                      <p className="mt-0.5 text-[14px] font-semibold tabular-nums text-neutral-900 dark:text-neutral-100">
+                        {valueOrDash(
+                          row.odometerKm,
+                          0,
+                          " km",
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4 hidden overflow-x-auto md:block">
               <table className="w-full min-w-[520px] text-sm">
                 <thead>
                   <tr className="border-b border-neutral-200 text-left text-xs text-neutral-500 dark:border-neutral-800 dark:text-neutral-400">
-                    <th className="pb-2 pr-4 font-medium">Datum</th>
+                    <th className="pb-2 pr-4 font-medium">
+                      Datum
+                    </th>
+
                     <th className="pb-2 pr-4 text-right font-medium">
                       {t("history.range")}
                     </th>
+
                     <th className="pb-2 text-right font-medium">
                       {t("history.odometer")}
                     </th>
                   </tr>
                 </thead>
+
                 <tbody>
                   {analytics.history.slice(-7).reverse().map((row) => (
                     <tr
@@ -606,6 +681,7 @@ export default async function VehiclePage({
                           year: "numeric",
                         })}
                       </td>
+
                       <td className="py-2 pr-4 text-right tabular-nums">
                         {valueOrDash(
                           row.projectedRange100Km,
@@ -613,6 +689,7 @@ export default async function VehiclePage({
                           " km",
                         )}
                       </td>
+
                       <td className="py-2 text-right tabular-nums">
                         {valueOrDash(
                           row.odometerKm,

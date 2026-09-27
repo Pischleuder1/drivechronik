@@ -184,3 +184,10 @@ body {
     display: none;
   }
 }
+
+/* Mobile vehicle view owns its compact page header. */
+@media (max-width: 767px) {
+  body:has(.mobile-vehicle-page) .mobile-app-header {
+    display: none;
+  }
+}

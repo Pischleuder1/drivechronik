@@ -110,7 +110,7 @@ export function VehicleStateTimeline({
         </p>
       ) : (
         <>
-          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-3 grid grid-cols-2 gap-2.5 md:mt-5 md:gap-3 lg:grid-cols-4">
             <Summary
               label={labels.sleepShare}
               value={
@@ -171,8 +171,8 @@ export function VehicleStateTimeline({
           </div>
 
           <div className="mt-5 overflow-x-auto">
-            <div className="min-w-[680px]">
-              <div className="grid grid-cols-[88px_minmax(0,1fr)_54px] items-end gap-3 pb-2 text-[10px] text-neutral-400">
+            <div className="w-full md:min-w-[680px]">
+              <div className="grid grid-cols-[72px_minmax(0,1fr)_38px] items-end gap-2 pb-2 text-[10px] text-neutral-400 md:grid-cols-[88px_minmax(0,1fr)_54px] md:gap-3">
                 <span />
                 <div className="grid grid-cols-5">
                   <span>00</span>
@@ -227,9 +227,9 @@ export function VehicleStateTimeline({
                     return (
                       <div
                         key={day.dateKey}
-                        className="grid grid-cols-[88px_minmax(0,1fr)_54px] items-center gap-3"
+                        className="grid grid-cols-[72px_minmax(0,1fr)_38px] items-center gap-2 md:grid-cols-[88px_minmax(0,1fr)_54px] md:gap-3"
                       >
-                        <div className="text-xs tabular-nums text-neutral-500 dark:text-neutral-400">
+                        <div className="text-[11px] tabular-nums text-neutral-500 md:text-xs dark:text-neutral-400">
                           {formatDay(
                             day.dateKey,
                           )}
@@ -265,7 +265,7 @@ export function VehicleStateTimeline({
                           )}
                         </div>
 
-                        <div className="text-right text-xs tabular-nums text-neutral-500 dark:text-neutral-400">
+                        <div className="text-right text-[10px] tabular-nums text-neutral-500 md:text-xs dark:text-neutral-400">
                           {sleepShare != null
                             ? `${sleepShare} %`
                             : "—"}
@@ -294,11 +294,12 @@ function Summary({
   value: string;
 }) {
   return (
-    <div className="rounded-2xl border border-neutral-200 px-4 py-3 dark:border-neutral-800">
-      <p className="text-xs text-neutral-500 dark:text-neutral-400">
+    <div className="rounded-[16px] border border-neutral-200 bg-neutral-50 px-3 py-2.5 md:rounded-2xl md:bg-transparent md:px-4 md:py-3 dark:border-neutral-800 dark:bg-neutral-800/60 md:dark:bg-transparent">
+      <p className="text-[11px] leading-tight text-neutral-500 md:text-xs dark:text-neutral-400">
         {label}
       </p>
-      <p className="mt-1 text-lg font-semibold tabular-nums text-neutral-900 dark:text-neutral-100">
+
+      <p className="mt-1 text-[16px] font-semibold tabular-nums text-neutral-900 md:text-lg dark:text-neutral-100">
         {value}
       </p>
     </div>

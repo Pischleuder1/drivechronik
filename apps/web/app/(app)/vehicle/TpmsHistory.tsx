@@ -337,7 +337,7 @@ export function TpmsHistory({
                 </span>
               </div>
 
-              <div className="mt-3 grid gap-3 md:grid-cols-2">
+              <div className="mt-3 grid grid-cols-2 gap-2 md:gap-3">
                 {TIRES.map((tire) => {
                   const ownPoints = pathPoints(
                     filtered,
@@ -357,7 +357,7 @@ export function TpmsHistory({
                   return (
                     <div
                       key={tire.key}
-                      className="rounded-lg border border-neutral-200 p-3 dark:border-neutral-800"
+                      className="rounded-lg border border-neutral-200 p-2 md:p-3 dark:border-neutral-800"
                     >
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-2">
@@ -403,7 +403,7 @@ export function TpmsHistory({
                                 x={LEFT - 6}
                                 y={y + 4}
                                 textAnchor="end"
-                                className="fill-neutral-500 text-[10px] dark:fill-neutral-400"
+                                className="fill-neutral-500 text-[15px] md:text-[10px] dark:fill-neutral-400"
                               >
                                 {value.toFixed(1)}
                               </text>
@@ -471,7 +471,7 @@ export function TpmsHistory({
                             x={LEFT - 7}
                             y={y + 4}
                             textAnchor="end"
-                            className="fill-neutral-500 text-[11px] dark:fill-neutral-400"
+                            className="fill-neutral-500 text-[15px] md:text-[11px] dark:fill-neutral-400"
                           >
                             {value.toFixed(1)}
                           </text>
@@ -515,7 +515,7 @@ export function TpmsHistory({
                     <text
                       x={LEFT}
                       y={OVERVIEW_HEIGHT - 7}
-                      className="fill-neutral-500 text-[11px] dark:fill-neutral-400"
+                      className="fill-neutral-500 text-[15px] md:text-[11px] dark:fill-neutral-400"
                     >
                       {new Date(
                         filtered[0]!.ts,
@@ -526,7 +526,7 @@ export function TpmsHistory({
                       x={OVERVIEW_WIDTH - RIGHT}
                       y={OVERVIEW_HEIGHT - 7}
                       textAnchor="end"
-                      className="fill-neutral-500 text-[11px] dark:fill-neutral-400"
+                      className="fill-neutral-500 text-[15px] md:text-[11px] dark:fill-neutral-400"
                     >
                       {new Date(
                         filtered.at(-1)!.ts,

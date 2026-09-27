@@ -105,15 +105,15 @@ export function VehicleUsageFilter({
   ];
 
   return (
-    <div className="mt-4 rounded-2xl bg-neutral-50 p-3 dark:bg-neutral-800/60">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="inline-flex w-fit rounded-xl bg-neutral-200/70 p-1 dark:bg-neutral-900">
+    <div className="mt-3 rounded-[16px] bg-neutral-50 p-2.5 md:mt-4 md:rounded-2xl md:p-3 dark:bg-neutral-800/60">
+      <div className="flex flex-col gap-2.5 md:gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="grid w-full grid-cols-4 rounded-xl bg-neutral-200/70 p-1 md:inline-flex md:w-fit dark:bg-neutral-900">
           {periods.map((item) => (
             <button
               key={item.key}
               type="button"
               onClick={() => selectPeriod(item.key)}
-              className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+              className={`rounded-lg px-2 py-1.5 text-[12px] font-semibold transition md:px-4 md:py-2 md:text-sm ${
                 period === item.key
                   ? "bg-violet-600 text-white shadow-sm dark:bg-violet-500"
                   : "text-neutral-600 hover:bg-white/70 hover:text-neutral-950 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white"
@@ -125,14 +125,14 @@ export function VehicleUsageFilter({
         </div>
 
         {period !== "all" && value && (
-          <div className="flex w-fit items-center gap-2">
+          <div className="flex w-full items-center gap-2 md:w-fit">
             <button
               type="button"
               aria-label={labels.previous}
               onClick={() =>
                 navigate(period, shiftValue(period, value, -1))
               }
-              className="flex h-11 w-11 items-center justify-center rounded-xl border border-neutral-200 bg-white text-neutral-700 shadow-sm transition hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-neutral-200 bg-white text-neutral-700 shadow-sm transition hover:bg-neutral-100 md:h-11 md:w-11 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
             >
               <ChevronLeft aria-hidden size={19} />
             </button>
@@ -144,7 +144,7 @@ export function VehicleUsageFilter({
                 onChange={(event) =>
                   navigate(period, event.target.value)
                 }
-                className="h-11 min-w-[190px] rounded-xl border border-neutral-200 bg-white px-4 text-center text-sm font-semibold text-neutral-900 shadow-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+                className="h-9 min-w-0 flex-1 rounded-xl border border-neutral-200 bg-white px-2 text-center text-[13px] font-semibold text-neutral-900 shadow-sm md:h-11 md:min-w-[190px] md:flex-none md:px-4 md:text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
               />
             )}
 
@@ -155,7 +155,7 @@ export function VehicleUsageFilter({
                 onChange={(event) =>
                   navigate(period, event.target.value)
                 }
-                className="h-11 min-w-[190px] rounded-xl border border-neutral-200 bg-white px-4 text-center text-sm font-semibold text-neutral-900 shadow-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+                className="h-9 min-w-0 flex-1 rounded-xl border border-neutral-200 bg-white px-2 text-center text-[13px] font-semibold text-neutral-900 shadow-sm md:h-11 md:min-w-[190px] md:flex-none md:px-4 md:text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
               />
             )}
 
@@ -169,7 +169,7 @@ export function VehicleUsageFilter({
                 onChange={(event) =>
                   navigate(period, event.target.value)
                 }
-                className="h-11 w-32 rounded-xl border border-neutral-200 bg-white px-4 text-center text-sm font-semibold text-neutral-900 shadow-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+                className="h-9 min-w-0 flex-1 rounded-xl border border-neutral-200 bg-white px-2 text-center text-[13px] font-semibold text-neutral-900 shadow-sm md:h-11 md:w-32 md:flex-none md:px-4 md:text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
               />
             )}
 
@@ -179,7 +179,7 @@ export function VehicleUsageFilter({
               onClick={() =>
                 navigate(period, shiftValue(period, value, 1))
               }
-              className="flex h-11 w-11 items-center justify-center rounded-xl border border-neutral-200 bg-white text-neutral-700 shadow-sm transition hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-neutral-200 bg-white text-neutral-700 shadow-sm transition hover:bg-neutral-100 md:h-11 md:w-11 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
             >
               <ChevronRight aria-hidden size={19} />
             </button>

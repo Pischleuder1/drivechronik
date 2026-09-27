@@ -69,28 +69,52 @@ function TpmsBadge({
   value,
   warn,
   className,
+  compact = false,
 }: {
   label: string;
   value: number | null;
   warn: boolean;
   className: string;
+  compact?: boolean;
 }) {
   const tone = pressureTone(value, warn);
 
   return (
     <div className={`absolute z-10 ${className}`}>
       <div
-        className={`min-w-[72px] rounded-xl border px-2 py-1.5 text-center shadow-sm backdrop-blur ${toneClasses[tone]}`}
+        className={`border text-center shadow-sm backdrop-blur ${
+          compact
+            ? "min-w-[42px] rounded-lg px-1.5 py-1"
+            : "min-w-[72px] rounded-xl px-2 py-1.5"
+        } ${toneClasses[tone]}`}
       >
-        <div className="text-[10px] font-semibold uppercase tracking-[0.14em]">
+        <div
+          className={
+            compact
+              ? "text-[7px] font-semibold uppercase tracking-[0.12em]"
+              : "text-[10px] font-semibold uppercase tracking-[0.14em]"
+          }
+        >
           {label}
         </div>
 
-        <div className="mt-0.5 text-sm font-semibold tabular-nums leading-none">
+        <div
+          className={
+            compact
+              ? "mt-0.5 text-[11px] font-semibold tabular-nums leading-none"
+              : "mt-0.5 text-sm font-semibold tabular-nums leading-none"
+          }
+        >
           {formatBar(value)}
         </div>
 
-        <div className="mt-0.5 text-[9px] font-medium leading-none opacity-75">
+        <div
+          className={
+            compact
+              ? "mt-0.5 text-[7px] font-medium leading-none opacity-75"
+              : "mt-0.5 text-[9px] font-medium leading-none opacity-75"
+          }
+        >
           bar
         </div>
       </div>
@@ -104,12 +128,14 @@ export function TeslaTopViewTpmsGraphic({
   fr,
   rl,
   rr,
+  compact = false,
 }: {
   model?: string | null;
   fl: number | null;
   fr: number | null;
   rl: number | null;
   rr: number | null;
+  compact?: boolean;
 }) {
   const kind = detectTeslaModel(model);
 
@@ -136,7 +162,13 @@ export function TeslaTopViewTpmsGraphic({
         };
 
   return (
-    <div className="relative mx-auto h-[340px] w-full max-w-[360px]">
+    <div
+      className={
+        compact
+          ? "relative mx-auto h-[116px] w-full max-w-[180px]"
+          : "relative mx-auto h-[340px] w-full max-w-[360px]"
+      }
+    >
       {/* Fahrzeug */}
       <div className="absolute inset-y-0 left-1/2 flex -translate-x-1/2 items-center justify-center">
         <Image
@@ -145,7 +177,11 @@ export function TeslaTopViewTpmsGraphic({
           height={image.height}
           alt={image.alt}
           priority
-          className="h-[320px] w-auto object-contain"
+          className={
+            compact
+              ? "h-[104px] w-auto object-contain"
+              : "h-[320px] w-auto object-contain"
+          }
         />
       </div>
 
@@ -154,14 +190,16 @@ export function TeslaTopViewTpmsGraphic({
         label="VL"
         value={fl}
         warn={assessment.fl.warn}
-        className="left-0 top-[22%]"
+        compact={compact}
+        className={compact ? "left-0 top-[15%]" : "left-0 top-[22%]"}
       />
 
       <TpmsBadge
         label="VR"
         value={fr}
         warn={assessment.fr.warn}
-        className="right-0 top-[22%]"
+        compact={compact}
+        className={compact ? "right-0 top-[15%]" : "right-0 top-[22%]"}
       />
 
       {/* Hinterachse */}
@@ -169,14 +207,16 @@ export function TeslaTopViewTpmsGraphic({
         label="HL"
         value={rl}
         warn={assessment.rl.warn}
-        className="bottom-[18%] left-0"
+        compact={compact}
+        className={compact ? "bottom-[10%] left-0" : "bottom-[18%] left-0"}
       />
 
       <TpmsBadge
         label="HR"
         value={rr}
         warn={assessment.rr.warn}
-        className="bottom-[18%] right-0"
+        compact={compact}
+        className={compact ? "bottom-[10%] right-0" : "bottom-[18%] right-0"}
       />
     </div>
   );

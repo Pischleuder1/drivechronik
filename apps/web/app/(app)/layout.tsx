@@ -83,7 +83,7 @@ export default async function AppLayout({
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Mobile header */}
-        <header className="flex flex-wrap items-center justify-between gap-y-2 border-b border-neutral-200 px-4 py-3 md:hidden dark:border-neutral-800">
+        <header className="mobile-app-header flex flex-wrap items-center justify-between gap-y-2 border-b border-neutral-200 px-4 py-3 md:hidden dark:border-neutral-800">
           <Link
               href="/"
               aria-label="DriveChronik start"

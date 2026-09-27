@@ -52,3 +52,114 @@ body {
   border-color: var(--color-neutral-800);
   background-color: var(--color-neutral-900);
 }
+
+/* DriveChronik mobile Map First dashboard */
+@media (max-width: 767px) {
+  body:has(.mobile-map-first-page) .mobile-app-header {
+    display: none;
+  }
+
+  body:has(.mobile-map-first-page) main {
+    background: #07111d;
+    padding-top: 1rem;
+  }
+
+  body:has(.mobile-map-first-page) .mobile-bottom-nav {
+    border-color: rgba(148, 163, 184, 0.14);
+    background: rgba(5, 12, 21, 0.96);
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+
+  body:has(.mobile-map-first-page) .mobile-bottom-nav > a,
+  body:has(.mobile-map-first-page) .mobile-bottom-nav > button {
+    color: #7c8ba1 !important;
+  }
+
+  body:has(.mobile-map-first-page)
+    .mobile-bottom-nav
+    > [data-active="true"] {
+    color: #3b82f6 !important;
+  }
+}
+
+.mobile-range-map {
+  background: #081522;
+}
+
+.mobile-range-map .leaflet-tile-pane {
+  filter:
+    brightness(0.48)
+    saturate(0.72)
+    contrast(1.18)
+    hue-rotate(165deg);
+}
+
+.mobile-range-map .leaflet-overlay-pane path {
+  stroke: #339cff !important;
+  stroke-width: 2.5 !important;
+  fill: #1687ff !important;
+  fill-opacity: 0.2 !important;
+}
+
+.mobile-range-map .leaflet-marker-icon span {
+  background: #258cff !important;
+  border-color: #ffffff !important;
+  box-shadow:
+    0 0 0 4px rgba(37, 140, 255, 0.25),
+    0 2px 10px rgba(0, 0, 0, 0.45) !important;
+}
+
+.mobile-range-map .leaflet-control-zoom {
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.2) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25) !important;
+}
+
+.mobile-range-map .leaflet-control-zoom a {
+  border-color: rgba(148, 163, 184, 0.16) !important;
+  background: rgba(10, 23, 38, 0.94) !important;
+  color: #dbeafe !important;
+}
+
+.mobile-range-map .leaflet-control-attribution {
+  margin-bottom: 94px !important;
+  border-radius: 7px 0 0 0;
+  background: rgba(5, 12, 21, 0.72) !important;
+  color: #64748b !important;
+  font-size: 8px !important;
+  line-height: 1.25 !important;
+  backdrop-filter: blur(6px);
+}
+
+.mobile-range-map .leaflet-control-attribution a {
+  color: #94a3b8 !important;
+}
+
+/* Map First v2: dark map + light app surface */
+@media (max-width: 767px) {
+  body:has(.mobile-map-first-page) main {
+    background: #f4f6f8;
+  }
+
+  body:has(.mobile-map-first-page) .mobile-bottom-nav {
+    border-color: #e5e7eb;
+    background: rgba(255, 255, 255, 0.97);
+    box-shadow: 0 -8px 24px rgba(15, 23, 42, 0.06);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+
+  body:has(.mobile-map-first-page) .mobile-bottom-nav > a,
+  body:has(.mobile-map-first-page) .mobile-bottom-nav > button {
+    color: #737373 !important;
+  }
+
+  body:has(.mobile-map-first-page)
+    .mobile-bottom-nav
+    > [data-active="true"] {
+    color: #2563eb !important;
+  }
+}

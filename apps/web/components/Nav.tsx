@@ -145,7 +145,7 @@ function itemClasses(
       ? "text-neutral-900 dark:text-white font-medium"
       : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white";
 
-    return `flex flex-1 flex-col items-center gap-0.5 py-2 text-xs transition-colors ${state}`.trim();
+    return `flex flex-1 flex-col items-center gap-0.5 py-1.5 text-[11px] transition-colors ${state}`.trim();
   }
 
   const state = active

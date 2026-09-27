@@ -20,6 +20,8 @@ export interface DashboardRangeMapProps {
   };
   boundary: DashboardRangeBoundaryPoint[];
   displayName: string;
+  className?: string;
+  zoomControlPosition?: L.ControlPosition;
 }
 
 function carIcon(): L.DivIcon {
@@ -37,6 +39,8 @@ export function DashboardRangeMap({
   origin,
   boundary,
   displayName,
+  className = "h-[300px] w-full rounded-lg border border-neutral-300 dark:border-neutral-700 sm:h-[340px]",
+  zoomControlPosition = "topleft",
 }: DashboardRangeMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -46,8 +50,12 @@ export function DashboardRangeMap({
 
     const map = L.map(containerRef.current, {
       scrollWheelZoom: false,
-      zoomControl: true,
+      zoomControl: false,
     });
+
+    L.control
+      .zoom({ position: zoomControlPosition })
+      .addTo(map);
 
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
@@ -120,12 +128,18 @@ export function DashboardRangeMap({
       map.remove();
       mapRef.current = null;
     };
-  }, [boundary, displayName, origin.lat, origin.lon]);
+  }, [
+    boundary,
+    displayName,
+    origin.lat,
+    origin.lon,
+    zoomControlPosition,
+  ]);
 
   return (
     <div
       ref={containerRef}
-      className="h-[300px] w-full rounded-lg border border-neutral-300 dark:border-neutral-700 sm:h-[340px]"
+      className={className}
     />
   );
 }

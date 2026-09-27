@@ -12,10 +12,12 @@ import {
 } from "../../lib/dashboard";
 import { getCurrentWeather, type WeatherResult } from "../../lib/weather";
 import { getActiveVehicleId } from "../../lib/activeVehicle";
+import { getVehicles } from "../../lib/queries";
 import { VehicleCard } from "./VehicleCard";
 import { DashboardHero } from "./DashboardHero";
 import { RecentDrivesCard } from "./RecentDrivesCard";
 import { DashboardWeekCharts } from "./DashboardWeekCharts";
+import { MobileMapFirstDashboard } from "./MobileMapFirstDashboard";
 import { StatsRow } from "./StatsRow";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { Button } from "../../components/ui/Button";
@@ -103,6 +105,8 @@ export default async function DashboardPage() {
     return <OnboardingCard />;
   }
 
+  const vehicles = await getVehicles();
+
   const [status, openSession, recentDrives, today, week, lastCharge, unclassifiedCount] =
     await Promise.all([
       getVehicleStatus(vehicleId),
@@ -133,38 +137,66 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <DashboardHero weather={weather} />
-
-      <div className="grid gap-4 lg:grid-cols-12 lg:items-stretch">
-        <div className="lg:col-span-8">
-          {status ? (
-            <VehicleCard
-              status={status}
-              openSession={openSession}
-            />
-          ) : (
-            <EmptyState icon={Car} title={t("vehicleStatusEmpty")} />
-          )}
-        </div>
-
-        <div className="lg:col-span-4">
-          <StatsRow
+    <>
+      <div className="mobile-map-first-page md:hidden">
+        {status ? (
+          <MobileMapFirstDashboard
+            status={status}
+            vehicles={vehicles.map((vehicle) => ({
+              id: vehicle.id,
+              displayName: vehicle.displayName,
+            }))}
+            openSession={openSession}
             today={today}
             week={week}
             lastCharge={lastCharge}
             unclassifiedCount={unclassifiedCount}
+            weekSeries={weekSeries}
           />
-        </div>
+        ) : (
+          <EmptyState
+            icon={Car}
+            title={t("vehicleStatusEmpty")}
+          />
+        )}
       </div>
 
-      <RecentDrivesCard
-        drives={recentDrives}
-        tracks={driveTracks}
-        car={car}
-      />
+      <div className="hidden space-y-4 md:block">
+        <DashboardHero weather={weather} />
 
-      <DashboardWeekCharts data={weekSeries} />
-    </div>
+        <div className="grid gap-4 lg:grid-cols-12 lg:items-stretch">
+          <div className="lg:col-span-8">
+            {status ? (
+              <VehicleCard
+                status={status}
+                openSession={openSession}
+              />
+            ) : (
+              <EmptyState
+                icon={Car}
+                title={t("vehicleStatusEmpty")}
+              />
+            )}
+          </div>
+
+          <div className="lg:col-span-4">
+            <StatsRow
+              today={today}
+              week={week}
+              lastCharge={lastCharge}
+              unclassifiedCount={unclassifiedCount}
+            />
+          </div>
+        </div>
+
+        <RecentDrivesCard
+          drives={recentDrives}
+          tracks={driveTracks}
+          car={car}
+        />
+
+        <DashboardWeekCharts data={weekSeries} />
+      </div>
+    </>
   );
 }

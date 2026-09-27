@@ -208,39 +208,120 @@ export function BottomNav() {
           />
 
           <div
+            id="mobile-navigation-menu"
             role="dialog"
             aria-modal="true"
             aria-labelledby="mobile-menu-title"
-            className="fixed inset-x-3 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-40 max-h-[calc(100dvh-6rem)] overflow-y-auto rounded-3xl border border-neutral-200 bg-white p-4 shadow-2xl md:hidden dark:border-neutral-800 dark:bg-neutral-950"
+            className="fixed inset-x-3 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-40 max-h-[calc(100dvh-6rem)] overflow-y-auto rounded-[28px] border border-neutral-200 bg-[#f4f6f8] shadow-2xl md:hidden dark:border-neutral-800 dark:bg-neutral-950"
           >
-            <div className="mb-4 flex items-center justify-between">
-              <div>
-                <p
-                  id="mobile-menu-title"
-                  className="text-lg font-semibold text-neutral-950 dark:text-white"
+            <div className="relative h-[132px] overflow-hidden bg-[#071421] px-4 pt-4 text-white">
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0"
+              >
+                <svg
+                  viewBox="0 0 420 132"
+                  preserveAspectRatio="none"
+                  className="h-full w-full"
                 >
-                  {t("menuTitle")}
-                </p>
+                  <defs>
+                    <linearGradient
+                      id="menuHeroBg"
+                      x1="0"
+                      y1="0"
+                      x2="1"
+                      y2="1"
+                    >
+                      <stop offset="0" stopColor="#0a2440" />
+                      <stop offset="1" stopColor="#071421" />
+                    </linearGradient>
 
-                <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                  {t("menuSubtitle")}
-                </p>
+                    <linearGradient
+                      id="menuHeroRoute"
+                      x1="0"
+                      y1="0"
+                      x2="1"
+                      y2="0"
+                    >
+                      <stop offset="0" stopColor="#22c55e" />
+                      <stop offset="0.5" stopColor="#3b82f6" />
+                      <stop offset="1" stopColor="#8b5cf6" />
+                    </linearGradient>
+                  </defs>
+
+                  <rect
+                    width="420"
+                    height="132"
+                    fill="url(#menuHeroBg)"
+                  />
+
+                  <g
+                    fill="none"
+                    stroke="#94a3b8"
+                    strokeWidth="1"
+                    opacity="0.12"
+                  >
+                    <path d="M-20 30 C60 8 118 43 184 29 S318 17 445 40" />
+                    <path d="M-20 81 C73 55 128 96 211 73 S341 61 445 88" />
+                    <path d="M68 -20 C80 32 50 84 77 155" />
+                    <path d="M181 -20 C153 39 195 88 173 155" />
+                    <path d="M304 -20 C280 36 319 90 294 155" />
+                  </g>
+
+                  <path
+                    d="M24 106 C70 92 91 101 122 78 C157 53 190 67 222 51 C258 33 289 53 323 37 C345 27 366 30 398 19"
+                    fill="none"
+                    stroke="#020617"
+                    strokeWidth="8"
+                    strokeLinecap="round"
+                    opacity="0.35"
+                  />
+
+                  <path
+                    d="M24 106 C70 92 91 101 122 78 C157 53 190 67 222 51 C258 33 289 53 323 37 C345 27 366 30 398 19"
+                    fill="none"
+                    stroke="url(#menuHeroRoute)"
+                    strokeWidth="3.5"
+                    strokeLinecap="round"
+                  />
+                </svg>
+
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#071421]/85" />
               </div>
 
-              <button
-                type="button"
-                aria-label={t("closeMenu")}
-                onClick={() => setMenuOpen(false)}
-                className="flex h-9 w-9 items-center justify-center rounded-full text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-white"
-              >
-                <X
-                  aria-hidden
-                  size={20}
-                />
-              </button>
+              <div className="relative z-10 flex items-start justify-between">
+                <div>
+                  <p className="text-[18px] font-semibold tracking-tight">
+                    DriveChronik
+                  </p>
+
+                  <p
+                    id="mobile-menu-title"
+                    className="mt-6 text-[11px] font-semibold uppercase tracking-[0.14em] text-sky-200/80"
+                  >
+                    {t("menuTitle")}
+                  </p>
+
+                  <p className="mt-1 text-[11px] text-white/60">
+                    {t("menuSubtitle")}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  aria-label={t("closeMenu")}
+                  onClick={() => setMenuOpen(false)}
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/80 backdrop-blur transition hover:bg-white/20 hover:text-white"
+                >
+                  <X
+                    aria-hidden
+                    size={18}
+                  />
+                </button>
+              </div>
             </div>
 
-            <div className="space-y-5">
+            <div className="space-y-4 p-4">
               {mobileMenuGroups.map((group) => {
                 const groupItems = group.hrefs
                   .map((href) =>
@@ -256,7 +337,7 @@ export function BottomNav() {
 
                 return (
                   <section key={group.labelKey}>
-                    <h2 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-neutral-400 dark:text-neutral-500">
+                    <h2 className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-neutral-400 dark:text-neutral-500">
                       {t(group.labelKey)}
                     </h2>
 
@@ -275,8 +356,8 @@ export function BottomNav() {
                             }
                             className={
                               active
-                                ? "flex min-h-16 items-center gap-3 rounded-2xl border border-sky-200 bg-sky-50 px-3 py-3 text-sky-800 dark:border-sky-900 dark:bg-sky-950/50 dark:text-sky-200"
-                                : "flex min-h-16 items-center gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-neutral-700 transition-colors hover:bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-900/60 dark:text-neutral-200 dark:hover:bg-neutral-900"
+                                ? "flex min-h-14 items-center gap-3 rounded-[16px] border border-sky-200 bg-sky-50 px-3 py-2.5 text-sky-800 shadow-sm dark:border-sky-900 dark:bg-sky-950/50 dark:text-sky-200"
+                                : "flex min-h-14 items-center gap-3 rounded-[16px] border border-neutral-200 bg-white px-3 py-2.5 text-neutral-700 shadow-sm transition-colors hover:bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
                             }
                           >
                             <Icon

@@ -81,17 +81,17 @@ function DriveBody({
 
   return (
     <>
-      <span className="tabular-nums text-sm text-neutral-500 dark:text-neutral-400">
+      <span className="tabular-nums text-[11px] font-medium text-neutral-400 md:text-sm md:font-normal md:text-neutral-500 dark:text-neutral-400">
         {inProgress
           ? t("sinceTime", { time: formatTime(row.startTime, tz) })
           : formatTimeRange(row.startTime, row.endTime, tz)}
       </span>
 
-      <p className="mt-1.5 text-base font-medium">
+      <p className="mt-1.5 text-[17px] font-semibold tracking-tight text-neutral-950 md:text-base md:font-medium md:tracking-normal dark:text-neutral-100">
         {from} <span className="text-neutral-400">→</span> {to}
       </p>
 
-      <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-neutral-500 dark:text-neutral-400">
+      <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-neutral-500 md:mt-1 md:text-sm dark:text-neutral-400">
         {inProgress && (
           <span className="flex items-center gap-1.5 font-medium text-neutral-900 dark:text-white">
             <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
@@ -162,7 +162,7 @@ export function DriveEntry({
   const active = isActive(row.startTime, row.endTime, now);
   const selected = isSelected(row.id);
 
-  const cardClasses = `rounded-2xl border bg-white shadow-sm transition-all hover:shadow-md dark:bg-neutral-900 ${
+  const cardClasses = `overflow-hidden rounded-[18px] border bg-white shadow-sm transition-all hover:shadow-md md:rounded-2xl dark:bg-neutral-900 ${
     selectionMode && selected
       ? "border-neutral-900 ring-1 ring-neutral-900 dark:border-white dark:ring-white"
       : active
@@ -180,7 +180,7 @@ export function DriveEntry({
           role="checkbox"
           aria-checked={selected}
           onClick={() => toggle(row.id)}
-          className="flex min-h-11 w-full items-start gap-3 px-4 py-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-neutral-900 dark:focus-visible:ring-white"
+          className="flex min-h-11 w-full items-start gap-3 px-3.5 py-3 text-left md:px-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-neutral-900 dark:focus-visible:ring-white"
         >
           <span className="pt-0.5">
             <SelectionCheckbox checked={selected} />
@@ -197,11 +197,11 @@ export function DriveEntry({
 
   return (
     <li className={cardClasses}>
-      <Link href={`/drives/${row.id}`} className="block px-4 pt-3">
+      <Link href={`/drives/${row.id}`} className="block px-3.5 pt-3 md:px-4">
         <DriveBody row={row} tz={tz} now={now} />
       </Link>
 
-      <div className="px-4 pb-3 pt-2">
+      <div className="px-3 pb-3 pt-2 md:px-4">
         <QuickClassify driveId={row.id} value={classification} />
       </div>
     </li>

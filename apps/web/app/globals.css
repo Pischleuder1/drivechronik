@@ -163,3 +163,10 @@ body {
     color: #2563eb !important;
   }
 }
+
+/* Mobile Day view owns its compact page header. */
+@media (max-width: 767px) {
+  body:has(.mobile-day-page) .mobile-app-header {
+    display: none;
+  }
+}

@@ -25,6 +25,12 @@
     "business": "Business",
     "commute": "Commute"
   },
+  "mobileSummary": {
+    "drives": "Drives",
+    "distance": "Distance",
+    "duration": "Driving time",
+    "energy": "Energy"
+  },
   "logbookStatus": {
     "complete": "✓ Logbook complete",
     "pendingClassification": "Classification missing · {days, plural, one {# calendar day} other {# calendar days}} remaining",
@@ -32,5 +38,6 @@
     "overdueClassification": "Classification missing · completion period exceeded",
     "overduePurpose": "Purpose missing · completion period exceeded",
     "completeLate": "✓ Complete · completed late"
-  }
+  },
+  "export": "Export"
 }

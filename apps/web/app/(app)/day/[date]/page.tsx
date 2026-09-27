@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { CalendarDays, Download } from "lucide-react";
+import { CalendarDays, Car, Clock3, Download, Route, Zap } from "lucide-react";
 import { formatDuration, formatKm, formatKwh } from "@drivechronik/core";
 import { APP_TIMEZONE } from "../../../../lib/config";
 import {
@@ -9,7 +9,7 @@ import {
   shiftDate,
   todayInAppTz,
 } from "../../../../lib/day";
-import { getAllTags, getDayTimeline } from "../../../../lib/queries";
+import { getAllTags, getDayTimeline, getVehicles } from "../../../../lib/queries";
 import { getActiveVehicle } from "../../../../lib/activeVehicle";
 import { getParkLossForSessions } from "../../../../lib/parkAnalytics";
 import { buttonClasses } from "../../../../components/ui/Button";
@@ -21,9 +21,11 @@ import {
   SelectionToggle,
 } from "../../../../components/bulkSelection";
 import { DateNav } from "./DateNav";
+import { MobileDayHero } from "./MobileDayHero";
 import { Timeline } from "./Timeline";
 
 import { NoVehicleState } from "../../../../components/NoVehicleState";
+import { ActiveVehicleSwitcher } from "../../../../components/ActiveVehicleSwitcher";
 
 export const dynamic = "force-dynamic";
 
@@ -66,6 +68,8 @@ export default async function DayPage({
     );
   }
 
+  const vehicles = await getVehicles();
+
   const timeline = await getDayTimeline(current.id, date);
   const parkLossById = await getParkLossForSessions(
     timeline.parks.map((p) => p.id),
@@ -101,7 +105,88 @@ export default async function DayPage({
     timeline.charges.length === 0;
 
   return (
-    <div className="w-full">
+    <div className="mobile-day-page -mx-4 -mt-4 min-h-dvh bg-[#f4f6f8] px-4 pt-4 md:mx-0 md:mt-0 md:min-h-0 md:bg-transparent md:px-0 md:pt-0">
+      <div className="md:hidden">
+        <MobileDayHero
+          vehicles={vehicles.map((vehicle) => ({
+            id: vehicle.id,
+            displayName: vehicle.displayName,
+          }))}
+          initialVehicleId={current.id}
+          displayName={current.displayName}
+          pageTitle={t("pageTitle")}
+        />
+
+        <div className="relative z-10 -mt-8">
+          <DateNav
+            date={date}
+            longLabel={formatLongDate(date, locale)}
+            prevDate={shiftDate(date, -1)}
+            nextDate={shiftDate(date, 1)}
+            today={today}
+            exportCsvHref={`/api/export/day/${date}?format=csv&vehicle=${current.id}`}
+            exportPdfHref={`/api/export/day/${date}?format=pdf&vehicle=${current.id}`}
+          />
+        </div>
+
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <section className="rounded-[18px] border border-neutral-200 bg-white px-3 py-2.5 shadow-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-medium text-neutral-500">
+                {t("mobileSummary.drives")}
+              </span>
+              <Car aria-hidden size={15} className="text-blue-500" />
+            </div>
+
+            <p className="mt-1.5 text-[16px] font-semibold leading-tight tabular-nums text-neutral-950">
+              {driveCount}
+            </p>
+          </section>
+
+          <section className="rounded-[18px] border border-neutral-200 bg-white px-3 py-2.5 shadow-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-medium text-neutral-500">
+                {t("mobileSummary.distance")}
+              </span>
+              <Route aria-hidden size={15} className="text-blue-500" />
+            </div>
+
+            <p className="mt-1.5 text-[16px] font-semibold leading-tight tabular-nums text-neutral-950">
+              {formatKm(totalKm)}
+            </p>
+          </section>
+
+          <section className="rounded-[18px] border border-neutral-200 bg-white px-3 py-2.5 shadow-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-medium text-neutral-500">
+                {t("mobileSummary.duration")}
+              </span>
+              <Clock3 aria-hidden size={15} className="text-violet-500" />
+            </div>
+
+            <p className="mt-1.5 text-[16px] font-semibold leading-tight tabular-nums text-neutral-950">
+              {formatDuration(totalDriveSeconds)}
+            </p>
+          </section>
+
+          <section className="rounded-[18px] border border-neutral-200 bg-white px-3 py-2.5 shadow-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-medium text-neutral-500">
+                {t("mobileSummary.energy")}
+              </span>
+              <Zap aria-hidden size={15} className="text-amber-500" />
+            </div>
+
+            <p className="mt-1.5 text-[16px] font-semibold leading-tight tabular-nums text-neutral-950">
+              {totalEnergy > 0 ? formatKwh(totalEnergy) : "–"}
+            </p>
+          </section>
+        </div>
+
+
+      </div>
+
+      <div className="hidden md:block">
       <Panel padding="sm">
         <PageHeader
           visual="gps"
@@ -134,8 +219,9 @@ export default async function DayPage({
         </div>
 
       </Panel>
+      </div>
 
-      <div className="mt-6">
+      <div className="mt-3 md:mt-6">
         {isEmpty ? (
           <EmptyState
             icon={CalendarDays}
@@ -158,7 +244,7 @@ export default async function DayPage({
             />
 
             <div
-              className="mt-6 border-t border-neutral-200 pt-4 dark:border-neutral-800"
+              className="hidden mt-6 border-t border-neutral-200 pt-4 md:block dark:border-neutral-800"
               data-testid="day-totals"
             >
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-neutral-700 dark:text-neutral-300">

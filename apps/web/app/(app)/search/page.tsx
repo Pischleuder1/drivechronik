@@ -5,7 +5,7 @@ import { APP_TIMEZONE } from "../../../lib/config";
 import { dayBounds, isValidDateParam } from "../../../lib/day";
 import { runSearch, type SearchType } from "../../../lib/search";
 import { getActiveVehicleId } from "../../../lib/activeVehicle";
-import { getAllTags } from "../../../lib/queries";
+import { getAllTags, getVehicles } from "../../../lib/queries";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Panel } from "../../../components/ui/Panel";
@@ -16,6 +16,7 @@ import {
 } from "../../../components/bulkSelection";
 import { SearchControls } from "./SearchControls";
 import { SearchResults } from "./SearchResults";
+import { MobileSearchHero } from "./MobileSearchHero";
 
 export const dynamic = "force-dynamic";
 
@@ -64,6 +65,11 @@ export default async function SearchPage({
   const shouldSearch = hasQuery || hasFilters;
 
   const vehicleId = await getActiveVehicleId();
+  const vehicles = await getVehicles();
+  const activeVehicle =
+    vehicleId != null
+      ? vehicles.find((vehicle) => vehicle.id === vehicleId) ?? null
+      : null;
 
   const result =
     shouldSearch && vehicleId != null
@@ -88,14 +94,26 @@ export default async function SearchPage({
     : [];
 
   return (
-    <div className="w-full">
-      <PageHeader
-        visual="tools"
-        title={t("title")}
-        subtitle={t("subtitle")}
+    <div className="mobile-search-page -mx-4 -mt-4 min-h-dvh bg-[#f4f6f8] px-4 pt-4 md:mx-0 md:mt-0 md:min-h-0 md:bg-transparent md:px-0 md:pt-0">
+      <MobileSearchHero
+        vehicles={vehicles.map((vehicle) => ({
+          id: vehicle.id,
+          displayName: vehicle.displayName,
+        }))}
+        initialVehicleId={activeVehicle?.id ?? null}
+        displayName={activeVehicle?.displayName ?? null}
+        pageTitle={t("title")}
       />
 
-      <Panel className="mt-6">
+      <div className="hidden md:block">
+        <PageHeader
+          visual="tools"
+          title={t("title")}
+          subtitle={t("subtitle")}
+        />
+      </div>
+
+      <Panel className="relative z-10 -mt-8 md:mt-6">
         <SearchControls
           q={q}
           from={from}
@@ -105,12 +123,13 @@ export default async function SearchPage({
         />
       </Panel>
 
-      <div className="mt-6">
+      <div className="mt-3 md:mt-6">
         {!shouldSearch && (
           <EmptyState
             icon={Search}
             title={t("emptyPrompt.title")}
             hint={t("emptyPrompt.hint")}
+            className="bg-white !px-4 !py-7 shadow-sm md:!px-6 md:!py-12 md:shadow-none"
           />
         )}
 
@@ -136,6 +155,7 @@ export default async function SearchPage({
                 icon={Search}
                 title={t("noResults.title")}
                 hint={t("noResults.hint")}
+                className="bg-white !px-4 !py-7 shadow-sm md:!px-6 md:!py-12 md:shadow-none"
               />
             ) : (
               <>

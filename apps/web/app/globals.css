@@ -177,3 +177,10 @@ body {
     display: none;
   }
 }
+
+/* Mobile search owns its compact page header. */
+@media (max-width: 767px) {
+  body:has(.mobile-search-page) .mobile-app-header {
+    display: none;
+  }
+}

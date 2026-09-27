@@ -49,7 +49,7 @@ SD-Karte geschrieben werden. Neuere Appliance-Versionen enthalten dafür den
 Befehl:
 
 ```bash
-sudo drivechronik-update v0.6.0
+sudo drivechronik-update v0.7.0
 ```
 
 Der Updater:
@@ -75,7 +75,7 @@ sudo install -m 0755 \
   /tmp/drivechronik-update \
   /usr/local/sbin/drivechronik-update
 
-sudo drivechronik-update v0.6.0
+sudo drivechronik-update v0.7.0
 ```
 
 Danach steht `drivechronik-update` auch für spätere DriveChronik-Updates
@@ -128,6 +128,7 @@ Tessie & Co. sind gut, aber: Abo-Kosten, Feature-Überschneidung mit der Tesla-A
 
 **Cockpit & Fahrzeug**
 
+- **Dashboard-Reichweitenkarte** — Umschaltbare Kartenansicht für die letzten Fahrten oder den aktuell erreichbaren Bereich. Die Reichweitenfläche wird straßenbasiert über OSRM angenähert, nutzt die aktuelle Tesla-Restreichweite mit 10 % SoC-Reserve und wird erst beim Öffnen der Reichweitenansicht berechnet.
 - **Mehrere Fahrzeuge** — ein zentraler Fahrzeugumschalter merkt sich das aktive Fahrzeug und verwendet es durchgängig für Dashboard, Kalender, Tagesansicht, Laden, Suche, Routenplaner, Fahrzeugansicht, Insights sowie Monats- und Jahresberichte. Fahrzeuggebundene Exporte enthalten die jeweils passende Fahrzeugidentität.
 - **Start-Dashboard** — kompakte Fahrzeugübersicht mit SoC, Reichweite, Standort, Status, Gesamtkilometern und Reifendruck; Wetter und Live-Uhrzeit im Willkommensbereich; Kennzahlen für heute, diese Woche, letzte Ladung und unklassifizierte Fahrten; die fünf letzten Fahrten als Liste und farbcodierte Routenkarte mit Start-/Zielmarkierungen sowie Wochencharts für Fahrleistung und Energieverbrauch
 - **Fahrzeug-Analytics** — Fahrzeugdaten mit Modell, Kennzeichen und VIN; zusätzlich eine filterbare Nutzungsübersicht für Tag, Monat, Jahr oder Gesamtzeitraum mit Fahrten, Kilometern, Fahrzeit, Energieverbrauch, Durchschnittsverbrauch sowie Ladeanzahl, DC-Ladungen, geladener Energie, Ladezeit und Ladekosten. Ergänzt um geschätzten Batteriezustand und Degradation, prognostizierte 100-%-Reichweite, Kilometerstand, Ladeeffizienz, Vampir-Verlust und Software-/Update-Historie. Zusätzlich zeigt die Fahrzeugansicht eine 30-Tage-Schlaf- und Status-Timeline aus TeslaMate-Zuständen, Fahrten und Ladevorgängen mit Schlafanteil, Datenabdeckung sowie Online-, Offline-, Fahr- und Ladephasen. Zusätzlich steht eine 30-/90-Tage-Reifendruckhistorie mit Einzelverläufen je Reifen, Vergleichsmedian, Gesamtübersicht und relativer Trendanalyse zur Erkennung möglicher schleichender Druckverluste zur Verfügung.

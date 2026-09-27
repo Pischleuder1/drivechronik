@@ -122,7 +122,7 @@ export function DashboardMap({
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
-    if (tracks.length === 0) return;
+    if (tracks.length === 0 && !car) return;
 
     const map = L.map(containerRef.current, {
       scrollWheelZoom: false,

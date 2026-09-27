@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-09-27
+
+### Added
+
+- Added a dashboard range-map view alongside the recent-drive map.
+- Added an on-demand road-based reachable-area calculation using the current vehicle position, Tesla rated remaining range and a 10% SoC reserve.
+- Added OSRM Table-based range sampling with 24 directions and multiple distance rings to approximate the reachable road-network boundary without adding another routing service.
+- Added protection against heavily snapped OSRM destinations so coastlines, water areas and remote points do not distort the displayed range polygon.
+- Added failure-soft range loading with retry support so routing-service errors do not block the dashboard.
+
+
 ## [0.6.0] - 2026-09-26
 
 ### Added

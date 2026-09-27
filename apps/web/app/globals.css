@@ -170,3 +170,10 @@ body {
     display: none;
   }
 }
+
+/* Mobile charging overview owns its compact page header. */
+@media (max-width: 767px) {
+  body:has(.mobile-charges-page) .mobile-app-header {
+    display: none;
+  }
+}

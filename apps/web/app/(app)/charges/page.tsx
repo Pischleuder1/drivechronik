@@ -21,7 +21,10 @@ import { todayInAppTz } from "../../../lib/day";
 import { monthBounds } from "../../../lib/exports/data";
 import { isValidMonthParam } from "../../../lib/exports/params";
 import { getActiveVehicleId } from "../../../lib/activeVehicle";
-import { getChargeSessionsInRange } from "../../../lib/queries";
+import {
+  getChargeSessionsInRange,
+  getVehicles,
+} from "../../../lib/queries";
 import { getChargingAnalytics } from "../../../lib/chargeAnalytics";
 import { getChargeCurve } from "../../../lib/chargeCurve";
 import { EmptyState } from "../../../components/ui/EmptyState";
@@ -32,6 +35,7 @@ import { StatCard } from "../../../components/ui/StatCard";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { ChargeMonthFilters } from "./ChargeMonthFilters";
 import { ChargeCurveComparison } from "./ChargeCurveComparison";
+import { MobileChargesHero } from "./MobileChargesHero";
 
 export const dynamic = "force-dynamic";
 
@@ -89,6 +93,12 @@ export default async function ChargesPage({
       : currentMonthInAppTz();
 
   const vehicleId = await getActiveVehicleId();
+  const vehicles = await getVehicles();
+  const activeVehicle =
+    vehicleId != null
+      ? vehicles.find((vehicle) => vehicle.id === vehicleId) ?? null
+      : null;
+
   const { start, end } = monthBounds(month);
 
   const sessions =
@@ -141,7 +151,88 @@ export default async function ChargesPage({
   );
 
   return (
-    <div className="w-full">
+    <div className="mobile-charges-page -mx-4 -mt-4 min-h-dvh bg-[#f4f6f8] px-4 pt-4 md:mx-0 md:mt-0 md:min-h-0 md:bg-transparent md:px-0 md:pt-0">
+      <div className="md:hidden">
+        <MobileChargesHero
+          vehicles={vehicles.map((vehicle) => ({
+            id: vehicle.id,
+            displayName: vehicle.displayName,
+          }))}
+          initialVehicleId={activeVehicle?.id ?? null}
+          displayName={activeVehicle?.displayName ?? null}
+          pageTitle={t("page.title")}
+        />
+
+        <section className="relative z-10 -mt-8 rounded-[20px] border border-neutral-200 bg-white p-3 shadow-lg shadow-black/10">
+          <div className="flex justify-center">
+            <ChargeMonthFilters month={month} compact />
+          </div>
+
+          <div className="mt-3 flex items-center justify-center gap-2 border-t border-neutral-100 pt-3">
+            <Link
+              href="/charges/analysis"
+              className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-sky-50 px-2.5 text-[11px] font-medium text-sky-700"
+            >
+              <Zap aria-hidden className="h-3.5 w-3.5" />
+              {t("analysis.title")}
+            </Link>
+
+            <Link
+              href="/charges/tesla"
+              className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-neutral-100 px-2.5 text-[11px] font-medium text-neutral-700"
+            >
+              <ReceiptText aria-hidden className="h-3.5 w-3.5" />
+              {t("teslaOverview.open")}
+            </Link>
+          </div>
+        </section>
+
+        <section className="mt-2 grid grid-cols-3 gap-2">
+          <div className="rounded-[18px] border border-neutral-200 bg-white px-3 py-2.5 shadow-sm">
+            <p className="text-[10px] font-medium leading-tight text-neutral-500">
+              {t("page.stats.sessions")}
+            </p>
+
+            <p className="mt-1.5 text-[16px] font-semibold tabular-nums text-neutral-950">
+              {sessions.length}
+            </p>
+
+            <p className="mt-1 text-[9px] text-neutral-400">
+              AC {acCount} · DC {dcCount}
+            </p>
+          </div>
+
+          <div className="rounded-[18px] border border-neutral-200 bg-white px-3 py-2.5 shadow-sm">
+            <p className="text-[10px] font-medium leading-tight text-neutral-500">
+              {t("page.stats.energyAdded")}
+            </p>
+
+            <p className="mt-1.5 text-[16px] font-semibold tabular-nums text-neutral-950">
+              {formatKwh(totalEnergy)}
+            </p>
+          </div>
+
+          <div className="rounded-[18px] border border-neutral-200 bg-white px-3 py-2.5 shadow-sm">
+            <p className="text-[10px] font-medium leading-tight text-neutral-500">
+              {t("page.stats.totalCost")}
+            </p>
+
+            <p className="mt-1.5 truncate text-[16px] font-semibold tabular-nums text-neutral-950">
+              {costsPresent.length > 0
+                ? formatCost(String(totalCost), totalCurrency)
+                : "–"}
+            </p>
+
+            {hasCostsMissing && costsPresent.length > 0 && (
+              <p className="mt-1 truncate text-[9px] text-neutral-400">
+                {t("page.stats.costsPartial")}
+              </p>
+            )}
+          </div>
+        </section>
+      </div>
+
+      <div className="hidden md:block">
       {/* Header */}
       <PageHeader
         visual="charge"
@@ -221,7 +312,11 @@ export default async function ChargesPage({
         />
       </section>
 
-      <ChargeCurveComparison curves={dcCurveComparison} />
+      </div>
+
+      <div className="hidden md:block">
+        <ChargeCurveComparison curves={dcCurveComparison} />
+      </div>
 
       {/* Ladevorgänge */}
       <section className="mt-6">
@@ -253,7 +348,7 @@ export default async function ChargesPage({
               <Link
                 key={s.id}
                 href={`/charges/${s.id}`}
-                className="group relative overflow-hidden rounded-2xl border border-neutral-200 bg-white p-4 pl-5 shadow-sm transition hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md sm:p-5 sm:pl-6 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700"
+                className="group relative overflow-hidden rounded-[18px] border border-neutral-200 bg-white p-3 pl-4 shadow-sm transition hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md md:rounded-2xl md:p-5 md:pl-6 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700"
               >
                 {s.chargerType && (
                   <span
@@ -263,16 +358,16 @@ export default async function ChargesPage({
 
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex min-w-0 items-start gap-3">
-                    <span className="mt-0.5 shrink-0 rounded-xl bg-neutral-100 p-2 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
+                    <span className="mt-0.5 shrink-0 rounded-xl bg-neutral-100 p-1.5 text-neutral-600 md:p-2 dark:bg-neutral-800 dark:text-neutral-300">
                       <Home className="h-4 w-4" />
                     </span>
 
                     <div className="min-w-0">
-                      <p className="truncate text-base font-semibold text-neutral-900 dark:text-neutral-100">
+                      <p className="truncate text-[15px] font-semibold text-neutral-900 md:text-base dark:text-neutral-100">
                         {placeLabel}
                       </p>
 
-                      <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
+                      <p className="mt-0.5 text-[11px] text-neutral-500 md:text-xs dark:text-neutral-400">
                         {formatDateCell(s.startTime)} ·{" "}
                         {formatTimeRange(
                           s.startTime,
@@ -298,7 +393,10 @@ export default async function ChargesPage({
                   </div>
                 </div>
 
-                <MetricGrid columns={5} className="mt-4">
+                <MetricGrid
+                  columns={5}
+                  className="mt-3 [&>div]:px-2.5 [&>div]:py-2 [&_dt]:text-[11px] [&_dd]:text-[14px] md:mt-4 md:[&>div]:px-3 md:[&>div]:py-2.5 md:[&_dt]:text-xs md:[&_dd]:text-base"
+                >
                   <MetricItem
                     label={t("page.session.energy")}
                     icon={
@@ -368,6 +466,34 @@ export default async function ChargesPage({
           })}
         </div>
       </section>
+      <details
+        open
+        className="group mt-4 overflow-hidden rounded-[18px] border border-neutral-200 bg-white shadow-sm md:hidden"
+      >
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3.5 [&::-webkit-details-marker]:hidden">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-neutral-900">
+              {t("curveComparison.title")}
+            </p>
+
+            <p className="mt-0.5 text-[11px] leading-snug text-neutral-500">
+              {t("analysis.subtitle")}
+            </p>
+          </div>
+
+          <span
+            aria-hidden
+            className="shrink-0 text-[22px] leading-none text-neutral-400 transition-transform group-open:rotate-90"
+          >
+            ›
+          </span>
+        </summary>
+
+        <div className="border-t border-neutral-100 [&>section]:!mt-0 [&>section]:!rounded-none [&>section]:!border-0 [&>section]:!shadow-none [&>section>div:first-child>div:first-child]:hidden">
+          <ChargeCurveComparison curves={dcCurveComparison} />
+        </div>
+      </details>
+
     </div>
   );
 }

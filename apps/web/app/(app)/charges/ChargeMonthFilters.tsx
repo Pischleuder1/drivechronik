@@ -12,7 +12,13 @@ function shiftMonth(month: string, delta: number): string {
   return `${yy}-${String(mm).padStart(2, "0")}`;
 }
 
-export function ChargeMonthFilters({ month }: { month: string }) {
+export function ChargeMonthFilters({
+  month,
+  compact = false,
+}: {
+  month: string;
+  compact?: boolean;
+}) {
   const router = useRouter();
   const t = useTranslations("charges");
 
@@ -26,7 +32,11 @@ export function ChargeMonthFilters({ month }: { month: string }) {
         type="button"
         aria-label={t("filters.prevMonth")}
         onClick={() => goTo(shiftMonth(month, -1))}
-        className={buttonClasses("secondary", "md", "!h-10 !w-10 !p-0")}
+        className={buttonClasses(
+          "secondary",
+          compact ? "sm" : "md",
+          compact ? "!h-8 !w-8 !p-0" : "!h-10 !w-10 !p-0",
+        )}
       >
         <ChevronLeft aria-hidden size={18} />
       </button>
@@ -37,13 +47,21 @@ export function ChargeMonthFilters({ month }: { month: string }) {
         onChange={(e) => {
           if (e.target.value) goTo(e.target.value);
         }}
-        className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:focus-visible:ring-white dark:focus-visible:ring-offset-neutral-950"
+        className={
+          compact
+            ? "min-w-0 w-[180px] rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-xs text-neutral-900 outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            : "rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:focus-visible:ring-white dark:focus-visible:ring-offset-neutral-950"
+        }
       />
       <button
         type="button"
         aria-label={t("filters.nextMonth")}
         onClick={() => goTo(shiftMonth(month, 1))}
-        className={buttonClasses("secondary", "md", "!h-10 !w-10 !p-0")}
+        className={buttonClasses(
+          "secondary",
+          compact ? "sm" : "md",
+          compact ? "!h-8 !w-8 !p-0" : "!h-10 !w-10 !p-0",
+        )}
       >
         <ChevronRight aria-hidden size={18} />
       </button>

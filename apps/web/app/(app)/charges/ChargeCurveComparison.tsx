@@ -225,7 +225,7 @@ export function ChargeCurveComparison({ curves }: Props) {
           <button
             type="button"
             onClick={() => setLimit(5)}
-            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+            className={`rounded-lg px-2 py-1 text-[11px] font-medium transition md:px-3 md:py-1.5 md:text-sm ${
               limit === 5
                 ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
                 : "text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
@@ -238,7 +238,7 @@ export function ChargeCurveComparison({ curves }: Props) {
             type="button"
             onClick={() => setLimit(10)}
             disabled={curves.length <= 5}
-            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-40 ${
+            className={`rounded-lg px-2 py-1 text-[11px] font-medium transition disabled:cursor-not-allowed disabled:opacity-40 md:px-3 md:py-1.5 md:text-sm ${
               limit === 10
                 ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
                 : "text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
@@ -253,7 +253,7 @@ export function ChargeCurveComparison({ curves }: Props) {
         <div className="overflow-x-auto">
           <svg
             viewBox={`0 0 ${width} ${height}`}
-            className="min-w-[720px] w-full"
+            className="w-full md:min-w-[720px]"
             role="img"
             aria-label={t("curveComparison.chartAriaLabel")}
           >
@@ -271,7 +271,7 @@ export function ChargeCurveComparison({ curves }: Props) {
                   x={margin.left - 10}
                   y={y(power) + 4}
                   textAnchor="end"
-                  className="fill-neutral-500 text-[11px] dark:fill-neutral-400"
+                  className="fill-neutral-500 text-[18px] md:text-[11px] dark:fill-neutral-400"
                 >
                   {Math.round(power)} kW
                 </text>
@@ -291,7 +291,7 @@ export function ChargeCurveComparison({ curves }: Props) {
                   x={x(soc)}
                   y={height - 14}
                   textAnchor="middle"
-                  className="fill-neutral-500 text-[11px] dark:fill-neutral-400"
+                  className="fill-neutral-500 text-[18px] md:text-[11px] dark:fill-neutral-400"
                 >
                   {soc} %
                 </text>

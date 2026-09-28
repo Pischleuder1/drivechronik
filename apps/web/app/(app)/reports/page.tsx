@@ -28,11 +28,13 @@ import { ReportFilters } from "./ReportFilters";
 
 import { NoVehicleState } from "../../../components/NoVehicleState";
 import { getActiveVehicle } from "../../../lib/activeVehicle";
+import { getVehicles } from "../../../lib/queries";
 import {
   getMonthSealHistory,
   getMonthSealStatus,
 } from "../../../lib/monthSealStatus";
 import { MonthSealCard } from "./MonthSealCard";
+import { MobileReportsHero } from "./MobileReportsHero";
 
 export const dynamic = "force-dynamic";
 
@@ -104,18 +106,32 @@ export default async function ReportsPage({
   const month = sp.month && isValidMonthParam(sp.month) ? sp.month : currentMonthInAppTz();
   const selected = parseSelected(sp.classification);
 
-  const activeVehicle = await getActiveVehicle();
+  const [activeVehicle, vehicles] = await Promise.all([
+    getActiveVehicle(),
+    getVehicles(),
+  ]);
 
   if (!activeVehicle) {
     return (
-      <div className="w-full">
-        <PageHeader
-          visual="document"
+      <div className="mobile-reports-page -mx-4 -mt-4 min-h-dvh bg-[#f4f6f8] px-4 pt-4 md:mx-0 md:mt-0 md:min-h-0 md:bg-transparent md:px-0 md:pt-0">
+        <MobileReportsHero
+          vehicles={vehicles.map((vehicle) => ({
+            id: vehicle.id,
+            displayName: vehicle.displayName,
+          }))}
+          initialVehicleId={null}
           title={t("title")}
-          subtitle={t("subtitle")}
         />
 
-        <Panel className="mt-4" padding="sm">
+        <div className="hidden md:block">
+          <PageHeader
+            visual="document"
+            title={t("title")}
+            subtitle={t("subtitle")}
+          />
+        </div>
+
+        <Panel className="relative z-10 -mt-5 md:mt-4" padding="sm">
           <ReportFilters month={month} selected={selected} />
         </Panel>
 
@@ -154,14 +170,25 @@ export default async function ReportsPage({
   const exportQuery = `?classification=${selected.join(",")}&vehicle=${activeVehicle.id}`;
 
   return (
-    <div className="w-full">
-      <PageHeader
-        visual="document"
+    <div className="mobile-reports-page -mx-4 -mt-4 min-h-dvh bg-[#f4f6f8] px-4 pt-4 md:mx-0 md:mt-0 md:min-h-0 md:bg-transparent md:px-0 md:pt-0">
+      <MobileReportsHero
+        vehicles={vehicles.map((vehicle) => ({
+          id: vehicle.id,
+          displayName: vehicle.displayName,
+        }))}
+        initialVehicleId={activeVehicle.id}
         title={t("title")}
-        subtitle={t("subtitle")}
       />
 
-      <Panel className="mt-4" padding="sm">
+      <div className="hidden md:block">
+        <PageHeader
+          visual="document"
+          title={t("title")}
+          subtitle={t("subtitle")}
+        />
+      </div>
+
+      <Panel className="relative z-10 -mt-5 md:mt-4" padding="sm">
         <div className="space-y-3">
           <ReportFilters month={month} selected={selected} />
 
@@ -213,7 +240,7 @@ export default async function ReportsPage({
       </Panel>
 
 
-      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mobile-report-kpis mt-4 grid grid-cols-2 gap-2 md:gap-3 lg:grid-cols-3 [&>*:last-child]:col-span-2 lg:[&>*:last-child]:col-span-1">
         {ALL_CLASSIFICATIONS.filter((c) => selected.includes(c)).map((c) => {
           const bucket = report.byClassification[c];
 
@@ -250,7 +277,7 @@ export default async function ReportsPage({
           valueClassName="mt-0.5 text-base font-semibold tracking-tight tabular-nums"
           label={t("total")}
           value={formatKm(report.totals.distanceKm)}
-          tone="violet"
+          tone="sky"
           icon={<Route className="h-4 w-4" />}
           footer={
             <p className="text-xs text-neutral-500 dark:text-neutral-400">
@@ -269,7 +296,7 @@ export default async function ReportsPage({
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             }).format(report.businessReimbursement.amountEur)}
-            tone="emerald"
+            tone="cyan"
             icon={<Euro className="h-4 w-4" />}
             footer={
               <div>
@@ -306,7 +333,63 @@ export default async function ReportsPage({
         </p>
       )}
 
-      <div className="mt-4 overflow-x-auto rounded-3xl border border-neutral-200/80 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+      <div className="mt-4 space-y-2 md:hidden">
+        {report.rows.length === 0 ? (
+          <div className="rounded-2xl border border-neutral-200 bg-white px-4 py-8 text-center text-sm text-neutral-500 shadow-sm dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400">
+            {t("table.empty")}
+          </div>
+        ) : (
+          report.rows.map((row) => (
+            <article
+              key={row.id}
+              className="rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <Link
+                    href={`/drives/${row.id}`}
+                    className="text-[14px] font-semibold text-neutral-900 hover:underline dark:text-neutral-100"
+                  >
+                    {formatDateCell(row.date)}
+                  </Link>
+
+                  <p className="mt-0.5 text-[12px] tabular-nums text-neutral-500 dark:text-neutral-400">
+                    {formatTime(row.startTime, row.meta.timeZone)}
+                    {row.endTime
+                      ? ` – ${formatTime(row.endTime, row.meta.timeZone)}`
+                      : ""}
+                  </p>
+                </div>
+
+                <div className="shrink-0 text-right">
+                  <p className="text-[15px] font-semibold tabular-nums text-neutral-900 dark:text-neutral-100">
+                    {row.distanceKm != null ? formatKm(row.distanceKm) : "–"}
+                  </p>
+
+                  <div className="mt-1">
+                    <StatusBadge tone={classificationTone(row.classification)}>
+                      {tc(`classification.${row.classification}`)}
+                    </StatusBadge>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-2.5 rounded-xl bg-neutral-50 px-3 py-2 dark:bg-neutral-950">
+                <p className="truncate text-[13px] font-medium text-neutral-800 dark:text-neutral-200">
+                  {row.startPlace}
+                </p>
+
+                <p className="mt-0.5 flex items-center gap-1.5 text-[13px] text-neutral-600 dark:text-neutral-300">
+                  <span className="text-blue-500">→</span>
+                  <span className="truncate">{row.endPlace}</span>
+                </p>
+              </div>
+            </article>
+          ))
+        )}
+      </div>
+
+      <div className="mt-4 hidden overflow-x-auto rounded-3xl border border-neutral-200/80 bg-white shadow-sm md:block dark:border-neutral-800 dark:bg-neutral-900">
         <table className="w-full text-sm">
           <thead className="border-b border-neutral-200 bg-neutral-50 text-left text-xs font-semibold text-neutral-500 dark:border-neutral-800 dark:bg-neutral-800/60 dark:text-neutral-400">
             <tr>

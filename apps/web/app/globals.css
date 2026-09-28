@@ -263,3 +263,32 @@ body {
     display: none;
   }
 }
+
+/* Mobile reports own their compact page header. */
+@media (max-width: 767px) {
+  body:has(.mobile-reports-page) .mobile-app-header {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .mobile-report-kpis > * {
+    min-height: 0 !important;
+    padding: 0.75rem !important;
+  }
+
+  .mobile-report-kpis > * p {
+    line-height: 1.25;
+  }
+}
+
+@media (max-width: 767px) {
+  .mobile-year-report-kpis > * {
+    min-height: 0 !important;
+    padding: 0.75rem !important;
+  }
+
+  .mobile-year-report-kpis > *:last-child {
+    grid-column: 1 / -1;
+  }
+}

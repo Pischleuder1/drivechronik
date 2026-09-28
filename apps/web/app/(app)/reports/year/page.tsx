@@ -20,6 +20,8 @@ import { YearReportFilters } from "./YearReportFilters";
 
 import { NoVehicleState } from "../../../../components/NoVehicleState";
 import { getActiveVehicle } from "../../../../lib/activeVehicle";
+import { getVehicles } from "../../../../lib/queries";
+import { MobileReportsHero } from "../MobileReportsHero";
 
 export const dynamic = "force-dynamic";
 
@@ -70,11 +72,23 @@ export default async function BusinessYearReportPage({
 
   const classificationQuery = selected.join(",");
 
-  const activeVehicle = await getActiveVehicle();
+  const [activeVehicle, vehicles] = await Promise.all([
+    getActiveVehicle(),
+    getVehicles(),
+  ]);
 
   if (!activeVehicle) {
     return (
-      <div className="w-full">
+      <div className="mobile-reports-page -mx-4 -mt-4 min-h-dvh bg-[#f4f6f8] px-4 pt-4 md:mx-0 md:mt-0 md:min-h-0 md:bg-transparent md:px-0 md:pt-0">
+        <MobileReportsHero
+          vehicles={vehicles.map((vehicle) => ({
+            id: vehicle.id,
+            displayName: vehicle.displayName,
+          }))}
+          initialVehicleId={null}
+          title={t("year.open")}
+        />
+
         <Link
           href={`/reports?month=${year}-01&classification=${classificationQuery}`}
           className={buttonClasses("ghost", "sm")}
@@ -83,7 +97,8 @@ export default async function BusinessYearReportPage({
           {t("year.backToMonthly")}
         </Link>
 
-        <PageHeader
+        <div className="hidden md:block">
+          <PageHeader
           visual="document"
           className="mt-4"
           title={t(
@@ -101,9 +116,10 @@ export default async function BusinessYearReportPage({
                 ? "year.privateSubtitle"
                 : "year.allSubtitle",
           )}
-        />
+          />
+        </div>
 
-        <Panel className="mt-4" padding="sm">
+        <Panel className="relative z-10 mt-3 md:mt-4" padding="sm">
           <YearReportFilters year={year} scope={scope} />
         </Panel>
 
@@ -142,7 +158,16 @@ export default async function BusinessYearReportPage({
   const rate = currency.format(report.rateEurPerKm);
 
   return (
-    <div className="w-full">
+    <div className="mobile-reports-page -mx-4 -mt-4 min-h-dvh bg-[#f4f6f8] px-4 pt-4 md:mx-0 md:mt-0 md:min-h-0 md:bg-transparent md:px-0 md:pt-0">
+      <MobileReportsHero
+        vehicles={vehicles.map((vehicle) => ({
+          id: vehicle.id,
+          displayName: vehicle.displayName,
+        }))}
+        initialVehicleId={activeVehicle.id}
+        title={t("year.open")}
+      />
+
       <Link
         href={`/reports?month=${year}-01&classification=${classificationQuery}`}
         className={buttonClasses("ghost", "sm")}
@@ -151,7 +176,8 @@ export default async function BusinessYearReportPage({
         {t("year.backToMonthly")}
       </Link>
 
-      <PageHeader
+      <div className="hidden md:block">
+        <PageHeader
         visual="document"
         className="mt-4"
         title={t(
@@ -169,9 +195,10 @@ export default async function BusinessYearReportPage({
                 ? "year.privateSubtitle"
                 : "year.allSubtitle",
           )}
-      />
+        />
+      </div>
 
-      <Panel className="mt-4" padding="sm">
+      <Panel className="relative z-10 mt-3 md:mt-4" padding="sm">
         <YearReportFilters year={year} scope={scope} />
       </Panel>
 
@@ -193,7 +220,7 @@ export default async function BusinessYearReportPage({
         </a>
       </div>
 
-      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className="mobile-year-report-kpis mt-4 grid grid-cols-2 gap-2 md:gap-3 sm:grid-cols-3">
         <StatCard
           className="p-3"
           valueClassName="mt-0.5 text-base font-semibold tracking-tight tabular-nums"
@@ -226,7 +253,7 @@ export default async function BusinessYearReportPage({
               </span>
             </>
           }
-          tone="amber"
+          tone="sky"
           icon={<Gauge className="h-4 w-4" />}
         />
 
@@ -235,7 +262,7 @@ export default async function BusinessYearReportPage({
           valueClassName="mt-0.5 text-base font-semibold tracking-tight tabular-nums"
           label={t("year.totalAmount")}
           value={currency.format(report.totals.amountEur)}
-          tone="emerald"
+          tone="cyan"
           icon={<ReceiptText className="h-4 w-4" />}
         />
       </div>

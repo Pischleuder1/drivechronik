@@ -321,3 +321,11 @@ body {
     display: none;
   }
 }
+
+/* Mobile drive/charge details own their page header. */
+@media (max-width: 767px) {
+  body:has(.mobile-drive-detail-page) .mobile-app-header,
+  body:has(.mobile-charge-detail-page) .mobile-app-header {
+    display: none;
+  }
+}

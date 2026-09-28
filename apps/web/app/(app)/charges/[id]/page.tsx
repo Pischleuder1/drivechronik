@@ -19,7 +19,9 @@ import {
   getAllTags,
   getAuditLogFor,
   getChargeSessionById,
+  getVehicles,
 } from "../../../../lib/queries";
+import { getActiveVehicleId } from "../../../../lib/activeVehicle";
 import {
   getChargeCurve,
   MIN_CHARGE_CURVE_POINTS,
@@ -32,6 +34,7 @@ import { ChargeMapLoader } from "./ChargeMapLoader";
 import { PageHeader } from "../../../../components/ui/PageHeader";
 import { Panel } from "../../../../components/ui/Panel";
 import { StatusBadge } from "../../../../components/ui/StatusBadge";
+import { MobileRecordDetailHero } from "../../../../components/MobileRecordDetailHero";
 
 export const dynamic = "force-dynamic";
 
@@ -176,12 +179,16 @@ export default async function ChargeDetailPage({
     curvePoints,
     costMeta,
     teslaChargingRecord,
+    vehicles,
+    activeVehicleId,
   ] = await Promise.all([
     getAuditLogFor("charge_session", chargeId),
     getAllTags(),
     getChargeCurve(chargeId),
     getChargeCostMeta(chargeId),
     getTeslaChargingRecord(chargeId),
+    getVehicles(),
+    getActiveVehicleId(),
   ]);
 
   const placeLabel = formatPlaceLabel(charge.placeName, charge.address, charge.lat, charge.lon);
@@ -240,30 +247,23 @@ export default async function ChargeDetailPage({
         : teslaRawStatus ?? "—";
 
   return (
-    <div className="w-full">
-      <Link
-        href="/charges"
-        className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
-      >
-        <ChevronLeft aria-hidden size={16} />
-        {tCommon("actions.back")}
-      </Link>
-
-      <PageHeader
-        visual="charge"
-        className="mt-3"
+    <div className="mobile-charge-detail-page -mx-4 -mt-4 min-h-dvh bg-[#f4f6f8] px-4 pt-4 md:mx-0 md:mt-0 md:min-h-0 md:bg-transparent md:px-0 md:pt-0">
+      <MobileRecordDetailHero
+        vehicles={vehicles.map((vehicle) => ({
+          id: vehicle.id,
+          displayName: vehicle.displayName,
+        }))}
+        initialVehicleId={activeVehicleId}
         title={placeLabel}
-        subtitle={
-          <>
-            {formatLongDate(dateStr, locale)} ·{" "}
-            {formatTimeRange(
-              charge.startTime,
-              charge.endTime,
-              APP_TIMEZONE,
-            )}
-          </>
-        }
-        actions={
+        subtitle={`${formatLongDate(dateStr, locale)} · ${formatTimeRange(
+          charge.startTime,
+          charge.endTime,
+          APP_TIMEZONE,
+        )}`}
+        backHref="/charges"
+        backLabel={tCommon("actions.back")}
+        mode="charge"
+        badge={
           charge.chargerType ? (
             <StatusBadge
               tone={charge.chargerType === "dc" ? "violet" : "sky"}
@@ -273,6 +273,41 @@ export default async function ChargeDetailPage({
           ) : undefined
         }
       />
+
+      <div className="hidden md:block">
+        <Link
+          href="/charges"
+          className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
+        >
+          <ChevronLeft aria-hidden size={16} />
+          {tCommon("actions.back")}
+        </Link>
+
+        <PageHeader
+          visual="charge"
+          className="mt-3"
+          title={placeLabel}
+          subtitle={
+            <>
+              {formatLongDate(dateStr, locale)} ·{" "}
+              {formatTimeRange(
+                charge.startTime,
+                charge.endTime,
+                APP_TIMEZONE,
+              )}
+            </>
+          }
+          actions={
+            charge.chargerType ? (
+              <StatusBadge
+                tone={charge.chargerType === "dc" ? "violet" : "sky"}
+              >
+                {CHARGER_TYPE_LABEL[charge.chargerType]}
+              </StatusBadge>
+            ) : undefined
+          }
+        />
+      </div>
 
       <Link
         href={`/day/${dateStr}`}

@@ -24,7 +24,9 @@ import {
   getAllTags,
   getAuditLogFor,
   getDriveById,
+  getVehicles,
 } from "../../../../lib/queries";
+import { getActiveVehicleId } from "../../../../lib/activeVehicle";
 import { getRoutePoints } from "../../../../lib/driveRoute";
 import {
   type Classification,
@@ -45,6 +47,7 @@ import { AuditLogList } from "./AuditLogList";
 import { PlaceCorrection } from "./PlaceCorrection";
 import { DriveMapLoader } from "./DriveMapLoader";
 import { DriveChart } from "./DriveChart";
+import { MobileRecordDetailHero } from "../../../../components/MobileRecordDetailHero";
 
 // Ab diesem Anteil befüllter elevation_m-Werte gilt das Höhenprofil als nutzbar
 // (die Chart-Komponente wendet dieselbe Schwelle intern an); darunter zeigen wir
@@ -88,11 +91,20 @@ export default async function DriveDetailPage({
     getLocale(),
   ]);
 
-  const [auditEntries, allTags, allPlaces, route] = await Promise.all([
+  const [
+    auditEntries,
+    allTags,
+    allPlaces,
+    route,
+    vehicles,
+    activeVehicleId,
+  ] = await Promise.all([
     getAuditLogFor("drive", driveId),
     getAllTags(),
     getAllPlacesLite(),
     getRoutePoints(driveId),
+    getVehicles(),
+    getActiveVehicleId(),
   ]);
 
   const from = formatPlaceLabel(
@@ -242,30 +254,54 @@ export default async function DriveDetailPage({
   kennzahlen.push([t("metrics.endAddress"), drive.endAddress ?? "—"]);
 
   return (
-    <div className="w-full">
-      <Link
-        href="/day"
-        className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
-      >
-        <ChevronLeft aria-hidden size={16} />
-        {tCommon("actions.back")}
-      </Link>
-
-      <PageHeader
-        visual="gps"
-        className="mt-3"
+    <div className="mobile-drive-detail-page -mx-4 -mt-4 min-h-dvh bg-[#f4f6f8] px-4 pt-4 md:mx-0 md:mt-0 md:min-h-0 md:bg-transparent md:px-0 md:pt-0">
+      <MobileRecordDetailHero
+        vehicles={vehicles.map((vehicle) => ({
+          id: vehicle.id,
+          displayName: vehicle.displayName,
+        }))}
+        initialVehicleId={activeVehicleId}
         title={`${from} → ${to}`}
         subtitle={`${formatLongDate(dateStr, locale)} · ${formatTimeRange(
           drive.startTime,
           drive.endTime,
           APP_TIMEZONE,
         )}`}
-        eyebrow={
+        backHref="/day"
+        backLabel={tCommon("actions.back")}
+        mode="drive"
+        badge={
           <StatusBadge tone={classificationTone(classification)}>
             {tCommon(`classification.${classification}`)}
           </StatusBadge>
         }
       />
+
+      <div className="hidden md:block">
+        <Link
+          href="/day"
+          className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
+        >
+          <ChevronLeft aria-hidden size={16} />
+          {tCommon("actions.back")}
+        </Link>
+
+        <PageHeader
+          visual="gps"
+          className="mt-3"
+          title={`${from} → ${to}`}
+          subtitle={`${formatLongDate(dateStr, locale)} · ${formatTimeRange(
+            drive.startTime,
+            drive.endTime,
+            APP_TIMEZONE,
+          )}`}
+          eyebrow={
+            <StatusBadge tone={classificationTone(classification)}>
+              {tCommon(`classification.${classification}`)}
+            </StatusBadge>
+          }
+        />
+      </div>
 
       <Link
         href={`/day/${dateStr}`}

@@ -635,6 +635,7 @@ export async function YearlyInsightsContent({
               </span>
 
               <Link
+                scroll={false}
                 href={yearHref(
                   year,
                   "all",
@@ -649,6 +650,7 @@ export async function YearlyInsightsContent({
               </Link>
 
               <Link
+                scroll={false}
                 href={yearHref(
                   year,
                   "business",
@@ -663,6 +665,7 @@ export async function YearlyInsightsContent({
               </Link>
 
               <Link
+                scroll={false}
                 href={yearHref(
                   year,
                   "customers",

@@ -95,7 +95,7 @@ export function ScatterBinnedChart({
       <svg
         ref={svgRef}
         viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
-        className="h-52 w-full touch-none"
+        className="h-44 w-full touch-none md:h-52"
         role="img"
         aria-label={ariaLabel}
         onMouseLeave={() => setHover(null)}
@@ -226,6 +226,9 @@ export function MonthChart({ months }: { months: MonthDatum[] }) {
   const t = useTranslations("insights");
   const [hover, setHover] = useState<number | null>(null);
 
+  const shortMonthLabel = (label: string) =>
+    label.replace(".", "").trim().slice(0, 3);
+
   const kmMax = niceMax(Math.max(...months.map((m) => m.km), 1), 100);
   const consVals = months.map((m) => m.meanConsumption);
   const consMin = niceMin(Math.min(...consVals) - 10, 20);
@@ -249,7 +252,7 @@ export function MonthChart({ months }: { months: MonthDatum[] }) {
     <div>
       <svg
         viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
-        className="h-52 w-full touch-none"
+        className="h-44 w-full touch-none md:h-52"
         role="img"
         aria-label={t("charts.monthChartAriaLabel")}
         onMouseLeave={() => setHover(null)}
@@ -347,7 +350,7 @@ export function MonthChart({ months }: { months: MonthDatum[] }) {
             textAnchor="middle"
             className="fill-neutral-500 text-[13px] dark:fill-neutral-400"
           >
-            {m.label}
+            {shortMonthLabel(m.label)}
           </text>
         ))}
       </svg>
@@ -395,7 +398,7 @@ export function WeekdayChart({ days }: { days: WeekdayDatum[] }) {
     <div>
       <svg
         viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
-        className="h-52 w-full touch-none"
+        className="h-44 w-full touch-none md:h-52"
         role="img"
         aria-label={t("charts.weekdayChartAriaLabel")}
         onMouseLeave={() => setHover(null)}

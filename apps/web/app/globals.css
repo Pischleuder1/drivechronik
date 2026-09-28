@@ -256,3 +256,10 @@ body {
     line-height: 1.25;
   }
 }
+
+/* Mobile insights views own their compact page header. */
+@media (max-width: 767px) {
+  body:has(.mobile-insights-page) .mobile-app-header {
+    display: none;
+  }
+}

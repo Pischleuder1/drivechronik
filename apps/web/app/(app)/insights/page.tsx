@@ -18,6 +18,7 @@ import { APP_TIMEZONE } from "../../../lib/config";
 import { toIntlLocale } from "../../../lib/i18nLocale";
 import { getInsightsData, type InsightDrive } from "../../../lib/insights";
 import { getActiveVehicle } from "../../../lib/activeVehicle";
+import { getVehicles } from "../../../lib/queries";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { Panel } from "../../../components/ui/Panel";
 import { PageHeader } from "../../../components/ui/PageHeader";
@@ -32,6 +33,7 @@ import {
 import { InsightsViewTabs } from "./InsightsViewTabs";
 import { RouteHeatmapContent } from "./RouteHeatmapContent";
 import { YearlyInsightsContent } from "./yearly/YearlyInsightsContent";
+import { MobileInsightsHero } from "./MobileInsightsHero";
 
 import { NoVehicleState } from "../../../components/NoVehicleState";
 
@@ -157,14 +159,30 @@ export default async function InsightsPage({
     );
   }
 
+  const vehicles = await getVehicles();
+
+  const mobileHero = (
+    <MobileInsightsHero
+      vehicles={vehicles.map((vehicle) => ({
+        id: vehicle.id,
+        displayName: vehicle.displayName,
+      }))}
+      initialVehicleId={current.id}
+    />
+  );
+
   if (activeView === "routes") {
     return (
-      <div className="w-full">
-        <PageHeader
-          visual="stats"
-          title={t("routeHeatmap.title")}
-          subtitle={t("routeHeatmap.subtitle")}
-        />
+      <div className="mobile-insights-page -mx-4 -mt-4 min-h-dvh bg-[#f4f6f8] px-4 pt-4 md:mx-0 md:mt-0 md:min-h-0 md:bg-transparent md:px-0 md:pt-0">
+        {mobileHero}
+
+        <div className="hidden md:block">
+          <PageHeader
+            visual="stats"
+            title={t("routeHeatmap.title")}
+            subtitle={t("routeHeatmap.subtitle")}
+          />
+        </div>
 
         <InsightsViewTabs
           active="routes"
@@ -184,12 +202,16 @@ export default async function InsightsPage({
 
   if (activeView === "yearly") {
     return (
-      <div className="w-full">
-        <PageHeader
-          visual="stats"
-          title={t("title")}
-          subtitle={t("yearly.subtitle")}
-        />
+      <div className="mobile-insights-page -mx-4 -mt-4 min-h-dvh bg-[#f4f6f8] px-4 pt-4 md:mx-0 md:mt-0 md:min-h-0 md:bg-transparent md:px-0 md:pt-0">
+        {mobileHero}
+
+        <div className="hidden md:block">
+          <PageHeader
+            visual="stats"
+            title={t("title")}
+            subtitle={t("yearly.subtitle")}
+          />
+        </div>
 
         <InsightsViewTabs
           active="yearly"
@@ -293,22 +315,26 @@ export default async function InsightsPage({
   const anomalyRows = consumptionAnomalies.slice(0, 8);
 
   return (
-    <div className="w-full">
-      <PageHeader
-        visual="stats"
-        title={t("title")}
-        subtitle={
-          total > 0 && firstDriveDate
-            ? t("subtitleWithData", {
-                count: total,
-                date: formatFirstDate(firstDriveDate, locale),
-              })
-            : t("subtitleNoData")
-        }
-        actions={
-          <>          </>
-        }
-      />
+    <div className="mobile-insights-page -mx-4 -mt-4 min-h-dvh bg-[#f4f6f8] px-4 pt-4 md:mx-0 md:mt-0 md:min-h-0 md:bg-transparent md:px-0 md:pt-0">
+      {mobileHero}
+
+      <div className="hidden md:block">
+        <PageHeader
+          visual="stats"
+          title={t("title")}
+          subtitle={
+            total > 0 && firstDriveDate
+              ? t("subtitleWithData", {
+                  count: total,
+                  date: formatFirstDate(firstDriveDate, locale),
+                })
+              : t("subtitleNoData")
+          }
+          actions={
+            <>          </>
+          }
+        />
+      </div>
 
       <InsightsViewTabs
         active="analysis"
@@ -327,7 +353,7 @@ export default async function InsightsPage({
         </div>
       )}
 
-      <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-2">
+      <div className="mt-3 grid grid-cols-1 gap-3 md:mt-6 md:gap-5 lg:grid-cols-2">
         {/* 1. Verbrauch vs. Außentemperatur */}
         <Panel
           className="relative overflow-hidden rounded-3xl transition-all hover:-translate-y-0.5 hover:shadow-md before:absolute before:inset-x-0 before:top-0 before:h-1 before:bg-sky-500"
@@ -350,7 +376,7 @@ export default async function InsightsPage({
 
         {/* 2. Verbrauch vs. Durchschnittstempo */}
         <Panel
-          className="relative overflow-hidden rounded-3xl transition-all hover:-translate-y-0.5 hover:shadow-md before:absolute before:inset-x-0 before:top-0 before:h-1 before:bg-indigo-500"
+          className="relative overflow-hidden rounded-3xl transition-all hover:-translate-y-0.5 hover:shadow-md before:absolute before:inset-x-0 before:top-0 before:h-1 before:bg-blue-500"
           title={t("cards.speed.title")}
           subtitle={t("cards.speed.subtitle")}
         >
@@ -370,7 +396,7 @@ export default async function InsightsPage({
 
         {/* 3. Monatsverlauf */}
         <Panel
-          className="relative overflow-hidden rounded-3xl transition-all hover:-translate-y-0.5 hover:shadow-md before:absolute before:inset-x-0 before:top-0 before:h-1 before:bg-emerald-500"
+          className="relative overflow-hidden rounded-3xl transition-all hover:-translate-y-0.5 hover:shadow-md before:absolute before:inset-x-0 before:top-0 before:h-1 before:bg-cyan-500"
           title={t("cards.month.title")}
           subtitle={t("cards.month.subtitle")}
         >
@@ -383,7 +409,7 @@ export default async function InsightsPage({
 
         {/* 4. Wochentagsmuster */}
         <Panel
-          className="relative overflow-hidden rounded-3xl transition-all hover:-translate-y-0.5 hover:shadow-md before:absolute before:inset-x-0 before:top-0 before:h-1 before:bg-amber-500"
+          className="relative overflow-hidden rounded-3xl transition-all hover:-translate-y-0.5 hover:shadow-md before:absolute before:inset-x-0 before:top-0 before:h-1 before:bg-sky-400"
           title={t("cards.weekday.title")}
           subtitle={t("cards.weekday.subtitle")}
         >
@@ -397,7 +423,7 @@ export default async function InsightsPage({
         {/* 5. Kurzstrecken-Anteil (nur bei relevantem Anteil) */}
         {showShortTrip && (
           <Panel
-            className="relative overflow-hidden rounded-3xl transition-all hover:-translate-y-0.5 hover:shadow-md before:absolute before:inset-x-0 before:top-0 before:h-1 before:bg-orange-500"
+            className="relative overflow-hidden rounded-3xl transition-all hover:-translate-y-0.5 hover:shadow-md before:absolute before:inset-x-0 before:top-0 before:h-1 before:bg-blue-400"
             title={t("cards.shortTrip.title")}
             subtitle={t("cards.shortTrip.subtitle")}
           >
@@ -414,7 +440,7 @@ export default async function InsightsPage({
 
       {enoughForPage && (
         <Panel
-          className="mt-5 relative overflow-hidden rounded-3xl before:absolute before:inset-x-0 before:top-0 before:h-1 before:bg-slate-500"
+          className="mt-5 relative overflow-hidden rounded-3xl before:absolute before:inset-x-0 before:top-0 before:h-1 before:bg-sky-500"
           title={t("cards.anomalies.title")}
           subtitle={t("cards.anomalies.subtitle")}
         >

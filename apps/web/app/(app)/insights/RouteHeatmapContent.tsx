@@ -136,7 +136,7 @@ export async function RouteHeatmapContent({
   return (
     <div className="mt-6">
       <div className="flex flex-col gap-3 rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm dark:border-neutral-800 dark:bg-neutral-900 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-wrap gap-2">
+        <div className="grid grid-cols-3 gap-2 md:flex md:flex-wrap">
           {ranges.map((item) => (
             <Link
               key={item.key}
@@ -145,7 +145,7 @@ export async function RouteHeatmapContent({
                 item.key,
                 filter,
               )}
-              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+              className={`flex items-center justify-center rounded-lg px-2 py-2 text-center text-sm font-medium transition md:px-3 md:py-1.5 ${
                 range === item.key
                   ? "bg-blue-600 text-white"
                   : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
@@ -156,7 +156,7 @@ export async function RouteHeatmapContent({
           ))}
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="grid grid-cols-3 gap-1.5 md:flex md:flex-wrap md:gap-2">
           {filters.map((item) => (
             <Link
               key={item.key}
@@ -165,9 +165,9 @@ export async function RouteHeatmapContent({
                 range,
                 item.key,
               )}
-              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+              className={`flex items-center justify-center rounded-lg px-1.5 py-1.5 text-center text-[12px] font-medium transition md:px-3 md:py-1.5 md:text-sm ${
                 filter === item.key
-                  ? "bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900"
+                  ? "bg-blue-600 text-white shadow-sm dark:bg-blue-500 dark:text-white"
                   : "border border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800"
               }`}
             >

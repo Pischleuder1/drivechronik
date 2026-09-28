@@ -23,6 +23,7 @@ import {
 } from "@drivechronik/core";
 import { APP_TIMEZONE } from "../../../../lib/config";
 import { getActiveVehicleId } from "../../../../lib/activeVehicle";
+import { getVehicles } from "../../../../lib/queries";
 import {
   getJourneyCandidates,
   getJourneyDetail,
@@ -38,6 +39,7 @@ import { Panel } from "../../../../components/ui/Panel";
 import { DeleteJourneyButton } from "./DeleteJourneyButton";
 import { AddItemButton, RemoveItemButton } from "./ItemButtons";
 import { JourneyMapLoader } from "./JourneyMapLoader";
+import { MobileJourneyDetailHero } from "./MobileJourneyDetailHero";
 
 export const dynamic = "force-dynamic";
 
@@ -80,6 +82,8 @@ export default async function JourneyDetailPage({
   const detail = await getJourneyDetail(journeyId, vehicleId);
   if (!detail) notFound();
 
+  const vehicles = await getVehicles();
+
   const { journey, items, kpiDrives, kpiCharges } = detail;
   const kpis = buildJourneyKpis(kpiDrives, kpiCharges);
   const driveIds = items.filter((i) => i.kind === "drive").map((i) => i.id);
@@ -107,44 +111,59 @@ export default async function JourneyDetailPage({
       : undefined;
 
   return (
-    <div className="w-full">
-      <Link
-        href="/journeys"
-        className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
-      >
-        <ChevronLeft aria-hidden size={16} />
-        {t("detail.allJourneys")}
-      </Link>
-
-      <PageHeader
-        visual="route"
-        className="mt-3"
-        title={journey.name}
-        subtitle={formatRange(journey.startTime, journey.endTime)}
-        eyebrow={
-          <div className="flex items-center gap-2">
-            <span
-              aria-hidden
-              className="h-2.5 w-2.5 shrink-0 rounded-full"
-              style={{ backgroundColor: journey.color ?? "#94a3b8" }}
-            />
-            <StatusBadge tone="neutral">
-              {t(`type.${journey.type}`)}
-            </StatusBadge>
-          </div>
-        }
+    <div className="mobile-journey-detail-page -mx-4 -mt-4 min-h-dvh bg-[#f4f6f8] px-4 pt-4 md:mx-0 md:mt-0 md:min-h-0 md:bg-transparent md:px-0 md:pt-0">
+      <MobileJourneyDetailHero
+        vehicles={vehicles.map((vehicle) => ({
+          id: vehicle.id,
+          displayName: vehicle.displayName,
+        }))}
+        initialVehicleId={vehicleId}
+        journeyName={journey.name}
+        typeLabel={t(`type.${journey.type}`)}
+        dateRange={formatRange(journey.startTime, journey.endTime)}
+        color={journey.color}
+        backLabel={t("detail.allJourneys")}
       />
+
+      <div className="hidden md:block">
+        <Link
+          href="/journeys"
+          className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
+        >
+          <ChevronLeft aria-hidden size={16} />
+          {t("detail.allJourneys")}
+        </Link>
+
+        <PageHeader
+          visual="route"
+          className="mt-3"
+          title={journey.name}
+          subtitle={formatRange(journey.startTime, journey.endTime)}
+          eyebrow={
+            <div className="flex items-center gap-2">
+              <span
+                aria-hidden
+                className="h-2.5 w-2.5 shrink-0 rounded-full"
+                style={{ backgroundColor: journey.color ?? "#94a3b8" }}
+              />
+              <StatusBadge tone="neutral">
+                {t(`type.${journey.type}`)}
+              </StatusBadge>
+            </div>
+          }
+        />
+      </div>
 
 
 
       {journey.description && (
-        <p className="mt-3 text-sm text-neutral-600 dark:text-neutral-300">
+        <p className="mt-3 rounded-[16px] bg-white px-3 py-2.5 text-[12px] text-neutral-600 shadow-sm md:bg-transparent md:px-0 md:py-0 md:text-sm md:shadow-none dark:bg-neutral-900 md:dark:bg-transparent dark:text-neutral-300">
           {journey.description}
         </p>
       )}
 
       {/* Export + Aktionen */}
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+      <div className="mt-3 flex flex-col gap-2 rounded-[18px] border border-neutral-200 bg-white p-3 shadow-sm md:mt-4 md:flex-row md:flex-wrap md:items-center md:justify-between md:gap-3 md:rounded-none md:border-0 md:bg-transparent md:p-0 md:shadow-none dark:border-neutral-800 dark:bg-neutral-900 md:dark:bg-transparent">
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
             {t("detail.export")}
@@ -210,9 +229,9 @@ export default async function JourneyDetailPage({
       )}
 
       {/* KPI grid */}
-      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-3 grid grid-cols-2 gap-2.5 [&>*:last-child]:col-span-2 md:mt-6 md:gap-3 lg:grid-cols-3 lg:[&>*:last-child]:col-span-1">
         <StatCard
-          valueClassName="mt-1 text-base font-semibold tabular-nums"
+          valueClassName="mt-1 text-[15px] font-semibold tabular-nums md:text-base"
           label={t("detail.kpi.totalDistance")}
           value={formatKm(kpis.totalDistanceKm)}
           tone="blue"
@@ -221,66 +240,66 @@ export default async function JourneyDetailPage({
 
         <StatCard
 
-          valueClassName="mt-1 text-base font-semibold tabular-nums"
+          valueClassName="mt-1 text-[15px] font-semibold tabular-nums md:text-base"
           label={t("detail.kpi.driveTime")}
           value={formatDuration(kpis.driveTimeSeconds)}
-          tone="violet"
+          tone="sky"
           icon={<Clock aria-hidden size={18} />}
         />
 
         <StatCard
 
-          valueClassName="mt-1 text-base font-semibold tabular-nums"
+          valueClassName="mt-1 text-[15px] font-semibold tabular-nums md:text-base"
           label={t("detail.kpi.chargeTime")}
           value={formatDuration(kpis.chargeTimeSeconds)}
-          tone="amber"
+          tone="cyan"
           icon={<BatteryCharging aria-hidden size={18} />}
         />
 
         <StatCard
 
-          valueClassName="mt-1 text-base font-semibold tabular-nums"
+          valueClassName="mt-1 text-[15px] font-semibold tabular-nums md:text-base"
           label={t("detail.kpi.avgConsumption")}
           value={
             kpis.avgConsumptionWhKm != null
               ? formatConsumption(kpis.avgConsumptionWhKm, kpis.anyEstimated)
               : "–"
           }
-          tone="cyan"
+          tone="blue"
           icon={<Gauge aria-hidden size={18} />}
         />
 
         <StatCard
 
-          valueClassName="mt-1 text-base font-semibold tabular-nums"
+          valueClassName="mt-1 text-[15px] font-semibold tabular-nums md:text-base"
           label={t("detail.kpi.consumedEnergy")}
           value={formatKwh(kpis.consumedEnergyKwh)}
           hint={kpis.anyEstimated ? t("detail.kpi.partiallyEstimated") : undefined}
-          tone="rose"
+          tone="sky"
           icon={<Zap aria-hidden size={18} />}
         />
 
         <StatCard
 
-          valueClassName="mt-1 text-base font-semibold tabular-nums"
+          valueClassName="mt-1 text-[15px] font-semibold tabular-nums md:text-base"
           label={t("detail.kpi.chargedEnergy")}
           value={formatKwh(kpis.chargedEnergyKwh)}
-          tone="emerald"
+          tone="cyan"
           icon={<BatteryCharging aria-hidden size={18} />}
         />
 
         <StatCard
 
-          valueClassName="mt-1 text-base font-semibold tabular-nums"
+          valueClassName="mt-1 text-[15px] font-semibold tabular-nums md:text-base"
           label={t("detail.kpi.chargeStops")}
           value={String(kpis.chargeStopCount)}
-          tone="amber"
+          tone="blue"
           icon={<Zap aria-hidden size={18} />}
         />
 
         <StatCard
 
-          valueClassName="mt-1 text-base font-semibold tabular-nums"
+          valueClassName="mt-1 text-[15px] font-semibold tabular-nums md:text-base"
           label={t("detail.kpi.socMinMax")}
           value={socValue}
           hint={socSub}
@@ -290,7 +309,7 @@ export default async function JourneyDetailPage({
 
         <StatCard
 
-          valueClassName="mt-1 text-base font-semibold tabular-nums"
+          valueClassName="mt-1 text-[15px] font-semibold tabular-nums md:text-base"
           label={t("detail.kpi.cost")}
           value={kpis.totalCost != null ? formatEur(kpis.totalCost) : "–"}
           hint={
@@ -302,7 +321,7 @@ export default async function JourneyDetailPage({
                 ? t("detail.kpi.incomplete")
                 : undefined
           }
-          tone="emerald"
+          tone="cyan"
           icon={<CircleDollarSign aria-hidden size={18} />}
         />
       </div>

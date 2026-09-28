@@ -198,3 +198,17 @@ body {
     display: none;
   }
 }
+
+/* Mobile journeys view owns its compact page header. */
+@media (max-width: 767px) {
+  body:has(.mobile-journeys-page) .mobile-app-header {
+    display: none;
+  }
+}
+
+/* Mobile journey detail owns its compact page header. */
+@media (max-width: 767px) {
+  body:has(.mobile-journey-detail-page) .mobile-app-header {
+    display: none;
+  }
+}

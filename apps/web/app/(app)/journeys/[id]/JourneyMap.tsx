@@ -124,7 +124,7 @@ export function JourneyMap({ tracks, charges, color }: JourneyMapProps) {
   return (
     <div
       ref={containerRef}
-      className="h-64 w-full rounded-lg border border-neutral-300 dark:border-neutral-700 sm:h-[360px]"
+      className="h-64 w-full rounded-[18px] border border-neutral-300 shadow-sm sm:h-[360px] sm:rounded-lg dark:border-neutral-700"
     />
   );
 }

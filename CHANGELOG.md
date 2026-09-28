@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-09-28
+
+### Added
+
+- Added a map-first mobile dashboard with a vehicle-focused dark hero, compact status presentation and mobile-optimized range and recent-drive views.
+- Added dedicated mobile page heroes with integrated vehicle switching across the main DriveChronik areas.
+- Added compact mobile headers for drive and charging details, rule forms, import/export and charging subpages.
+
+### Changed
+
+- Redesigned the mobile day view with a denser timeline and compact daily KPIs.
+- Redesigned the mobile charging overview, DC charging analysis and Tesla charging invoice views.
+- Redesigned mobile search, navigation, vehicle, calendar, journeys, places and route-planner views.
+- Redesigned mobile Insights and monthly/yearly reports with more compact filters, KPIs and chart presentation.
+- Updated settings, rules and tags with consistent mobile page headers while keeping their existing content and workflows unchanged.
+- Improved mobile forms for journeys, places and rules without changing their underlying behavior.
+- Reduced vertical space usage throughout the mobile interface with compact cards, two-column KPI layouts and responsive controls.
+
+### Fixed
+
+- Fixed the legacy mobile application header briefly appearing before the custom day-view header.
+- Fixed the remaining light-background flash when loading a mobile day page with its dark hero.
+
+
 ## [0.7.0] - 2026-09-27
 
 ### Added

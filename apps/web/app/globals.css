@@ -226,3 +226,10 @@ body {
     display: none;
   }
 }
+
+/* Mobile place forms own their compact page header. */
+@media (max-width: 767px) {
+  body:has(.mobile-place-form-page) .mobile-app-header {
+    display: none;
+  }
+}

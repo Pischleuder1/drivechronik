@@ -104,7 +104,7 @@ export function PlaceMap({ lat, lon, radiusM, onChange }: PlaceMapProps) {
   return (
     <div
       ref={containerRef}
-      className="h-80 w-full rounded-lg border border-neutral-300 dark:border-neutral-700"
+      className="h-60 w-full rounded-[18px] border border-neutral-300 shadow-sm md:h-80 md:rounded-lg md:shadow-none dark:border-neutral-700"
     />
   );
 }

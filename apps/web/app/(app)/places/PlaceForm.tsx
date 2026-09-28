@@ -25,7 +25,7 @@ const PlaceMap = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-80 w-full animate-pulse rounded-lg border border-neutral-300 bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800" />
+      <div className="h-60 w-full animate-pulse rounded-[18px] border border-neutral-300 bg-neutral-100 md:h-80 md:rounded-lg dark:border-neutral-700 dark:bg-neutral-800" />
     ),
   },
 );
@@ -39,7 +39,7 @@ function roundCoord(value: number): number {
 }
 
 const fieldClasses =
-  "rounded-lg border border-neutral-300 bg-white px-3 py-2 text-base text-neutral-900 outline-none focus:border-neutral-900 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:focus:border-neutral-100";
+  "w-full min-w-0 rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-[14px] text-neutral-900 outline-none focus:border-neutral-900 md:rounded-lg md:py-2 md:text-base dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:focus:border-neutral-100";
 
 const initialState: PlaceFormResult = { ok: false };
 
@@ -81,7 +81,7 @@ export function PlaceForm({
   const [address, setAddress] = useState(initial?.address ?? "");
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <form action={formAction} className="flex flex-col gap-3.5 md:gap-4">
       {isEdit && <input type="hidden" name="id" value={initial!.id} />}
 
       <label className="flex flex-col gap-1.5">
@@ -153,7 +153,7 @@ export function PlaceForm({
         </a>
       </p>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-2 md:gap-4">
         <label className="flex flex-col gap-1.5">
           <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
             {t("form.latitude")}
@@ -229,7 +229,7 @@ export function PlaceForm({
         />
       </label>
 
-      <div className="grid grid-cols-[2fr_1fr] gap-4">
+      <div className="grid grid-cols-[2fr_1fr] gap-2 md:gap-4">
         <label className="flex flex-col gap-1.5">
           <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
             {t("form.electricityPrice")}
@@ -273,7 +273,15 @@ export function PlaceForm({
       )}
 
       <div className="flex items-center gap-3">
-        <button type="submit" disabled={pending} className={buttonClasses("primary", "md")}>
+        <button
+          type="submit"
+          disabled={pending}
+          className={buttonClasses(
+            "primary",
+            "md",
+            "w-full justify-center md:w-auto",
+          )}
+        >
           {pending ? t("form.submitting") : isEdit ? tCommon("actions.save") : tCommon("actions.create")}
         </button>
       </div>

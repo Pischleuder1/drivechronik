@@ -2,8 +2,15 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ChevronLeft } from "lucide-react";
-import { getAllPlacesWithUsage, getPlaceById } from "../../../../../lib/queries";
+
+import {
+  getAllPlacesWithUsage,
+  getPlaceById,
+  getVehicles,
+} from "../../../../../lib/queries";
+import { getActiveVehicleId } from "../../../../../lib/activeVehicle";
 import { PlaceForm } from "../../PlaceForm";
+import { MobilePlaceFormHero } from "../../MobilePlaceFormHero";
 import { DeletePlaceButton } from "../../DeletePlaceButton";
 import { buttonClasses } from "../../../../../components/ui/Button";
 import { PageHeader } from "../../../../../components/ui/PageHeader";
@@ -20,15 +27,26 @@ export default async function EditPlacePage({
   const tCommon = await getTranslations("common");
   const { id } = await params;
   const placeId = Number(id);
+
   if (!Number.isInteger(placeId) || placeId <= 0) notFound();
 
   const place = await getPlaceById(placeId);
+
   if (!place) notFound();
 
-  const allWithUsage = await getAllPlacesWithUsage();
+  const vehicleId = await getActiveVehicleId();
+
+  const [allWithUsage, vehicles] = await Promise.all([
+    getAllPlacesWithUsage(),
+    getVehicles(),
+  ]);
+
   const usage = allWithUsage.find((p) => p.id === placeId);
   const usageCount = usage
-    ? usage.driveStartCount + usage.driveEndCount + usage.chargeCount + usage.parkCount
+    ? usage.driveStartCount +
+      usage.driveEndCount +
+      usage.chargeCount +
+      usage.parkCount
     : 0;
 
   const ruleParams = new URLSearchParams({
@@ -44,22 +62,35 @@ export default async function EditPlacePage({
   const ruleHref = `/rules/new?${ruleParams.toString()}`;
 
   return (
-    <div className="w-full">
-      <Link
-        href="/places"
-        className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
-      >
-        <ChevronLeft aria-hidden size={16} />
-        {tCommon("actions.back")}
-      </Link>
-
-      <PageHeader
-        visual="places"
-        className="mt-3"
+    <div className="mobile-place-form-page -mx-4 -mt-4 min-h-dvh bg-[#f4f6f8] px-4 pt-4 md:mx-0 md:mt-0 md:min-h-0 md:bg-transparent md:px-0 md:pt-0">
+      <MobilePlaceFormHero
+        vehicles={vehicles.map((vehicle) => ({
+          id: vehicle.id,
+          displayName: vehicle.displayName,
+        }))}
+        initialVehicleId={vehicleId}
         title={t("editTitle", { name: place.name })}
+        backHref="/places"
+        backLabel={tCommon("actions.back")}
       />
 
-      <Panel className="mt-6">
+      <div className="hidden md:block">
+        <Link
+          href="/places"
+          className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
+        >
+          <ChevronLeft aria-hidden size={16} />
+          {tCommon("actions.back")}
+        </Link>
+
+        <PageHeader
+          visual="places"
+          className="mt-3"
+          title={t("editTitle", { name: place.name })}
+        />
+      </div>
+
+      <Panel className="relative z-10 -mt-5 md:mt-6">
         <PlaceForm
           initial={{
             id: place.id,
@@ -76,7 +107,7 @@ export default async function EditPlacePage({
       </Panel>
 
       <Panel
-        className="mt-6"
+        className="mt-3 md:mt-6"
         title={t("autoClassification.title")}
         subtitle={t("autoClassification.description")}
       >
@@ -97,7 +128,7 @@ export default async function EditPlacePage({
       </Panel>
 
       <Panel
-        className="mt-6"
+        className="mt-3 md:mt-6"
         title={t("dangerZone.title")}
         subtitle={t("dangerZone.usage", { count: usageCount })}
       >

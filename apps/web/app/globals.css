@@ -313,3 +313,11 @@ body {
     display: none;
   }
 }
+
+/* Mobile import/export own their compact page header. */
+@media (max-width: 767px) {
+  body:has(.mobile-import-page) .mobile-app-header,
+  body:has(.mobile-export-page) .mobile-app-header {
+    display: none;
+  }
+}

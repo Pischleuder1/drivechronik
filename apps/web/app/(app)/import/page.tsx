@@ -15,6 +15,8 @@ import { PageHeader } from "../../../components/ui/PageHeader";
 import { Panel } from "../../../components/ui/Panel";
 import { db } from "../../../lib/db";
 import { getVehicles } from "../../../lib/queries";
+import { getActiveVehicleId } from "../../../lib/activeVehicle";
+import { MobileDataTransferHero } from "../../../components/MobileDataTransferHero";
 
 import {
   ImportHistory,
@@ -63,6 +65,7 @@ function ImportPanelTitle({
 
 export default async function ImportPage() {
   const t = await getTranslations("import");
+  const activeVehicleId = await getActiveVehicleId();
 
   const [vehicles, historyRows] =
     await Promise.all([
@@ -139,12 +142,24 @@ export default async function ImportPage() {
     }));
 
   return (
-    <div className="w-full">
-      <PageHeader
-        visual="document"
+    <div className="mobile-import-page -mx-4 -mt-4 min-h-dvh bg-[#f4f6f8] px-4 pt-4 md:mx-0 md:mt-0 md:min-h-0 md:bg-transparent md:px-0 md:pt-0">
+      <MobileDataTransferHero
+        vehicles={vehicles.map((vehicle) => ({
+          id: vehicle.id,
+          displayName: vehicle.displayName,
+        }))}
+        initialVehicleId={activeVehicleId}
         title={t("title")}
-        subtitle={t("subtitle")}
+        mode="import"
       />
+
+      <div className="hidden md:block">
+        <PageHeader
+          visual="document"
+          title={t("title")}
+          subtitle={t("subtitle")}
+        />
+      </div>
 
       <div className="mt-6 space-y-6">
         <Panel

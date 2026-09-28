@@ -9,17 +9,37 @@ import { getTranslations } from "next-intl/server";
 
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Panel } from "../../../components/ui/Panel";
+import { getActiveVehicleId } from "../../../lib/activeVehicle";
+import { getVehicles } from "../../../lib/queries";
+import { MobileDataTransferHero } from "../../../components/MobileDataTransferHero";
 
 export default async function DataExportPage() {
   const t = await getTranslations("settings");
 
+  const [vehicles, activeVehicleId] = await Promise.all([
+    getVehicles(),
+    getActiveVehicleId(),
+  ]);
+
   return (
-    <div className="w-full">
-      <PageHeader
-        visual="document"
+    <div className="mobile-export-page -mx-4 -mt-4 min-h-dvh bg-[#f4f6f8] px-4 pt-4 md:mx-0 md:mt-0 md:min-h-0 md:bg-transparent md:px-0 md:pt-0">
+      <MobileDataTransferHero
+        vehicles={vehicles.map((vehicle) => ({
+          id: vehicle.id,
+          displayName: vehicle.displayName,
+        }))}
+        initialVehicleId={activeVehicleId}
         title={t("dataExport.title")}
-        subtitle={t("dataExport.subtitle")}
+        mode="export"
       />
+
+      <div className="hidden md:block">
+        <PageHeader
+          visual="document"
+          title={t("dataExport.title")}
+          subtitle={t("dataExport.subtitle")}
+        />
+      </div>
 
       <Panel
         className="mt-6"

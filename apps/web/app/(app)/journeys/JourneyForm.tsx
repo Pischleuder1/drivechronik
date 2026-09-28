@@ -15,7 +15,7 @@ import { TAG_COLOR_PRESETS } from "../../../lib/tagColors";
 import { buttonClasses } from "../../../components/ui/Button";
 
 const fieldClasses =
-  "rounded-lg border border-neutral-300 bg-white px-3 py-2 text-base text-neutral-900 outline-none focus:border-neutral-900 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:focus:border-neutral-100";
+  "w-full min-w-0 rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-[14px] text-neutral-900 outline-none focus:border-neutral-900 md:rounded-lg md:py-2 md:text-base dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:focus:border-neutral-100";
 
 const initialState: JourneyFormResult = { ok: false };
 
@@ -62,7 +62,7 @@ export function JourneyForm({ initial }: { initial?: JourneyFormValues }) {
   const error = clientError ?? state.error;
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <form action={formAction} className="flex flex-col gap-3.5 md:gap-4">
       {isEdit && <input type="hidden" name="id" value={initial!.id} />}
 
       <label className="flex flex-col gap-1.5">
@@ -97,7 +97,7 @@ export function JourneyForm({ initial }: { initial?: JourneyFormValues }) {
         </select>
       </label>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-2 gap-2 md:gap-4">
         <label className="flex flex-col gap-1.5">
           <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
             {t("form.startTime")}
@@ -108,7 +108,7 @@ export function JourneyForm({ initial }: { initial?: JourneyFormValues }) {
             required
             value={startTime}
             onChange={(e) => setStartTime(e.target.value)}
-            className={fieldClasses}
+            className={`${fieldClasses} text-[12px] md:text-base`}
           />
         </label>
 
@@ -122,7 +122,7 @@ export function JourneyForm({ initial }: { initial?: JourneyFormValues }) {
             required
             value={endTime}
             onChange={(e) => setEndTime(e.target.value)}
-            className={fieldClasses}
+            className={`${fieldClasses} text-[12px] md:text-base`}
           />
         </label>
       </div>
@@ -132,14 +132,14 @@ export function JourneyForm({ initial }: { initial?: JourneyFormValues }) {
           {t("form.color")}
         </legend>
         <input type="hidden" name="color" value={color} />
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1.5 md:gap-2">
           {TAG_COLOR_PRESETS.map((preset) => (
             <button
               key={preset}
               type="button"
               aria-label={t("form.colorAriaLabel", { color: preset })}
               onClick={() => setColor(preset)}
-              className={`h-7 w-7 rounded-full transition ${
+              className={`h-[26px] w-[26px] rounded-full transition md:h-7 md:w-7 ${
                 color.toLowerCase() === preset.toLowerCase()
                   ? "ring-2 ring-neutral-900 ring-offset-2 dark:ring-white dark:ring-offset-neutral-900"
                   : ""
@@ -174,7 +174,15 @@ export function JourneyForm({ initial }: { initial?: JourneyFormValues }) {
       )}
 
       <div className="flex items-center gap-3">
-        <button type="submit" disabled={pending} className={buttonClasses("primary", "md")}>
+        <button
+          type="submit"
+          disabled={pending}
+          className={buttonClasses(
+            "primary",
+            "md",
+            "w-full justify-center md:w-auto",
+          )}
+        >
           {pending ? t("form.saving") : isEdit ? tCommon("actions.save") : tCommon("actions.create")}
         </button>
       </div>

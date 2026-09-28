@@ -212,3 +212,10 @@ body {
     display: none;
   }
 }
+
+/* Mobile journey forms own their compact page header. */
+@media (max-width: 767px) {
+  body:has(.mobile-journey-form-page) .mobile-app-header {
+    display: none;
+  }
+}

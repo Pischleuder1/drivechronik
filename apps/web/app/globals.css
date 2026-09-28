@@ -233,3 +233,26 @@ body {
     display: none;
   }
 }
+
+/* Mobile planner owns its compact page header. */
+@media (max-width: 767px) {
+  body:has(.mobile-planner-page) .mobile-app-header {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .planner-result-kpis > * {
+    min-height: 0 !important;
+    padding-top: 0.7rem !important;
+    padding-bottom: 0.7rem !important;
+  }
+
+  .planner-result-kpis > * p:first-child {
+    line-height: 1.15;
+  }
+
+  .planner-result-kpis > * p:last-child {
+    line-height: 1.25;
+  }
+}

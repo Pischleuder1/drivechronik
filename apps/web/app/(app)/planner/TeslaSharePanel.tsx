@@ -398,15 +398,20 @@ export function TeslaSharePanel({
   }
 
   return (
-    <Panel
-      title={t("title")}
-      subtitle={t("description")}
-    >
-      <div className="flex flex-wrap gap-2">
+    <Panel title={t("title")}>
+      <p className="mb-3 line-clamp-2 text-[12px] leading-snug text-neutral-500 md:mb-4 md:line-clamp-none md:text-sm md:leading-relaxed dark:text-neutral-400">
+        {t("description")}
+      </p>
+
+      <div className="grid grid-cols-2 gap-2 md:flex md:flex-wrap">
         <button
           type="button"
           onClick={() => void shareTarget(nextTarget)}
-          className={buttonClasses("primary", "md")}
+          className={buttonClasses(
+            "primary",
+            "md",
+            "col-span-2 w-full justify-center md:w-auto",
+          )}
         >
           <Navigation aria-hidden size={16} />
           {t("sendTesla")}
@@ -415,7 +420,11 @@ export function TeslaSharePanel({
         <button
           type="button"
           onClick={() => setShowHandoff((current) => !current)}
-          className={buttonClasses("secondary", "md")}
+          className={buttonClasses(
+            "secondary",
+            "md",
+            "w-full justify-center md:w-auto",
+          )}
           aria-expanded={showHandoff}
         >
           <ListOrdered aria-hidden size={16} />
@@ -425,7 +434,11 @@ export function TeslaSharePanel({
         <button
           type="button"
           onClick={() => void shareRoute()}
-          className={buttonClasses("secondary", "md")}
+          className={buttonClasses(
+            "secondary",
+            "md",
+            "w-full justify-center md:w-auto",
+          )}
         >
           <Share2 aria-hidden size={16} />
           {t("shareRoute")}
@@ -434,7 +447,11 @@ export function TeslaSharePanel({
         <button
           type="button"
           onClick={() => setShowQr((current) => !current)}
-          className={buttonClasses("secondary", "md")}
+          className={buttonClasses(
+            "secondary",
+            "md",
+            "w-full justify-center md:w-auto",
+          )}
           aria-expanded={showQr}
         >
           <QrCode aria-hidden size={16} />
@@ -444,7 +461,11 @@ export function TeslaSharePanel({
         <button
           type="button"
           onClick={() => void copyStops()}
-          className={buttonClasses("secondary", "md")}
+          className={buttonClasses(
+            "secondary",
+            "md",
+            "w-full justify-center md:w-auto",
+          )}
         >
           <Copy aria-hidden size={16} />
           {t("copyStops")}

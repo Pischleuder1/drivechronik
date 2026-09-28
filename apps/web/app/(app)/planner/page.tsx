@@ -8,7 +8,9 @@ import {
 import { getCurrentWeather } from "../../../lib/weather";
 import { getOsrmUrl } from "../../../lib/config";
 import { getVehicleAnalytics } from "../../../lib/vehicleAnalytics";
+import { getVehicles } from "../../../lib/queries";
 import { Planner } from "./Planner";
+import { MobilePlannerHero } from "./MobilePlannerHero";
 
 import { NoVehicleState } from "../../../components/NoVehicleState";
 import { PageHeader } from "../../../components/ui/PageHeader";
@@ -45,10 +47,11 @@ export default async function PlannerPage() {
       </div>
     );
   }
-  const [context, places, analytics] = await Promise.all([
+  const [context, places, analytics, vehicles] = await Promise.all([
     getPlannerContext(vehicleId),
     getPlannerPlaces(),
     getVehicleAnalytics(vehicleId),
+    getVehicles(),
   ]);
 
   // Außentemperatur aus dem aktuellen Wetter an der Fahrzeugposition vorbelegen.
@@ -75,19 +78,31 @@ export default async function PlannerPage() {
     estimatedCapacityKwh ?? DEFAULT_BATTERY_CAPACITY_KWH;
 
   return (
-    <div className="w-full">
-      <PageHeader
-        visual="route"
+    <div className="mobile-planner-page -mx-4 -mt-4 min-h-dvh bg-[#f4f6f8] px-4 pt-4 md:mx-0 md:mt-0 md:min-h-0 md:bg-transparent md:px-0 md:pt-0">
+      <MobilePlannerHero
+        vehicles={vehicles.map((vehicle) => ({
+          id: vehicle.id,
+          displayName: vehicle.displayName,
+        }))}
+        initialVehicleId={vehicleId}
         title={t("title")}
-        subtitle={t("subtitle")}
-        eyebrow={
-          <StatusBadge tone="amber">
-            {t("experimentalBadge")}
-          </StatusBadge>
-        }
+        experimentalLabel={t("experimentalBadge")}
       />
 
-      <div className="mt-6">
+      <div className="hidden md:block">
+        <PageHeader
+          visual="route"
+          title={t("title")}
+          subtitle={t("subtitle")}
+          eyebrow={
+            <StatusBadge tone="amber">
+              {t("experimentalBadge")}
+            </StatusBadge>
+          }
+        />
+      </div>
+
+      <div className="relative z-10 -mt-5 md:mt-6">
         <Planner
           key={vehicleId}
           vehicleId={vehicleId}

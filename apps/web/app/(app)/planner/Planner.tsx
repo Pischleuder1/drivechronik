@@ -39,7 +39,7 @@ const BASE_SOURCE_KEYS: Record<PlanResult["baseSource"], string> = {
 };
 
 const inputClasses =
-  "w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-base text-neutral-900 outline-none focus:border-neutral-900 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:focus:border-neutral-100";
+  "w-full min-w-0 rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-[14px] text-neutral-900 outline-none focus:border-blue-500 md:rounded-lg md:py-2 md:text-base dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:focus:border-blue-400";
 const labelClasses =
   "block text-xs font-medium text-neutral-600 dark:text-neutral-400";
 
@@ -449,14 +449,14 @@ export function Planner({
     <div className="flex flex-col gap-6">
       <form
         onSubmit={handleSubmit}
-        className="rounded-2xl border border-neutral-200 bg-white p-4 sm:p-5 dark:border-neutral-800 dark:bg-neutral-900"
+        className="rounded-[20px] border border-neutral-200 bg-white p-3 shadow-sm sm:p-5 md:shadow-none dark:border-neutral-800 dark:bg-neutral-900"
       >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {/* Start */}
-          <div className="rounded-2xl border border-t-4 border-neutral-200 border-t-blue-500 bg-white p-4 shadow-sm dark:border-neutral-800 dark:border-t-blue-500 dark:bg-neutral-900">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="rounded-[16px] border border-t-[3px] border-neutral-200 border-t-blue-500 bg-neutral-50/70 p-3 shadow-sm md:rounded-2xl md:border-t-4 md:bg-white md:p-4 dark:border-neutral-800 dark:border-t-blue-500 dark:bg-neutral-900">
+            <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600 md:h-8 md:w-8 dark:bg-blue-950/40 dark:text-blue-400">
                   <MapPin aria-hidden size={17} />
                 </span>
 
@@ -530,10 +530,10 @@ export function Planner({
           </div>
 
           {/* Ziel */}
-          <div className="rounded-2xl border border-t-4 border-neutral-200 border-t-emerald-500 bg-white p-4 shadow-sm dark:border-neutral-800 dark:border-t-emerald-500 dark:bg-neutral-900">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="rounded-[16px] border border-t-[3px] border-neutral-200 border-t-sky-500 bg-neutral-50/70 p-3 shadow-sm md:rounded-2xl md:border-t-4 md:bg-white md:p-4 dark:border-neutral-800 dark:border-t-sky-500 dark:bg-neutral-900">
+            <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-600 md:h-8 md:w-8 dark:bg-sky-950/40 dark:text-sky-400">
                   <Navigation aria-hidden size={17} />
                 </span>
 
@@ -548,7 +548,7 @@ export function Planner({
                   onClick={() => setDestMode("place")}
                   className={`rounded-md px-2.5 py-1.5 transition ${
                     destMode === "place"
-                      ? "bg-emerald-600 font-medium text-white shadow-sm"
+                      ? "bg-sky-600 font-medium text-white shadow-sm"
                       : "text-neutral-500 hover:bg-white hover:text-neutral-900 dark:hover:bg-neutral-800 dark:hover:text-white"
                   }`}
                 >
@@ -560,7 +560,7 @@ export function Planner({
                   onClick={() => setDestMode("address")}
                   className={`rounded-md px-2.5 py-1.5 transition ${
                     destMode === "address"
-                      ? "bg-emerald-600 font-medium text-white shadow-sm"
+                      ? "bg-sky-600 font-medium text-white shadow-sm"
                       : "text-neutral-500 hover:bg-white hover:text-neutral-900 dark:hover:bg-neutral-800 dark:hover:text-white"
                   }`}
                 >
@@ -728,7 +728,7 @@ export function Planner({
               className={buttonClasses(
                 "secondary",
                 "sm",
-                "mt-3 !text-red-600 hover:!text-red-700 dark:!text-red-400 dark:hover:!text-red-300",
+                "mt-3 !text-blue-600 hover:!text-blue-700 dark:!text-blue-400 dark:hover:!text-blue-300",
               )}
             >
               <Plus aria-hidden size={15} />
@@ -737,8 +737,8 @@ export function Planner({
           </div>
 
           {/* Fahrparameter */}
-          <div className="grid grid-cols-1 gap-3 sm:col-span-2 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-2xl border border-t-4 border-neutral-200 border-t-blue-500 bg-white p-4 shadow-sm dark:border-neutral-800 dark:border-t-blue-500 dark:bg-neutral-900">
+          <div className="grid grid-cols-2 gap-2 sm:col-span-2 md:gap-3 lg:grid-cols-4">
+            <div className="rounded-[16px] border border-t-[3px] border-neutral-200 border-t-blue-500 bg-white p-3 shadow-sm md:rounded-2xl md:border-t-4 md:p-4 dark:border-neutral-800 dark:border-t-blue-500 dark:bg-neutral-900">
               <label
                 htmlFor="planner-soc"
                 className="block text-xs font-medium text-neutral-500 dark:text-neutral-400"
@@ -754,11 +754,11 @@ export function Planner({
                 max={100}
                 value={soc}
                 onChange={(e) => setSoc(e.target.value)}
-                className="mt-2 w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-base font-semibold tabular-nums text-neutral-900 outline-none transition focus:border-blue-500 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100"
+                className="mt-1.5 w-full rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 text-[15px] font-semibold tabular-nums text-neutral-900 outline-none transition focus:border-blue-500 md:mt-2 md:px-3 md:py-2 md:text-base dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100"
               />
             </div>
 
-            <div className="rounded-2xl border border-t-4 border-neutral-200 border-t-indigo-500 bg-white p-4 shadow-sm dark:border-neutral-800 dark:border-t-indigo-500 dark:bg-neutral-900">
+            <div className="rounded-[16px] border border-t-[3px] border-neutral-200 border-t-sky-500 bg-white p-3 shadow-sm md:rounded-2xl md:border-t-4 md:p-4 dark:border-neutral-800 dark:border-t-sky-500 dark:bg-neutral-900">
               <label
                 htmlFor="planner-target-soc"
                 className="block text-xs font-medium text-neutral-500 dark:text-neutral-400"
@@ -774,14 +774,14 @@ export function Planner({
                 step={1}
                 value={targetSoc}
                 onChange={(e) => setTargetSoc(e.target.value)}
-                className="mt-2 w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-base font-semibold tabular-nums text-neutral-900 outline-none transition focus:border-indigo-500 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100"
+                className="mt-1.5 w-full rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 text-[15px] font-semibold tabular-nums text-neutral-900 outline-none transition focus:border-sky-500 md:mt-2 md:px-3 md:py-2 md:text-base dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100"
               />
-              <p className="mt-2 text-xs leading-relaxed text-neutral-400 dark:text-neutral-500">
+              <p className="mt-1.5 text-[10px] leading-snug text-neutral-400 md:mt-2 md:text-xs md:leading-relaxed dark:text-neutral-500">
                 {t("form.targetSocHint")}
               </p>
             </div>
 
-            <div className="rounded-2xl border border-t-4 border-neutral-200 border-t-amber-500 bg-white p-4 shadow-sm dark:border-neutral-800 dark:border-t-amber-500 dark:bg-neutral-900">
+            <div className="rounded-[16px] border border-t-[3px] border-neutral-200 border-t-cyan-500 bg-white p-3 shadow-sm md:rounded-2xl md:border-t-4 md:p-4 dark:border-neutral-800 dark:border-t-cyan-500 dark:bg-neutral-900">
               <label
                 htmlFor="planner-temp"
                 className="block text-xs font-medium text-neutral-500 dark:text-neutral-400"
@@ -795,11 +795,11 @@ export function Planner({
                 inputMode="numeric"
                 value={tempC}
                 onChange={(e) => setTempC(e.target.value)}
-                className="mt-2 w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-base font-semibold tabular-nums text-neutral-900 outline-none transition focus:border-amber-500 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100"
+                className="mt-1.5 w-full rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 text-[15px] font-semibold tabular-nums text-neutral-900 outline-none transition focus:border-cyan-500 md:mt-2 md:px-3 md:py-2 md:text-base dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100"
               />
             </div>
 
-            <div className="rounded-2xl border border-t-4 border-neutral-200 border-t-emerald-500 bg-white p-4 shadow-sm dark:border-neutral-800 dark:border-t-emerald-500 dark:bg-neutral-900">
+            <div className="rounded-[16px] border border-t-[3px] border-neutral-200 border-t-blue-400 bg-white p-3 shadow-sm md:rounded-2xl md:border-t-4 md:p-4 dark:border-neutral-800 dark:border-t-blue-400 dark:bg-neutral-900">
               <label
                 htmlFor="planner-capacity"
                 className="block text-xs font-medium text-neutral-500 dark:text-neutral-400"
@@ -815,10 +815,10 @@ export function Planner({
                 max={250}
                 value={capacityKwh}
                 onChange={(e) => setCapacityKwh(e.target.value)}
-                className="mt-2 w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-base font-semibold tabular-nums text-neutral-900 outline-none transition focus:border-emerald-500 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100"
+                className="mt-1.5 w-full rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 text-[15px] font-semibold tabular-nums text-neutral-900 outline-none transition focus:border-blue-400 md:mt-2 md:px-3 md:py-2 md:text-base dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100"
               />
 
-              <p className="mt-2 text-xs leading-relaxed text-neutral-400 dark:text-neutral-500">
+              <p className="mt-1.5 text-[10px] leading-snug text-neutral-400 md:mt-2 md:text-xs md:leading-relaxed dark:text-neutral-500">
                 {capacityIsDerived
                   ? t("form.capacityHintDerived")
                   : t("form.capacityHintDefault")}
@@ -834,24 +834,36 @@ export function Planner({
           </p>
         )}
 
-        <div className="mt-4 flex items-center gap-3">
-          <div className="flex w-full flex-wrap items-center justify-between gap-3">
-<button
-            type="submit"
-            disabled={pending}
-            className={buttonClasses("primary", "md")}
-          >
-            <Navigation aria-hidden size={16} />
-            {pending ? t("form.submitPending") : t("form.submit")}
-          </button>
+        <div className="mt-4 flex flex-col gap-2 md:flex-row md:items-center md:gap-3">
+          <div className="flex w-full flex-col gap-2 md:flex-row md:flex-wrap md:items-center md:justify-between md:gap-3">
+            <button
+              type="submit"
+              disabled={pending}
+              className={buttonClasses(
+                "primary",
+                "md",
+                "w-full justify-center md:w-auto",
+              )}
+            >
+              <Navigation aria-hidden size={16} />
+              {pending ? t("form.submitPending") : t("form.submit")}
+            </button>
 
-          <PlannerPdfExportButton
-            plan={plan}
-            startLabel={plannedStartLabel}
-            waypointLabels={plannedWaypointLabels}
-            destinationLabel={plannedDestinationLabel}
-          />
-        </div>
+            <div
+              className={
+                plan
+                  ? "w-full [&_button]:w-full [&_button]:justify-center md:w-auto md:[&_button]:w-auto"
+                  : "hidden md:block"
+              }
+            >
+              <PlannerPdfExportButton
+                plan={plan}
+                startLabel={plannedStartLabel}
+                waypointLabels={plannedWaypointLabels}
+                destinationLabel={plannedDestinationLabel}
+              />
+            </div>
+          </div>
           {historyDriveCount < 30 && (
             <span className="text-xs text-neutral-400 dark:text-neutral-500">
               {t("form.historyHint", { count: historyDriveCount })}
@@ -1034,11 +1046,11 @@ function Result({
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="planner-result-kpis grid grid-cols-2 gap-2 md:gap-3 lg:grid-cols-3 [&>*:last-child]:col-span-2 lg:[&>*:last-child]:col-span-1">
         <StatCard
           label={t("result.distance")}
           value={formatKm(plan.distanceKm)}
-          valueClassName="mt-2 text-xl font-semibold tabular-nums"
+          valueClassName="mt-1 text-[17px] font-semibold tabular-nums md:mt-2 md:text-xl"
           tone="blue"
         />
 
@@ -1046,8 +1058,8 @@ function Result({
           label={t("result.travelTimeWithoutCharging")}
           value={formatDuration(plan.durationSeconds)}
           hint={t("result.ferryIncluded")}
-          valueClassName="mt-2 text-xl font-semibold tabular-nums"
-          tone="violet"
+          valueClassName="mt-1 text-[17px] font-semibold tabular-nums md:mt-2 md:text-xl"
+          tone="sky"
         />
 
         <StatCard
@@ -1064,8 +1076,8 @@ function Result({
                 })
               : t("result.noChargingStops")
           }
-          valueClassName="mt-2 text-xl font-semibold tabular-nums"
-          tone="amber"
+          valueClassName="mt-1 text-[17px] font-semibold tabular-nums md:mt-2 md:text-xl"
+          tone="cyan"
         />
 
         <StatCard
@@ -1076,14 +1088,14 @@ function Result({
               ? t("result.travelWithCharging")
               : t("result.noExtraBreaks")
           }
-          valueClassName="mt-2 text-xl font-semibold tabular-nums"
-          tone="indigo"
+          valueClassName="mt-1 text-[17px] font-semibold tabular-nums md:mt-2 md:text-xl"
+          tone="blue"
         />
 
         <StatCard
           label={t("result.avgSpeed")}
           value={`${Math.round(plan.avgSpeedKmh)} km/h`}
-          valueClassName="mt-2 text-xl font-semibold tabular-nums"
+          valueClassName="mt-1 text-[17px] font-semibold tabular-nums md:mt-2 md:text-xl"
           tone="sky"
         />
 
@@ -1091,7 +1103,7 @@ function Result({
           label={t("result.consumption")}
           value={`${plan.energyKwh.toFixed(1)} kWh`}
           hint={`${Math.round(plan.whPerKm)} Wh/km`}
-          valueClassName="mt-2 text-xl font-semibold tabular-nums"
+          valueClassName="mt-1 text-[17px] font-semibold tabular-nums md:mt-2 md:text-xl"
           tone="cyan"
         />
 
@@ -1099,14 +1111,8 @@ function Result({
           label={t("result.arrivalWithoutCharging")}
           value={`${displaySoc} %`}
           hint={toneLabel}
-          valueClassName="mt-2 text-xl font-semibold tabular-nums"
-          tone={
-            tone.labelKey === "comfortable"
-              ? "emerald"
-              : tone.labelKey === "tight"
-                ? "amber"
-                : "rose"
-          }
+          valueClassName="mt-1 text-[17px] font-semibold tabular-nums md:mt-2 md:text-xl"
+          tone="blue"
         />
 
         <StatCard
@@ -1117,14 +1123,14 @@ function Result({
               : "–"
           }
           hint={t("result.plannedStopsIncluded")}
-          valueClassName="mt-2 text-xl font-semibold tabular-nums"
-          tone="emerald"
+          valueClassName="mt-1 text-[17px] font-semibold tabular-nums md:mt-2 md:text-xl"
+          tone="sky"
         />
 
         <StatCard
           label={t("result.chargersInCorridor")}
           value={String(plan.chargingSiteCount)}
-          valueClassName="mt-2 text-xl font-semibold tabular-nums"
+          valueClassName="mt-1 text-[17px] font-semibold tabular-nums md:mt-2 md:text-xl"
           tone="sky"
         />
       </div>

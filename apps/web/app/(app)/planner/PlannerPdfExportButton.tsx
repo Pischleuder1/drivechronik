@@ -194,7 +194,7 @@ export function PlannerPdfExportButton({
         className={buttonClasses(
           "secondary",
           "md",
-          "!border-red-600 !bg-red-600 !text-white hover:!border-red-700 hover:!bg-red-700 dark:!border-red-500 dark:!bg-red-600 dark:!text-white dark:hover:!border-red-600 dark:hover:!bg-red-700 disabled:!border-red-300 disabled:!bg-red-300 disabled:!text-white disabled:opacity-60",
+          "w-full justify-center md:w-auto",
         )}
       >
         <Download aria-hidden size={16} />

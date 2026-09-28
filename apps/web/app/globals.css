@@ -292,3 +292,10 @@ body {
     grid-column: 1 / -1;
   }
 }
+
+/* Mobile settings own their compact page header. */
+@media (max-width: 767px) {
+  body:has(.mobile-settings-page) .mobile-app-header {
+    display: none;
+  }
+}

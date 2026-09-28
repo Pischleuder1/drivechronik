@@ -31,6 +31,7 @@ import { SoftwareTimeline } from "./SoftwareTimeline";
 import { DiagnosticsCard } from "./DiagnosticsCard";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Panel } from "../../../components/ui/Panel";
+import { MobileSettingsHero } from "./MobileSettingsHero";
 
 export const dynamic = "force-dynamic";
 
@@ -172,12 +173,23 @@ export default async function SettingsPage() {
   ];
 
   return (
-    <div className="w-full">
-      <PageHeader
-        visual="tools"
+    <div className="mobile-settings-page -mx-4 -mt-4 min-h-dvh bg-[#f4f6f8] px-4 pt-4 md:mx-0 md:mt-0 md:min-h-0 md:bg-transparent md:px-0 md:pt-0">
+      <MobileSettingsHero
+        vehicles={vehicles.map((vehicle) => ({
+          id: vehicle.id,
+          displayName: vehicle.displayName,
+        }))}
+        initialVehicleId={activeVehicleId}
         title={t("title")}
-        subtitle={t("subtitle")}
       />
+
+      <div className="hidden md:block">
+        <PageHeader
+          visual="tools"
+          title={t("title")}
+          subtitle={t("subtitle")}
+        />
+      </div>
 
 
       <Card title={t("vehicles.title")}>

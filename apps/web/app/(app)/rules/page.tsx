@@ -12,6 +12,9 @@ import { Panel } from "../../../components/ui/Panel";
 import { SectionHeader } from "../../../components/ui/SectionHeader";
 import { ApplyRulesButton } from "./ApplyRulesButton";
 import { RuleRow } from "./RuleRow";
+import { MobileRulesHero } from "./MobileRulesHero";
+import { getActiveVehicleId } from "../../../lib/activeVehicle";
+import { getVehiclesDetailed } from "../../../lib/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -46,29 +49,49 @@ function formatSuggestionTime(
 
 export default async function RulesPage() {
   const t = await getTranslations("rules");
-  const [rules, liveUnclassified, suggestions] = await Promise.all([
+  const [
+    rules,
+    liveUnclassified,
+    suggestions,
+    vehicles,
+    activeVehicleId,
+  ] = await Promise.all([
     getClassificationRules(),
     getUnclassifiedLiveCount(),
     getRuleSuggestions(),
+    getVehiclesDetailed(),
+    getActiveVehicleId(),
   ]);
 
   return (
-    <div className="w-full">
-      <PageHeader
-        visual="tools"
+    <div className="mobile-rules-page -mx-4 -mt-4 min-h-dvh bg-[#f4f6f8] px-4 pt-4 md:mx-0 md:mt-0 md:min-h-0 md:bg-transparent md:px-0 md:pt-0">
+      <MobileRulesHero
+        vehicles={vehicles.map((vehicle) => ({
+          id: vehicle.id,
+          displayName: vehicle.displayName,
+        }))}
+        initialVehicleId={activeVehicleId}
         title={t("title")}
-        subtitle={t("subtitle")}
-        actions={
-          <Button
-            href="/rules/new"
-            variant="primary"
-            className="shrink-0"
-            icon={<Plus aria-hidden size={16} />}
-          >
-            {t("newRule")}
-          </Button>
-        }
+        newRuleLabel={t("newRule")}
       />
+
+      <div className="hidden md:block">
+        <PageHeader
+          visual="tools"
+          title={t("title")}
+          subtitle={t("subtitle")}
+          actions={
+            <Button
+              href="/rules/new"
+              variant="primary"
+              className="shrink-0"
+              icon={<Plus aria-hidden size={16} />}
+            >
+              {t("newRule")}
+            </Button>
+          }
+        />
+      </div>
 
       <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 shadow-sm dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
         {t("manualUntouchedNotice")}

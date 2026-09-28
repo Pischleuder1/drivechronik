@@ -299,3 +299,10 @@ body {
     display: none;
   }
 }
+
+/* Mobile rules own their compact page header. */
+@media (max-width: 767px) {
+  body:has(.mobile-rules-page) .mobile-app-header {
+    display: none;
+  }
+}

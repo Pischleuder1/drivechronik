@@ -329,3 +329,10 @@ body {
     display: none;
   }
 }
+
+/* Mobile rule forms own their page header. */
+@media (max-width: 767px) {
+  body:has(.mobile-rule-form-page) .mobile-app-header {
+    display: none;
+  }
+}

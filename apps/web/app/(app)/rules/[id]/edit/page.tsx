@@ -3,10 +3,16 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ChevronLeft } from "lucide-react";
 import { getRuleById } from "../../../../../lib/rules";
-import { getAllPlacesLite, getAllTags } from "../../../../../lib/queries";
+import {
+  getAllPlacesLite,
+  getAllTags,
+  getVehiclesDetailed,
+} from "../../../../../lib/queries";
+import { getActiveVehicleId } from "../../../../../lib/activeVehicle";
 import { RuleForm, type RuleFormValues } from "../../RuleForm";
 import { PageHeader } from "../../../../../components/ui/PageHeader";
 import { Panel } from "../../../../../components/ui/Panel";
+import { MobileRuleFormHero } from "../../MobileRuleFormHero";
 
 export const dynamic = "force-dynamic";
 
@@ -21,10 +27,18 @@ export default async function EditRulePage({
 
   const t = await getTranslations("rules");
   const tCommon = await getTranslations("common");
-  const [rule, places, tags] = await Promise.all([
+  const [
+    rule,
+    places,
+    tags,
+    vehicles,
+    activeVehicleId,
+  ] = await Promise.all([
     getRuleById(ruleId),
     getAllPlacesLite(),
     getAllTags(),
+    getVehiclesDetailed(),
+    getActiveVehicleId(),
   ]);
   if (!rule) notFound();
 
@@ -55,20 +69,32 @@ export default async function EditRulePage({
   };
 
   return (
-    <div className="w-full">
-      <Link
-        href="/rules"
-        className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
-      >
-        <ChevronLeft aria-hidden size={16} />
-        {tCommon("actions.back")}
-      </Link>
-
-      <PageHeader
-        visual="tools"
-        className="mt-3"
+    <div className="mobile-rule-form-page -mx-4 -mt-4 min-h-dvh bg-[#f4f6f8] px-4 pt-4 md:mx-0 md:mt-0 md:min-h-0 md:bg-transparent md:px-0 md:pt-0">
+      <MobileRuleFormHero
+        vehicles={vehicles.map((vehicle) => ({
+          id: vehicle.id,
+          displayName: vehicle.displayName,
+        }))}
+        initialVehicleId={activeVehicleId}
         title={t("editTitle")}
+        backLabel={tCommon("actions.back")}
       />
+
+      <div className="hidden md:block">
+        <Link
+          href="/rules"
+          className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
+        >
+          <ChevronLeft aria-hidden size={16} />
+          {tCommon("actions.back")}
+        </Link>
+
+        <PageHeader
+          visual="tools"
+          className="mt-3"
+          title={t("editTitle")}
+        />
+      </div>
 
       <Panel className="mt-6">
         <RuleForm

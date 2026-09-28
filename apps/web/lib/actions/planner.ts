@@ -190,6 +190,8 @@ interface OsrmRoute {
     startM: number;
     endM: number;
   }>;
+  /** Auf der Route verwendete deutsche Autobahnen, z. B. A2 oder A30. */
+  motorwayRefs?: string[];
   /** OSRM liefert [lon, lat] — hier bereits so belassen. */
   coordinates: [number, number][];
 }
@@ -1147,6 +1149,7 @@ interface OsrmResponseShape {
       steps?: Array<{
         mode?: string;
         name?: string;
+        ref?: string;
         distance?: number;
         duration?: number;
       }>;
@@ -1201,10 +1204,21 @@ function parseOsrmBody(body: unknown): OsrmRoute[] | null {
       endM: number;
     }> = [];
 
+    const motorwayRefs = new Set<string>();
+
     for (const leg of route.legs ?? []) {
       for (const step of leg.steps ?? []) {
         const stepDistanceM =
           typeof step.distance === "number" ? step.distance : 0;
+
+        if (typeof step.ref === "string") {
+          const autobahnRefs =
+            step.ref.toUpperCase().match(/\bA\s*\d+\b/g) ?? [];
+
+          for (const rawRef of autobahnRefs) {
+            motorwayRefs.add(rawRef.replace(/\s+/g, ""));
+          }
+        }
 
         if (step.mode === "ferry") {
           ferryDistanceM += stepDistanceM;
@@ -1256,6 +1270,9 @@ function parseOsrmBody(body: unknown): OsrmRoute[] | null {
       hasFerry: ferryDistanceM > 0,
       ferrySegments,
       nonDrivingSegmentsM,
+      motorwayRefs: [...motorwayRefs].sort(
+        (a, b) => Number(a.slice(1)) - Number(b.slice(1)),
+      ),
       coordinates,
     });
   }

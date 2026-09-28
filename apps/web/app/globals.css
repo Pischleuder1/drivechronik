@@ -306,3 +306,10 @@ body {
     display: none;
   }
 }
+
+/* Mobile tags own their compact page header. */
+@media (max-width: 767px) {
+  body:has(.mobile-tags-page) .mobile-app-header {
+    display: none;
+  }
+}

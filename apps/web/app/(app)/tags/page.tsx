@@ -5,20 +5,38 @@ import { EmptyState } from "../../../components/ui/EmptyState";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { CreateTagForm } from "./CreateTagForm";
 import { TagRow } from "./TagRow";
+import { MobileTagsHero } from "./MobileTagsHero";
+import { getActiveVehicleId } from "../../../lib/activeVehicle";
+import { getVehiclesDetailed } from "../../../lib/queries";
 
 export const dynamic = "force-dynamic";
 
 export default async function TagsPage() {
   const t = await getTranslations("tags");
-  const tags = await getAllTags();
+  const [tags, vehicles, activeVehicleId] = await Promise.all([
+    getAllTags(),
+    getVehiclesDetailed(),
+    getActiveVehicleId(),
+  ]);
 
   return (
-    <div className="w-full">
-      <PageHeader
-        visual="tools"
+    <div className="mobile-tags-page -mx-4 -mt-4 min-h-dvh bg-[#f4f6f8] px-4 pt-4 md:mx-0 md:mt-0 md:min-h-0 md:bg-transparent md:px-0 md:pt-0">
+      <MobileTagsHero
+        vehicles={vehicles.map((vehicle) => ({
+          id: vehicle.id,
+          displayName: vehicle.displayName,
+        }))}
+        initialVehicleId={activeVehicleId}
         title={t("title")}
-        subtitle={t("description")}
       />
+
+      <div className="hidden md:block">
+        <PageHeader
+          visual="tools"
+          title={t("title")}
+          subtitle={t("description")}
+        />
+      </div>
 
       <div className="mt-6">
         <CreateTagForm />

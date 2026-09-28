@@ -14,6 +14,9 @@ import { isValidMonthParam } from "../../../../lib/exports/params";
 import { PageHeader } from "../../../../components/ui/PageHeader";
 import { StatCard } from "../../../../components/ui/StatCard";
 import { StatusBadge } from "../../../../components/ui/StatusBadge";
+import { getActiveVehicleId } from "../../../../lib/activeVehicle";
+import { getVehicles } from "../../../../lib/queries";
+import { MobileChargingSubpageHero } from "../MobileChargingSubpageHero";
 import {
   MetricGrid,
   MetricItem,
@@ -115,6 +118,11 @@ export default async function TeslaInvoicesPage({
   const locale = await getLocale();
   const sp = await searchParams;
 
+  const [vehicles, activeVehicleId] = await Promise.all([
+    getVehicles(),
+    getActiveVehicleId(),
+  ]);
+
   const month =
     sp.month && isValidMonthParam(sp.month)
       ? sp.month
@@ -193,20 +201,33 @@ export default async function TeslaInvoicesPage({
   }
 
   return (
-    <div className="w-full">
-      <Link
-        href="/charges"
-        className="text-sm text-neutral-500 transition hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
-      >
-        ← {t("teslaOverview.back")}
-      </Link>
-
-      <PageHeader
-        visual="charge"
-        className="mt-4"
+    <div className="mobile-charge-tesla-page -mx-4 -mt-4 min-h-dvh bg-[#f4f6f8] px-4 pt-4 md:mx-0 md:mt-0 md:min-h-0 md:bg-transparent md:px-0 md:pt-0">
+      <MobileChargingSubpageHero
+        vehicles={vehicles.map((vehicle) => ({
+          id: vehicle.id,
+          displayName: vehicle.displayName,
+        }))}
+        initialVehicleId={activeVehicleId}
         title={t("teslaOverview.title")}
         subtitle={t("teslaOverview.subtitle")}
+        backLabel={t("teslaOverview.back")}
       />
+
+      <div className="hidden md:block">
+        <Link
+          href="/charges"
+          className="text-sm text-neutral-500 transition hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
+        >
+          ← {t("teslaOverview.back")}
+        </Link>
+
+        <PageHeader
+          visual="charge"
+          className="mt-4"
+          title={t("teslaOverview.title")}
+          subtitle={t("teslaOverview.subtitle")}
+        />
+      </div>
 
       <form className="mt-6 grid gap-3 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:grid-cols-[1fr_1fr_1fr_auto] dark:border-neutral-800 dark:bg-neutral-900">
         <label className="text-sm">

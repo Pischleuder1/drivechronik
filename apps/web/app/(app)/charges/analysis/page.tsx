@@ -12,6 +12,8 @@ import {
 
 import { APP_TIMEZONE } from "../../../../lib/config";
 import { getActiveVehicleId } from "../../../../lib/activeVehicle";
+import { getVehicles } from "../../../../lib/queries";
+import { MobileChargingSubpageHero } from "../MobileChargingSubpageHero";
 import { getChargingAnalytics } from "../../../../lib/chargeAnalytics";
 import { PageHeader } from "../../../../components/ui/PageHeader";
 import { Panel } from "../../../../components/ui/Panel";
@@ -53,7 +55,10 @@ export default async function ChargeAnalysisPage({
   const params = await searchParams;
   const limit: 5 | 10 = params.limit === "10" ? 10 : 5;
 
-  const vehicleId = await getActiveVehicleId();
+  const [vehicleId, vehicles] = await Promise.all([
+    getActiveVehicleId(),
+    getVehicles(),
+  ]);
 
   const analytics =
     vehicleId != null
@@ -71,47 +76,85 @@ export default async function ChargeAnalysisPage({
   );
 
   return (
-    <div className="w-full">
-      <Link
-        href="/charges"
-        className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
-      >
-        <ChevronLeft aria-hidden size={16} />
-        {t("analysis.back")}
-      </Link>
-
-      <PageHeader
-        visual="charge"
-        className="mt-3"
+    <div className="mobile-charge-analysis-page -mx-4 -mt-4 min-h-dvh bg-[#f4f6f8] px-4 pt-4 md:mx-0 md:mt-0 md:min-h-0 md:bg-transparent md:px-0 md:pt-0">
+      <MobileChargingSubpageHero
+        vehicles={vehicles.map((vehicle) => ({
+          id: vehicle.id,
+          displayName: vehicle.displayName,
+        }))}
+        initialVehicleId={vehicleId}
         title={t("analysis.title")}
         subtitle={t("analysis.subtitle")}
-        actions={
-          <div className="flex rounded-xl border border-neutral-200 bg-white p-1 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-            <Link
-              href="/charges/analysis?limit=5"
-              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
-                limit === 5
-                  ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
-                  : "text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
-              }`}
-            >
-              {t("analysis.lastFive")}
-            </Link>
-            <Link
-              href="/charges/analysis?limit=10"
-              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
-                limit === 10
-                  ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
-                  : "text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
-              }`}
-            >
-              {t("analysis.lastTen")}
-            </Link>
-          </div>
-        }
-      />
+        backLabel={t("analysis.back")}
+      >
+        <div className="inline-flex rounded-xl border border-white/10 bg-white/10 p-1 backdrop-blur-sm">
+          <Link
+            href="/charges/analysis?limit=5"
+            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+              limit === 5
+                ? "bg-white text-slate-900 shadow-sm"
+                : "text-slate-300"
+            }`}
+          >
+            {t("analysis.lastFive")}
+          </Link>
 
-      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <Link
+            href="/charges/analysis?limit=10"
+            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+              limit === 10
+                ? "bg-white text-slate-900 shadow-sm"
+                : "text-slate-300"
+            }`}
+          >
+            {t("analysis.lastTen")}
+          </Link>
+        </div>
+      </MobileChargingSubpageHero>
+
+      <div className="hidden md:block">
+        <Link
+          href="/charges"
+          className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
+        >
+          <ChevronLeft aria-hidden size={16} />
+          {t("analysis.back")}
+        </Link>
+
+        <PageHeader
+          visual="charge"
+          className="mt-3"
+          title={t("analysis.title")}
+          subtitle={t("analysis.subtitle")}
+          actions={
+            <div className="flex rounded-xl border border-neutral-200 bg-white p-1 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+              <Link
+                href="/charges/analysis?limit=5"
+                className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+                  limit === 5
+                    ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
+                    : "text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
+                }`}
+              >
+                {t("analysis.lastFive")}
+              </Link>
+
+              <Link
+                href="/charges/analysis?limit=10"
+                className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+                  limit === 10
+                    ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
+                    : "text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
+                }`}
+              >
+                {t("analysis.lastTen")}
+              </Link>
+            </div>
+          }
+        />
+      </div>
+
+      <div className="mobile-charge-analysis-kpis mt-4 grid grid-cols-2 gap-2 md:mt-6 md:gap-3 lg:grid-cols-4">
         <StatCard
           valueClassName="mt-1 text-base font-semibold tabular-nums"
           label={t("analysis.sessions")}

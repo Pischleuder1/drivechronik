@@ -336,3 +336,16 @@ body {
     display: none;
   }
 }
+
+/* Mobile charging subpages own their page header. */
+@media (max-width: 767px) {
+  body:has(.mobile-charge-analysis-page) .mobile-app-header,
+  body:has(.mobile-charge-tesla-page) .mobile-app-header {
+    display: none;
+  }
+
+  .mobile-charge-analysis-kpis > * {
+    min-height: 0 !important;
+    padding: 0.75rem !important;
+  }
+}

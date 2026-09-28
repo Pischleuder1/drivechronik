@@ -9,9 +9,13 @@ import {
   Play,
   Plus,
   Zap,
+  ChevronRight,
 } from "lucide-react";
 import { formatDuration } from "@drivechronik/core";
-import { getAllPlacesWithUsage } from "../../../lib/queries";
+import {
+  getAllPlacesWithUsage,
+  getVehicles,
+} from "../../../lib/queries";
 import { getPlaceDwellStats } from "../../../lib/parkAnalytics";
 import { getActiveVehicle } from "../../../lib/activeVehicle";
 import { Button } from "../../../components/ui/Button";
@@ -24,6 +28,7 @@ import {
   MetricGrid,
   MetricItem,
 } from "../../../components/ui/MetricGrid";
+import { MobilePlacesHero } from "./MobilePlacesHero";
 
 export const dynamic = "force-dynamic";
 
@@ -47,31 +52,42 @@ export default async function PlacesPage() {
     );
   }
 
-  const [placeRows, dwellStatsByPlaceId] = await Promise.all([
+  const [placeRows, dwellStatsByPlaceId, vehicles] = await Promise.all([
     getAllPlacesWithUsage(current.id),
     getPlaceDwellStats(current.id),
+    getVehicles(),
   ]);
 
   return (
-    <div className="w-full">
-      <PageHeader
-        visual="places"
-        title={t("title")}
-        subtitle={t("description")}
+    <div className="mobile-places-page -mx-4 -mt-4 min-h-dvh bg-[#f4f6f8] px-4 pt-4 md:mx-0 md:mt-0 md:min-h-0 md:bg-transparent md:px-0 md:pt-0">
+      <MobilePlacesHero
+        vehicles={vehicles.map((vehicle) => ({
+          id: vehicle.id,
+          displayName: vehicle.displayName,
+        }))}
+        initialVehicleId={current.id}
       />
 
-      <div className="mt-4 flex justify-end">
+      <div className="hidden md:block">
+        <PageHeader
+          visual="places"
+          title={t("title")}
+          subtitle={t("description")}
+        />
+      </div>
+
+      <div className="relative z-10 -mt-5 flex justify-end md:mt-4">
         <Button
           href="/places/new"
           variant="primary"
-          className="shrink-0"
+          className="shrink-0 shadow-sm md:shadow-none"
           icon={<Plus aria-hidden size={16} />}
         >
           {t("newPlace")}
         </Button>
       </div>
 
-      <div className="mt-6 flex flex-col gap-4">
+      <div className="mt-3 flex flex-col gap-2.5 md:mt-6 md:gap-4">
         {placeRows.length === 0 && (
           <EmptyState
             icon={MapPin}
@@ -92,19 +108,21 @@ export default async function PlacesPage() {
             <Link
               key={place.id}
               href={`/places/${place.id}/edit`}
-              className="rounded-3xl border border-neutral-200/80 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700"
+              className="rounded-[18px] border border-neutral-200/80 bg-white p-3 shadow-sm transition-all hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md md:rounded-3xl md:p-5 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700"
             >
-              <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-start justify-between gap-2 md:flex-wrap md:items-center md:gap-3">
                 <div className="flex min-w-0 items-center gap-3">
-                  <IconBadge
-                    tone={place.type === "customer" ? "emerald" : "violet"}
-                    size="sm"
-                  >
-                    <MapPin aria-hidden size={18} />
-                  </IconBadge>
+                  <div className="hidden md:block">
+                    <IconBadge
+                      tone={place.type === "customer" ? "emerald" : "violet"}
+                      size="sm"
+                    >
+                      <MapPin aria-hidden size={18} />
+                    </IconBadge>
+                  </div>
 
-                  <div className="flex min-w-0 flex-wrap items-center gap-2">
-                    <span className="truncate text-base font-semibold text-neutral-900 dark:text-neutral-100">
+                  <div className="flex min-w-0 flex-wrap items-center gap-1.5 md:gap-2">
+                    <span className="truncate text-[15px] font-semibold text-neutral-900 md:text-base dark:text-neutral-100">
                       {place.name}
                     </span>
 
@@ -116,19 +134,27 @@ export default async function PlacesPage() {
                   </div>
                 </div>
 
-                <StatusBadge tone="neutral">
-                  {t("list.radius", { radius: place.radiusM })}
-                </StatusBadge>
+                <div className="flex shrink-0 items-center gap-1.5">
+                  <StatusBadge tone="neutral">
+                    {t("list.radius", { radius: place.radiusM })}
+                  </StatusBadge>
+                  <ChevronRight
+                    aria-hidden
+                    size={17}
+                    className="text-neutral-400 md:hidden"
+                  />
+                </div>
               </div>
 
               {place.address && (
-                <p className="mt-1 truncate text-sm text-neutral-500 dark:text-neutral-400">
+                <p className="mt-1 truncate text-[11px] text-neutral-500 md:text-sm dark:text-neutral-400">
                   {place.address}
                 </p>
               )}
 
-              <MetricGrid columns={4} className="mt-3">
-                <MetricItem
+              <div className="hidden md:block">
+                <MetricGrid columns={4} className="mt-3">
+                  <MetricItem
                   label={t("list.start")}
                   value={place.driveStartCount}
                   icon={
@@ -156,7 +182,50 @@ export default async function PlacesPage() {
                     <Car className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
                   }
                 />
-              </MetricGrid>
+                </MetricGrid>
+              </div>
+
+              <div className="mt-2.5 grid grid-cols-2 gap-1.5 md:hidden">
+                <div className="rounded-xl bg-neutral-50 px-3 py-1.5">
+                  <div className="flex items-center gap-1.5 text-[10px] text-neutral-500">
+                    <Play className="h-3.5 w-3.5 text-sky-600" />
+                    {t("list.start")}
+                  </div>
+                  <p className="mt-0 text-[15px] font-semibold tabular-nums text-neutral-900">
+                    {place.driveStartCount}
+                  </p>
+                </div>
+
+                <div className="rounded-xl bg-neutral-50 px-3 py-1.5">
+                  <div className="flex items-center gap-1.5 text-[10px] text-neutral-500">
+                    <Flag className="h-3.5 w-3.5 text-blue-600" />
+                    {t("list.destination")}
+                  </div>
+                  <p className="mt-0 text-[15px] font-semibold tabular-nums text-neutral-900">
+                    {place.driveEndCount}
+                  </p>
+                </div>
+
+                <div className="rounded-xl bg-neutral-50 px-3 py-1.5">
+                  <div className="flex items-center gap-1.5 text-[10px] text-neutral-500">
+                    <Zap className="h-3.5 w-3.5 text-sky-600" />
+                    {t("list.charging")}
+                  </div>
+                  <p className="mt-0 text-[15px] font-semibold tabular-nums text-neutral-900">
+                    {place.chargeCount}
+                  </p>
+                </div>
+
+                <div className="rounded-xl bg-neutral-50 px-3 py-1.5">
+                  <div className="flex items-center gap-1.5 text-[10px] text-neutral-500">
+                    <Car className="h-3.5 w-3.5 text-blue-600" />
+                    {t("list.parking")}
+                  </div>
+                  <p className="mt-0 text-[15px] font-semibold tabular-nums text-neutral-900">
+                    {place.parkCount}
+                  </p>
+                </div>
+              </div>
 
               {dwell && dwell.parkCount > 0 && (
                 <MetricGrid columns={2} className="mt-2 border-t border-neutral-100 pt-2 dark:border-neutral-800">

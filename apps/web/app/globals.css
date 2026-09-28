@@ -219,3 +219,10 @@ body {
     display: none;
   }
 }
+
+/* Mobile places view owns its compact page header. */
+@media (max-width: 767px) {
+  body:has(.mobile-places-page) .mobile-app-header {
+    display: none;
+  }
+}

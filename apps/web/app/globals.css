@@ -191,3 +191,10 @@ body {
     display: none;
   }
 }
+
+/* Mobile calendar owns its compact page header. */
+@media (max-width: 767px) {
+  body:has(.mobile-calendar-page) .mobile-app-header {
+    display: none;
+  }
+}

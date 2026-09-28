@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import { shiftMonth } from "../../../lib/calendarGrid";
 import { toIntlLocale } from "../../../lib/i18nLocale";
 import { buttonClasses } from "../../../components/ui/Button";
@@ -9,15 +9,81 @@ import { buttonClasses } from "../../../components/ui/Button";
 interface Props {
   month: string; // YYYY-MM
   currentMonth: string;
+  compact?: boolean;
 }
 
-export function MonthNav({ month, currentMonth }: Props) {
+export function MonthNav({
+  month,
+  currentMonth,
+  compact = false,
+}: Props) {
   const router = useRouter();
   const t = useTranslations("calendar");
   const locale = useLocale();
 
   function goTo(nextMonth: string) {
     router.push(`/calendar?month=${nextMonth}`);
+  }
+
+  if (compact) {
+    return (
+      <div className="w-full">
+        <div className="grid grid-cols-[40px_minmax(0,1fr)_40px] items-center gap-2">
+          <button
+            type="button"
+            aria-label={t("prevMonth")}
+            onClick={() => goTo(shiftMonth(month, -1))}
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-neutral-200 bg-white text-neutral-700 shadow-sm"
+          >
+            <ChevronLeft aria-hidden size={20} />
+          </button>
+
+          <div className="flex min-w-0 items-center justify-center gap-1.5">
+            <span className="truncate text-center text-[17px] font-semibold capitalize tracking-tight text-neutral-950">
+              {formatMonthLabelClient(month, locale)}
+            </span>
+
+            <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-neutral-600 transition hover:bg-neutral-100">
+              <CalendarDays
+                aria-hidden
+                size={18}
+              />
+
+              <input
+                type="month"
+                value={month}
+                aria-label={t("monthSelectLabel")}
+                onChange={(e) => {
+                  if (e.target.value) goTo(e.target.value);
+                }}
+                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+              />
+            </span>
+          </div>
+
+          <button
+            type="button"
+            aria-label={t("nextMonth")}
+            onClick={() => goTo(shiftMonth(month, 1))}
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-neutral-200 bg-white text-neutral-700 shadow-sm"
+          >
+            <ChevronRight aria-hidden size={20} />
+          </button>
+        </div>
+
+        {month !== currentMonth && (
+          <div className="mt-2 flex justify-center border-t border-neutral-100 pt-2">
+            <button
+              type="button"
+              onClick={() => goTo(currentMonth)}
+              className="h-8 rounded-xl border border-neutral-200 bg-white px-3 text-[11px] font-medium text-neutral-700 shadow-sm"
+            >
+              {t("today")}
+            </button>
+          </div>
+        )}
+      </div>
+    );
   }
 
   return (

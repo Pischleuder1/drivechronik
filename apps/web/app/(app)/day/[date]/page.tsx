@@ -25,8 +25,6 @@ import { MobileDayHero } from "./MobileDayHero";
 import { Timeline } from "./Timeline";
 
 import { NoVehicleState } from "../../../../components/NoVehicleState";
-import { ActiveVehicleSwitcher } from "../../../../components/ActiveVehicleSwitcher";
-
 export const dynamic = "force-dynamic";
 
 export default async function DayPage({

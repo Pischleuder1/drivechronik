@@ -8,14 +8,14 @@ import {
   Battery,
   Gauge,
   Map,
-  MapPin,
   Search,
   Settings,
 } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 import type { DashboardRangeBoundaryPoint } from "./DashboardRangeMap";
 import { ActiveVehicleSwitcher } from "../../components/ActiveVehicleSwitcher";
+import { LocaleSwitcher } from "../../components/LocaleSwitcher";
 
 const DashboardRangeMap = dynamic(
   () =>
@@ -73,6 +73,7 @@ export function MobileRangeHero({
 }: MobileRangeHeroProps) {
   const t = useTranslations("dashboard.mobileMapFirst");
   const tNav = useTranslations("nav");
+  const locale = useLocale();
 
   const vehicleImage =
     model === "Y"
@@ -185,7 +186,16 @@ export function MobileRangeHero({
             DriveChronik
           </span>
 
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-slate-950/50 text-slate-200 backdrop-blur">
+              <div className="scale-[0.88]">
+                <LocaleSwitcher
+                  initial={locale === "en" ? "en" : "de"}
+                  variant="compact"
+                />
+              </div>
+            </div>
+
             <Link
               href="/search"
               aria-label={tNav("search")}
@@ -201,33 +211,6 @@ export function MobileRangeHero({
             >
               <Settings aria-hidden size={17} />
             </Link>
-          </div>
-        </div>
-
-        <div className="absolute inset-x-0 top-[60px] z-[700] flex justify-center px-4">
-          <div className="inline-flex rounded-2xl border border-white/10 bg-[#0a1726]/90 p-1 shadow-xl backdrop-blur-xl">
-            <button
-              type="button"
-              className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white"
-            >
-              {t("tabRange")}
-            </button>
-
-            <button
-              type="button"
-              disabled
-              className="rounded-xl px-4 py-2 text-xs font-medium text-slate-400"
-            >
-              {t("tabChargers")}
-            </button>
-
-            <button
-              type="button"
-              disabled
-              className="rounded-xl px-4 py-2 text-xs font-medium text-slate-400"
-            >
-              {t("tabTraffic")}
-            </button>
           </div>
         </div>
 
@@ -315,7 +298,7 @@ export function MobileRangeHero({
                   className="text-slate-500"
                 />
                 <span className="text-[9px] text-neutral-400">
-                  Reichweite
+                  {t("rangeLabel")}
                 </span>
               </div>
 
@@ -334,7 +317,7 @@ export function MobileRangeHero({
                   className="text-blue-500"
                 />
                 <span className="text-[9px] text-neutral-400">
-                  erreichbar
+                  {t("reachableLabel")}
                 </span>
               </div>
 
@@ -362,7 +345,7 @@ export function MobileRangeHero({
 
               {range && (
                 <span className="shrink-0 text-[9px] tabular-nums text-neutral-400">
-                  {range.reserveSoc} % Reserve
+                  {t("reserve", { reserve: range.reserveSoc })}
                 </span>
               )}
             </div>

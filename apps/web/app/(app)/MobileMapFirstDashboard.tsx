@@ -21,8 +21,6 @@ import type {
   DashboardWeekDay,
   LastChargeStats,
   OpenSessionStatus,
-  TodayStats,
-  UnclassifiedCount,
   VehicleStatusRow,
   WeekStats,
 } from "../../lib/dashboard";
@@ -186,10 +184,8 @@ export async function MobileMapFirstDashboard({
   status,
   vehicles,
   openSession,
-  today,
   week,
   lastCharge,
-  unclassifiedCount,
   weekSeries,
 }: {
   status: VehicleStatusRow;
@@ -198,10 +194,8 @@ export async function MobileMapFirstDashboard({
     displayName: string;
   }>;
   openSession: OpenSessionStatus | null;
-  today: TodayStats;
   week: WeekStats;
   lastCharge: LastChargeStats | null;
-  unclassifiedCount: UnclassifiedCount;
   weekSeries: DashboardWeekDay[];
 }) {
   const [t, tm, locale] = await Promise.all([
@@ -268,10 +262,10 @@ export async function MobileMapFirstDashboard({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[11px] font-medium text-neutral-500">
-                Fahrten
+                {tm("drivesTitle")}
               </p>
               <p className="mt-0.5 text-[10px] text-neutral-400">
-                Diese Woche
+                {tm("week")}
               </p>
             </div>
 
@@ -290,7 +284,7 @@ export async function MobileMapFirstDashboard({
             </p>
 
             <p className="text-[10px] text-neutral-400">
-              {week.driveCount} Fahrten
+              {t("stats.driveCount", { count: week.driveCount })}
             </p>
           </div>
         </Link>
@@ -302,10 +296,10 @@ export async function MobileMapFirstDashboard({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[11px] font-medium text-neutral-500">
-                Verbrauch
+                {tm("consumption")}
               </p>
               <p className="mt-0.5 text-[10px] text-neutral-400">
-                Diese Woche
+                {tm("week")}
               </p>
             </div>
 
@@ -340,13 +334,13 @@ export async function MobileMapFirstDashboard({
 
       <div className="px-4 pt-1">
         <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-400">
-          Fahrzeug
+          {tm("vehicle")}
         </p>
 
         <div className="grid grid-cols-2 gap-2">
           <section className={`${card} overflow-hidden p-3`}>
             <p className="text-[11px] font-semibold text-neutral-800">
-              Reifendruck
+              {t("tpms.title")}
             </p>
 
             <TeslaTopViewTpmsGraphic
@@ -356,6 +350,10 @@ export async function MobileMapFirstDashboard({
               rl={status.tpmsRlBar}
               rr={status.tpmsRrBar}
               compact
+              flLabel={t("tpms.fl")}
+              frLabel={t("tpms.fr")}
+              rlLabel={t("tpms.rl")}
+              rrLabel={t("tpms.rr")}
             />
           </section>
 
@@ -376,7 +374,7 @@ export async function MobileMapFirstDashboard({
             </div>
 
             <p className="mt-2 text-[11px] font-semibold text-neutral-800">
-              Fahrzeugstatus
+              {tm("vehicleStatus")}
             </p>
 
             <p className="mt-1 text-sm font-semibold text-neutral-950">
@@ -411,7 +409,7 @@ export async function MobileMapFirstDashboard({
             </div>
 
             <p className="mt-2 text-[11px] font-semibold text-neutral-800">
-              Letzte Ladung
+              {tm("lastCharge")}
             </p>
 
             <p className="mt-1 text-sm font-semibold tabular-nums text-neutral-950">
@@ -425,7 +423,7 @@ export async function MobileMapFirstDashboard({
             <p className="mt-0.5 truncate text-[10px] text-neutral-400">
               {lastCharge?.placeName ??
                 lastCharge?.address ??
-                "Keine Ortsangabe"}
+                tm("unknownLocation")}
             </p>
           </Link>
 
@@ -435,7 +433,7 @@ export async function MobileMapFirstDashboard({
             </div>
 
             <p className="mt-2 text-[11px] font-semibold text-neutral-800">
-              Datenstatus
+              {tm("dataStatus")}
             </p>
 
             <p className="mt-1 text-sm font-semibold text-neutral-950">
@@ -445,7 +443,7 @@ export async function MobileMapFirstDashboard({
             </p>
 
             <p className="mt-0.5 text-[10px] text-neutral-400">
-              zuletzt synchronisiert
+              {tm("lastSynced")}
             </p>
           </section>
         </div>

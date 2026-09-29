@@ -27,9 +27,6 @@
     "label": "Fahrzeug"
   },
   "mobileMapFirst": {
-    "tabRange": "Reichweite",
-    "tabChargers": "Ladestationen",
-    "tabTraffic": "Verkehr",
     "comingSoon": "Demnächst",
     "rangeLoading": "Reichweite wird berechnet …",
     "rangeError": "Die Reichweitenkarte ist gerade nicht verfügbar.",
@@ -48,7 +45,13 @@
     "insights": "Insights",
     "insightsSubtitle": "Verbrauch, Ziele und Jahresanalyse",
     "openClassifications": "{count, plural, one {# Fahrt noch klassifizieren} other {# Fahrten noch klassifizieren}}",
-    "rangeDisclaimer": "Reichweite ist eine straßenbasierte Näherung mit 10 % SoC-Reserve."
+    "rangeDisclaimer": "Reichweite ist eine straßenbasierte Näherung mit 10 % SoC-Reserve.",
+    "drivesTitle": "Fahrten",
+    "consumption": "Verbrauch",
+    "rangeLabel": "Reichweite",
+    "reachableLabel": "erreichbar",
+    "dataStatus": "Datenstatus",
+    "lastSynced": "zuletzt synchronisiert"
   },
   "tpms": {
     "title": "Reifendruck",

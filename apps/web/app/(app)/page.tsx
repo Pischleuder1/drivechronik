@@ -147,10 +147,8 @@ export default async function DashboardPage() {
               displayName: vehicle.displayName,
             }))}
             openSession={openSession}
-            today={today}
             week={week}
             lastCharge={lastCharge}
-            unclassifiedCount={unclassifiedCount}
             weekSeries={weekSeries}
           />
         ) : (

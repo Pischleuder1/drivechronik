@@ -129,6 +129,10 @@ export function TeslaTopViewTpmsGraphic({
   rl,
   rr,
   compact = false,
+  flLabel = "VL",
+  frLabel = "VR",
+  rlLabel = "HL",
+  rrLabel = "HR",
 }: {
   model?: string | null;
   fl: number | null;
@@ -136,6 +140,10 @@ export function TeslaTopViewTpmsGraphic({
   rl: number | null;
   rr: number | null;
   compact?: boolean;
+  flLabel?: string;
+  frLabel?: string;
+  rlLabel?: string;
+  rrLabel?: string;
 }) {
   const kind = detectTeslaModel(model);
 
@@ -187,7 +195,7 @@ export function TeslaTopViewTpmsGraphic({
 
       {/* Vorderachse */}
       <TpmsBadge
-        label="VL"
+        label={flLabel}
         value={fl}
         warn={assessment.fl.warn}
         compact={compact}
@@ -195,7 +203,7 @@ export function TeslaTopViewTpmsGraphic({
       />
 
       <TpmsBadge
-        label="VR"
+        label={frLabel}
         value={fr}
         warn={assessment.fr.warn}
         compact={compact}
@@ -204,7 +212,7 @@ export function TeslaTopViewTpmsGraphic({
 
       {/* Hinterachse */}
       <TpmsBadge
-        label="HL"
+        label={rlLabel}
         value={rl}
         warn={assessment.rl.warn}
         compact={compact}
@@ -212,7 +220,7 @@ export function TeslaTopViewTpmsGraphic({
       />
 
       <TpmsBadge
-        label="HR"
+        label={rrLabel}
         value={rr}
         warn={assessment.rr.warn}
         compact={compact}

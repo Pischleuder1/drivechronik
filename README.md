@@ -123,7 +123,7 @@ Tessie & Co. sind gut, aber: Abo-Kosten, Feature-Überschneidung mit der Tesla-A
 - **Ziel- & Kundenanalyse** — Top-Ziele mit Besuchen, Kilometern, letzter Anfahrt und Aufteilung nach geschäftlich / privat / Arbeitsweg; Filter für alle Ziele, geschäftliche Ziele und Kunden sowie eine Ziel-Heatmap. Kundenkennzahlen zeigen Gesamtbesuche, unterschiedliche Kunden, meistbesuchten Kunden und geschäftliche Kundenkilometer
 - **Jahresanalyse & Abrechnung** — Monatsverlauf nach geschäftlich / privat / Arbeitsweg / unklassifiziert, geschäftliche Jahreskilometer, konfigurierbare Kilometererstattung sowie direkter Jahresbericht mit CSV-/PDF-Export. Der Jahresbericht kann zwischen „Dienstfahrten“ und „Alle Fahrten“ umgeschaltet werden; die Kilometererstattung wird auch in der Gesamtansicht ausschließlich aus geschäftlichen Kilometern berechnet. PDF-Berichte enthalten Fahrername, Fahrzeugname, normalisierte Modellbezeichnung (`Tesla 3` / `Tesla Y`) und Kennzeichen.
 - **Standzeit-Analytics** — Vampir-Verlust pro Parkvorgang, Standzeiten pro Ort
-- **Routenplaner (experimentell)** — Reichweiten-Check mit echter Route (OSRM), Höhenprofil und deinem persönlichen Verbrauchsprofil aus der eigenen Historie; automatische Ladeplanung mit Tesla-Superchargern und öffentlichen HPC-Ladern entlang der Route, mehreren Ladestopps, Ankunfts-SoC, Ladeziel und geschätzter Ladezeit; alternative Routen und fährenbewusste Streckenführung einschließlich Sassnitz–Rønne; alle Annahmen offengelegt
+- **Routenplaner (experimentell)** — Reichweiten-Check mit echter Route (OSRM), Höhenprofil und deinem persönlichen Verbrauchsprofil aus der eigenen Historie; automatische Ladeplanung mit Tesla-Superchargern und öffentlichen HPC-Ladern entlang der Route, mehreren Ladestopps, Ankunfts-SoC, Ladeziel und geschätzter Ladezeit; alternative Routen und fährenbewusste Streckenführung einschließlich Sassnitz–Rønne; aktuelle Autobahn-Verkehrsmeldungen mit Baustellen, Warnungen und Sperrungen entlang der gewählten Route; alle Annahmen offengelegt
 - **Routenübergabe ohne Tesla Fleet API** — geplante Zwischen- und Ladestopps können als Google-Maps-Mehrzielroute geteilt oder per QR-Code auf ein Smartphone übertragen werden; zusätzlich steht eine Tesla-Übergabe der Ziele zur Verfügung. Längere Google-Maps-Routen werden automatisch in Teilrouten aufgeteilt.
 
 **Cockpit & Fahrzeug**
@@ -494,7 +494,7 @@ Der Tessie-Import rekonstruiert Fahrten und Ladevorgänge und schützt bereits v
 
 - **Braucht TeslaMate** als Datenquelle — DriveChronik spricht nicht selbst mit der Tesla-API und weckt dein Auto nie
 - **Zahlenformatierung** aktuell durchgehend de-DE (Dezimalkomma), auch in der englischen UI
-- **Routenplaner** ist experimentell — automatische Ladeplanung mit Tesla-Superchargern und öffentlichen HPC-Ladern ist vorhanden, die Ladezeit wird derzeit noch konservativ geschätzt; Standard-Routing über den öffentlichen OSRM-Demo-Server
+- **Routenplaner** ist experimentell — automatische Ladeplanung mit Tesla-Superchargern und öffentlichen HPC-Ladern sowie aktuelle Autobahn-Verkehrsmeldungen entlang der Route sind vorhanden; die Ladezeit wird derzeit noch konservativ geschätzt; Standard-Routing über den öffentlichen OSRM-Demo-Server
 - **Kein steuerrechtliches Gutachten**: Exporte sind fahrtenbuch-artig mit Audit-Log, aber die Anerkennung beim Finanzamt ist einzelfallabhängig
 
 ## Mitmachen & Sicherheit

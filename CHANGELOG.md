@@ -7,13 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.8.0] - 2026-09-28
+## [0.8.0] - 2026-09-29
 
 ### Added
 
 - Added a map-first mobile dashboard with a vehicle-focused dark hero, compact status presentation and mobile-optimized range and recent-drive views.
 - Added dedicated mobile page heroes with integrated vehicle switching across the main DriveChronik areas.
 - Added compact mobile headers for drive and charging details, rule forms, import/export and charging subpages.
+- Added current German Autobahn traffic events to the route planner, including roadworks, warnings and closures with route-direction filtering, duplicate suppression, route-distance ordering and map markers.
 
 ### Changed
 

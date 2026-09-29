@@ -10,6 +10,14 @@ const REQUEST_TIMEOUT_MS = 7_000;
 const CACHE_TTL_MS = 5 * 60 * 1_000;
 const DEFAULT_CORRIDOR_KM = 1.5;
 
+/**
+ * Erst ab 300 m Fortschritt entlang der Route werten wir die
+ * Ereignis-Geometrie als eindeutig gerichtet.
+ *
+ * Kurze Anschlussstellen-/Rampengeometrien bleiben dadurch erhalten.
+ */
+const DIRECTION_MIN_PROGRESS_KM = 0.3;
+
 const EARTH_RADIUS_KM = 6371;
 
 type AutobahnService = "warning" | "roadworks" | "closure";
@@ -243,6 +251,50 @@ function densifyGeometry(
   return result;
 }
 
+/**
+ * Ermittelt, ob eine Ereignis-Geometrie entlang oder entgegen der
+ * Fahrtrichtung der OSRM-Route verläuft.
+ *
+ * Positiv = mit der Route
+ * Negativ = entgegen der Route
+ * null    = nicht bestimmbar
+ */
+export function routeGeometryProgressKm(
+  geometry: [number, number][],
+  route: [number, number][],
+): number | null {
+  if (geometry.length < 2 || route.length < 2) {
+    return null;
+  }
+
+  const first = positionPointOnRoute(geometry[0]!, route);
+  const last = positionPointOnRoute(
+    geometry[geometry.length - 1]!,
+    route,
+  );
+
+  if (!first || !last) {
+    return null;
+  }
+
+  return last.routeDistanceKm - first.routeDistanceKm;
+}
+
+function isOppositeRouteDirection(
+  geometry: [number, number][],
+  route: [number, number][],
+): boolean {
+  const progressKm = routeGeometryProgressKm(
+    geometry,
+    route,
+  );
+
+  return (
+    progressKm !== null &&
+    progressKm < -DIRECTION_MIN_PROGRESS_KM
+  );
+}
+
 export function positionTrafficGeometryOnRoute(
   geometry: [number, number][],
   route: [number, number][],
@@ -407,6 +459,13 @@ function normalizeEvent(
     return null;
   }
 
+  // Durchgehende Ereignis-Geometrien der Gegenfahrbahn werden verworfen.
+  // Sehr kurze Rampen-/Anschlussstellen-Geometrien bleiben bestehen,
+  // weil ihre Richtung nicht zuverlässig ableitbar ist.
+  if (isOppositeRouteDirection(geometry, route)) {
+    return null;
+  }
+
   const representativePoint = geometry[0]!;
   const identifier =
     asString(item.identifier) ??
@@ -441,6 +500,42 @@ function normalizeEvent(
 
     geometry,
   };
+}
+
+function normalizeDedupeText(value: string | null): string {
+  return (value ?? "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+}
+
+function coordinateSignature(
+  point: [number, number] | undefined,
+): string {
+  if (!point) return "";
+
+  return `${point[0].toFixed(4)},${point[1].toFixed(4)}`;
+}
+
+/**
+ * Die Autobahn-API kann dasselbe logische Ereignis mit verschiedenen
+ * Identifiern liefern. Titel, Richtung und Geometrie sind dabei identisch.
+ */
+function logicalEventKey(event: TrafficEvent): string {
+  const first = event.geometry[0];
+  const last = event.geometry[event.geometry.length - 1];
+
+  return [
+    event.motorway,
+    event.type,
+    normalizeDedupeText(event.title),
+    normalizeDedupeText(event.subtitle),
+    event.displayType ?? "",
+    event.future ? "future" : "active",
+    event.blocked ? "blocked" : "open",
+    coordinateSignature(first),
+    coordinateSignature(last),
+  ].join("|");
 }
 
 export async function findAutobahnEventsAlongRoute(
@@ -506,14 +601,20 @@ export async function findAutobahnEventsAlongRoute(
   const deduplicated = new Map<string, TrafficEvent>();
 
   for (const event of collected.flat()) {
-    const key = `${event.motorway}:${event.type}:${event.id}`;
+    const key = logicalEventKey(event);
 
     const previous = deduplicated.get(key);
 
     if (
       !previous ||
       event.distanceToRouteKm <
-        previous.distanceToRouteKm
+        previous.distanceToRouteKm ||
+      (
+        event.distanceToRouteKm ===
+          previous.distanceToRouteKm &&
+        event.description.length >
+          previous.description.length
+      )
     ) {
       deduplicated.set(key, event);
     }

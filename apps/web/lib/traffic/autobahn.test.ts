@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   positionPointOnRoute,
   positionTrafficGeometryOnRoute,
+  routeGeometryProgressKm,
 } from "./autobahn";
 
 describe("autobahn traffic route matching", () => {
@@ -52,5 +53,31 @@ describe("autobahn traffic route matching", () => {
     expect(
       positionTrafficGeometryOnRoute([], route),
     ).toBeNull();
+  });
+
+  it("recognizes geometry in route direction", () => {
+    const progress = routeGeometryProgressKm(
+      [
+        [8.2, 52.0],
+        [8.8, 52.0],
+      ],
+      route,
+    );
+
+    expect(progress).not.toBeNull();
+    expect(progress!).toBeGreaterThan(30);
+  });
+
+  it("recognizes geometry against route direction", () => {
+    const progress = routeGeometryProgressKm(
+      [
+        [8.8, 52.0],
+        [8.2, 52.0],
+      ],
+      route,
+    );
+
+    expect(progress).not.toBeNull();
+    expect(progress!).toBeLessThan(-30);
   });
 });

@@ -1,4 +1,7 @@
 "use server";
+import { findAutobahnEventsAlongRoute } from "../traffic/autobahn";
+import type { TrafficEvent } from "../traffic/types";
+
 import { z } from "zod";
 import { getTranslations } from "next-intl/server";
 import {
@@ -95,6 +98,12 @@ export interface PlanResult {
   osrmIsDefault: boolean;
   /** [lat, lon]-Tupel für die Karten-Polyline (ausgedünnt). */
   geometry: [number, number][];
+
+  /** Von OSRM auf der finalen Route erkannte deutsche Autobahnen. */
+  motorwayRefs: string[];
+
+  /** Aktuelle Autobahn-Ereignisse entlang der finalen Route. */
+  trafficEvents: TrafficEvent[];
 
   /** Vom Nutzer gewählte Routenvariante. */
   selectedRouteOptionId: string;
@@ -693,6 +702,17 @@ export async function planRoute(
   const finalRecommendedStop = finalChargingSelection.stop;
   const finalRecommendedStops = finalChargingSelection.stops;
 
+  const finalMotorwayRefs = finalRoute.motorwayRefs ?? [];
+
+  const trafficEvents = await findAutobahnEventsAlongRoute(
+    finalMotorwayRefs,
+    finalRoute.coordinates,
+    {
+      corridorKm: 1.5,
+      includeFuture: false,
+    },
+  );
+
   return {
     ok: true,
     plan: {
@@ -718,6 +738,8 @@ export async function planRoute(
       plannedArrivalSoc: finalChargingSelection.plannedArrivalSoc,
       osrmIsDefault,
       geometry: routedGeometry,
+      motorwayRefs: finalMotorwayRefs,
+      trafficEvents,
       selectedRouteOptionId,
       routeOptions,
       chargingSiteCount: chargingSites.length,

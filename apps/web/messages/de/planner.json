@@ -176,7 +176,7 @@
     "trafficRoadwork": "Baustelle",
     "trafficWarning": "Verkehrswarnung",
     "trafficClosure": "Sperrung",
-    "trafficAtKm": "bei km {distance}",
+    "trafficAtKm": "nach {distance} km",
     "trafficBlocked": "Strecke gesperrt"
   },
   "pdfExport": {

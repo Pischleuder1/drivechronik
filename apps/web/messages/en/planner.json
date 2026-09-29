@@ -176,7 +176,7 @@
     "trafficRoadwork": "Roadworks",
     "trafficWarning": "Traffic warning",
     "trafficClosure": "Closure",
-    "trafficAtKm": "at km {distance}",
+    "trafficAtKm": "after {distance} km",
     "trafficBlocked": "Road closed"
   },
   "pdfExport": {

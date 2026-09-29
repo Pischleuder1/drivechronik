@@ -961,6 +961,32 @@ function Result({
   const totalTravelSeconds =
     plan.durationSeconds + totalChargingMinutes * 60;
 
+  const trafficRoadworkCount = plan.trafficEvents.filter(
+    (event) => event.type === "roadwork",
+  ).length;
+
+  const trafficWarningCount = plan.trafficEvents.filter(
+    (event) => event.type === "warning",
+  ).length;
+
+  const trafficClosureCount = plan.trafficEvents.filter(
+    (event) => event.type === "closure",
+  ).length;
+
+  const trafficSummary = [
+    trafficRoadworkCount > 0
+      ? t("result.trafficRoadworks", { count: trafficRoadworkCount })
+      : null,
+    trafficWarningCount > 0
+      ? t("result.trafficWarnings", { count: trafficWarningCount })
+      : null,
+    trafficClosureCount > 0
+      ? t("result.trafficClosures", { count: trafficClosureCount })
+      : null,
+  ]
+    .filter((value): value is string => value !== null)
+    .join(" · ");
+
   return (
     <div className="flex flex-col gap-4">
             {plan.routeOptions.length > 1 && (
@@ -1021,6 +1047,87 @@ function Result({
         destinationLabel={destinationLabel}
         chargingStops={plan.recommendedChargingStops}
       />
+
+      {plan.trafficEvents.length > 0 && (
+        <details className="overflow-hidden rounded-xl border border-amber-200 bg-amber-50/70 dark:border-amber-900 dark:bg-amber-950/20">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-4 [&::-webkit-details-marker]:hidden">
+            <div className="flex min-w-0 items-start gap-3">
+              <TriangleAlert
+                aria-hidden
+                size={20}
+                className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400"
+              />
+
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                  <span className="font-semibold text-amber-950 dark:text-amber-100">
+                    {t("result.trafficTitle")}
+                  </span>
+
+                  <span className="text-sm font-medium text-amber-800 dark:text-amber-300">
+                    {t("result.trafficMessages", {
+                      count: plan.trafficEvents.length,
+                    })}
+                  </span>
+                </div>
+
+                <p className="mt-0.5 text-xs text-amber-800/80 dark:text-amber-300/80">
+                  {plan.motorwayRefs.join(", ")}
+                  {plan.motorwayRefs.length > 0 && trafficSummary
+                    ? " · "
+                    : ""}
+                  {trafficSummary}
+                </p>
+              </div>
+            </div>
+
+            <span className="shrink-0 text-xs font-medium text-amber-800 dark:text-amber-300">
+              {t("result.trafficDetails")}
+            </span>
+          </summary>
+
+          <div className="divide-y divide-amber-200 border-t border-amber-200 dark:divide-amber-900 dark:border-amber-900">
+            {plan.trafficEvents.map((event) => (
+              <div
+                key={`${event.motorway}-${event.type}-${event.id}`}
+                className="flex gap-3 px-4 py-3"
+              >
+                <div className="w-12 shrink-0 pt-0.5 text-right text-sm font-semibold tabular-nums text-amber-900 dark:text-amber-200">
+                  {Math.round(event.routeDistanceKm)} km
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start gap-2">
+                    <span aria-hidden className="shrink-0">
+                      {event.type === "closure"
+                        ? "⛔"
+                        : event.type === "warning"
+                          ? "⚠️"
+                          : "🚧"}
+                    </span>
+
+                    <p className="font-medium leading-snug text-neutral-900 dark:text-neutral-100">
+                      {event.title}
+                    </p>
+                  </div>
+
+                  {event.subtitle && (
+                    <p className="mt-1 pl-7 text-xs text-neutral-600 dark:text-neutral-400">
+                      {event.subtitle.trim()}
+                    </p>
+                  )}
+
+                  {event.blocked && (
+                    <p className="mt-1 pl-7 text-xs font-semibold text-red-700 dark:text-red-400">
+                      {t("result.trafficBlocked")}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </details>
+      )}
 
       {selectedRoute?.hasFerry && selectedRoute.ferrySegments.length > 0 && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/30">

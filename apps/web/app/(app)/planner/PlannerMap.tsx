@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import type { TrafficEvent } from "../../../lib/traffic/types";
 
 export interface PlannerMapChargingSite {
   id: string;
@@ -25,6 +26,9 @@ export interface PlannerMapProps {
 
   /** Vom Planer ausgewählter Ladestopp. */
   recommendedChargingStops: PlannerMapChargingSite[];
+
+  /** Bereits auf Route und Fahrtrichtung gefilterte Verkehrsmeldungen. */
+  trafficEvents: TrafficEvent[];
 }
 
 function escapeHtml(value: string): string {
@@ -135,6 +139,40 @@ function fastChargerIcon(color: string): L.DivIcon {
 const FAST_CHARGER_ICON = fastChargerIcon("#2563eb");
 const RECOMMENDED_FAST_CHARGER_ICON = fastChargerIcon("#f59e0b");
 
+function trafficIcon(type: TrafficEvent["type"]): L.DivIcon {
+  const config =
+    type === "closure"
+      ? { background: "#dc2626", symbol: "×" }
+      : type === "warning"
+        ? { background: "#ea580c", symbol: "!" }
+        : { background: "#d97706", symbol: "!" };
+
+  return L.divIcon({
+    className: "",
+    html: `
+      <div style="
+        width:26px;
+        height:26px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        border-radius:50%;
+        background:${config.background};
+        color:white;
+        border:2px solid white;
+        box-shadow:0 1px 5px rgba(0,0,0,0.45);
+        font-family:Arial,sans-serif;
+        font-size:17px;
+        font-weight:800;
+        line-height:1;
+      ">${config.symbol}</div>
+    `,
+    iconSize: [26, 26],
+    iconAnchor: [13, 13],
+    popupAnchor: [0, -15],
+  });
+}
+
 /*
  * Alte Inline-Definition wird entfernt.
  */
@@ -145,6 +183,7 @@ export function PlannerMap({
   waypoints,
   chargingSites,
   recommendedChargingStops,
+  trafficEvents,
 }: PlannerMapProps) {
   const t = useTranslations("planner");
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -251,6 +290,53 @@ export function PlannerMap({
       }
     }
 
+    for (const event of trafficEvents) {
+      const typeLabel =
+        event.type === "closure"
+          ? t("map.trafficClosure")
+          : event.type === "warning"
+            ? t("map.trafficWarning")
+            : t("map.trafficRoadwork");
+
+      const subtitle = event.subtitle?.trim();
+
+      const blockedHtml = event.blocked
+        ? `<br><strong style="color:#b91c1c">${escapeHtml(
+            t("map.trafficBlocked"),
+          )}</strong>`
+        : "";
+
+      L.marker([event.lat, event.lon], {
+        icon: trafficIcon(event.type),
+        title: `${typeLabel}: ${event.title}`,
+        zIndexOffset: event.type === "closure" ? 950 : 700,
+      })
+        .addTo(map)
+        .bindPopup(`
+          <div style="min-width:220px">
+            <strong>${escapeHtml(typeLabel)}</strong><br>
+            ${escapeHtml(event.motorway)} ·
+            ${escapeHtml(
+              t("map.trafficAtKm", {
+                distance: Math.round(event.routeDistanceKm),
+              }),
+            )}<br>
+
+            <span style="font-weight:600">
+              ${escapeHtml(event.title)}
+            </span>
+
+            ${
+              subtitle
+                ? `<br><span style="color:#666">${escapeHtml(subtitle)}</span>`
+                : ""
+            }
+
+            ${blockedHtml}
+          </div>
+        `);
+    }
+
     const updateHpcVisibility = () => {
       const showHpc = map.getZoom() >= 9;
 
@@ -299,7 +385,14 @@ export function PlannerMap({
       mapRef.current = null;
     };
 
-  }, [geometry, waypoints, chargingSites, recommendedChargingStops, t]);
+  }, [
+    geometry,
+    waypoints,
+    chargingSites,
+    recommendedChargingStops,
+    trafficEvents,
+    t,
+  ]);
 
   return (
     <div

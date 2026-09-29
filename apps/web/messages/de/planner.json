@@ -172,7 +172,12 @@
   "map": {
     "recommendedChargingStop": "Empfohlener Ladestopp",
     "fastCharger": "HPC-Schnelllader",
-    "upTo": "bis"
+    "upTo": "bis",
+    "trafficRoadwork": "Baustelle",
+    "trafficWarning": "Verkehrswarnung",
+    "trafficClosure": "Sperrung",
+    "trafficAtKm": "bei km {distance}",
+    "trafficBlocked": "Strecke gesperrt"
   },
   "pdfExport": {
     "button": "PDF exportieren",

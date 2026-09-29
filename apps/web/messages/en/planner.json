@@ -172,7 +172,12 @@
   "map": {
     "recommendedChargingStop": "Recommended charging stop",
     "fastCharger": "HPC fast charger",
-    "upTo": "up to"
+    "upTo": "up to",
+    "trafficRoadwork": "Roadworks",
+    "trafficWarning": "Traffic warning",
+    "trafficClosure": "Closure",
+    "trafficAtKm": "at km {distance}",
+    "trafficBlocked": "Road closed"
   },
   "pdfExport": {
     "button": "Export PDF",

@@ -1,5 +1,6 @@
 "use client";
 import dynamic from "next/dynamic";
+import type { TrafficEvent } from "../../../lib/traffic/types";
 
 // Leaflet fasst window/document beim Import an, daher darf die Karte nie Teil des
 // server-gerenderten Bundles sein (Muster drives/[id]/DriveMapLoader.tsx).
@@ -30,11 +31,13 @@ export function PlannerMapLoader({
   waypoints,
   chargingSites,
   recommendedChargingStops,
+  trafficEvents,
 }: {
   geometry: [number, number][];
   waypoints: Array<{ lat: number; lon: number }>;
   chargingSites: PlannerMapChargingSite[];
   recommendedChargingStops: PlannerMapChargingSite[];
+  trafficEvents: TrafficEvent[];
 }) {
   return (
     <PlannerMap
@@ -42,6 +45,7 @@ export function PlannerMapLoader({
       waypoints={waypoints}
       chargingSites={chargingSites}
       recommendedChargingStops={recommendedChargingStops}
+      trafficEvents={trafficEvents}
     />
   );
 }

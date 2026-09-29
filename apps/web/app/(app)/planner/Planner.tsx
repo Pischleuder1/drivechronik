@@ -1037,6 +1037,7 @@ function Result({
         waypoints={waypoints}
         chargingSites={plan.chargingSites}
         recommendedChargingStops={plan.recommendedChargingStops}
+        trafficEvents={plan.trafficEvents}
       />
 
       <TeslaSharePanel

@@ -144,37 +144,46 @@ export function DriveInteractiveAnalysis({
       />
 
       <div className="p-3">
-        <div className="grid grid-cols-2 gap-2.5">
-          <MetricCard
-            icon={Route}
-            label={t("metrics.distance")}
-            value={metrics.distance}
-          />
+        <div className="grid grid-cols-6 gap-2.5">
+          <div className="col-span-2">
+            <MetricCard
+              icon={Route}
+              label={t("metrics.distance")}
+              value={metrics.distance}
+            />
+          </div>
 
-          <MetricCard
-            icon={Clock3}
-            label={t("metrics.duration")}
-            value={metrics.duration}
-          />
+          <div className="col-span-2">
+            <MetricCard
+              icon={Clock3}
+              label={t("metrics.duration")}
+              value={metrics.duration}
+            />
+          </div>
 
-          <MetricCard
-            icon={Activity}
-            label={t("metrics.avgConsumption")}
-            value={metrics.avgConsumption}
-          />
+          <div className="col-span-2">
+            <MetricCard
+              icon={Gauge}
+              label={t("metrics.avgSpeed")}
+              value={metrics.avgSpeed}
+            />
+          </div>
 
-          <MetricCard
-            icon={Zap}
-            label={t("metrics.consumedEnergy")}
-            value={metrics.energy}
-          />
+          <div className="col-span-3">
+            <MetricCard
+              icon={Activity}
+              label={t("metrics.avgConsumption")}
+              value={metrics.avgConsumption}
+            />
+          </div>
 
-          <MetricCard
-            icon={Gauge}
-            label={t("metrics.avgSpeed")}
-            value={metrics.avgSpeed}
-            wide
-          />
+          <div className="col-span-3">
+            <MetricCard
+              icon={Zap}
+              label={t("metrics.consumedEnergy")}
+              value={metrics.energy}
+            />
+          </div>
         </div>
 
         <div className="mt-3 flex flex-wrap gap-2">

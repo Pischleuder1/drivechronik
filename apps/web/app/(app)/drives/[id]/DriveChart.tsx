@@ -17,6 +17,8 @@ export interface DriveChartProps {
   /** TeslaMate-Höhenmeter der Fahrt, zum Vergleich. */
   teslamateAscentM: number | null;
   teslamateDescentM: number | null;
+  /** Meldet den aktuell berührten/überfahrenen Messpunkt an die Karte. */
+  onActivePointChange?: (index: number | null) => void;
 }
 
 const CHART_WIDTH = 600;
@@ -107,6 +109,7 @@ export function DriveChart({
   elevationCoverage,
   teslamateAscentM,
   teslamateDescentM,
+  onActivePointChange,
 }: DriveChartProps) {
   const t = useTranslations("drives");
   const SERIES_META = useMemo(() => buildSeriesMeta(t), [t]);
@@ -237,6 +240,7 @@ export function DriveChart({
       }
     }
     setHoverIdx(nearest);
+    onActivePointChange?.(nearest);
   }
 
   function throttledMove(clientX: number) {
@@ -300,7 +304,10 @@ export function DriveChart({
         role="img"
         aria-label={t("chart.ariaLabel")}
         onMouseMove={(e) => throttledMove(e.clientX)}
-        onMouseLeave={() => setHoverIdx(null)}
+        onMouseLeave={() => {
+          setHoverIdx(null);
+          onActivePointChange?.(null);
+        }}
         onTouchStart={(e) => {
           const t = e.touches[0];
           if (t) handleMove(t.clientX);
@@ -309,7 +316,10 @@ export function DriveChart({
           const t = e.touches[0];
           if (t) throttledMove(t.clientX);
         }}
-        onTouchEnd={() => setHoverIdx(null)}
+        onTouchEnd={() => {
+          setHoverIdx(null);
+          onActivePointChange?.(null);
+        }}
       >
         {/* Horizontales Grid (min/mid/max) an der linken Skala orientiert */}
         {leftScale &&

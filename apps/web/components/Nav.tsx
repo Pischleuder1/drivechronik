@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -198,8 +199,10 @@ export function BottomNav() {
 
   return (
     <>
-      {menuOpen && (
-        <>
+      {menuOpen &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <>
           <button
             type="button"
             aria-label={t("closeMenu")}
@@ -385,8 +388,9 @@ export function BottomNav() {
               })}
             </div>
           </div>
-        </>
-      )}
+          </>,
+          document.body,
+        )}
 
       <nav className="fixed inset-x-0 bottom-0 z-50 flex border-t border-neutral-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden dark:border-neutral-800 dark:bg-neutral-950/95">
         {primaryItems.map((item) => {

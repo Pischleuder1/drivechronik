@@ -395,10 +395,12 @@ export default async function ChargesPage({
 
                 <MetricGrid
                   columns={5}
+                  mobileColumns={6}
                   className="mt-3 [&>div]:px-2.5 [&>div]:py-2 [&_dt]:text-[11px] [&_dd]:text-[14px] md:mt-4 md:[&>div]:px-3 md:[&>div]:py-2.5 md:[&_dt]:text-xs md:[&_dd]:text-base"
                 >
                   <MetricItem
                     label={t("page.session.energy")}
+                    className="order-1 col-span-2 sm:order-none sm:col-span-1"
                     icon={
                       <Zap className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
                     }
@@ -411,6 +413,7 @@ export default async function ChargesPage({
 
                   <MetricItem
                     label={t("page.session.soc")}
+                    className="order-2 col-span-2 sm:order-none sm:col-span-1"
                     icon={
                       <Battery className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
                     }
@@ -425,6 +428,7 @@ export default async function ChargesPage({
 
                   <MetricItem
                     label={t("page.session.maxPower")}
+                    className="order-4 col-span-3 sm:order-none sm:col-span-1"
                     icon={
                       <Gauge className="h-3.5 w-3.5 text-sky-600 dark:text-sky-400" />
                     }
@@ -437,6 +441,7 @@ export default async function ChargesPage({
 
                   <MetricItem
                     label={t("page.session.duration")}
+                    className="order-3 col-span-2 sm:order-none sm:col-span-1"
                     icon={
                       <Clock className="h-3.5 w-3.5 text-sky-600 dark:text-sky-400" />
                     }
@@ -458,7 +463,7 @@ export default async function ChargesPage({
                         : formatCost(s.cost, s.currency)
                     }
                     muted={s.cost == null}
-                    className="col-span-2 sm:col-span-1"
+                    className="order-5 col-span-3 sm:order-none sm:col-span-1"
                   />
                 </MetricGrid>
               </Link>

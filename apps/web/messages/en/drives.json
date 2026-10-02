@@ -26,7 +26,9 @@
     "noTrackData": "No track data available.",
     "elevationBackgroundNote": "Elevation data is being filled in in the background…",
     "auditHistory": "History",
-    "cardLogbookStatus": "Logbook status"
+    "cardLogbookStatus": "Logbook status",
+    "cardInteractiveCourse": "Drive data over time",
+    "mobileGpsPoints": "{count} GPS points"
   },
   "metrics": {
     "distance": "Distance",
@@ -45,7 +47,8 @@
     "maxPower": "Max. power",
     "maxRegen": "Max. regen",
     "startAddress": "Start address",
-    "endAddress": "Destination address"
+    "endAddress": "Destination address",
+    "avgSpeed": "Avg. speed"
   },
   "annotationForm": {
     "classification": "Classification",
@@ -67,7 +70,11 @@
     "elevationCalcNote": "(calculated from GPS + Open-Meteo)",
     "teslamateElevation": "TeslaMate: ↗ {ascent} m · ↘ {descent} m",
     "avgMaxSpeed": "Avg. speed {avg} · Max {max}",
-    "pointIndex": "Point {index}"
+    "pointIndex": "Point {index}",
+    "mapSyncHint": "Cursor synchronizes map and chart"
+  },
+  "map": {
+    "speed": "Speed"
   },
   "placeCorrection": {
     "start": "Start",
@@ -104,5 +111,16 @@
     "lateChangeHint": "Later additions remain possible and are recorded in the change history.",
     "completeLate": "Complete – completed late",
     "completedLateHint": "The change history shows that this drive was completed only after the 7-calendar-day period had expired."
+  },
+  "traffic": {
+    "title": "Current traffic",
+    "liveNote": "Live data along this route · not historical traffic at drive time",
+    "none": "No current roadworks, warnings or closures along this route.",
+    "blocked": "Road closed",
+    "type": {
+      "roadwork": "Roadworks",
+      "warning": "Warning",
+      "closure": "Closure"
+    }
   }
 }

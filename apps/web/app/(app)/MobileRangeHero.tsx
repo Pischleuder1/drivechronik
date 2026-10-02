@@ -57,6 +57,7 @@ export interface MobileRangeHeroProps {
   soc: number | null;
   ratedRangeKm: number | null;
   placeName: string | null;
+  syncLabel: string;
   positionAvailable: boolean;
 }
 
@@ -69,6 +70,7 @@ export function MobileRangeHero({
   soc,
   ratedRangeKm,
   placeName,
+  syncLabel,
   positionAvailable,
 }: MobileRangeHeroProps) {
   const t = useTranslations("dashboard.mobileMapFirst");
@@ -138,8 +140,8 @@ export function MobileRangeHero({
   }, []);
 
   return (
-    <section>
-      <div className="relative h-[370px] overflow-hidden bg-[#071421]">
+    <section className="relative isolate z-0">
+      <div className="relative isolate z-0 h-[370px] overflow-hidden bg-[#071421]">
         {range ? (
           <DashboardRangeMap
             origin={range.origin}
@@ -181,10 +183,16 @@ export function MobileRangeHero({
 
         <div className="pointer-events-none absolute inset-x-0 top-0 z-[600] h-32 bg-gradient-to-b from-[#05101d]/90 via-[#05101d]/45 to-transparent" />
 
-        <div className="absolute inset-x-0 top-0 z-[700] flex h-[54px] items-center justify-between px-4">
-          <span className="text-[18px] font-semibold tracking-tight text-white">
-            DriveChronik
-          </span>
+        <div className="absolute inset-x-0 top-0 z-20 flex h-[54px] items-center justify-between px-4">
+          <div className="min-w-0">
+            <span className="text-[18px] font-semibold tracking-tight text-white">
+              DriveChronik
+            </span>
+
+            <span className="ml-2 whitespace-nowrap text-[10px] font-medium text-slate-300/80">
+              Sync · {syncLabel}
+            </span>
+          </div>
 
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-slate-950/50 text-slate-200 backdrop-blur">
@@ -215,7 +223,7 @@ export function MobileRangeHero({
         </div>
 
         {range && (
-          <div className="absolute bottom-[78px] left-4 z-[650]">
+          <div className="absolute bottom-[78px] left-4 z-20">
             <div className="rounded-xl border border-blue-400/20 bg-[#081827]/90 px-3 py-2 text-xs font-semibold tabular-nums text-blue-100 shadow-lg backdrop-blur">
               {t("reachable", {
                 range: Math.round(range.rangeBudgetKm),
@@ -224,10 +232,10 @@ export function MobileRangeHero({
           </div>
         )}
 
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[500] h-28 bg-gradient-to-b from-transparent to-[#071421]" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-28 bg-gradient-to-b from-transparent to-[#071421]" />
       </div>
 
-      <div className="relative z-[800] -mt-[58px] px-4">
+      <div className="relative z-30 -mt-[58px] px-4">
         <div className="block overflow-hidden rounded-[20px] border border-neutral-200 bg-white px-3.5 py-3 shadow-lg shadow-black/10">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">

@@ -26,7 +26,9 @@
     "noTrackData": "Keine Trackdaten vorhanden.",
     "elevationBackgroundNote": "Höhendaten werden im Hintergrund ergänzt…",
     "auditHistory": "Verlauf",
-    "cardLogbookStatus": "Fahrtenbuchstatus"
+    "cardLogbookStatus": "Fahrtenbuchstatus",
+    "cardInteractiveCourse": "Fahrtdaten im Verlauf",
+    "mobileGpsPoints": "{count} GPS-Punkte"
   },
   "metrics": {
     "distance": "Distanz",
@@ -45,7 +47,8 @@
     "maxPower": "Max. Leistung",
     "maxRegen": "Max. Rekuperation",
     "startAddress": "Startadresse",
-    "endAddress": "Zieladresse"
+    "endAddress": "Zieladresse",
+    "avgSpeed": "Ø Tempo"
   },
   "annotationForm": {
     "classification": "Klassifizierung",
@@ -67,7 +70,11 @@
     "elevationCalcNote": "(berechnet aus GPS + Open-Meteo)",
     "teslamateElevation": "TeslaMate: ↗ {ascent} m · ↘ {descent} m",
     "avgMaxSpeed": "Ø Tempo {avg} · Max {max}",
-    "pointIndex": "Punkt {index}"
+    "pointIndex": "Punkt {index}",
+    "mapSyncHint": "Cursor synchronisiert Karte und Diagramm"
+  },
+  "map": {
+    "speed": "Geschwindigkeit"
   },
   "placeCorrection": {
     "start": "Start",
@@ -104,5 +111,16 @@
     "lateChangeHint": "Eine nachträgliche Ergänzung bleibt möglich und wird in der Änderungshistorie protokolliert.",
     "completeLate": "Vollständig – verspätet ergänzt",
     "completedLateHint": "Die Änderungshistorie zeigt, dass die Fahrt erst nach Ablauf von 7 Kalendertagen vervollständigt wurde."
+  },
+  "traffic": {
+    "title": "Aktuelle Verkehrslage",
+    "liveNote": "Live-Daten entlang dieser Strecke · nicht der historische Fahrtzeitpunkt",
+    "none": "Derzeit keine aktuellen Baustellen, Warnungen oder Sperrungen entlang dieser Strecke.",
+    "blocked": "Strecke gesperrt",
+    "type": {
+      "roadwork": "Baustelle",
+      "warning": "Warnung",
+      "closure": "Sperrung"
+    }
   }
 }

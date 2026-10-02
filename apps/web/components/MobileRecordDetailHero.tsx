@@ -17,6 +17,7 @@ export function MobileRecordDetailHero({
   backLabel,
   mode,
   badge,
+  compact = false,
 }: {
   vehicles: VehicleOption[];
   initialVehicleId: number | null;
@@ -26,11 +27,18 @@ export function MobileRecordDetailHero({
   backLabel: string;
   mode: "drive" | "charge";
   badge?: React.ReactNode;
+  compact?: boolean;
 }) {
   const Icon = mode === "drive" ? Route : Zap;
 
   return (
-    <section className="relative -mx-4 -mt-4 min-h-[170px] overflow-hidden bg-[#071421] px-4 pb-4 pt-4 text-white md:hidden">
+    <section
+      className={`relative -mx-4 -mt-4 overflow-hidden bg-[#071421] px-4 text-white md:hidden ${
+        compact
+          ? "min-h-[132px] pb-3 pt-3"
+          : "min-h-[170px] pb-4 pt-4"
+      }`}
+    >
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 overflow-hidden"
@@ -109,12 +117,22 @@ export function MobileRecordDetailHero({
       </div>
 
       <div className="relative z-10 flex items-center justify-between gap-3">
-        <span className="text-[18px] font-semibold tracking-tight">
+        <span
+          className={`font-semibold tracking-tight ${
+            compact ? "text-[16px]" : "text-[18px]"
+          }`}
+        >
           DriveChronik
         </span>
 
         {initialVehicleId != null && vehicles.length > 1 && (
-          <div className="rounded-lg bg-white/95 shadow-lg shadow-black/10 [&_select]:!max-w-[120px] [&_select]:!px-1.5 [&_select]:!py-0.5 [&_select]:!text-[11px]">
+          <div
+            className={`rounded-lg bg-white/95 shadow-lg shadow-black/10 ${
+              compact
+                ? "[&_select]:!max-w-[108px] [&_select]:!px-1 [&_select]:!py-0 [&_select]:!text-[10px]"
+                : "[&_select]:!max-w-[120px] [&_select]:!px-1.5 [&_select]:!py-0.5 [&_select]:!text-[11px]"
+            }`}
+          >
             <ActiveVehicleSwitcher
               vehicles={vehicles}
               initialVehicleId={initialVehicleId}
@@ -124,16 +142,26 @@ export function MobileRecordDetailHero({
         )}
       </div>
 
-      <div className="relative z-10 mt-4">
+      <div
+        className={`relative z-10 ${
+          compact ? "mt-2.5" : "mt-4"
+        }`}
+      >
         <Link
           href={backHref}
-          className="inline-flex items-center gap-1 text-[12px] font-medium text-sky-200/80"
+          className={`inline-flex items-center gap-1 font-medium text-sky-200/80 ${
+            compact ? "text-[11px]" : "text-[12px]"
+          }`}
         >
           <ChevronLeft aria-hidden size={14} />
           {backLabel}
         </Link>
 
-        <div className="mt-3 flex items-start justify-between gap-3">
+        <div
+          className={`flex items-start justify-between gap-3 ${
+            compact ? "mt-1.5" : "mt-3"
+          }`}
+        >
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <Icon
@@ -142,18 +170,32 @@ export function MobileRecordDetailHero({
                 className="shrink-0 text-sky-300"
               />
 
-              <h1 className="line-clamp-2 text-[17px] font-semibold leading-snug tracking-tight">
+              <h1
+                className={`line-clamp-2 font-semibold leading-snug tracking-tight ${
+                  compact ? "text-[16px]" : "text-[17px]"
+                }`}
+              >
                 {title}
               </h1>
             </div>
 
-            <p className="mt-1.5 text-[12px] tabular-nums text-slate-300">
+            <p
+              className={`tabular-nums text-slate-300 ${
+                compact
+                  ? "mt-0.5 text-[11px]"
+                  : "mt-1.5 text-[12px]"
+              }`}
+            >
               {subtitle}
             </p>
           </div>
 
           {badge && (
-            <div className="shrink-0 pt-0.5">
+            <div
+              className={`shrink-0 pt-0.5 ${
+                compact ? "origin-top-right scale-[0.92]" : ""
+              }`}
+            >
               {badge}
             </div>
           )}

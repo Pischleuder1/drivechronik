@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added a redesigned mobile drive-detail experience with a map-first layout, compact drive status information and a 3+2 KPI grid for distance, duration, average speed, consumption and energy.
+- Added speed-colored recorded-drive routes with a compact speed legend.
+- Added synchronized interaction between the drive chart and route map so the active chart position is highlighted on the recorded route.
+- Added current German Autobahn traffic information to recorded drive details, including roadworks, warnings and closures matched against the original stored GPS track.
+- Added traffic-event markers directly to recorded-drive maps with type-specific styling and tooltips.
+- Added interactive monthly details to the yearly Insights chart: tapping or clicking a month shows total distance, classification breakdown and drive count.
+- Added tap and click details to the Insights monthly-trend chart showing distance, average consumption and drive count for the selected month.
+
+### Changed
+
+- Refined the mobile dashboard with clearer weekly KPIs, odometer placement, richer last-charge details including duration and relative completion time, direct tire-pressure navigation to the vehicle page and corrected mobile-menu stacking above the map-first vehicle hero.
+- Standardized mobile charging KPIs with compact 3+2 metric layouts across charging-session cards, DC charging analysis and the Tesla charging overview.
+- Refined the mobile yearly Insights view with compact 2x2 KPI, classification and year-summary layouts, consistent card styling and 13 px metric typography.
+- Increased axis-label typography in the Insights temperature and average-speed consumption charts for improved readability.
+
+- Compacted the mobile drive-detail hero, route map and metric cards to reduce vertical space usage.
+- Reduced duplicate legacy content on mobile drive details while keeping the existing desktop detail layout intact.
+- Clarified that traffic shown for an already recorded drive represents the current traffic situation along that route and is not historical traffic from the original drive time.
+
 ## [0.8.0] - 2026-09-29
 
 ### Added

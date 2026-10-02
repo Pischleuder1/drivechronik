@@ -335,6 +335,7 @@ async function getDriveStatsInRange(
 
 export interface LastChargeStats {
   energyAddedKwh: number | null;
+  startTime: Date;
   endTime: Date;
   placeName: string | null;
   address: string | null;
@@ -345,6 +346,7 @@ export async function getLastCharge(vehicleId: number): Promise<LastChargeStats 
   const rows = await db
     .select({
       energyAddedKwh: chargeSessions.energyAddedKwh,
+      startTime: chargeSessions.startTime,
       endTime: chargeSessions.endTime,
       address: chargeSessions.address,
       placeName: places.name,
@@ -359,6 +361,7 @@ export async function getLastCharge(vehicleId: number): Promise<LastChargeStats 
   if (!row || !row.endTime) return null;
   return {
     energyAddedKwh: row.energyAddedKwh,
+    startTime: row.startTime,
     endTime: row.endTime,
     placeName: row.placeName,
     address: row.address,

@@ -28,6 +28,7 @@ import {
 } from "../../../../lib/queries";
 import { getActiveVehicleId } from "../../../../lib/activeVehicle";
 import { getRoutePoints } from "../../../../lib/driveRoute";
+import { getRecordedDriveTraffic } from "../../../../lib/traffic/recordedDriveTraffic";
 import {
   type Classification,
 } from "../../../../lib/classification";
@@ -47,6 +48,7 @@ import { AuditLogList } from "./AuditLogList";
 import { PlaceCorrection } from "./PlaceCorrection";
 import { DriveMapLoader } from "./DriveMapLoader";
 import { DriveChart } from "./DriveChart";
+import { DriveInteractiveAnalysis } from "./DriveInteractiveAnalysis";
 import { MobileRecordDetailHero } from "../../../../components/MobileRecordDetailHero";
 
 // Ab diesem Anteil befüllter elevation_m-Werte gilt das Höhenprofil als nutzbar
@@ -107,6 +109,18 @@ export default async function DriveDetailPage({
     getActiveVehicleId(),
   ]);
 
+  const recordedTraffic =
+    route.points.length >= 2
+      ? await getRecordedDriveTraffic(
+          route.points.map(
+            ([lat, lon]) => [lat, lon] as const,
+          ),
+        )
+      : {
+          motorwayRefs: [],
+          events: [],
+        };
+
   const from = formatPlaceLabel(
     drive.startPlaceName,
     drive.startAddress,
@@ -164,6 +178,13 @@ export default async function DriveDetailPage({
     auditEntries,
     timeZone: APP_TIMEZONE,
   });
+
+  const avgDriveSpeedKmh =
+    drive.distanceKm != null &&
+    drive.durationSeconds != null &&
+    drive.durationSeconds > 0
+      ? drive.distanceKm / (drive.durationSeconds / 3600)
+      : null;
 
   const gpsCoveragePercent =
     drive.durationSeconds != null &&
@@ -270,6 +291,7 @@ export default async function DriveDetailPage({
         backHref="/day"
         backLabel={tCommon("actions.back")}
         mode="drive"
+        compact
         badge={
           <StatusBadge tone={classificationTone(classification)}>
             {tCommon(`classification.${classification}`)}
@@ -305,7 +327,7 @@ export default async function DriveDetailPage({
 
       <Link
         href={`/day/${dateStr}`}
-        className="mt-2 inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900 hover:underline dark:text-neutral-400 dark:hover:text-white"
+        className="mt-2 hidden items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900 hover:underline dark:text-neutral-400 dark:hover:text-white md:inline-flex"
       >
         {t("page.backToDayView", { date: dateStr })}
         <ChevronRight aria-hidden size={14} />
@@ -326,7 +348,7 @@ export default async function DriveDetailPage({
             );
           }
           return (
-            <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-neutral-600 dark:text-neutral-300">
+            <div className="mt-3 hidden flex-wrap items-center gap-x-2 gap-y-1 text-sm text-neutral-600 dark:text-neutral-300 md:flex">
               {WeatherIcon && (
                 <WeatherIcon
                   aria-hidden
@@ -342,8 +364,9 @@ export default async function DriveDetailPage({
           );
         })()}
 
-      <Panel className="mt-6" title={t("page.cardMetrics")}>
-        <MetricGrid columns={2}>
+      <div className="hidden md:block">
+        <Panel className="mt-6" title={t("page.cardMetrics")}>
+          <MetricGrid columns={2}>
           {kennzahlen.map(([label, value]) => (
             <MetricItem
               key={label}
@@ -357,12 +380,74 @@ export default async function DriveDetailPage({
             {t("page.estimatedNote")}
           </p>
         )}
-      </Panel>
+        </Panel>
+      </div>
 
+      {route.points.length >= 2 && (
+        <DriveInteractiveAnalysis
+          points={route.points}
+          chartPoints={route.chartPoints}
+          elevationCoverage={route.elevationCoverage}
+          teslamateAscentM={drive.ascentM}
+          teslamateDescentM={drive.descentM}
+          metrics={{
+            distance:
+              drive.distanceKm != null
+                ? formatKm(drive.distanceKm)
+                : "—",
+            duration:
+              drive.durationSeconds != null
+                ? formatDuration(drive.durationSeconds)
+                : "—",
+            avgConsumption:
+              drive.avgConsumptionWhKm != null
+                ? formatConsumption(
+                    drive.avgConsumptionWhKm,
+                    drive.energyIsEstimated,
+                  )
+                : "—",
+            energy:
+              drive.consumedEnergyKwh != null
+                ? `${formatKwh(drive.consumedEnergyKwh)}${
+                    drive.energyIsEstimated ? " ~" : ""
+                  }`
+                : "—",
+            avgSpeed:
+              avgDriveSpeedKmh != null
+                ? formatSpeed(avgDriveSpeedKmh)
+                : "—",
+          }}
+          status={{
+            classification:
+              tCommon(`classification.${classification}`),
+            gpsPoints:
+              t("page.mobileGpsPoints", {
+                count: route.totalCount,
+              }),
+            soc:
+              route.stats.startSoc != null ||
+              route.stats.endSoc != null
+                ? `${route.stats.startSoc ?? "—"} → ${
+                    route.stats.endSoc ?? "—"
+                  } %`
+                : "SoC —",
+            gpsCoverage:
+              gpsCoveragePercent != null
+                ? `${gpsCoveragePercent} % GPS`
+                : "GPS —",
+          }}
+          classificationTone={classificationTone(classification)}
+          traffic={recordedTraffic}
+        />
+      )}
+
+      <div className="hidden md:block">
       <Panel className="mt-6" title={t("page.cardRoute")}>
         {route.points.length >= 2 ? (
           <>
-            <DriveMapLoader points={route.points} />
+            <div className="hidden md:block">
+              <DriveMapLoader points={route.points} />
+            </div>
 
             <MetricGrid className="mt-4" columns={4}>
               <MetricItem
@@ -455,8 +540,11 @@ export default async function DriveDetailPage({
         )}
       </Panel>
 
+      </div>
+
       {route.points.length >= 2 && (
-        <Panel className="mt-6" title={t("page.cardCourse")}>
+        <div className="hidden md:block">
+          <Panel className="mt-6" title={t("page.cardCourse")}>
           <DriveChart
             points={route.chartPoints}
             elevationCoverage={route.elevationCoverage}
@@ -468,7 +556,8 @@ export default async function DriveDetailPage({
               {t("page.elevationBackgroundNote")}
             </p>
           )}
-        </Panel>
+          </Panel>
+        </div>
       )}
 
       <Panel className="mt-6" title={t("page.cardLogbookStatus")}>

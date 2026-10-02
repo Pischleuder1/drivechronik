@@ -46,6 +46,7 @@
     "scatterLegend": "Avg per {step}-{unit} range",
     "monthChartAriaLabel": "Monthly trend: distance driven and average consumption",
     "monthChartConsumptionLegend": "Avg Wh/km",
+    "closeDetails": "Close",
     "weekdayChartAriaLabel": "Weekday pattern: distance driven per weekday",
     "weekdayChartLegend": "km per weekday",
     "shortTripAriaLabel": "Short-trip share: {pct} percent of drives under 5 km",
@@ -87,7 +88,8 @@
     },
     "months": {
       "title": "Monthly distance by category",
-      "subtitle": "Split into business, private, commute and unclassified drives."
+      "subtitle": "Split into business, private, commute and unclassified drives.",
+      "total": "Total"
     },
     "classification": {
       "title": "Usage by category"

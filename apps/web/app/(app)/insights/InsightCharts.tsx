@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { Bin } from "@drivechronik/core";
 
@@ -119,7 +119,7 @@ export function ScatterBinnedChart({
                 y={y}
                 textAnchor="end"
                 dominantBaseline={i === 2 ? "hanging" : i === 0 ? "auto" : "middle"}
-                className="fill-neutral-500 text-[13px] dark:fill-neutral-400"
+                className="fill-neutral-500 text-[15px] dark:fill-neutral-400"
               >
                 {numFmt.format(Math.round(val))}
               </text>
@@ -134,7 +134,7 @@ export function ScatterBinnedChart({
             x={i === 0 ? PADDING.left : CHART_WIDTH - PADDING.right}
             y={PLOT_BOTTOM + 14}
             textAnchor={i === 0 ? "start" : "end"}
-            className="fill-neutral-500 text-[13px] dark:fill-neutral-400"
+            className="fill-neutral-500 text-[15px] dark:fill-neutral-400"
           >
             {numFmt.format(val)} {xUnit}
           </text>
@@ -142,7 +142,7 @@ export function ScatterBinnedChart({
         <text
           x={PADDING.left}
           y={PADDING.top - 6}
-          className="fill-neutral-400 text-[13px] dark:fill-neutral-500"
+          className="fill-neutral-400 text-[15px] dark:fill-neutral-500"
         >
           {yUnit}
         </text>
@@ -224,7 +224,10 @@ export interface MonthDatum {
  */
 export function MonthChart({ months }: { months: MonthDatum[] }) {
   const t = useTranslations("insights");
+  const rootRef = useRef<HTMLDivElement | null>(null);
+
   const [hover, setHover] = useState<number | null>(null);
+  const [selected, setSelected] = useState<number | null>(null);
 
   const shortMonthLabel = (label: string) =>
     label.replace(".", "").trim().slice(0, 3);
@@ -240,16 +243,104 @@ export function MonthChart({ months }: { months: MonthDatum[] }) {
   const barW = Math.min(slot * 0.5, 48);
 
   const barX = (i: number) => PADDING.left + slot * i + slot / 2;
-  const kmToY = (km: number) => PADDING.top + INNER_H - (km / kmMax) * INNER_H;
+  const kmToY = (km: number) =>
+    PADDING.top + INNER_H - (km / kmMax) * INNER_H;
   const consToY = (c: number) =>
     PADDING.top + INNER_H - ((c - consMin) / consRange) * INNER_H;
 
   const linePath = months
-    .map((m, i) => `${i === 0 ? "M" : "L"} ${barX(i).toFixed(1)} ${consToY(m.meanConsumption).toFixed(1)}`)
+    .map(
+      (m, i) =>
+        `${i === 0 ? "M" : "L"} ${barX(i).toFixed(1)} ${consToY(
+          m.meanConsumption,
+        ).toFixed(1)}`,
+    )
     .join(" ");
 
+  const active = selected ?? hover;
+  const selectedMonth =
+    selected != null ? months[selected] ?? null : null;
+
+  useEffect(() => {
+    function handlePointerDown(event: PointerEvent) {
+      if (
+        rootRef.current &&
+        !rootRef.current.contains(event.target as Node)
+      ) {
+        setSelected(null);
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+    };
+  }, []);
+
   return (
-    <div>
+    <div ref={rootRef} className="relative">
+      {selectedMonth && (
+        <div
+          className="absolute left-1/2 top-2 z-30 w-[min(280px,calc(100%-16px))] -translate-x-1/2 rounded-xl border border-neutral-200 bg-white p-3 text-[13px] shadow-lg dark:border-neutral-700 dark:bg-neutral-900"
+          aria-live="polite"
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div className="font-semibold text-neutral-900 dark:text-neutral-100">
+              {selectedMonth.label}
+            </div>
+
+            <button
+              type="button"
+              aria-label={t("charts.closeDetails")}
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-lg leading-none text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
+              onClick={() => setSelected(null)}
+            >
+              ×
+            </button>
+          </div>
+
+          <div className="mt-2.5 grid gap-2">
+            <div className="flex items-center justify-between gap-4">
+              <span className="inline-flex items-center gap-2 text-neutral-600 dark:text-neutral-300">
+                <span
+                  aria-hidden
+                  className="h-2.5 w-2.5 rounded-sm bg-emerald-500 dark:bg-emerald-400"
+                />
+                km
+              </span>
+
+              <span className="font-medium tabular-nums text-neutral-900 dark:text-neutral-100">
+                {numFmt.format(Math.round(selectedMonth.km))} km
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between gap-4">
+              <span className="inline-flex items-center gap-2 text-neutral-600 dark:text-neutral-300">
+                <span
+                  aria-hidden
+                  className="h-2.5 w-2.5 rounded-full bg-blue-600 dark:bg-blue-400"
+                />
+                {t("charts.monthChartConsumptionLegend")}
+              </span>
+
+              <span className="font-medium tabular-nums text-neutral-900 dark:text-neutral-100">
+                {numFmt.format(
+                  Math.round(selectedMonth.meanConsumption),
+                )}{" "}
+                Wh/km
+              </span>
+            </div>
+          </div>
+
+          <div className="mt-2.5 border-t border-neutral-100 pt-2 text-neutral-500 dark:border-neutral-800 dark:text-neutral-400">
+            {t("driveCountLabel", {
+              count: selectedMonth.driveCount,
+            })}
+          </div>
+        </div>
+      )}
+
       <svg
         viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
         className="h-44 w-full touch-none md:h-52"
@@ -259,6 +350,7 @@ export function MonthChart({ months }: { months: MonthDatum[] }) {
       >
         {[0, 0.5, 1].map((f, i) => {
           const y = PADDING.top + INNER_H - f * INNER_H;
+
           return (
             <line
               key={`grid-${i}`}
@@ -272,9 +364,10 @@ export function MonthChart({ months }: { months: MonthDatum[] }) {
           );
         })}
 
-        {/* km-Balken (emerald) */}
+        {/* km-Balken */}
         {months.map((m, i) => {
           const y = kmToY(m.km);
+
           return (
             <rect
               key={`bar-${i}`}
@@ -284,16 +377,15 @@ export function MonthChart({ months }: { months: MonthDatum[] }) {
               height={PLOT_BOTTOM - y}
               rx={3}
               className={
-                hover === i
+                active === i
                   ? "fill-emerald-500 dark:fill-emerald-400"
                   : "fill-emerald-500/70 dark:fill-emerald-400/70"
               }
-              onMouseEnter={() => setHover(i)}
             />
           );
         })}
 
-        {/* Verbrauchslinie (blau) */}
+        {/* Verbrauchslinie */}
         <path
           d={linePath}
           fill="none"
@@ -303,21 +395,21 @@ export function MonthChart({ months }: { months: MonthDatum[] }) {
           strokeLinejoin="round"
           strokeLinecap="round"
         />
+
         {months.map((m, i) => (
           <circle
             key={`cd-${i}`}
             cx={barX(i)}
             cy={consToY(m.meanConsumption)}
-            r={hover === i ? 5 : 3.5}
+            r={active === i ? 5 : 3.5}
             className="text-blue-600 dark:text-blue-400"
             fill="currentColor"
             stroke="white"
             strokeWidth={1}
-            onMouseEnter={() => setHover(i)}
           />
         ))}
 
-        {/* Linke Achse: km (max) */}
+        {/* Linke Achse: km */}
         <text
           x={PADDING.left - 6}
           y={PADDING.top}
@@ -327,7 +419,8 @@ export function MonthChart({ months }: { months: MonthDatum[] }) {
         >
           {numFmt.format(kmMax)} km
         </text>
-        {/* Rechte Achse: Verbrauch (min/max) */}
+
+        {/* Rechte Achse: Verbrauch */}
         {[consMax, consMin].map((val, i) => (
           <text
             key={`ra-${i}`}
@@ -353,22 +446,62 @@ export function MonthChart({ months }: { months: MonthDatum[] }) {
             {shortMonthLabel(m.label)}
           </text>
         ))}
+
+        {/*
+          Unsichtbare breite Touch-Flächen.
+          Dadurch muss auf dem Smartphone nicht exakt der schmale Balken
+          oder der kleine Verbrauchspunkt getroffen werden.
+        */}
+        {months.map((m, i) => (
+          <rect
+            key={`hit-${i}`}
+            x={PADDING.left + slot * i}
+            y={PADDING.top}
+            width={slot}
+            height={PLOT_BOTTOM + 20 - PADDING.top}
+            fill="transparent"
+            className="cursor-pointer"
+            onMouseEnter={() => setHover(i)}
+            onClick={() =>
+              setSelected((current) => (current === i ? null : i))
+            }
+          >
+            <title>
+              {m.label}: {numFmt.format(Math.round(m.km))} km ·{" "}
+              {numFmt.format(Math.round(m.meanConsumption))} Wh/km
+            </title>
+          </rect>
+        ))}
       </svg>
 
       <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
         <span className="inline-flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400">
-          <span aria-hidden className="inline-block h-2 w-2 rounded-sm bg-emerald-500 dark:bg-emerald-400" />
+          <span
+            aria-hidden
+            className="inline-block h-2 w-2 rounded-sm bg-emerald-500 dark:bg-emerald-400"
+          />
           km
         </span>
+
         <span className="inline-flex items-center gap-1.5 text-blue-700 dark:text-blue-400">
-          <span aria-hidden className="inline-block h-2 w-2 rounded-full bg-blue-600 dark:bg-blue-400" />
+          <span
+            aria-hidden
+            className="inline-block h-2 w-2 rounded-full bg-blue-600 dark:bg-blue-400"
+          />
           {t("charts.monthChartConsumptionLegend")}
         </span>
-        {hover != null && months[hover] && (
+
+        {selected == null && hover != null && months[hover] && (
           <span className="tabular-nums text-neutral-600 dark:text-neutral-300">
-            {months[hover]!.label}: {numFmt.format(Math.round(months[hover]!.km))} km ·{" "}
-            {numFmt.format(Math.round(months[hover]!.meanConsumption))} Wh/km ·{" "}
-            {t("driveCountLabel", { count: months[hover]!.driveCount })}
+            {months[hover]!.label}:{" "}
+            {numFmt.format(Math.round(months[hover]!.km))} km ·{" "}
+            {numFmt.format(
+              Math.round(months[hover]!.meanConsumption),
+            )}{" "}
+            Wh/km ·{" "}
+            {t("driveCountLabel", {
+              count: months[hover]!.driveCount,
+            })}
           </span>
         )}
       </div>

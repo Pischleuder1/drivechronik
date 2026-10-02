@@ -21,7 +21,9 @@ export function StatCard({
   tone = "neutral",
   footer,
   className = "",
+  labelClassName = "text-xs font-medium text-neutral-500 dark:text-neutral-400",
   valueClassName = "mt-2 text-2xl font-semibold tabular-nums",
+  hintClassName = "mt-1 text-xs text-neutral-400 dark:text-neutral-500",
 }: {
   label: ReactNode;
   value: ReactNode;
@@ -30,7 +32,9 @@ export function StatCard({
   tone?: IconBadgeTone;
   footer?: ReactNode;
   className?: string;
+  labelClassName?: string;
   valueClassName?: string;
+  hintClassName?: string;
 }) {
   return (
     <div
@@ -38,7 +42,7 @@ export function StatCard({
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
+          <p className={labelClassName}>
             {label}
           </p>
 
@@ -47,7 +51,7 @@ export function StatCard({
           </div>
 
           {hint && (
-            <div className="mt-1 text-xs text-neutral-400 dark:text-neutral-500">
+            <div className={hintClassName}>
               {hint}
             </div>
           )}

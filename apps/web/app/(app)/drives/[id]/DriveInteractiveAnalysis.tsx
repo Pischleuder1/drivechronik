@@ -143,7 +143,7 @@ export function DriveInteractiveAnalysis({
         trafficEvents={traffic.events}
       />
 
-      <div className="p-4">
+      <div className="p-3">
         <div className="grid grid-cols-2 gap-2.5">
           <MetricCard
             icon={Route}

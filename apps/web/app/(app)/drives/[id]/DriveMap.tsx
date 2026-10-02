@@ -276,29 +276,29 @@ export function DriveMap({
     <div className="relative overflow-hidden rounded-xl border border-neutral-300 shadow-sm dark:border-neutral-700">
       <div
         ref={containerRef}
-        className="h-[320px] w-full sm:h-[380px]"
+        className="h-[255px] w-full sm:h-[300px]"
       />
 
-      <div className="pointer-events-none absolute right-3 top-3 z-[800] min-w-[164px] rounded-xl border border-white/20 bg-slate-950/85 px-3 py-2 text-white shadow-lg backdrop-blur-sm">
-        <div className="mb-1.5 flex items-center justify-between gap-3">
-          <span className="text-[11px] font-medium">
+      <div className="pointer-events-none absolute right-2 top-2 z-[800] min-w-[136px] rounded-lg border border-white/20 bg-slate-950/85 px-2.5 py-1.5 text-white shadow-lg backdrop-blur-sm">
+        <div className="mb-1 flex items-center justify-between gap-2">
+          <span className="text-[10px] font-medium">
             {t("map.speed")}
           </span>
 
-          <span className="text-[10px] text-slate-300">
+          <span className="text-[9px] text-slate-300">
             km/h
           </span>
         </div>
 
         <div
-          className="h-1.5 w-full rounded-full"
+          className="h-[5px] w-full rounded-full"
           style={{
             background:
               "linear-gradient(90deg, #2563eb 0%, #06b6d4 25%, #22c55e 50%, #f59e0b 75%, #ef4444 100%)",
           }}
         />
 
-        <div className="mt-1 flex justify-between text-[9px] tabular-nums text-slate-300">
+        <div className="mt-0.5 flex justify-between text-[8px] tabular-nums text-slate-300">
           <span>0</span>
           <span>30</span>
           <span>60</span>

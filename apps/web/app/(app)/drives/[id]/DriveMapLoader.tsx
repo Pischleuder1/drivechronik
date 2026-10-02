@@ -10,7 +10,7 @@ const DriveMap = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-[320px] w-full animate-pulse rounded-xl border border-neutral-300 bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800 sm:h-[380px]" />
+      <div className="h-[255px] w-full animate-pulse rounded-xl border border-neutral-300 bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800 sm:h-[300px]" />
     ),
   },
 );

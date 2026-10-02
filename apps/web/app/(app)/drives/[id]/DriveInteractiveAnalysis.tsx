@@ -136,7 +136,7 @@ export function DriveInteractiveAnalysis({
   const [activePointIndex, setActivePointIndex] = useState<number | null>(null);
 
   return (
-    <section className="mt-6 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900 md:hidden">
+    <section className="mt-3 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900 md:hidden">
       <DriveMapLoader
         points={points}
         activePointIndex={activePointIndex}

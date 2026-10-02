@@ -326,7 +326,7 @@ export default async function DriveDetailPage({
 
       <Link
         href={`/day/${dateStr}`}
-        className="mt-2 inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900 hover:underline dark:text-neutral-400 dark:hover:text-white"
+        className="mt-2 hidden items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900 hover:underline dark:text-neutral-400 dark:hover:text-white md:inline-flex"
       >
         {t("page.backToDayView", { date: dateStr })}
         <ChevronRight aria-hidden size={14} />
@@ -347,7 +347,7 @@ export default async function DriveDetailPage({
             );
           }
           return (
-            <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-neutral-600 dark:text-neutral-300">
+            <div className="mt-3 hidden flex-wrap items-center gap-x-2 gap-y-1 text-sm text-neutral-600 dark:text-neutral-300 md:flex">
               {WeatherIcon && (
                 <WeatherIcon
                   aria-hidden
@@ -440,6 +440,7 @@ export default async function DriveDetailPage({
         />
       )}
 
+      <div className="hidden md:block">
       <Panel className="mt-6" title={t("page.cardRoute")}>
         {route.points.length >= 2 ? (
           <>
@@ -537,6 +538,8 @@ export default async function DriveDetailPage({
           </p>
         )}
       </Panel>
+
+      </div>
 
       {route.points.length >= 2 && (
         <div className="hidden md:block">

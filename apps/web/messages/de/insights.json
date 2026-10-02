@@ -46,6 +46,7 @@
     "scatterLegend": "Ø je {step}-{unit}-Bereich",
     "monthChartAriaLabel": "Monatsverlauf: gefahrene Kilometer und Durchschnittsverbrauch",
     "monthChartConsumptionLegend": "Ø Wh/km",
+    "closeDetails": "Schließen",
     "weekdayChartAriaLabel": "Wochentagsmuster: gefahrene Kilometer je Wochentag",
     "weekdayChartLegend": "km je Wochentag",
     "shortTripAriaLabel": "Kurzstrecken-Anteil: {pct} Prozent der Fahrten unter 5 km",
@@ -87,7 +88,8 @@
     },
     "months": {
       "title": "Kilometer je Monat nach Kategorie",
-      "subtitle": "Aufteilung in Dienstlich, Privat, Arbeitsweg und unklassifizierte Fahrten."
+      "subtitle": "Aufteilung in Dienstlich, Privat, Arbeitsweg und unklassifizierte Fahrten.",
+      "total": "Gesamt"
     },
     "classification": {
       "title": "Nutzung nach Kategorie"

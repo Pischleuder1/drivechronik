@@ -6,6 +6,7 @@ import type { YearlyMonthSummary } from "../../../../lib/yearlyInsightsTypes";
 type Labels = {
   total: string;
   drives: string;
+  close: string;
   business: string;
   private: string;
   commute: string;
@@ -96,7 +97,7 @@ export function YearlyMonthlyCategoryChart({
 
             <button
               type="button"
-              aria-label="Schließen"
+              aria-label={labels.close}
               className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-lg leading-none text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
               onClick={() => setSelectedMonthKey(null)}
             >

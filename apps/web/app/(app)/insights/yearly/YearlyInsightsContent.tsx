@@ -292,8 +292,9 @@ export async function YearlyInsightsContent({
                         months={result.months}
                         locale={locale}
                         labels={{
-                          total: "Gesamt",
-                          drives: "Fahrten",
+                          total: t("yearly.months.total"),
+                          drives: t("yearly.kpi.drives"),
+                          close: t("charts.closeDetails"),
                           business: tc("classification.business"),
                           private: tc("classification.private"),
                           commute: tc("classification.commute"),

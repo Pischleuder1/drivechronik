@@ -292,7 +292,7 @@ export function MonthChart({ months }: { months: MonthDatum[] }) {
 
             <button
               type="button"
-              aria-label="Schließen"
+              aria-label={t("charts.closeDetails")}
               className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-lg leading-none text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
               onClick={() => setSelected(null)}
             >

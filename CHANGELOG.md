@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Refined the mobile dashboard with clearer weekly KPIs, odometer placement, richer last-charge details including duration and relative completion time, direct tire-pressure navigation to the vehicle page and corrected mobile-menu stacking above the map-first vehicle hero.
 - Standardized mobile charging KPIs with compact 3+2 metric layouts across charging-session cards, DC charging analysis and the Tesla charging overview.
 - Refined the mobile yearly Insights view with compact 2x2 KPI, classification and year-summary layouts, consistent card styling and 13 px metric typography.
 - Increased axis-label typography in the Insights temperature and average-speed consumption charts for improved readability.

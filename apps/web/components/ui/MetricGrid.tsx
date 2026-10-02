@@ -3,10 +3,12 @@ import type { ReactNode } from "react";
 export function MetricGrid({
   children,
   columns = 4,
+  mobileColumns = 2,
   className = "",
 }: {
   children: ReactNode;
   columns?: 2 | 3 | 4 | 5;
+  mobileColumns?: 2 | 3 | 4 | 5 | 6;
   className?: string;
 }) {
   const cols = {
@@ -16,8 +18,16 @@ export function MetricGrid({
     5: "sm:grid-cols-5",
   }[columns];
 
+  const mobileCols = {
+    2: "grid-cols-2",
+    3: "grid-cols-3",
+    4: "grid-cols-4",
+    5: "grid-cols-5",
+    6: "grid-cols-6",
+  }[mobileColumns];
+
   return (
-    <dl className={`grid grid-cols-2 gap-2 ${cols} ${className}`.trim()}>
+    <dl className={`grid ${mobileCols} gap-2 ${cols} ${className}`.trim()}>
       {children}
     </dl>
   );

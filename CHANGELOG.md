@@ -15,11 +15,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added current German Autobahn traffic information to recorded drive details, including roadworks, warnings and closures matched against the original stored GPS track.
 - Added traffic-event markers directly to recorded-drive maps with type-specific styling and tooltips.
 - Added interactive monthly details to the yearly Insights chart: tapping or clicking a month shows total distance, classification breakdown and drive count.
+- Added tap and click details to the Insights monthly-trend chart showing distance, average consumption and drive count for the selected month.
 
 ### Changed
 
 - Standardized mobile charging KPIs with compact 3+2 metric layouts across charging-session cards, DC charging analysis and the Tesla charging overview.
 - Refined the mobile yearly Insights view with compact 2x2 KPI, classification and year-summary layouts, consistent card styling and 13 px metric typography.
+- Increased axis-label typography in the Insights temperature and average-speed consumption charts for improved readability.
 
 - Compacted the mobile drive-detail hero, route map and metric cards to reduce vertical space usage.
 - Reduced duplicate legacy content on mobile drive details while keeping the existing desktop detail layout intact.

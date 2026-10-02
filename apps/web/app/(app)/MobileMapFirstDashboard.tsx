@@ -2,8 +2,6 @@ import Link from "next/link";
 import {
   ArrowRight,
   BarChart3,
-  Car,
-  Clock3,
   Route,
   Zap,
 } from "lucide-react";
@@ -12,6 +10,7 @@ import {
   getTranslations,
 } from "next-intl/server";
 import {
+  formatDuration,
   formatKm,
   formatKwh,
   formatOdometer,
@@ -20,7 +19,6 @@ import {
 import type {
   DashboardWeekDay,
   LastChargeStats,
-  OpenSessionStatus,
   VehicleStatusRow,
   WeekStats,
 } from "../../lib/dashboard";
@@ -144,46 +142,9 @@ function MiniConsumptionLine({
   );
 }
 
-function vehicleStateLabel(
-  t: Awaited<ReturnType<typeof getTranslations>>,
-  status: VehicleStatusRow,
-  openSession: OpenSessionStatus | null,
-) {
-  if (openSession?.kind === "driving") {
-    return t("vehicleCard.drivingNow");
-  }
-
-  if (openSession?.kind === "charging") {
-    return t("vehicleCard.chargingNow");
-  }
-
-  if (openSession?.kind === "parked") {
-    return t("vehicleCard.parked");
-  }
-
-  if (status.state === "driving") {
-    return t("vehicleCard.drivingNow");
-  }
-
-  if (status.state === "charging") {
-    return t("vehicleCard.chargingNow");
-  }
-
-  if (
-    status.state === "online" ||
-    status.state === "asleep" ||
-    status.state === "offline"
-  ) {
-    return t("vehicleCard.parked");
-  }
-
-  return t("vehicleCard.statusUnknown");
-}
-
 export async function MobileMapFirstDashboard({
   status,
   vehicles,
-  openSession,
   week,
   lastCharge,
   weekSeries,
@@ -193,7 +154,6 @@ export async function MobileMapFirstDashboard({
     id: number;
     displayName: string;
   }>;
-  openSession: OpenSessionStatus | null;
   week: WeekStats;
   lastCharge: LastChargeStats | null;
   weekSeries: DashboardWeekDay[];
@@ -204,11 +164,10 @@ export async function MobileMapFirstDashboard({
     getLocale(),
   ]);
 
-  const stateLabel = vehicleStateLabel(
-    t,
-    status,
-    openSession,
-  );
+  const syncLabel =
+    status.syncedAt != null
+      ? formatRelativeTime(status.syncedAt, locale)
+      : t("vehicleCard.neverSynced");
 
   const consumptionDistance = weekSeries.reduce(
     (sum, day) =>
@@ -249,6 +208,7 @@ export async function MobileMapFirstDashboard({
         soc={status.soc}
         ratedRangeKm={status.ratedRangeKm}
         placeName={status.placeName}
+        syncLabel={syncLabel}
         positionAvailable={
           status.lat != null && status.lon != null
         }
@@ -312,33 +272,46 @@ export async function MobileMapFirstDashboard({
 
           <MiniConsumptionLine data={weekSeries} />
 
-          <div className="mt-1">
-            <p className="text-[16px] font-semibold tabular-nums">
-              {weightedConsumption != null
-                ? weightedConsumption.toLocaleString(
-                    locale,
-                    {
-                      minimumFractionDigits: 1,
-                      maximumFractionDigits: 1,
-                    },
-                  )
-                : "–"}
-            </p>
+          <div className="mt-1 flex items-end justify-between gap-2">
+            <div>
+              <p className="text-[16px] font-semibold tabular-nums">
+                {weightedConsumption != null
+                  ? weightedConsumption.toLocaleString(
+                      locale,
+                      {
+                        minimumFractionDigits: 1,
+                        maximumFractionDigits: 1,
+                      },
+                    )
+                  : "–"}
+              </p>
 
-            <p className="text-[10px] text-neutral-400">
-              kWh/100 km
-            </p>
+              <p className="text-[10px] text-neutral-400">
+                kWh/100 km
+              </p>
+            </div>
+
+            <div className="min-w-0 text-right">
+              <p className="whitespace-nowrap text-[16px] font-semibold tabular-nums text-neutral-950">
+                {status.odometerKm != null
+                  ? formatOdometer(status.odometerKm)
+                  : t("vehicleCard.odometerUnknown")}
+              </p>
+
+              <p className="text-[10px] text-neutral-400">
+                {tm("odometer")}
+              </p>
+            </div>
           </div>
         </Link>
       </div>
 
-      <div className="px-4 pt-1">
-        <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-400">
-          {tm("vehicle")}
-        </p>
-
+      <div className="px-4">
         <div className="grid grid-cols-2 gap-2">
-          <section className={`${card} overflow-hidden p-3`}>
+          <Link
+            href="/vehicle"
+            className={`${card} block overflow-hidden p-3 transition active:scale-[0.99]`}
+          >
             <p className="text-[11px] font-semibold text-neutral-800">
               {t("tpms.title")}
             </p>
@@ -355,41 +328,6 @@ export async function MobileMapFirstDashboard({
               rlLabel={t("tpms.rl")}
               rrLabel={t("tpms.rr")}
             />
-          </section>
-
-          <Link
-            href="/vehicle"
-            className={`${card} min-h-[140px] p-3`}
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-neutral-100 text-neutral-700">
-                <Car aria-hidden size={17} />
-              </div>
-
-              <ArrowRight
-                aria-hidden
-                size={14}
-                className="text-neutral-300"
-              />
-            </div>
-
-            <p className="mt-2 text-[11px] font-semibold text-neutral-800">
-              {tm("vehicleStatus")}
-            </p>
-
-            <p className="mt-1 text-sm font-semibold text-neutral-950">
-              {stateLabel}
-            </p>
-
-            <p className="mt-0.5 truncate text-[10px] text-neutral-400">
-              {status.placeName ?? t("vehicleCard.placeUnknown")}
-            </p>
-
-            <p className="mt-2 text-[11px] font-semibold tabular-nums text-neutral-600">
-              {status.odometerKm != null
-                ? formatOdometer(status.odometerKm)
-                : t("vehicleCard.odometerUnknown")}
-            </p>
           </Link>
 
           <Link
@@ -412,40 +350,47 @@ export async function MobileMapFirstDashboard({
               {tm("lastCharge")}
             </p>
 
-            <p className="mt-1 text-sm font-semibold tabular-nums text-neutral-950">
-              {lastCharge?.energyAddedKwh != null
-                ? formatKwh(lastCharge.energyAddedKwh, {
-                    sign: true,
-                  })
-                : "–"}
-            </p>
+            <div className="mt-1 flex items-end justify-between gap-2">
+              <p className="text-sm font-semibold tabular-nums text-neutral-950">
+                {lastCharge?.energyAddedKwh != null
+                  ? formatKwh(lastCharge.energyAddedKwh, {
+                      sign: true,
+                    })
+                  : "–"}
+              </p>
 
-            <p className="mt-0.5 truncate text-[10px] text-neutral-400">
-              {lastCharge?.placeName ??
-                lastCharge?.address ??
-                tm("unknownLocation")}
-            </p>
-          </Link>
-
-          <section className={`${card} min-h-[112px] p-3`}>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
-              <Clock3 aria-hidden size={17} />
+              {lastCharge && (
+                <p className="whitespace-nowrap text-[11px] font-semibold tabular-nums text-neutral-700">
+                  {formatDuration(
+                    Math.max(
+                      0,
+                      Math.round(
+                        (lastCharge.endTime.getTime() -
+                          lastCharge.startTime.getTime()) /
+                          1000,
+                      ),
+                    ),
+                  )}
+                </p>
+              )}
             </div>
 
-            <p className="mt-2 text-[11px] font-semibold text-neutral-800">
-              {tm("dataStatus")}
-            </p>
+            <div className="mt-0.5 flex items-center justify-between gap-2">
+              <p className="min-w-0 truncate text-[10px] text-neutral-400">
+                {lastCharge?.placeName ??
+                  lastCharge?.address ??
+                  tm("unknownLocation")}
+              </p>
 
-            <p className="mt-1 text-sm font-semibold text-neutral-950">
-              {status.syncedAt != null
-                ? formatRelativeTime(status.syncedAt, locale)
-                : "–"}
-            </p>
+              {lastCharge?.endTime && (
+                <p className="shrink-0 whitespace-nowrap text-[10px] tabular-nums text-neutral-400">
+                  {formatRelativeTime(lastCharge.endTime, locale)}
+                </p>
+              )}
+            </div>
+          </Link>
 
-            <p className="mt-0.5 text-[10px] text-neutral-400">
-              {tm("lastSynced")}
-            </p>
-          </section>
+
         </div>
       </div>
     </div>

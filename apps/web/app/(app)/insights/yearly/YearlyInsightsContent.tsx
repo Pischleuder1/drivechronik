@@ -16,6 +16,7 @@ import { todayInAppTz } from "../../../../lib/day";
 import { getBusinessReimbursementRateEurPerKm } from "../../../../lib/appSettings";
 import { getActiveVehicle } from "../../../../lib/activeVehicle";
 import { getYearlyInsights } from "../../../../lib/yearlyInsights";
+import { YearlyMonthlyCategoryChart } from "./YearlyMonthlyCategoryChart";
 import { YearlyDestinationMapLoader } from "./YearlyDestinationMapLoader";
 
 import { NoVehicleState } from "../../../../components/NoVehicleState";
@@ -110,10 +111,6 @@ export async function YearlyInsightsContent({
     getBusinessReimbursementRateEurPerKm(),
   ]);
 
-  const maxMonthKm = Math.max(
-    ...result.months.map((month) => month.distanceKm),
-    0,
-  );
 
   const classifiedKm = result.byClassification.reduce(
     (sum, row) =>
@@ -291,105 +288,18 @@ export async function YearlyInsightsContent({
                         </span>
                       </div>
 
-                      <div className="mt-4 grid grid-cols-12 gap-2">
-                        {result.months.map((month) => {
-                          const height =
-                            maxMonthKm > 0
-                              ? Math.max(
-                                  4,
-                                  Math.round(
-                                    (month.distanceKm / maxMonthKm) * 100,
-                                  ),
-                                )
-                              : 4;
-
-                          const percentage = (distanceKm: number): number =>
-                            month.distanceKm > 0
-                              ? (distanceKm / month.distanceKm) * 100
-                              : 0;
-
-                          const tooltip = [
-                            `${monthLabel(month.monthKey, locale)}: ${formatKm(
-                              month.distanceKm,
-                            )}`,
-                            `${tc("classification.business")}: ${formatKm(
-                              month.businessDistanceKm,
-                            )}`,
-                            `${tc("classification.private")}: ${formatKm(
-                              month.privateDistanceKm,
-                            )}`,
-                            `${tc("classification.commute")}: ${formatKm(
-                              month.commuteDistanceKm,
-                            )}`,
-                            `${tc("classification.unclassified")}: ${formatKm(
-                              month.unclassifiedDistanceKm,
-                            )}`,
-                          ].join(" · ");
-
-                          return (
-                            <div
-                              key={month.monthKey}
-                              className="flex min-w-0 flex-col items-center"
-                            >
-                              <div className="flex h-36 w-full items-end justify-center">
-                                <div
-                                  className="flex w-full max-w-8 flex-col-reverse overflow-hidden rounded-t bg-neutral-100 dark:bg-neutral-800"
-                                  style={{ height: `${height}%` }}
-                                  title={tooltip}
-                                >
-                                  {month.businessDistanceKm > 0 && (
-                                    <div
-                                      className="w-full shrink-0 bg-blue-600 dark:bg-blue-400"
-                                      style={{
-                                        height: `${percentage(
-                                          month.businessDistanceKm,
-                                        )}%`,
-                                      }}
-                                    />
-                                  )}
-
-                                  {month.privateDistanceKm > 0 && (
-                                    <div
-                                      className="w-full shrink-0 bg-emerald-600 dark:bg-emerald-400"
-                                      style={{
-                                        height: `${percentage(
-                                          month.privateDistanceKm,
-                                        )}%`,
-                                      }}
-                                    />
-                                  )}
-
-                                  {month.commuteDistanceKm > 0 && (
-                                    <div
-                                      className="w-full shrink-0 bg-amber-500 dark:bg-amber-400"
-                                      style={{
-                                        height: `${percentage(
-                                          month.commuteDistanceKm,
-                                        )}%`,
-                                      }}
-                                    />
-                                  )}
-
-                                  {month.unclassifiedDistanceKm > 0 && (
-                                    <div
-                                      className="w-full shrink-0 bg-neutral-400 dark:bg-neutral-500"
-                                      style={{
-                                        height: `${percentage(
-                                          month.unclassifiedDistanceKm,
-                                        )}%`,
-                                      }}
-                                    />
-                                  )}
-                                </div>
-                              </div>
-
-                              <span className="mt-1.5 text-xs text-neutral-500 dark:text-neutral-400">
-                                {monthLabel(month.monthKey, locale)}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
+                      <YearlyMonthlyCategoryChart
+                        months={result.months}
+                        locale={locale}
+                        labels={{
+                          total: "Gesamt",
+                          drives: "Fahrten",
+                          business: tc("classification.business"),
+                          private: tc("classification.private"),
+                          commute: tc("classification.commute"),
+                          unclassified: tc("classification.unclassified"),
+                        }}
+                      />
                     </Panel>
 
                     <section className="mt-5">
@@ -400,13 +310,13 @@ export async function YearlyInsightsContent({
                       />
 
                       <div className="mt-2 overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-200 shadow-sm dark:border-neutral-800 dark:bg-neutral-800">
-                        <div className="grid gap-px sm:grid-cols-2 lg:grid-cols-4">
+                        <div className="grid grid-cols-2 gap-px lg:grid-cols-4">
                           {result.byClassification.map((row) => (
                             <div
                               key={row.classification}
                               className="min-w-0 bg-white px-3 py-2.5 dark:bg-neutral-900"
                             >
-                              <div className="flex items-center gap-2">
+                              <div className="flex min-w-0 items-center gap-2">
                                 <span
                                   aria-hidden
                                   className={`h-2 w-2 shrink-0 rounded-full ${
@@ -419,16 +329,16 @@ export async function YearlyInsightsContent({
                                           : "bg-neutral-400 dark:bg-neutral-500"
                                   }`}
                                 />
-                                <span className="truncate text-xs font-medium text-neutral-500 dark:text-neutral-400">
+                                <span className="truncate text-[12px] font-medium text-neutral-500 dark:text-neutral-400">
                                   {tc(`classification.${row.classification}`)}
                                 </span>
                               </div>
 
-                              <div className="mt-1 text-base font-semibold tracking-tight tabular-nums">
+                              <div className="mt-1 whitespace-nowrap text-[12px] font-semibold tracking-tight tabular-nums">
                                 {formatKm(row.distanceKm)}
                               </div>
 
-                              <div className="mt-0.5 text-xs text-neutral-400 dark:text-neutral-500">
+                              <div className="mt-0.5 whitespace-nowrap text-[12px] text-neutral-400 dark:text-neutral-500">
                                 {t("yearly.driveCount", {
                                   count: row.driveCount,
                                 })}
@@ -441,71 +351,87 @@ export async function YearlyInsightsContent({
         </>
       )}
 
-      <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-3 grid grid-cols-2 gap-2 lg:grid-cols-4">
         <StatCard
-          className="px-3 py-2.5 !border-t !border-t-neutral-200 dark:!border-t-neutral-800"
+          className="min-w-0 px-3 py-2 !border-t !border-t-neutral-200 dark:!border-t-neutral-800"
           label={t("yearly.kpi.distance")}
           value={formatKm(result.distanceKm)}
           tone="blue"
-          valueClassName="mt-0.5 text-base font-semibold tracking-tight tabular-nums"
+          labelClassName="truncate text-[13px] font-medium text-neutral-500 dark:text-neutral-400"
+          valueClassName="mt-0.5 whitespace-nowrap text-[13px] font-semibold tracking-tight tabular-nums"
+          hintClassName="mt-0.5 text-[13px] text-neutral-400 dark:text-neutral-500"
         />
         <StatCard
-          className="px-3 py-2.5 !border-t !border-t-neutral-200 dark:!border-t-neutral-800"
+          className="min-w-0 px-3 py-2 !border-t !border-t-neutral-200 dark:!border-t-neutral-800"
           label={t("yearly.kpi.drives")}
           value={String(result.driveCount)}
           tone="sky"
-          valueClassName="mt-0.5 text-base font-semibold tracking-tight tabular-nums"
+          labelClassName="truncate text-[13px] font-medium text-neutral-500 dark:text-neutral-400"
+          valueClassName="mt-0.5 whitespace-nowrap text-[13px] font-semibold tracking-tight tabular-nums"
+          hintClassName="mt-0.5 text-[13px] text-neutral-400 dark:text-neutral-500"
         />
         <StatCard
-          className="px-3 py-2.5 !border-t !border-t-neutral-200 dark:!border-t-neutral-800"
+          className="min-w-0 px-3 py-2 !border-t !border-t-neutral-200 dark:!border-t-neutral-800"
           label={t("yearly.kpi.duration")}
           value={formatDuration(Math.round(result.durationSeconds))}
           tone="violet"
-          valueClassName="mt-0.5 text-base font-semibold tracking-tight tabular-nums"
+          labelClassName="truncate text-[13px] font-medium text-neutral-500 dark:text-neutral-400"
+          valueClassName="mt-0.5 whitespace-nowrap text-[13px] font-semibold tracking-tight tabular-nums"
+          hintClassName="mt-0.5 text-[13px] text-neutral-400 dark:text-neutral-500"
         />
         <StatCard
-          className="px-3 py-2.5 !border-t !border-t-neutral-200 dark:!border-t-neutral-800"
+          className="min-w-0 px-3 py-2 !border-t !border-t-neutral-200 dark:!border-t-neutral-800"
           label={t("yearly.kpi.classified")}
           value={`${Math.round(classifiedShare * 100)} %`}
           tone="indigo"
-          valueClassName="mt-0.5 text-base font-semibold tracking-tight tabular-nums"
+          labelClassName="truncate text-[13px] font-medium text-neutral-500 dark:text-neutral-400"
+          valueClassName="mt-0.5 whitespace-nowrap text-[13px] font-semibold tracking-tight tabular-nums"
+          hintClassName="mt-0.5 text-[13px] text-neutral-400 dark:text-neutral-500"
         />
       </div>
 
-      <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-2 grid grid-cols-2 gap-2 lg:grid-cols-4">
         <StatCard
-          className="px-3 py-2.5 !bg-neutral-50 !shadow-none dark:!bg-neutral-900 !border-t !border-t-neutral-200 dark:!border-t-neutral-800"
+          className="min-w-0 px-3 py-2 !border-t !border-t-neutral-200 dark:!border-t-neutral-800"
           label={t("yearly.kpi.businessDistance")}
           value={formatKm(businessDistanceKm)}
           tone="cyan"
-          valueClassName="mt-0.5 text-base font-semibold tracking-tight tabular-nums"
+          labelClassName="truncate text-[13px] font-medium text-neutral-500 dark:text-neutral-400"
+          valueClassName="mt-0.5 whitespace-nowrap text-[13px] font-semibold tracking-tight tabular-nums"
+          hintClassName="mt-0.5 text-[13px] text-neutral-400 dark:text-neutral-500"
         />
         <StatCard
-          className="px-3 py-2.5 !bg-neutral-50 !shadow-none dark:!bg-neutral-900 !border-t !border-t-neutral-200 dark:!border-t-neutral-800"
+          className="min-w-0 px-3 py-2 !border-t !border-t-neutral-200 dark:!border-t-neutral-800"
           label={t("yearly.kpi.reimbursement")}
           value={currencyFormatter.format(reimbursementAmountEur)}
           hint={t("yearly.kpi.reimbursementRate", {
             rate: currencyFormatter.format(reimbursementRateEurPerKm),
           })}
           tone="emerald"
-          valueClassName="mt-0.5 text-base font-semibold tracking-tight tabular-nums"
+          labelClassName="truncate text-[13px] font-medium text-neutral-500 dark:text-neutral-400"
+          valueClassName="mt-0.5 whitespace-nowrap text-[13px] font-semibold tracking-tight tabular-nums"
+          hintClassName="mt-0.5 text-[13px] text-neutral-400 dark:text-neutral-500"
         />
         <StatCard
-          className="px-3 py-2.5 !bg-neutral-50 !shadow-none dark:!bg-neutral-900 !border-t !border-t-neutral-200 dark:!border-t-neutral-800"
+          className="min-w-0 px-3 py-2 !border-t !border-t-neutral-200 dark:!border-t-neutral-800"
           label={t("yearly.kpi.averageDrive")}
           value={formatKm(averageDriveDistanceKm)}
           tone="neutral"
-          valueClassName="mt-0.5 text-base font-semibold tracking-tight tabular-nums"
+          labelClassName="truncate text-[13px] font-medium text-neutral-500 dark:text-neutral-400"
+          valueClassName="mt-0.5 whitespace-nowrap text-[13px] font-semibold tracking-tight tabular-nums"
+          hintClassName="mt-0.5 text-[13px] text-neutral-400 dark:text-neutral-500"
         />
         <StatCard
-          className="px-3 py-2.5 !bg-neutral-50 !shadow-none dark:!bg-neutral-900 !border-t !border-t-neutral-200 dark:!border-t-neutral-800"
+          className="min-w-0 px-3 py-2 !border-t !border-t-neutral-200 dark:!border-t-neutral-800"
           label={t("yearly.kpi.customerVisits")}
           value={String(customerVisitCount)}
           hint={t("yearly.kpi.customerCount", {
             count: customerDestinations.length,
           })}
           tone="amber"
-          valueClassName="mt-0.5 text-base font-semibold tracking-tight tabular-nums"
+          labelClassName="truncate text-[13px] font-medium text-neutral-500 dark:text-neutral-400"
+          valueClassName="mt-0.5 whitespace-nowrap text-[13px] font-semibold tracking-tight tabular-nums"
+          hintClassName="mt-0.5 text-[13px] text-neutral-400 dark:text-neutral-500"
         />
       </div>
 
@@ -528,9 +454,9 @@ export async function YearlyInsightsContent({
               tone="blue"
             />
 
-            <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-2 grid grid-cols-2 gap-2 lg:grid-cols-4">
               <StatCard
-                className="p-3 !border-t !border-t-neutral-200 dark:!border-t-neutral-800"
+                className="min-w-0 p-3 !border-t !border-t-neutral-200 dark:!border-t-neutral-800"
                 label={t("yearly.wrapped.longest")}
                 value={
                   result.longestDrive?.distanceKm != null
@@ -538,11 +464,13 @@ export async function YearlyInsightsContent({
                     : "—"
                 }
                 tone="blue"
-                valueClassName="mt-0.5 text-base font-semibold tracking-tight tabular-nums"
+                labelClassName="truncate whitespace-nowrap text-[13px] font-medium text-neutral-500 dark:text-neutral-400"
+                valueClassName="mt-0.5 truncate whitespace-nowrap text-[13px] font-semibold tracking-tight tabular-nums"
+                hintClassName="mt-0.5 truncate whitespace-nowrap text-[13px] text-neutral-400 dark:text-neutral-500"
               />
 
               <StatCard
-                className="p-3 !border-t !border-t-neutral-200 dark:!border-t-neutral-800"
+                className="min-w-0 p-3 !border-t !border-t-neutral-200 dark:!border-t-neutral-800"
                 label={t("yearly.wrapped.busiestMonth")}
                 value={
                   result.busiestMonth
@@ -555,11 +483,13 @@ export async function YearlyInsightsContent({
                     : undefined
                 }
                 tone="violet"
-                valueClassName="mt-0.5 text-base font-semibold tracking-tight tabular-nums"
+                labelClassName="truncate whitespace-nowrap text-[13px] font-medium text-neutral-500 dark:text-neutral-400"
+                valueClassName="mt-0.5 truncate whitespace-nowrap text-[13px] font-semibold tracking-tight tabular-nums"
+                hintClassName="mt-0.5 truncate whitespace-nowrap text-[13px] text-neutral-400 dark:text-neutral-500"
               />
 
               <StatCard
-                className="p-3 !border-t !border-t-neutral-200 dark:!border-t-neutral-800"
+                className="min-w-0 p-3 !border-t !border-t-neutral-200 dark:!border-t-neutral-800"
                 label={t("yearly.wrapped.busiestDay")}
                 value={
                   result.busiestDay
@@ -572,11 +502,13 @@ export async function YearlyInsightsContent({
                     : undefined
                 }
                 tone="cyan"
-                valueClassName="mt-0.5 text-base font-semibold tracking-tight tabular-nums"
+                labelClassName="truncate whitespace-nowrap text-[13px] font-medium text-neutral-500 dark:text-neutral-400"
+                valueClassName="mt-0.5 truncate whitespace-nowrap text-[13px] font-semibold tracking-tight tabular-nums"
+                hintClassName="mt-0.5 truncate whitespace-nowrap text-[13px] text-neutral-400 dark:text-neutral-500"
               />
 
               <StatCard
-                className="p-3 !border-t !border-t-neutral-200 dark:!border-t-neutral-800"
+                className="min-w-0 p-3 !border-t !border-t-neutral-200 dark:!border-t-neutral-800"
                 label={t("yearly.wrapped.topDestination")}
                 value={result.topDestination?.label ?? "—"}
                 hint={
@@ -587,7 +519,9 @@ export async function YearlyInsightsContent({
                     : undefined
                 }
                 tone="amber"
-                valueClassName="mt-0.5 text-base font-semibold tracking-tight tabular-nums"
+                labelClassName="truncate whitespace-nowrap text-[13px] font-medium text-neutral-500 dark:text-neutral-400"
+                valueClassName="mt-0.5 truncate whitespace-nowrap text-[13px] font-semibold tracking-tight tabular-nums"
+                hintClassName="mt-0.5 truncate whitespace-nowrap text-[13px] text-neutral-400 dark:text-neutral-500"
               />
             </div>
           </section>

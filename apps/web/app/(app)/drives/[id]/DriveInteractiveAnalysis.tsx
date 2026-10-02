@@ -1,16 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import {
   Activity,
+  Ban,
   BatteryMedium,
   BriefcaseBusiness,
   Clock3,
+  Construction,
   Gauge,
   MapPinned,
   Radio,
   Route,
+  TriangleAlert,
   Zap,
 } from "lucide-react";
 
@@ -18,6 +21,7 @@ import type {
   ChartRoutePoint,
   RoutePointTuple,
 } from "../../../../lib/driveRoute";
+import type { TrafficEvent } from "../../../../lib/traffic/types";
 
 import { DriveMapLoader } from "./DriveMapLoader";
 import { DriveChart } from "./DriveChart";
@@ -35,6 +39,11 @@ interface DriveOverviewStatus {
   gpsPoints: string;
   soc: string;
   gpsCoverage: string;
+}
+
+interface DriveTrafficOverview {
+  motorwayRefs: string[];
+  events: TrafficEvent[];
 }
 
 function StatusChip({
@@ -110,6 +119,7 @@ export function DriveInteractiveAnalysis({
   metrics,
   status,
   classificationTone,
+  traffic,
 }: {
   points: RoutePointTuple[];
   chartPoints: ChartRoutePoint[];
@@ -119,8 +129,10 @@ export function DriveInteractiveAnalysis({
   metrics: DriveOverviewMetrics;
   status: DriveOverviewStatus;
   classificationTone: "blue" | "emerald" | "amber" | "neutral";
+  traffic: DriveTrafficOverview;
 }) {
   const t = useTranslations("drives");
+  const locale = useLocale();
   const [activePointIndex, setActivePointIndex] = useState<number | null>(null);
 
   return (
@@ -202,6 +214,90 @@ export function DriveInteractiveAnalysis({
           teslamateDescentM={teslamateDescentM}
           onActivePointChange={setActivePointIndex}
         />
+
+        {traffic.motorwayRefs.length > 0 && (
+          <div className="mt-5 border-t border-neutral-200 pt-4 dark:border-neutral-800">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+                  {t("traffic.title")}
+                </h2>
+
+                <p className="mt-0.5 text-[10px] leading-snug text-neutral-500 dark:text-neutral-400">
+                  {t("traffic.liveNote")}
+                </p>
+              </div>
+
+              <span className="shrink-0 rounded-full bg-neutral-100 px-2 py-1 text-[10px] font-medium text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
+                {traffic.motorwayRefs.join(" · ")}
+              </span>
+            </div>
+
+            {traffic.events.length === 0 ? (
+              <p className="mt-3 rounded-xl bg-neutral-50 px-3 py-3 text-xs text-neutral-500 dark:bg-neutral-950/50 dark:text-neutral-400">
+                {t("traffic.none")}
+              </p>
+            ) : (
+              <div className="mt-3 space-y-2">
+                {traffic.events.map((event) => {
+                  const Icon =
+                    event.type === "roadwork"
+                      ? Construction
+                      : event.type === "closure"
+                        ? Ban
+                        : TriangleAlert;
+
+                  const tone =
+                    event.type === "closure"
+                      ? "border-red-200 bg-red-50 text-red-700 dark:border-red-900 dark:bg-red-950/50 dark:text-red-300"
+                      : event.type === "warning"
+                        ? "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-300"
+                        : "border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-900 dark:bg-orange-950/50 dark:text-orange-300";
+
+                  return (
+                    <div
+                      key={event.id}
+                      className="flex items-start gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 dark:border-neutral-800 dark:bg-neutral-950/50"
+                    >
+                      <span
+                        className={`mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border ${tone}`}
+                      >
+                        <Icon aria-hidden size={15} />
+                      </span>
+
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-3">
+                          <p className="text-xs font-semibold text-neutral-900 dark:text-neutral-100">
+                            {event.motorway} ·{" "}
+                            {t(`traffic.type.${event.type}`)}
+                          </p>
+
+                          <span className="shrink-0 text-[11px] tabular-nums text-neutral-500 dark:text-neutral-400">
+                            {event.routeDistanceKm.toLocaleString(locale, {
+                              minimumFractionDigits: 1,
+                              maximumFractionDigits: 1,
+                            })}{" "}
+                            km
+                          </span>
+                        </div>
+
+                        <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-neutral-600 dark:text-neutral-300">
+                          {event.title}
+                        </p>
+
+                        {event.blocked && (
+                          <p className="mt-1 text-[10px] font-semibold text-red-600 dark:text-red-400">
+                            {t("traffic.blocked")}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </section>
   );

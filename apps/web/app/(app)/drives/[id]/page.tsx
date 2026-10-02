@@ -28,6 +28,7 @@ import {
 } from "../../../../lib/queries";
 import { getActiveVehicleId } from "../../../../lib/activeVehicle";
 import { getRoutePoints } from "../../../../lib/driveRoute";
+import { getRecordedDriveTraffic } from "../../../../lib/traffic/recordedDriveTraffic";
 import {
   type Classification,
 } from "../../../../lib/classification";
@@ -107,6 +108,18 @@ export default async function DriveDetailPage({
     getVehicles(),
     getActiveVehicleId(),
   ]);
+
+  const recordedTraffic =
+    route.points.length >= 2
+      ? await getRecordedDriveTraffic(
+          route.points.map(
+            ([lat, lon]) => [lat, lon] as const,
+          ),
+        )
+      : {
+          motorwayRefs: [],
+          events: [],
+        };
 
   const from = formatPlaceLabel(
     drive.startPlaceName,
@@ -423,6 +436,7 @@ export default async function DriveDetailPage({
                 : "GPS —",
           }}
           classificationTone={classificationTone(classification)}
+          traffic={recordedTraffic}
         />
       )}
 

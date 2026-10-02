@@ -26,7 +26,8 @@
     "noTrackData": "Keine Trackdaten vorhanden.",
     "elevationBackgroundNote": "Höhendaten werden im Hintergrund ergänzt…",
     "auditHistory": "Verlauf",
-    "cardLogbookStatus": "Fahrtenbuchstatus"
+    "cardLogbookStatus": "Fahrtenbuchstatus",
+    "cardInteractiveCourse": "Fahrtdaten im Verlauf"
   },
   "metrics": {
     "distance": "Distanz",
@@ -67,7 +68,8 @@
     "elevationCalcNote": "(berechnet aus GPS + Open-Meteo)",
     "teslamateElevation": "TeslaMate: ↗ {ascent} m · ↘ {descent} m",
     "avgMaxSpeed": "Ø Tempo {avg} · Max {max}",
-    "pointIndex": "Punkt {index}"
+    "pointIndex": "Punkt {index}",
+    "mapSyncHint": "Cursor synchronisiert Karte und Diagramm"
   },
   "map": {
     "speed": "Geschwindigkeit"

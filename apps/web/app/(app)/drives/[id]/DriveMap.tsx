@@ -9,6 +9,7 @@ import type { RoutePointTuple } from "../../../../lib/driveRoute";
 
 export interface DriveMapProps {
   points: RoutePointTuple[];
+  activePointIndex?: number | null;
 }
 
 function markerIcon(color: string): L.DivIcon {
@@ -54,10 +55,14 @@ function segmentSpeed(
  *
  * The dark underlay keeps the track readable independently of the map tiles.
  */
-export function DriveMap({ points }: DriveMapProps) {
+export function DriveMap({
+  points,
+  activePointIndex = null,
+}: DriveMapProps) {
   const t = useTranslations("drives");
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
+  const activeMarkerRef = useRef<L.CircleMarker | null>(null);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -124,6 +129,45 @@ export function DriveMap({ points }: DriveMapProps) {
     // während der Lebensdauer dieser Detailansicht nicht.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    const map = mapRef.current;
+
+    if (!map) return;
+
+    if (
+      activePointIndex == null ||
+      activePointIndex < 0 ||
+      activePointIndex >= points.length
+    ) {
+      if (activeMarkerRef.current) {
+        activeMarkerRef.current.remove();
+        activeMarkerRef.current = null;
+      }
+      return;
+    }
+
+    const point = points[activePointIndex];
+    if (!point) return;
+
+    const latLng: L.LatLngExpression = [point[0], point[1]];
+
+    if (!activeMarkerRef.current) {
+      activeMarkerRef.current = L.circleMarker(latLng, {
+        radius: 7,
+        color: "#ffffff",
+        weight: 3,
+        fillColor: "#2563eb",
+        fillOpacity: 1,
+        opacity: 1,
+        interactive: false,
+      }).addTo(map);
+    } else {
+      activeMarkerRef.current.setLatLng(latLng);
+    }
+
+    activeMarkerRef.current.bringToFront();
+  }, [activePointIndex, points]);
 
   return (
     <div className="relative overflow-hidden rounded-xl border border-neutral-300 shadow-sm dark:border-neutral-700">

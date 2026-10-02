@@ -47,6 +47,7 @@ import { AuditLogList } from "./AuditLogList";
 import { PlaceCorrection } from "./PlaceCorrection";
 import { DriveMapLoader } from "./DriveMapLoader";
 import { DriveChart } from "./DriveChart";
+import { DriveInteractiveAnalysis } from "./DriveInteractiveAnalysis";
 import { MobileRecordDetailHero } from "../../../../components/MobileRecordDetailHero";
 
 // Ab diesem Anteil befüllter elevation_m-Werte gilt das Höhenprofil als nutzbar
@@ -359,10 +360,22 @@ export default async function DriveDetailPage({
         )}
       </Panel>
 
+      {route.points.length >= 2 && (
+        <DriveInteractiveAnalysis
+          points={route.points}
+          chartPoints={route.chartPoints}
+          elevationCoverage={route.elevationCoverage}
+          teslamateAscentM={drive.ascentM}
+          teslamateDescentM={drive.descentM}
+        />
+      )}
+
       <Panel className="mt-6" title={t("page.cardRoute")}>
         {route.points.length >= 2 ? (
           <>
-            <DriveMapLoader points={route.points} />
+            <div className="hidden md:block">
+              <DriveMapLoader points={route.points} />
+            </div>
 
             <MetricGrid className="mt-4" columns={4}>
               <MetricItem
@@ -456,7 +469,8 @@ export default async function DriveDetailPage({
       </Panel>
 
       {route.points.length >= 2 && (
-        <Panel className="mt-6" title={t("page.cardCourse")}>
+        <div className="hidden md:block">
+          <Panel className="mt-6" title={t("page.cardCourse")}>
           <DriveChart
             points={route.chartPoints}
             elevationCoverage={route.elevationCoverage}
@@ -468,7 +482,8 @@ export default async function DriveDetailPage({
               {t("page.elevationBackgroundNote")}
             </p>
           )}
-        </Panel>
+          </Panel>
+        </div>
       )}
 
       <Panel className="mt-6" title={t("page.cardLogbookStatus")}>

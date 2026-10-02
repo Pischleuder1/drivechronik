@@ -14,6 +14,17 @@ const DriveMap = dynamic(() => import("./DriveMap").then((m) => m.DriveMap), {
   ),
 });
 
-export function DriveMapLoader({ points }: { points: RoutePointTuple[] }) {
-  return <DriveMap points={points} />;
+export function DriveMapLoader({
+  points,
+  activePointIndex = null,
+}: {
+  points: RoutePointTuple[];
+  activePointIndex?: number | null;
+}) {
+  return (
+    <DriveMap
+      points={points}
+      activePointIndex={activePointIndex}
+    />
+  );
 }

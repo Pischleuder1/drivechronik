@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added a redesigned mobile drive-detail experience with a map-first layout, compact drive status information and a 3+2 KPI grid for distance, duration, average speed, consumption and energy.
+- Added speed-colored recorded-drive routes with a compact speed legend.
+- Added synchronized interaction between the drive chart and route map so the active chart position is highlighted on the recorded route.
+- Added current German Autobahn traffic information to recorded drive details, including roadworks, warnings and closures matched against the original stored GPS track.
+- Added traffic-event markers directly to recorded-drive maps with type-specific styling and tooltips.
+
+### Changed
+
+- Compacted the mobile drive-detail hero, route map and metric cards to reduce vertical space usage.
+- Reduced duplicate legacy content on mobile drive details while keeping the existing desktop detail layout intact.
+- Clarified that traffic shown for an already recorded drive represents the current traffic situation along that route and is not historical traffic from the original drive time.
+
 ## [0.8.0] - 2026-09-29
 
 ### Added

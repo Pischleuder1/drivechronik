@@ -49,7 +49,7 @@ SD-Karte geschrieben werden. Neuere Appliance-Versionen enthalten dafür den
 Befehl:
 
 ```bash
-sudo drivechronik-update v0.7.0
+sudo drivechronik-update v0.8.0
 ```
 
 Der Updater:
@@ -75,7 +75,7 @@ sudo install -m 0755 \
   /tmp/drivechronik-update \
   /usr/local/sbin/drivechronik-update
 
-sudo drivechronik-update v0.7.0
+sudo drivechronik-update v0.8.0
 ```
 
 Danach steht `drivechronik-update` auch für spätere DriveChronik-Updates
@@ -113,8 +113,9 @@ Tessie & Co. sind gut, aber: Abo-Kosten, Feature-Überschneidung mit der Tesla-A
 - **Monatsabschluss & Revisionshistorie** — vergangene Monate können nach Vollständigkeitsprüfung abgeschlossen werden. Jeder Abschluss erhält eine Revision mit unveränderlichem Snapshot, Fahrer-/Fahrzeugidentität sowie Content-, Seal- und Audit-Hash. Neue Snapshots sichern zusätzlich das Fahrzeugmodell; ältere Revisionen ohne dieses Feld bleiben unverändert und kompatibel. Neue Revisionen werden mit Ed25519 digital signiert; Signaturstatus und Schlüssel-ID werden im Abschlussbericht ausgewiesen. Ein portabler Proof-JSON-Export kann unabhängig mit dem mitgelieferten Offline-Verifier geprüft werden. Spätere Änderungen bleiben erlaubt und führen beim erneuten Abschluss zu einer neuen Revision.
 
 **Fahrt- & Lade-Analytics**
-- **Fahrt-Detail** — Route auf der Karte, kombinierter Verlaufs-Chart (Höhe/SoC/Tempo), Temperaturen, Max-Speed/-Leistung/Rekuperation, historisches Wetter zur Fahrtzeit, GPX-Export
+- **Fahrt-Detail** — mobile Map-First-Ansicht mit geschwindigkeitsabhängig eingefärbter GPS-Route, kompakter 3+2-KPI-Übersicht, Status-Chips und synchronisiertem Karten-/Verlaufs-Cursor; zusätzlich kombinierter Verlaufs-Chart (Höhe/SoC/Tempo), Temperaturen, Max-Speed/-Leistung/Rekuperation, historisches Wetter zur Fahrtzeit und GPX-Export
   - Bei echten Fahrten basiert die dargestellte Route auf den von TeslaMate aufgezeichneten GPS-/Positionsdaten. OSRM rekonstruiert keine aufgezeichneten Fahrten.
+  - Für aufgezeichnete Autobahnfahrten kann DriveChronik zusätzlich die **aktuelle** Verkehrslage entlang des gespeicherten GPS-Tracks mit Baustellen, Warnungen und Sperrungen anzeigen. Diese Live-Daten werden ausdrücklich nicht als historische Verkehrslage zum damaligen Fahrtzeitpunkt dargestellt.
 - **Ladeübersicht & DC-Analyse** — einzelne Ladekurve (kW über SoC bzw. Zeit), AC/DC, Kosten und Standort-Karte; zusätzlicher Vergleich der letzten 5 oder 10 abgeschlossenen DC-Ladevorgänge mit gemeinsamer Leistung-über-SoC-Darstellung und Median-Kurve. Der DC-Vergleich ist bewusst unabhängig vom ausgewählten Monatsfilter.
 - **Automatische Ladekosten** — Strompreis pro Ort hinterlegen (z. B. Zuhause 0,32 €/kWh) → Sessions ohne bekannten Preis werden automatisch berechnet, manuelle und gesyncte Kosten bleiben unangetastet
 - **Journeys** — Urlaube/Reisen als Klammer über Fahrten + Ladestopps mit Kennzahlen-Dashboard, Karte aller Etappen und Export als CSV, PDF und GPX. Jede Reise gehört fest zu einem Fahrzeug; Fahrten, Ladungen und Parkphasen anderer Fahrzeuge werden nicht zugeordnet.

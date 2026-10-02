@@ -291,6 +291,7 @@ export default async function DriveDetailPage({
         backHref="/day"
         backLabel={tCommon("actions.back")}
         mode="drive"
+        compact
         badge={
           <StatusBadge tone={classificationTone(classification)}>
             {tCommon(`classification.${classification}`)}

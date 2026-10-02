@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Compacted mobile charging-session cards into a 3+2 metric layout for energy, state of charge, duration, maximum charging power and cost.
+- Standardized mobile charging KPIs with compact 3+2 metric layouts across charging-session cards, DC charging analysis and the Tesla charging overview.
 
 - Compacted the mobile drive-detail hero, route map and metric cards to reduce vertical space usage.
 - Reduced duplicate legacy content on mobile drive details while keeping the existing desktop detail layout intact.

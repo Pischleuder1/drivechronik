@@ -231,9 +231,14 @@ export default async function ChargeAnalysisPage({
                     )}
                   </div>
 
-                  <MetricGrid columns={5} className="mt-3">
+                  <MetricGrid
+                    columns={5}
+                    mobileColumns={6}
+                    className="mt-3"
+                  >
                     <MetricItem
                       label={t("analysis.tenToEighty")}
+                      className="order-1 col-span-2 sm:order-none sm:col-span-1"
                       value={
                         session.tenToEightySeconds != null
                           ? formatDuration(
@@ -244,10 +249,12 @@ export default async function ChargeAnalysisPage({
                     />
                     <MetricItem
                       label={t("analysis.peak")}
+                      className="order-2 col-span-2 sm:order-none sm:col-span-1"
                       value={formatKw(session.maxPowerKw)}
                     />
                     <MetricItem
                       label={t("analysis.energy")}
+                      className="order-3 col-span-2 sm:order-none sm:col-span-1"
                       value={
                         session.energyAddedKwh != null
                           ? formatKwh(session.energyAddedKwh)
@@ -256,6 +263,7 @@ export default async function ChargeAnalysisPage({
                     />
                     <MetricItem
                       label={t("analysis.soc")}
+                      className="order-4 col-span-3 sm:order-none sm:col-span-1"
                       value={
                         <>
                           {session.startSoc != null
@@ -270,6 +278,7 @@ export default async function ChargeAnalysisPage({
                     />
                     <MetricItem
                       label={t("analysis.temperature")}
+                      className="order-5 col-span-3 sm:order-none sm:col-span-1"
                       value={
                         session.outsideTempAvg != null
                           ? formatTemp(session.outsideTempAvg)

@@ -166,6 +166,13 @@ export default async function DriveDetailPage({
     timeZone: APP_TIMEZONE,
   });
 
+  const avgDriveSpeedKmh =
+    drive.distanceKm != null &&
+    drive.durationSeconds != null &&
+    drive.durationSeconds > 0
+      ? drive.distanceKm / (drive.durationSeconds / 3600)
+      : null;
+
   const gpsCoveragePercent =
     drive.durationSeconds != null &&
     drive.durationSeconds > 0 &&
@@ -367,6 +374,33 @@ export default async function DriveDetailPage({
           elevationCoverage={route.elevationCoverage}
           teslamateAscentM={drive.ascentM}
           teslamateDescentM={drive.descentM}
+          metrics={{
+            distance:
+              drive.distanceKm != null
+                ? formatKm(drive.distanceKm)
+                : "—",
+            duration:
+              drive.durationSeconds != null
+                ? formatDuration(drive.durationSeconds)
+                : "—",
+            avgConsumption:
+              drive.avgConsumptionWhKm != null
+                ? formatConsumption(
+                    drive.avgConsumptionWhKm,
+                    drive.energyIsEstimated,
+                  )
+                : "—",
+            energy:
+              drive.consumedEnergyKwh != null
+                ? `${formatKwh(drive.consumedEnergyKwh)}${
+                    drive.energyIsEstimated ? " ~" : ""
+                  }`
+                : "—",
+            avgSpeed:
+              avgDriveSpeedKmh != null
+                ? formatSpeed(avgDriveSpeedKmh)
+                : "—",
+          }}
         />
       )}
 

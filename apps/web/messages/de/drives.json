@@ -46,7 +46,8 @@
     "maxPower": "Max. Leistung",
     "maxRegen": "Max. Rekuperation",
     "startAddress": "Startadresse",
-    "endAddress": "Zieladresse"
+    "endAddress": "Zieladresse",
+    "avgSpeed": "Ø Tempo"
   },
   "annotationForm": {
     "classification": "Klassifizierung",

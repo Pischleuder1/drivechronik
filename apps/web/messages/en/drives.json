@@ -46,7 +46,8 @@
     "maxPower": "Max. power",
     "maxRegen": "Max. regen",
     "startAddress": "Start address",
-    "endAddress": "Destination address"
+    "endAddress": "Destination address",
+    "avgSpeed": "Avg. speed"
   },
   "annotationForm": {
     "classification": "Classification",

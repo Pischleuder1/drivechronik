@@ -69,6 +69,9 @@
     "avgMaxSpeed": "Avg. speed {avg} · Max {max}",
     "pointIndex": "Point {index}"
   },
+  "map": {
+    "speed": "Speed"
+  },
   "placeCorrection": {
     "start": "Start",
     "destination": "Destination",

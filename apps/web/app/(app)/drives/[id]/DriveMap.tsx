@@ -1,7 +1,10 @@
 "use client";
+
 import { useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+
 import type { RoutePointTuple } from "../../../../lib/driveRoute";
 
 export interface DriveMapProps {
@@ -17,19 +20,42 @@ function markerIcon(color: string): L.DivIcon {
   });
 }
 
-const START_ICON = markerIcon("#16a34a"); // green-600: start
-const END_ICON = markerIcon("#dc2626"); // red-600: end
+const START_ICON = markerIcon("#16a34a");
+const END_ICON = markerIcon("#dc2626");
+
+function speedColor(speedKmh: number | null): string {
+  if (speedKmh == null) return "#94a3b8";
+  if (speedKmh <= 30) return "#2563eb";
+  if (speedKmh <= 60) return "#06b6d4";
+  if (speedKmh <= 100) return "#22c55e";
+  if (speedKmh <= 130) return "#f59e0b";
+  return "#ef4444";
+}
+
+function segmentSpeed(
+  from: RoutePointTuple,
+  to: RoutePointTuple,
+): number | null {
+  const a = from[3];
+  const b = to[3];
+
+  if (a != null && b != null) return (a + b) / 2;
+  if (a != null) return a;
+  if (b != null) return b;
+
+  return null;
+}
 
 /**
- * Hand-rolled Leaflet wrapper mirroring app/(app)/places/PlaceMap.tsx:
- * no react-leaflet (React 19 / Next 15 friction), must be loaded via
- * next/dynamic with ssr: false since Leaflet touches window/document.
+ * Read-only Leaflet view of one recorded drive.
  *
- * Read-only track view: polyline of the drive plus start/end markers.
- * scrollWheelZoom stays off until the user clicks into the map, so the
- * page doesn't get scroll-hijacked while scrolling past the card.
+ * Each route segment is coloured by the recorded speed:
+ * blue -> cyan -> green -> amber -> red.
+ *
+ * The dark underlay keeps the track readable independently of the map tiles.
  */
 export function DriveMap({ points }: DriveMapProps) {
+  const t = useTranslations("drives");
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
 
@@ -49,19 +75,43 @@ export function DriveMap({ points }: DriveMapProps) {
       attribution: "&copy; OpenStreetMap contributors",
     }).addTo(map);
 
-    const polyline = L.polyline(latLngs, {
-      color: "#2563eb", // blue-600
-      weight: 4,
-      opacity: 0.8,
+    // Dunkle Kontur unter der farbigen Route für bessere Lesbarkeit.
+    L.polyline(latLngs, {
+      color: "#0f172a",
+      weight: 8,
+      opacity: 0.38,
+      lineCap: "round",
+      lineJoin: "round",
     }).addTo(map);
 
-    L.marker(latLngs[0], { icon: START_ICON }).addTo(map);
-    L.marker(latLngs[latLngs.length - 1], { icon: END_ICON }).addTo(map);
+    // Einzelne Segmente nach Geschwindigkeit einfärben.
+    for (let i = 1; i < points.length; i++) {
+      const previous = points[i - 1]!;
+      const current = points[i]!;
 
-    map.fitBounds(polyline.getBounds(), { padding: [24, 24] });
+      L.polyline(
+        [
+          [previous[0], previous[1]],
+          [current[0], current[1]],
+        ],
+        {
+          color: speedColor(segmentSpeed(previous, current)),
+          weight: 5,
+          opacity: 0.95,
+          lineCap: "round",
+          lineJoin: "round",
+        },
+      ).addTo(map);
+    }
 
-    // Enable scroll-to-zoom only once the user has clicked into the map,
-    // otherwise a page-scroll gesture over the map hijacks the scroll.
+    L.marker(latLngs[0]!, { icon: START_ICON }).addTo(map);
+    L.marker(latLngs[latLngs.length - 1]!, { icon: END_ICON }).addTo(map);
+
+    map.fitBounds(L.latLngBounds(latLngs), {
+      padding: [28, 28],
+    });
+
+    // Scroll-Zoom erst nach bewusstem Klick in die Karte aktivieren.
     map.on("click", () => map.scrollWheelZoom.enable());
 
     mapRef.current = map;
@@ -70,13 +120,42 @@ export function DriveMap({ points }: DriveMapProps) {
       map.remove();
       mapRef.current = null;
     };
+    // points stammen von der serverseitig geladenen Fahrt und ändern sich
+    // während der Lebensdauer dieser Detailansicht nicht.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
-    <div
-      ref={containerRef}
-      className="h-64 w-full rounded-lg border border-neutral-300 dark:border-neutral-700 sm:h-[360px]"
-    />
+    <div className="relative overflow-hidden rounded-xl border border-neutral-300 shadow-sm dark:border-neutral-700">
+      <div
+        ref={containerRef}
+        className="h-[320px] w-full sm:h-[380px]"
+      />
+
+      <div className="pointer-events-none absolute right-3 top-3 z-[800] min-w-[164px] rounded-xl border border-white/20 bg-slate-950/85 px-3 py-2 text-white shadow-lg backdrop-blur-sm">
+        <div className="mb-1.5 flex items-center justify-between gap-3">
+          <span className="text-[11px] font-medium">
+            {t("map.speed")}
+          </span>
+          <span className="text-[10px] text-slate-300">km/h</span>
+        </div>
+
+        <div
+          className="h-1.5 w-full rounded-full"
+          style={{
+            background:
+              "linear-gradient(90deg, #2563eb 0%, #06b6d4 25%, #22c55e 50%, #f59e0b 75%, #ef4444 100%)",
+          }}
+        />
+
+        <div className="mt-1 flex justify-between text-[9px] tabular-nums text-slate-300">
+          <span>0</span>
+          <span>30</span>
+          <span>60</span>
+          <span>100</span>
+          <span>130+</span>
+        </div>
+      </div>
+    </div>
   );
 }

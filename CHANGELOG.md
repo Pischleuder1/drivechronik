@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-10-02
+
 ### Added
 
 - Added a redesigned mobile drive-detail experience with a map-first layout, compact drive status information and a 3+2 KPI grid for distance, duration, average speed, consumption and energy.

@@ -379,7 +379,7 @@ async function fetchService(
     const response = await fetch(url, {
       headers: {
         Accept: "application/json",
-        "User-Agent": "DriveChronik/0.8.0",
+        "User-Agent": "DriveChronik/0.9.0",
       },
       cache: "no-store",
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),

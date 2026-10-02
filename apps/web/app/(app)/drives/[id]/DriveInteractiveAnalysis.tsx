@@ -140,6 +140,7 @@ export function DriveInteractiveAnalysis({
       <DriveMapLoader
         points={points}
         activePointIndex={activePointIndex}
+        trafficEvents={traffic.events}
       />
 
       <div className="p-4">

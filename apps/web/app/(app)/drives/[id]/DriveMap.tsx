@@ -6,10 +6,12 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 import type { RoutePointTuple } from "../../../../lib/driveRoute";
+import type { TrafficEvent } from "../../../../lib/traffic/types";
 
 export interface DriveMapProps {
   points: RoutePointTuple[];
   activePointIndex?: number | null;
+  trafficEvents?: TrafficEvent[];
 }
 
 function markerIcon(color: string): L.DivIcon {
@@ -47,19 +49,67 @@ function segmentSpeed(
   return null;
 }
 
-/**
- * Read-only Leaflet view of one recorded drive.
- *
- * Each route segment is coloured by the recorded speed:
- * blue -> cyan -> green -> amber -> red.
- *
- * The dark underlay keeps the track readable independently of the map tiles.
- */
+function trafficColor(type: TrafficEvent["type"]): string {
+  switch (type) {
+    case "closure":
+      return "#dc2626";
+    case "warning":
+      return "#f59e0b";
+    case "roadwork":
+    default:
+      return "#f97316";
+  }
+}
+
+function trafficSymbol(type: TrafficEvent["type"]): string {
+  switch (type) {
+    case "closure":
+      return "×";
+    case "warning":
+      return "!";
+    case "roadwork":
+    default:
+      return "◆";
+  }
+}
+
+function trafficIcon(type: TrafficEvent["type"]): L.DivIcon {
+  const color = trafficColor(type);
+  const symbol = trafficSymbol(type);
+
+  return L.divIcon({
+    className: "",
+    html: `
+      <span
+        style="
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          width:24px;
+          height:24px;
+          border-radius:9999px;
+          background:${color};
+          color:white;
+          border:2px solid white;
+          box-shadow:0 2px 6px rgba(0,0,0,0.35);
+          font-size:13px;
+          font-weight:800;
+          line-height:1;
+        "
+      >${symbol}</span>
+    `,
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+  });
+}
+
 export function DriveMap({
   points,
   activePointIndex = null,
+  trafficEvents = [],
 }: DriveMapProps) {
   const t = useTranslations("drives");
+
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const activeMarkerRef = useRef<L.CircleMarker | null>(null);
@@ -80,7 +130,7 @@ export function DriveMap({
       attribution: "&copy; OpenStreetMap contributors",
     }).addTo(map);
 
-    // Dunkle Kontur unter der farbigen Route für bessere Lesbarkeit.
+    // Dunkle Kontur unter der Route.
     L.polyline(latLngs, {
       color: "#0f172a",
       weight: 8,
@@ -89,7 +139,7 @@ export function DriveMap({
       lineJoin: "round",
     }).addTo(map);
 
-    // Einzelne Segmente nach Geschwindigkeit einfärben.
+    // Route segmentweise nach Geschwindigkeit einfärben.
     for (let i = 1; i < points.length; i++) {
       const previous = points[i - 1]!;
       const current = points[i]!;
@@ -109,14 +159,63 @@ export function DriveMap({
       ).addTo(map);
     }
 
-    L.marker(latLngs[0]!, { icon: START_ICON }).addTo(map);
-    L.marker(latLngs[latLngs.length - 1]!, { icon: END_ICON }).addTo(map);
+    L.marker(latLngs[0]!, {
+      icon: START_ICON,
+      zIndexOffset: 900,
+    }).addTo(map);
+
+    L.marker(latLngs[latLngs.length - 1]!, {
+      icon: END_ICON,
+      zIndexOffset: 900,
+    }).addTo(map);
+
+    // Aktuelle Verkehrsmeldungen entlang der Strecke.
+    for (const event of trafficEvents) {
+      const marker = L.marker(
+        [event.lat, event.lon],
+        {
+          icon: trafficIcon(event.type),
+          zIndexOffset:
+            event.type === "closure"
+              ? 850
+              : event.type === "warning"
+                ? 800
+                : 750,
+        },
+      ).addTo(map);
+
+      // DOM-basiertes Tooltip statt ungeprüftes HTML aus der API.
+      const tooltip = document.createElement("div");
+
+      const heading = document.createElement("div");
+      heading.style.fontWeight = "600";
+      heading.textContent =
+        `${event.motorway} · ${t(`traffic.type.${event.type}`)}`;
+
+      const title = document.createElement("div");
+      title.style.marginTop = "2px";
+      title.textContent = event.title;
+
+      const distance = document.createElement("div");
+      distance.style.marginTop = "3px";
+      distance.style.fontSize = "11px";
+      distance.style.opacity = "0.75";
+      distance.textContent =
+        `${event.routeDistanceKm.toFixed(1)} km`;
+
+      tooltip.append(heading, title, distance);
+
+      marker.bindTooltip(tooltip, {
+        direction: "top",
+        offset: [0, -10],
+        opacity: 0.96,
+      });
+    }
 
     map.fitBounds(L.latLngBounds(latLngs), {
       padding: [28, 28],
     });
 
-    // Scroll-Zoom erst nach bewusstem Klick in die Karte aktivieren.
     map.on("click", () => map.scrollWheelZoom.enable());
 
     mapRef.current = map;
@@ -124,12 +223,15 @@ export function DriveMap({
     return () => {
       map.remove();
       mapRef.current = null;
+      activeMarkerRef.current = null;
     };
-    // points stammen von der serverseitig geladenen Fahrt und ändern sich
-    // während der Lebensdauer dieser Detailansicht nicht.
+
+    // Die Props stammen aus der serverseitig geladenen Detailseite und ändern
+    // sich während dieser Ansicht nicht.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Synchronisierter Chart-Cursor.
   useEffect(() => {
     const map = mapRef.current;
 
@@ -144,6 +246,7 @@ export function DriveMap({
         activeMarkerRef.current.remove();
         activeMarkerRef.current = null;
       }
+
       return;
     }
 
@@ -181,7 +284,10 @@ export function DriveMap({
           <span className="text-[11px] font-medium">
             {t("map.speed")}
           </span>
-          <span className="text-[10px] text-slate-300">km/h</span>
+
+          <span className="text-[10px] text-slate-300">
+            km/h
+          </span>
         </div>
 
         <div

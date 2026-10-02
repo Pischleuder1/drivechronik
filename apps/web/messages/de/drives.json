@@ -27,7 +27,8 @@
     "elevationBackgroundNote": "Höhendaten werden im Hintergrund ergänzt…",
     "auditHistory": "Verlauf",
     "cardLogbookStatus": "Fahrtenbuchstatus",
-    "cardInteractiveCourse": "Fahrtdaten im Verlauf"
+    "cardInteractiveCourse": "Fahrtdaten im Verlauf",
+    "mobileGpsPoints": "{count} GPS-Punkte"
   },
   "metrics": {
     "distance": "Distanz",

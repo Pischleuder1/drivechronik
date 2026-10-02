@@ -350,8 +350,9 @@ export default async function DriveDetailPage({
           );
         })()}
 
-      <Panel className="mt-6" title={t("page.cardMetrics")}>
-        <MetricGrid columns={2}>
+      <div className="hidden md:block">
+        <Panel className="mt-6" title={t("page.cardMetrics")}>
+          <MetricGrid columns={2}>
           {kennzahlen.map(([label, value]) => (
             <MetricItem
               key={label}
@@ -365,7 +366,8 @@ export default async function DriveDetailPage({
             {t("page.estimatedNote")}
           </p>
         )}
-      </Panel>
+        </Panel>
+      </div>
 
       {route.points.length >= 2 && (
         <DriveInteractiveAnalysis
@@ -401,6 +403,26 @@ export default async function DriveDetailPage({
                 ? formatSpeed(avgDriveSpeedKmh)
                 : "—",
           }}
+          status={{
+            classification:
+              tCommon(`classification.${classification}`),
+            gpsPoints:
+              t("page.mobileGpsPoints", {
+                count: route.totalCount,
+              }),
+            soc:
+              route.stats.startSoc != null ||
+              route.stats.endSoc != null
+                ? `${route.stats.startSoc ?? "—"} → ${
+                    route.stats.endSoc ?? "—"
+                  } %`
+                : "SoC —",
+            gpsCoverage:
+              gpsCoveragePercent != null
+                ? `${gpsCoveragePercent} % GPS`
+                : "GPS —",
+          }}
+          classificationTone={classificationTone(classification)}
         />
       )}
 

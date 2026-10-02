@@ -4,8 +4,12 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import {
   Activity,
+  BatteryMedium,
+  BriefcaseBusiness,
   Clock3,
   Gauge,
+  MapPinned,
+  Radio,
   Route,
   Zap,
 } from "lucide-react";
@@ -24,6 +28,43 @@ interface DriveOverviewMetrics {
   avgConsumption: string;
   energy: string;
   avgSpeed: string;
+}
+
+interface DriveOverviewStatus {
+  classification: string;
+  gpsPoints: string;
+  soc: string;
+  gpsCoverage: string;
+}
+
+function StatusChip({
+  icon: Icon,
+  children,
+  tone = "neutral",
+}: {
+  icon: typeof Route;
+  children: React.ReactNode;
+  tone?: "blue" | "emerald" | "amber" | "neutral";
+}) {
+  const tones = {
+    blue:
+      "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900 dark:bg-blue-950/60 dark:text-blue-300",
+    emerald:
+      "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-300",
+    amber:
+      "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/60 dark:text-amber-300",
+    neutral:
+      "border-neutral-200 bg-neutral-50 text-neutral-600 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300",
+  };
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${tones[tone]}`}
+    >
+      <Icon aria-hidden size={13} strokeWidth={1.8} />
+      {children}
+    </span>
+  );
 }
 
 function MetricCard({
@@ -67,6 +108,8 @@ export function DriveInteractiveAnalysis({
   teslamateAscentM,
   teslamateDescentM,
   metrics,
+  status,
+  classificationTone,
 }: {
   points: RoutePointTuple[];
   chartPoints: ChartRoutePoint[];
@@ -74,6 +117,8 @@ export function DriveInteractiveAnalysis({
   teslamateAscentM: number | null;
   teslamateDescentM: number | null;
   metrics: DriveOverviewMetrics;
+  status: DriveOverviewStatus;
+  classificationTone: "blue" | "emerald" | "amber" | "neutral";
 }) {
   const t = useTranslations("drives");
   const [activePointIndex, setActivePointIndex] = useState<number | null>(null);
@@ -117,6 +162,27 @@ export function DriveInteractiveAnalysis({
             value={metrics.avgSpeed}
             wide
           />
+        </div>
+
+        <div className="mt-3 flex flex-wrap gap-2">
+          <StatusChip
+            icon={BriefcaseBusiness}
+            tone={classificationTone}
+          >
+            {status.classification}
+          </StatusChip>
+
+          <StatusChip icon={MapPinned}>
+            {status.gpsPoints}
+          </StatusChip>
+
+          <StatusChip icon={BatteryMedium}>
+            {status.soc}
+          </StatusChip>
+
+          <StatusChip icon={Radio}>
+            {status.gpsCoverage}
+          </StatusChip>
         </div>
 
         <div className="mb-3 mt-5 flex items-start justify-between gap-3">

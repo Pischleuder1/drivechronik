@@ -27,7 +27,8 @@
     "elevationBackgroundNote": "Elevation data is being filled in in the background…",
     "auditHistory": "History",
     "cardLogbookStatus": "Logbook status",
-    "cardInteractiveCourse": "Drive data over time"
+    "cardInteractiveCourse": "Drive data over time",
+    "mobileGpsPoints": "{count} GPS points"
   },
   "metrics": {
     "distance": "Distance",

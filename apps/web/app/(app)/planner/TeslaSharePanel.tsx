@@ -23,12 +23,14 @@ interface Coords {
 
 interface ChargingStop extends Coords {
   name: string;
+  departureSoc: number;
 }
 
 interface ShareStop extends Coords {
   label: string;
   kind: "waypoint" | "charging";
   routeIndex: number;
+  targetSoc?: number;
 }
 
 const MAX_ROUTE_WAYPOINTS = 9;
@@ -132,6 +134,23 @@ function mapsRouteUrl(
   return url.toString();
 }
 
+function encodeDashPayload(value: unknown): string {
+  const json = JSON.stringify(value);
+  const bytes = new TextEncoder().encode(json);
+
+  let binary = "";
+
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte);
+  }
+
+  return window
+    .btoa(binary)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
+}
+
 async function copyText(text: string): Promise<boolean> {
   try {
     if (navigator.clipboard?.writeText) {
@@ -178,6 +197,8 @@ export function TeslaSharePanel({
   const t = useTranslations("planner.teslaShare");
   const [status, setStatus] = useState<string | null>(null);
   const [showQr, setShowQr] = useState(false);
+  const [qrMode, setQrMode] =
+    useState<"dash" | "maps">("dash");
   const [showHandoff, setShowHandoff] = useState(false);
   const [handoffIndex, setHandoffIndex] = useState(0);
   const [routePartIndex, setRoutePartIndex] = useState(0);
@@ -220,6 +241,7 @@ export function TeslaSharePanel({
       label: stop.name,
       kind: "charging",
       routeIndex: nearestRouteIndex(stop, geometry),
+      targetSoc: Math.round(stop.departureSoc),
     }));
 
     return [...manualStops, ...chargeStops].sort(
@@ -228,6 +250,42 @@ export function TeslaSharePanel({
   }, [chargingStops, geometry, t, waypointLabels, waypoints]);
 
   if (!start || !destination) return null;
+
+  const dashPlan = {
+    version: 1,
+    name:
+      destinationLabel
+        ? `DriveChronik · ${destinationLabel}`
+        : "DriveChronik Route",
+    destination: {
+      type: "destination",
+      name: destinationLabel || t("destination"),
+      lat: destination.lat,
+      lon: destination.lon,
+    },
+    stops: orderedStops.map((stop) => ({
+      type:
+        stop.kind === "charging"
+          ? "charging"
+          : "waypoint",
+      name: stop.label,
+      lat: stop.lat,
+      lon: stop.lon,
+      ...(stop.kind === "charging" &&
+      stop.targetSoc != null
+        ? {
+            targetSoc: stop.targetSoc,
+          }
+        : {}),
+    })),
+  };
+
+  const dashPayload =
+    encodeDashPayload(dashPlan);
+
+  const dashUrl =
+    "drivechronikdash://navigation/import" +
+    `?payload=${encodeURIComponent(dashPayload)}`;
 
   const handoffTargets: NamedRoutePoint[] = [
     ...orderedStops.map((stop) => ({
@@ -308,6 +366,10 @@ export function TeslaSharePanel({
     ),
     `${t("destination")}: ${destinationLabel || t("destination")} — ${destination.lat.toFixed(6)}, ${destination.lon.toFixed(6)}`,
   ].join("\n");
+
+  function openInDash() {
+    window.location.href = dashUrl;
+  }
 
   async function shareTarget(stop: Coords & { label: string }) {
     setStatus(null);
@@ -403,73 +465,115 @@ export function TeslaSharePanel({
         {t("description")}
       </p>
 
-      <div className="grid grid-cols-2 gap-2 md:flex md:flex-wrap">
-        <button
-          type="button"
-          onClick={() => void shareTarget(nextTarget)}
-          className={buttonClasses(
-            "primary",
-            "md",
-            "col-span-2 w-full justify-center md:w-auto",
-          )}
-        >
-          <Navigation aria-hidden size={16} />
-          {t("sendTesla")}
-        </button>
+      <div className="space-y-5">
 
-        <button
-          type="button"
-          onClick={() => setShowHandoff((current) => !current)}
-          className={buttonClasses(
-            "secondary",
-            "md",
-            "w-full justify-center md:w-auto",
-          )}
-          aria-expanded={showHandoff}
-        >
-          <ListOrdered aria-hidden size={16} />
-          {showHandoff ? t("hideHandoff") : t("handoffMode")}
-        </button>
+        {/* Navigation */}
+        <section>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
+            {t("navigationGroup")}
+          </p>
 
-        <button
-          type="button"
-          onClick={() => void shareRoute()}
-          className={buttonClasses(
-            "secondary",
-            "md",
-            "w-full justify-center md:w-auto",
-          )}
-        >
-          <Share2 aria-hidden size={16} />
-          {t("shareRoute")}
-        </button>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={openInDash}
+              className={buttonClasses(
+                "primary",
+                "md",
+                "w-full justify-center sm:w-auto",
+              )}
+            >
+              <Navigation aria-hidden size={16} />
+              Im Dash öffnen
+            </button>
 
-        <button
-          type="button"
-          onClick={() => setShowQr((current) => !current)}
-          className={buttonClasses(
-            "secondary",
-            "md",
-            "w-full justify-center md:w-auto",
-          )}
-          aria-expanded={showQr}
-        >
-          <QrCode aria-hidden size={16} />
-          {showQr ? t("hideQr") : t("openOnPhone")}
-        </button>
+            <button
+              type="button"
+              onClick={() => void shareTarget(nextTarget)}
+              className={buttonClasses(
+                "secondary",
+                "md",
+                "w-full justify-center sm:w-auto",
+              )}
+            >
+              <Navigation aria-hidden size={16} />
+              {t("sendTesla")}
+            </button>
+          </div>
+        </section>
 
-        <button
-          type="button"
-          onClick={() => void copyStops()}
-          className={buttonClasses(
-            "secondary",
-            "md",
-            "w-full justify-center md:w-auto",
-          )}
-        >
-          <Copy aria-hidden size={16} />
-          {t("copyStops")}
-        </button>
+        {/* Geräteübergabe */}
+        <section>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
+            {t("deviceGroup")}
+          </p>
+
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setShowQr((current) => !current)}
+              className={buttonClasses(
+                "secondary",
+                "md",
+                "w-full justify-center sm:w-auto",
+              )}
+              aria-expanded={showQr}
+            >
+              <QrCode aria-hidden size={16} />
+              {showQr ? t("hideQr") : t("openOnPhone")}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowHandoff((current) => !current)}
+              className={buttonClasses(
+                "secondary",
+                "md",
+                "w-full justify-center sm:w-auto",
+              )}
+              aria-expanded={showHandoff}
+            >
+              <ListOrdered aria-hidden size={16} />
+              {showHandoff ? t("hideHandoff") : t("handoffMode")}
+            </button>
+          </div>
+        </section>
+
+        {/* Teilen */}
+        <section>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
+            {t("shareGroup")}
+          </p>
+
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => void shareRoute()}
+              className={buttonClasses(
+                "secondary",
+                "md",
+                "w-full justify-center sm:w-auto",
+              )}
+            >
+              <Share2 aria-hidden size={16} />
+              {t("shareRoute")}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => void copyStops()}
+              className={buttonClasses(
+                "secondary",
+                "md",
+                "w-full justify-center sm:w-auto",
+              )}
+            >
+              <Copy aria-hidden size={16} />
+              {t("copyStops")}
+            </button>
+          </div>
+        </section>
+
       </div>
 
       {status && (
@@ -540,10 +644,43 @@ export function TeslaSharePanel({
 
       {showQr && (
         <div className="mt-4 rounded-2xl border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-800 dark:bg-neutral-800/40">
+
+          <div className="mb-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setQrMode("dash")}
+              className={buttonClasses(
+                qrMode === "dash"
+                  ? "primary"
+                  : "secondary",
+                "sm",
+              )}
+            >
+              DriveChronik → Dash
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setQrMode("maps")}
+              className={buttonClasses(
+                qrMode === "maps"
+                  ? "primary"
+                  : "secondary",
+                "sm",
+              )}
+            >
+              Google Maps
+            </button>
+          </div>
+
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
             <div className="shrink-0 rounded-2xl bg-white p-3 shadow-sm">
               <QRCodeSVG
-                value={routeUrl}
+                value={
+                  qrMode === "dash"
+                    ? dashUrl
+                    : routeUrl
+                }
                 size={196}
                 level="M"
               />
@@ -551,17 +688,29 @@ export function TeslaSharePanel({
 
             <div className="text-center sm:text-left">
               <p className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
-                {t("qrTitle")}
+                {qrMode === "dash"
+                  ? t("dashQrTitle")
+                  : t("qrTitle")}
               </p>
 
               <p className="mt-1 max-w-md text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
-                {t("qrDescription")}
+                {qrMode === "dash"
+                  ? t("dashQrDescription")
+                  : t("qrDescription")}
               </p>
 
               <p className="mt-3 text-xs text-neutral-500 dark:text-neutral-400">
-                {selectedRouteSequence
-                  .map((point) => point.label)
-                  .join(" → ")}
+                {qrMode === "dash"
+                  ? orderedStops
+                      .map((stop) => stop.label)
+                      .concat(
+                        destinationLabel ||
+                          t("destination"),
+                      )
+                      .join(" → ")
+                  : selectedRouteSequence
+                      .map((point) => point.label)
+                      .join(" → ")}
               </p>
             </div>
           </div>

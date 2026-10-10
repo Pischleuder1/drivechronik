@@ -93,8 +93,8 @@
     "chargingPlanIncompleteText": "No continuous sequence of suitable fast chargers was found along the selected route."
   },
   "teslaShare": {
-    "title": "Send route to Tesla",
-    "description": "Without the Tesla Fleet API: DriveChronik sends individual destinations to the Tesla app and also provides the complete multi-stop route through Google Maps, QR code and Tesla handoff mode.",
+    "title": "Continue with route",
+    "description": "Open the planned route directly in Dash, send the next destination to Tesla or transfer the route to another device.",
     "sendTesla": "Send next destination to Tesla",
     "shareRoute": "Share route",
     "copyStops": "Copy route",
@@ -132,7 +132,12 @@
     "linkCopied": "Sharing is not supported on this device – the link was copied instead.",
     "stopsCopied": "Route was copied to the clipboard.",
     "shareFailed": "Sharing or copying was not available on this device.",
-    "hint": "On iPhone or Android, select the Tesla app from the system share menu. When DriveChronik is opened over plain HTTP, the system share dialog may be unavailable depending on the browser; the link is then copied as a fallback."
+    "hint": "On iPhone or Android, select the Tesla app from the system share menu. When DriveChronik is opened over plain HTTP, the system share dialog may be unavailable depending on the browser; the link is then copied as a fallback.",
+    "dashQrTitle": "DriveChronik → Dash",
+    "dashQrDescription": "Scan the QR code with your phone. The complete trip plan including waypoints, charging stops and destination will open directly in drivechronik-dash.",
+    "navigationGroup": "Start navigation",
+    "deviceGroup": "Open on another device",
+    "shareGroup": "Share and export"
   },
   "assumptions": {
     "summary": "Assumptions & breakdown",

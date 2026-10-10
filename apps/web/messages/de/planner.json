@@ -93,8 +93,8 @@
     "chargingPlanIncompleteText": "Entlang der gewählten Route wurde keine durchgängige Folge geeigneter Schnelllader gefunden."
   },
   "teslaShare": {
-    "title": "Route an Tesla übergeben",
-    "description": "Ohne Tesla Fleet API: DriveChronik übergibt einzelne Ziele an die Tesla-App und stellt die vollständige Mehrstopp-Route zusätzlich per Google Maps, QR-Code und Tesla-Übergabemodus bereit.",
+    "title": "Route weitergeben",
+    "description": "Öffne die geplante Route direkt im Dash, sende das nächste Ziel an Tesla oder übertrage die Route auf ein anderes Gerät.",
     "sendTesla": "Nächstes Ziel an Tesla",
     "shareRoute": "Route teilen",
     "copyStops": "Route kopieren",
@@ -132,7 +132,12 @@
     "linkCopied": "Teilen wird auf diesem Gerät nicht unterstützt – der Link wurde kopiert.",
     "stopsCopied": "Route wurde in die Zwischenablage kopiert.",
     "shareFailed": "Teilen oder Kopieren war auf diesem Gerät nicht möglich.",
-    "hint": "Auf iPhone oder Android im Teilen-Menü die Tesla-App auswählen. Bei Zugriff über normales HTTP steht der System-Teilen-Dialog je nach Browser nicht zur Verfügung; DriveChronik kopiert dann den Link als Fallback."
+    "hint": "Auf iPhone oder Android im Teilen-Menü die Tesla-App auswählen. Bei Zugriff über normales HTTP steht der System-Teilen-Dialog je nach Browser nicht zur Verfügung; DriveChronik kopiert dann den Link als Fallback.",
+    "dashQrTitle": "DriveChronik → Dash",
+    "dashQrDescription": "QR-Code mit dem Smartphone scannen. Der komplette Reiseplan mit Zwischenzielen, Ladestopps und Ziel wird direkt in drivechronik-dash geöffnet.",
+    "navigationGroup": "Navigation starten",
+    "deviceGroup": "Auf anderem Gerät öffnen",
+    "shareGroup": "Teilen und exportieren"
   },
   "assumptions": {
     "summary": "Annahmen & Aufschlüsselung",

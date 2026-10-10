@@ -49,7 +49,7 @@ SD-Karte geschrieben werden. Neuere Appliance-Versionen enthalten dafür den
 Befehl:
 
 ```bash
-sudo drivechronik-update v0.9.0
+sudo drivechronik-update v0.9.1
 ```
 
 Der Updater:
@@ -75,7 +75,7 @@ sudo install -m 0755 \
   /tmp/drivechronik-update \
   /usr/local/sbin/drivechronik-update
 
-sudo drivechronik-update v0.9.0
+sudo drivechronik-update v0.9.1
 ```
 
 Danach steht `drivechronik-update` auch für spätere DriveChronik-Updates
@@ -125,7 +125,7 @@ Tessie & Co. sind gut, aber: Abo-Kosten, Feature-Überschneidung mit der Tesla-A
 - **Jahresanalyse & Abrechnung** — Monatsverlauf nach geschäftlich / privat / Arbeitsweg / unklassifiziert, geschäftliche Jahreskilometer, konfigurierbare Kilometererstattung sowie direkter Jahresbericht mit CSV-/PDF-Export. Der Jahresbericht kann zwischen „Dienstfahrten“ und „Alle Fahrten“ umgeschaltet werden; die Kilometererstattung wird auch in der Gesamtansicht ausschließlich aus geschäftlichen Kilometern berechnet. PDF-Berichte enthalten Fahrername, Fahrzeugname, normalisierte Modellbezeichnung (`Tesla 3` / `Tesla Y`) und Kennzeichen.
 - **Standzeit-Analytics** — Vampir-Verlust pro Parkvorgang, Standzeiten pro Ort
 - **Routenplaner (experimentell)** — Reichweiten-Check mit echter Route (OSRM), Höhenprofil und deinem persönlichen Verbrauchsprofil aus der eigenen Historie; automatische Ladeplanung mit Tesla-Superchargern und öffentlichen HPC-Ladern entlang der Route, mehreren Ladestopps, Ankunfts-SoC, Ladeziel und geschätzter Ladezeit; alternative Routen und fährenbewusste Streckenführung einschließlich Sassnitz–Rønne; aktuelle Autobahn-Verkehrsmeldungen mit Baustellen, Warnungen und Sperrungen entlang der gewählten Route; alle Annahmen offengelegt
-- **Routenübergabe ohne Tesla Fleet API** — geplante Zwischen- und Ladestopps können als Google-Maps-Mehrzielroute geteilt oder per QR-Code auf ein Smartphone übertragen werden; zusätzlich steht eine Tesla-Übergabe der Ziele zur Verfügung. Längere Google-Maps-Routen werden automatisch in Teilrouten aufgeteilt.
+- **Routenübergabe & Dash-Integration** — komplette geplante Routen können direkt an `drivechronik-dash` übergeben werden, einschließlich manueller Zwischenziele, empfohlener Ladestopps, Ladeziel-SoC und Endziel. Auf Android öffnet „Im Dash öffnen“ die Route direkt im Dash; auf Desktop oder Laptop kann derselbe Reiseplan per DriveChronik→Dash-QR-Code auf das Smartphone übertragen werden. Die bestehende Google-Maps-Mehrzielroute, QR-Übergabe und Tesla-Zielübergabe bleiben erhalten. Längere Google-Maps-Routen werden automatisch in Teilrouten aufgeteilt.
 
 **Cockpit & Fahrzeug**
 

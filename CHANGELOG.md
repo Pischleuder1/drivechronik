@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.1] - 2026-10-10
+
+### Added
+
+- Added direct handoff of complete planned routes from DriveChronik to drivechronik-dash via Android deep links.
+- Added support for transferring manual waypoints, recommended charging stops, charging target SoC and the final destination to Dash.
+- Added a Dash-focused QR-code handoff for routes planned on desktop or laptop while keeping the existing Google Maps QR option.
+- Added a dedicated "Im Dash öffnen" action for direct route transfer on Android devices.
+
+### Changed
+
+- Reorganized the route handoff panel into clear sections for navigation, device handoff and sharing/export.
+- Made Dash the primary navigation handoff while retaining Tesla destination sharing, Tesla handoff mode, Google Maps sharing and route copying.
+- Updated the mobile/desktop QR handoff UI so users can explicitly choose between DriveChronik → Dash and Google Maps.
+
 ## [0.9.0] - 2026-10-02
 
 ### Added

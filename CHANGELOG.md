@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.2] - 2026-10-11
+
+### Added
+- Added multi-stop charging plans with route-aware SoC calculations.
+- Added road-based reachability checks for the first charger at low battery levels.
+- Added charging-leg validation using actual OSRM distances.
+- Added driving-distance validation for routes with ferry crossings.
+- Added persistent caching for German public charging station data.
+
+### Fixed
+- Fixed charging plans with very low starting SoC.
+- Fixed charging continuation through manual waypoints.
+- Fixed unstable charger selection after route recalculation.
+- Fixed charging waypoint ordering around virtual ferry ports.
+- Fixed ferry distances incorrectly affecting charging-leg validation.
+
+### Changed
+- Recalculate charging SoC, energy and charging duration using the final routed stops.
+- Reject incomplete or inconsistent charging routes instead of reporting them as complete.
+
+
 ## [0.9.1] - 2026-10-10
 
 ### Added

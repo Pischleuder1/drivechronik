@@ -74,3 +74,49 @@ describe("mergeRouteWaypoints", () => {
     ]);
   });
 });
+
+describe("Reihenfolge der Schnelllader", () => {
+  it("setzt den ersten Schnelllader vor weitere Ladestopps", () => {
+    const geometry: [number, number][] = [
+      [52.27, 8.66],
+      [52.5, 8.7],
+      [53.0, 9.0],
+    ];
+
+    const stops = [
+      { lat: 53.0, lon: 9.0, routeDistanceKm: 100 },
+      { lat: 52.28, lon: 8.67, routeDistanceKm: 0.85 },
+    ];
+
+    const result = mergeRouteWaypoints([], stops, geometry);
+
+    expect(result).toHaveLength(2);
+    expect(result[0]).toEqual({ lat: 52.28, lon: 8.67 });
+    expect(result[1]).toEqual({ lat: 53.0, lon: 9.0 });
+  });
+});
+
+describe("Virtuelle Fähre Sassnitz–Rønne", () => {
+  it("ordnet den Schnelllader vor dem Fährhafen ein", () => {
+    const sassnitz = { lat: 54.486071, lon: 13.587807 };
+    const mukran = { lat: 54.511852, lon: 13.628776 };
+    const ronne = { lat: 55.099583, lon: 14.692352 };
+
+    const geometry: [number, number][] = [
+      [54.1, 13.2],
+      [mukran.lat, mukran.lon],
+      [sassnitz.lat, sassnitz.lon],
+      [ronne.lat, ronne.lon],
+      [55.15, 14.8],
+    ];
+
+    const result = mergeRouteWaypoints(
+      [sassnitz, ronne],
+      [{ ...mukran, routeDistanceKm: 999 }],
+      geometry,
+      true,
+    );
+
+    expect(result).toEqual([mukran, sassnitz, ronne]);
+  });
+});

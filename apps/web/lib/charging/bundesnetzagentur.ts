@@ -2,6 +2,7 @@ import "server-only";
 
 import { Readable } from "node:stream";
 import { parse } from "csv-parse";
+import { readChargingCache, writeChargingCache } from "./diskCache";
 
 import type {
   ChargingNetwork,
@@ -14,7 +15,7 @@ const DOWNLOAD_PAGE =
   "https://www.bundesnetzagentur.de/DE/Fachthemen/ElektrizitaetundGas/E-Mobilitaet/Ladesaeulenkarte/start.html";
 
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
-const DEFAULT_TIMEOUT_MS = 30_000;
+const DEFAULT_TIMEOUT_MS = 120_000;
 
 interface CacheEntry {
   loadedAt: number;
@@ -23,6 +24,27 @@ interface CacheEntry {
 
 let cache: CacheEntry | null = null;
 let loadingPromise: Promise<ChargingSite[]> | null = null;
+
+let diskCacheInitPromise: Promise<void> | null = null;
+
+function initializeChargingCache(): Promise<void> {
+  if (!diskCacheInitPromise) {
+    diskCacheInitPromise = readChargingCache()
+      .then((stored) => {
+        if (!stored) return;
+        cache = stored;
+        console.info(
+          "[charging] restored Bundesnetzagentur cache:",
+          stored.sites.length,
+          "stations",
+        );
+      })
+      .catch((error) => {
+        console.warn("[charging] cache restore failed:", error);
+      });
+  }
+  return diskCacheInitPromise;
+}
 
 function haversineKm(
   aLat: number,
@@ -305,6 +327,7 @@ async function loadSites(): Promise<ChargingSite[]> {
 }
 
 async function cachedSites(): Promise<ChargingSite[]> {
+  await initializeChargingCache();
   if (
     cache &&
     Date.now() - cache.loadedAt < CACHE_TTL_MS
@@ -326,6 +349,9 @@ async function cachedSites(): Promise<ChargingSite[]> {
         loadedAt: Date.now(),
         sites,
       };
+      void writeChargingCache(cache).catch((error) => {
+        console.warn("[charging] cache write failed:", error);
+      });
       return sites;
     })
     .catch((error) => {

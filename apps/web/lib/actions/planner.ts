@@ -13,7 +13,13 @@ import {
 import { validateSession } from "../auth/session";
 import { getOsrmUrl } from "../config";
 import { findChargingSitesAlongRoute } from "../charging/providers";
-import { selectChargingStop } from "../charging/planner";
+import { buildChargingStop, selectChargingStop } from "../charging/planner";
+import { calculateFirstStopEnergy } from "../charging/firstStopEnergy";
+import { combineChargingStops } from "../charging/combineStops";
+import { validateChargingLegs } from "../charging/validateLegs";
+import { getDrivingChargingLegs } from "../charging/drivingLegs";
+import { recalculateStops } from "../charging/recalculateStops";
+import { normalizeFerryWaypoints } from "../charging/ferryWaypoints";
 import { mergeRouteWaypoints } from "../charging/routeWaypoints";
 import {
   resolveBaseConsumption,
@@ -30,6 +36,11 @@ import {
 
 // Basis-URL des OSRM-Routing-Servers. Default ist der öffentliche Demo-Server;
 // eine eigene Instanz wird über OSRM_URL gesetzt (in der UI klein ausgewiesen).
+import {
+  calculateChargingArrivalSoc,
+  isChargingSiteReachable,
+} from "../charging/reachability";
+
 const OSRM_DEFAULT_URL = "https://router.project-osrm.org";
 
 const OPEN_METEO_ELEVATION_URL = "https://api.open-meteo.com/v1/elevation";
@@ -178,6 +189,8 @@ export type PlanRouteResponse =
   | { ok: false; error: string };
 
 interface OsrmRoute {
+  /** Entfernungen zwischen den einzelnen OSRM-Wegpunkten. */
+  legDistancesM?: number[];
   /** Gesamtdistanz der Route inklusive möglicher Fährpassagen. */
   distanceM: number;
   /** Gesamtreisezeit inklusive möglicher Fährpassagen. */
@@ -491,6 +504,167 @@ export async function planRoute(
     },
   );
 
+  // Bei sehr niedrigem Start-SoC die ersten Ladeorte
+  // anhand der tatsaechlichen Strassenroute pruefen.
+  let allowedFirstStopIds: string[] | undefined;
+  let firstReachableChargingSite:
+    (typeof chargingSites)[number] | null = null;
+
+  if (startSoc < 10) {
+    const consumptionWhPerKm = Math.max(
+      finalPrediction.whPerKm,
+      base.baseWhPerKm,
+    );
+
+    const availableRangeKm =
+      (startSoc * capacityKwh * 10) / consumptionWhPerKm;
+
+    const startPoint = { lat: startLat, lon: startLon };
+
+    const candidates = chargingSites
+      .map((site) => ({
+        site,
+        straightDistanceKm: routePointDistanceKm(
+          startPoint,
+          { lat: site.lat, lon: site.lon },
+        ),
+      }))
+      .filter(
+        ({ straightDistanceKm }) =>
+          straightDistanceKm <= availableRangeKm,
+      )
+      .sort(
+        (a, b) =>
+          a.straightDistanceKm - b.straightDistanceKm,
+      )
+      .slice(0, 5);
+
+    allowedFirstStopIds = [];
+    let nearestReachableDistanceKm = Infinity;
+
+
+    for (const { site } of candidates) {
+      const result = await checkChargingSiteReachability(
+        startPoint,
+        { lat: site.lat, lon: site.lon },
+        startSoc,
+        capacityKwh,
+        consumptionWhPerKm,
+        osrmBaseUrl,
+        t,
+      );
+
+
+      if (
+        result?.reachable &&
+        result.distanceKm < nearestReachableDistanceKm
+      ) {
+        nearestReachableDistanceKm = result.distanceKm;
+        allowedFirstStopIds = [`${site.network}:${site.id}`];
+        firstReachableChargingSite = site;
+      }
+    }
+  }
+
+  // Vorab-Routing für den ersten erreichbaren Schnelllader.
+  // Die endgültige Route wird erst nach erfolgreichem OSRM-Routing
+  // und erneuter Verbrauchsberechnung übernommen.
+  const initialChargingWaypoints =
+    firstReachableChargingSite
+      ? mergeRouteWaypoints(
+          selectedSpecialFerry
+            ? selectedSpecialFerry.viaPoints
+            : waypoints,
+          [{
+            lat: firstReachableChargingSite.lat,
+            lon: firstReachableChargingSite.lon,
+            routeDistanceKm: 0,
+          }],
+          routedGeometry,
+        )
+      : null;
+
+  const firstChargingWaypointIndex =
+    firstReachableChargingSite && initialChargingWaypoints
+      ? initialChargingWaypoints.findIndex(
+          (point) =>
+            point.lat === firstReachableChargingSite.lat &&
+            point.lon === firstReachableChargingSite.lon,
+        )
+      : -1;
+
+  const initialChargingRouteResult = initialChargingWaypoints
+    ? await fetchOsrmRoute(
+        startLat,
+        startLon,
+        destLat,
+        destLon,
+        osrmBaseUrl,
+        t,
+        initialChargingWaypoints,
+      )
+    : null;
+
+  const initialChargingRoute =
+    initialChargingRouteResult?.ok
+      ? initialChargingRouteResult.routes[0]
+      : undefined;
+
+  let firstStopRouteDistanceKm =
+    initialChargingRoute &&
+    firstChargingWaypointIndex >= 0 &&
+    initialChargingRoute.legDistancesM &&
+    initialChargingRoute.legDistancesM.length >
+      firstChargingWaypointIndex
+      ? initialChargingRoute.legDistancesM
+          .slice(0, firstChargingWaypointIndex + 1)
+          .reduce((sum, distance) => sum + distance, 0) / 1000
+      : null;
+
+  const firstStopEnergyKwh =
+    firstStopRouteDistanceKm !== null
+      ? firstStopRouteDistanceKm *
+        Math.max(finalPrediction.whPerKm, base.baseWhPerKm) / 1000
+      : null;
+
+  const firstStopCalculatedArrivalSoc =
+    firstStopEnergyKwh !== null
+      ? startSoc - firstStopEnergyKwh / capacityKwh * 100
+      : null;
+
+  const initialRouteEnergyKwh = initialChargingRoute
+    ? initialChargingRoute.drivingDistanceM / 1000 *
+      Math.max(finalPrediction.whPerKm, base.baseWhPerKm) / 1000
+    : null;
+
+  const initialRemainingEnergyKwh =
+    initialRouteEnergyKwh !== null && firstStopEnergyKwh !== null
+      ? Math.max(0, initialRouteEnergyKwh - firstStopEnergyKwh)
+      : null;
+
+  const initialRequiredDepartureSoc =
+    initialRemainingEnergyKwh !== null
+      ? initialRemainingEnergyKwh / capacityKwh * 100 + targetArrivalSoc
+      : null;
+
+  const fixedFirstChargingStop =
+    firstReachableChargingSite &&
+    firstStopRouteDistanceKm !== null &&
+    firstStopCalculatedArrivalSoc !== null &&
+    initialRequiredDepartureSoc !== null &&
+    firstStopCalculatedArrivalSoc > 0
+      ? buildChargingStop(
+          firstReachableChargingSite,
+          firstStopRouteDistanceKm,
+          firstStopCalculatedArrivalSoc,
+          initialRequiredDepartureSoc <= 90
+            ? initialRequiredDepartureSoc
+            : Math.max(firstStopCalculatedArrivalSoc, 80),
+          capacityKwh,
+        )
+      : null;
+
+
   const teslaChargingSites = chargingSites.filter(
     (site) => site.network === "tesla",
   );
@@ -511,6 +685,7 @@ export async function planRoute(
       ),
       targetArrivalSoc,
       minimumStopArrivalSoc: 10,
+      allowedFirstStopIds,
     },
   );
 
@@ -533,6 +708,7 @@ export async function planRoute(
         ),
         targetArrivalSoc,
         minimumStopArrivalSoc: 10,
+      allowedFirstStopIds,
       },
     );
 
@@ -545,14 +721,45 @@ export async function planRoute(
     }
   }
 
+  if (
+    fixedFirstChargingStop &&
+    initialChargingRoute &&
+    firstStopRouteDistanceKm !== null &&
+    firstChargingWaypointIndex === 0 &&
+    initialChargingWaypoints !== null &&
+    !selectedSpecialFerry &&
+    !initialChargingRoute.hasFerry
+  ) {
+    const next = selectChargingStop(
+      chargingSites,
+      downsample(
+        initialChargingRoute.coordinates,
+        Math.min(MAP_MAX_POINTS, initialChargingRoute.coordinates.length),
+      ).map(([lon, lat]) => [lat, lon] as [number, number]),
+      {
+        startSoc: fixedFirstChargingStop.departureSoc,
+        capacityKwh,
+        routeDistanceKm: initialChargingRoute.distanceM / 1000,
+        energyKwh: initialRouteEnergyKwh ?? finalPrediction.energyKwh,
+        targetArrivalSoc,
+        minimumStopArrivalSoc: 10,
+        initialRouteDistanceKm: firstStopRouteDistanceKm,
+      },
+    );
+    finalChargingSelection = combineChargingStops(fixedFirstChargingStop, next);
+  }
+
   let routedChargingStopIds: string[] = [];
+  let routedChargingWaypointIndices: number[] = [];
 
   const sameStopIds = (a: string[], b: string[]) =>
     a.length === b.length && a.every((id, index) => id === b[index]);
 
   for (let iteration = 0; iteration < 4; iteration += 1) {
+    const stopsForRouting = finalChargingSelection.stops;
     const selectedChargingStopIds =
-      finalChargingSelection.stops.map((stop) => stop.site.id);
+      finalChargingSelection.stops.map((stop) => `${stop.site.network}:${stop.site.id}`);
+
 
     // Die aktuelle Route enthält bereits genau die aktuell empfohlenen
     // Ladestopps. Damit sind Route und Ladeplanung stabil.
@@ -579,14 +786,51 @@ export async function planRoute(
         routeDistanceKm: stop.routeDistanceKm,
       })),
       routedGeometry,
+      selectedSpecialFerry?.ferry.routing === "virtual",
     );
+
+    const virtualFerry = selectedSpecialFerry?.ferry.routing === "virtual"
+      ? selectedSpecialFerry.ferry
+      : null;
+
+    const normalizedChargingWaypoints = virtualFerry
+      ? normalizeFerryWaypoints(
+          chargingRouteWaypoints,
+          virtualFerry.portA,
+          virtualFerry.portB,
+        )
+      : chargingRouteWaypoints;
+
+    if (!normalizedChargingWaypoints) {
+      break;
+    }
+
+    const chargingWaypointIndices =
+      finalChargingSelection.stops.map((stop) =>
+        normalizedChargingWaypoints.findIndex((point) =>
+          point.lat === stop.site.lat &&
+          point.lon === stop.site.lon
+        ),
+      );
+
+    const chargingWaypointMappingValid =
+      chargingWaypointIndices.every((index, position) =>
+        index >= 0 &&
+        (position === 0 ||
+          index > chargingWaypointIndices[position - 1]!)
+      );
+
+    if (!chargingWaypointMappingValid) {
+      console.warn("Ladeplanung: OSRM-Wegpunktzuordnung ungueltig");
+      break;
+    }
 
     const chargingRouteResult =
       selectedSpecialFerry?.ferry.routing === "virtual"
         ? await fetchVirtualFerryRoute(
             { lat: startLat, lon: startLon },
             { lat: destLat, lon: destLon },
-            chargingRouteWaypoints,
+            normalizedChargingWaypoints,
             osrmBaseUrl,
             t,
             selectedSpecialFerry.ferry,
@@ -598,7 +842,7 @@ export async function planRoute(
             destLon,
             osrmBaseUrl,
             t,
-            chargingRouteWaypoints,
+            normalizedChargingWaypoints,
           );
 
     if (!chargingRouteResult.ok) {
@@ -620,8 +864,37 @@ export async function planRoute(
       break;
     }
 
+    if (fixedFirstChargingStop) {
+      const first = normalizedChargingWaypoints[0];
+      const site = fixedFirstChargingStop.site;
+      const distance = chargingRoute.legDistancesM?.[0];
+
+      if (!first ||
+          first.lat !== site.lat ||
+          first.lon !== site.lon ||
+          distance === undefined ||
+          distance <= 0) {
+        console.warn("[LowSoC] Ungueltiger erster OSRM-Ladestopp");
+        break;
+      }
+    }
+
     finalRoute = chargingRoute;
+
+    if (
+      fixedFirstChargingStop &&
+      normalizedChargingWaypoints.length > 0 &&
+      normalizedChargingWaypoints[0].lat === fixedFirstChargingStop.site.lat &&
+      normalizedChargingWaypoints[0].lon === fixedFirstChargingStop.site.lon &&
+      chargingRoute.legDistancesM?.[0] !== undefined &&
+      chargingRoute.legDistancesM[0] > 0
+    ) {
+      firstStopRouteDistanceKm =
+        chargingRoute.legDistancesM[0] / 1000;
+    }
+
     routedChargingStopIds = selectedChargingStopIds;
+    routedChargingWaypointIndices = chargingWaypointIndices;
 
     finalDistanceKm = finalRoute.distanceM / 1000;
     finalDurationSeconds = finalRoute.durationS;
@@ -664,6 +937,68 @@ export async function planRoute(
       Math.min(MAP_MAX_POINTS, finalRoute.coordinates.length),
     ).map(([lon, lat]) => [lat, lon]);
 
+    const actualLegs = finalRoute.legDistancesM
+      ? getDrivingChargingLegs(
+          finalRoute.legDistancesM,
+          chargingWaypointIndices.map(i => i + 1),
+          finalRoute.nonDrivingSegmentsM,
+        )
+      : null;
+
+    const updatedStops = actualLegs &&
+      actualLegs.length === stopsForRouting.length + 1
+      ? recalculateStops(
+          actualLegs,
+          startSoc,
+          capacityKwh,
+          finalPrediction.energyKwh,
+          targetArrivalSoc,
+        )
+      : null;
+
+    const stableStopsValid =
+      actualLegs !== null &&
+      updatedStops !== null &&
+      Math.abs(
+        actualLegs.reduce((sum, d) => sum + d, 0) -
+        finalRoute.drivingDistanceM
+      ) <= Math.max(100, finalRoute.drivingDistanceM * 0.001) &&
+      validateChargingLegs(
+        actualLegs,
+        updatedStops,
+        startSoc,
+        capacityKwh,
+        finalPrediction.energyKwh,
+        targetArrivalSoc,
+      );
+
+    if (stableStopsValid && updatedStops && finalRoute.legDistancesM) {
+      const stops = stopsForRouting.map((stop, i) => {
+        const routeDistanceKm = finalRoute.legDistancesM!
+          .slice(0, chargingWaypointIndices[i]! + 1)
+          .reduce((sum, distance) => sum + distance, 0) / 1000;
+
+        return buildChargingStop(
+          stop.site,
+          routeDistanceKm,
+          updatedStops[i]!.arrivalSoc,
+          updatedStops[i]!.departureSoc,
+          capacityKwh,
+        );
+      });
+
+      finalChargingSelection = {
+        stop: stops[0] ?? null,
+        stops,
+        chargingNeeded: true,
+        planningComplete: true,
+        plannedArrivalSoc: targetArrivalSoc,
+        targetArrivalSoc,
+      };
+
+      break;
+    }
+
     // Verbrauch und SoC werden auf der tatsächlich gerouteten Strecke
     // neu berechnet. Neue Ladeorte werden dagegen weiterhin nur entlang
     // der ursprünglichen Referenzroute gesucht.
@@ -674,6 +1009,14 @@ export async function planRoute(
         minPowerKw: 150,
       },
     );
+
+    const hasFixedFirstStop =
+      fixedFirstChargingStop !== null &&
+      firstStopRouteDistanceKm !== null &&
+      firstChargingWaypointIndex === 0 &&
+      initialChargingWaypoints !== null &&
+      !selectedSpecialFerry &&
+      !finalRoute.hasFerry;
 
     finalChargingSelection = selectChargingStop(
       chargingSites,
@@ -691,16 +1034,212 @@ export async function planRoute(
         ),
         targetArrivalSoc,
         minimumStopArrivalSoc: 10,
+      allowedFirstStopIds,
       },
     );
+
+    if (hasFixedFirstStop) {
+      const next = selectChargingStop(
+        chargingSites,
+        routedGeometry,
+        {
+          startSoc: fixedFirstChargingStop.departureSoc,
+          capacityKwh,
+          routeDistanceKm: finalDistanceKm,
+          energyKwh: finalPrediction.energyKwh,
+          nonDrivingSegmentsKm: finalRoute.nonDrivingSegmentsM.map(
+            (segment) => ({
+              startKm: segment.startM / 1000,
+              endKm: segment.endM / 1000,
+            }),
+          ),
+          targetArrivalSoc,
+          minimumStopArrivalSoc: 10,
+          initialRouteDistanceKm: firstStopRouteDistanceKm ?? undefined,
+        },
+      );
+      finalChargingSelection = combineChargingStops(
+        fixedFirstChargingStop,
+        next,
+      );
+    }
   }
+
+  // Nur übernehmen, wenn noch keine Lade-Route geroutet wurde.
+  if (
+    routedChargingStopIds.length === 0 &&
+    finalChargingSelection.stops.length <= 1 &&
+    fixedFirstChargingStop &&
+    initialChargingRoute &&
+    initialChargingWaypoints?.length === 1 &&
+    firstChargingWaypointIndex === 0 &&
+    waypoints.length === 0 &&
+    !selectedSpecialFerry &&
+    !initialChargingRoute.hasFerry
+  ) {
+    finalRoute = initialChargingRoute;
+    finalDistanceKm = finalRoute.distanceM / 1000;
+    finalDurationSeconds = finalRoute.durationS;
+    finalDrivingDistanceKm = finalRoute.drivingDistanceM / 1000;
+    finalDrivingDurationSeconds = finalRoute.drivingDurationS;
+    finalAvgSpeedKmh = finalDrivingDurationSeconds > 0
+      ? finalDrivingDistanceKm / (finalDrivingDurationSeconds / 3600)
+      : 0;
+
+    const sample = downsample(
+      finalRoute.coordinates,
+      Math.min(ELEVATION_MAX_POINTS, finalRoute.coordinates.length),
+    );
+    const heights = await fetchElevations(sample);
+    finalElevationOk = heights !== null;
+    const elevation = heights
+      ? summarizeElevation(heights)
+      : { ascentM: 0, descentM: 0 };
+    finalAscentM = elevation.ascentM;
+    finalDescentM = elevation.descentM;
+
+    finalPrediction = predictConsumption({
+      distanceKm: finalDrivingDistanceKm,
+      avgSpeedKmh: finalAvgSpeedKmh,
+      tempC,
+      ascentM: finalAscentM,
+      descentM: finalDescentM,
+      baseWhPerKm: base.baseWhPerKm,
+      referenceSpeedKmh: base.referenceSpeedKmh,
+    });
+
+    routedGeometry = downsample(
+      finalRoute.coordinates,
+      Math.min(MAP_MAX_POINTS, finalRoute.coordinates.length),
+    ).map(([lon, lat]) => [lat, lon]);
+  }
+
+  let fixedLowSocSelection = null;
+
+  if (
+    fixedFirstChargingStop &&
+    initialChargingRoute === finalRoute &&
+    firstStopRouteDistanceKm !== null &&
+    finalDrivingDistanceKm > 0 &&
+    initialChargingWaypoints?.length === 1 &&
+    firstChargingWaypointIndex === 0 &&
+    waypoints.length === 0 &&
+    !selectedSpecialFerry &&
+    !finalRoute.hasFerry
+  ) {
+    const energy = calculateFirstStopEnergy({
+      startSoc,
+      capacityKwh,
+      drivingDistanceKm: finalDrivingDistanceKm,
+      firstStopDistanceKm: firstStopRouteDistanceKm,
+      totalEnergyKwh: finalPrediction.energyKwh,
+      targetArrivalSoc,
+    });
+
+    if (energy?.feasible) {
+      fixedLowSocSelection = buildChargingStop(
+        fixedFirstChargingStop.site,
+        firstStopRouteDistanceKm,
+        energy.arrivalSoc,
+        energy.departureSoc,
+        capacityKwh,
+      );
+    }
+  }
+
+  if (fixedLowSocSelection) {
+    finalChargingSelection = {
+      stop: fixedLowSocSelection,
+      stops: [fixedLowSocSelection],
+      chargingNeeded: true,
+      planningComplete: true,
+      plannedArrivalSoc: targetArrivalSoc,
+      targetArrivalSoc,
+    };
+    routedChargingStopIds = [
+      `${fixedLowSocSelection.site.network}:${fixedLowSocSelection.site.id}`,
+    ];
+    routedChargingWaypointIndices = [firstChargingWaypointIndex];
+
+  }
+
+  // Ladeplanung nur dann als abgeschlossen melden, wenn
+  // die ausgegebenen Ladestopps in der OSRM-Route enthalten sind.
+  const finalSelectedStopIds =
+    finalChargingSelection.stops.map(
+      (stop) => `${stop.site.network}:${stop.site.id}`,
+    );
+
+  const chargingStopsPlausible =
+    finalChargingSelection.stops.every((stop, index, stops) =>
+      Number.isFinite(stop.routeDistanceKm) &&
+      Number.isFinite(stop.arrivalSoc) &&
+      Number.isFinite(stop.departureSoc) &&
+      stop.routeDistanceKm > 0 &&
+      stop.routeDistanceKm < finalDistanceKm &&
+      stop.arrivalSoc > 0 &&
+      stop.arrivalSoc <= stop.departureSoc &&
+      stop.departureSoc <= 100 &&
+      (index === 0 ||
+        stop.routeDistanceKm > stops[index - 1]!.routeDistanceKm)
+    );
+
+  const groupedChargingLegs =
+    finalChargingSelection.stops.length > 0 &&
+    finalRoute.legDistancesM
+      ? getDrivingChargingLegs(
+          finalRoute.legDistancesM,
+          routedChargingWaypointIndices.map(index => index + 1),
+          finalRoute.nonDrivingSegmentsM,
+        )
+      : null;
+
+  const chargingDrivingDistanceValid =
+    groupedChargingLegs !== null &&
+    Math.abs(
+      groupedChargingLegs.reduce((sum, distance) => sum + distance, 0) -
+      finalRoute.drivingDistanceM
+    ) <= Math.max(100, finalRoute.drivingDistanceM * 0.001);
+
+  const chargingLegsValid =
+    finalChargingSelection.stops.length === 0 ||
+    (
+      groupedChargingLegs !== null &&
+      chargingDrivingDistanceValid &&
+      validateChargingLegs(
+        groupedChargingLegs,
+        finalChargingSelection.stops,
+        startSoc,
+        capacityKwh,
+        finalPrediction.energyKwh,
+        targetArrivalSoc,
+      )
+    );
+
+
+  const chargingRouteConsistent =
+    chargingLegsValid &&
+    chargingStopsPlausible &&
+    (finalSelectedStopIds.length === 0
+      ? finalChargingSelection.planningComplete
+      : sameStopIds(
+          finalSelectedStopIds,
+          routedChargingStopIds,
+        ));
+
 
   const finalArrivalSoc =
     startSoc -
     (finalPrediction.energyKwh / capacityKwh) * 100;
 
-  const finalRecommendedStop = finalChargingSelection.stop;
-  const finalRecommendedStops = finalChargingSelection.stops;
+  // Niemals Ladestopps ausgeben, die nicht zur
+  // abschliessend berechneten OSRM-Route passen.
+  const finalRecommendedStops = chargingRouteConsistent
+    ? finalChargingSelection.stops
+    : [];
+
+  const finalRecommendedStop =
+    finalRecommendedStops[0] ?? null;
 
   const finalMotorwayRefs = finalRoute.motorwayRefs ?? [];
 
@@ -782,7 +1321,9 @@ export async function planRoute(
           energyAddedKwh: stop.energyAddedKwh,
           chargingMinutes: stop.chargingMinutes,
         })),
-        chargingPlanComplete: finalChargingSelection.planningComplete,
+        chargingPlanComplete:
+          finalChargingSelection.planningComplete &&
+          chargingRouteConsistent,
     },
   };
 }
@@ -977,7 +1518,7 @@ async function fetchVirtualFerryRoute(
       sameRoutePoint(point, expectedSecondPort),
   );
 
-  if (secondPortIndex < 0) {
+  if (secondPortIndex !== firstPortIndex + 1) {
     return { ok: false, error: t("errors.routingNoRoute") };
   }
 
@@ -1024,6 +1565,11 @@ async function fetchVirtualFerryRoute(
   const afterOffsetM = ferryStartM + virtualFerryDistanceM;
 
   const route: OsrmRoute = {
+    legDistancesM: [
+      ...(before.legDistancesM ?? []),
+      virtualFerryDistanceM,
+      ...(after.legDistancesM ?? []),
+    ],
     distanceM:
       before.distanceM +
       virtualFerryDistanceM +
@@ -1161,6 +1707,45 @@ async function fetchOsrmRoute(
   return { ok: true, routes: parsed };
 }
 
+async function checkChargingSiteReachability(
+  start: RoutePoint,
+  site: RoutePoint,
+  startSoc: number,
+  capacityKwh: number,
+  consumptionWhPerKm: number,
+  osrmBaseUrl: string,
+  t: Awaited<ReturnType<typeof getTranslations>>,
+) {
+  const result = await fetchOsrmRoute(
+    start.lat,
+    start.lon,
+    site.lat,
+    site.lon,
+    osrmBaseUrl,
+    t,
+  );
+
+  if (!result.ok || result.routes.length === 0) {
+    return null;
+  }
+
+  const distanceKm =
+    result.routes[0]!.drivingDistanceM / 1000;
+
+  const input = {
+    startSoc,
+    capacityKwh,
+    distanceKm,
+    consumptionWhPerKm,
+  };
+
+  return {
+    distanceKm,
+    arrivalSoc: calculateChargingArrivalSoc(input),
+    reachable: isChargingSiteReachable(input),
+  };
+}
+
 interface OsrmResponseShape {
   code?: string;
   routes?: Array<{
@@ -1168,6 +1753,7 @@ interface OsrmResponseShape {
     duration?: number;
     geometry?: { coordinates?: unknown };
     legs?: Array<{
+      distance?: number;
       steps?: Array<{
         mode?: string;
         name?: string;
@@ -1283,6 +1869,9 @@ function parseOsrmBody(body: unknown): OsrmRoute[] | null {
     const drivingDurationS = Math.max(0, route.duration - ferryDurationS);
 
     routes.push({
+      legDistancesM: (route.legs ?? []).map(
+        (leg) => leg.distance ?? 0,
+      ),
       distanceM: route.distance,
       durationS: route.duration,
       drivingDistanceM,

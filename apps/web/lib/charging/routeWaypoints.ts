@@ -98,6 +98,7 @@ export function mergeRouteWaypoints(
   manualWaypoints: RoutePoint[],
   chargingStops: PositionedRoutePoint[],
   geometry: [number, number][],
+  projectChargingStops = false,
 ): RoutePoint[] {
   const positionedManual: Array<{
     point: RoutePoint;
@@ -131,7 +132,10 @@ export function mergeRouteWaypoints(
     })),
     ...chargingStops.map((stop) => ({
       point: { lat: stop.lat, lon: stop.lon },
-      routeDistanceKm: stop.routeDistanceKm,
+      routeDistanceKm: projectChargingStops
+        ? (locatePointAlongRoute(stop, geometry)?.routeDistanceKm
+          ?? stop.routeDistanceKm)
+        : stop.routeDistanceKm,
       priority: 1,
     })),
   ];

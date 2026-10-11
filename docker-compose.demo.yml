@@ -117,6 +117,13 @@ services:
       retries: 5
       start_period: 30s
 
+  charging-cache-init:
+    image: alpine:3.20
+    restart: "no"
+    command: ["sh", "-c", "chown 1001:1001 /charging-cache"]
+    volumes:
+      - charging-cache:/charging-cache
+
   web:
     build:
       context: .
@@ -129,6 +136,7 @@ services:
       # this file is meant to just work with a single command.
       - "3000:3000"
     environment:
+      CHARGING_CACHE_DIR: /app/charging-cache
       DATABASE_URL: postgres://drivechronik:drivechronik-demo@drivechronik-db:5432/drivechronik
       APP_TIMEZONE: Europe/Berlin
       DEMO_WEATHER: "true"
@@ -141,9 +149,12 @@ services:
       MONTH_SEAL_PRIVATE_KEY_FILE: /run/secrets/month-seal-ed25519-private.pem
       SUPERCHARGE_COMPASS_URL: http://supercharge-compass:3000
     volumes:
+      - charging-cache:/app/charging-cache
       - ./secrets/month-seal-ed25519-private.pem:/run/secrets/month-seal-ed25519-private.pem:ro
       - import-staging:/import-staging
     depends_on:
+      charging-cache-init:
+        condition: service_completed_successfully
       import-staging-init:
         condition: service_completed_successfully
       drivechronik-db:
@@ -186,3 +197,4 @@ volumes:
   drivechronik-demo-db-data:
   teslamate-demo-db-data:
   import-staging:
+  charging-cache:

@@ -23,6 +23,11 @@ export interface ChargingPlanInput {
    * nicht fallen wollen.
    */
   minimumStopArrivalSoc: number;
+
+  /** Bei niedrigem Start-SoC: per Straßenrouting geprüfte erste Ladeorte. */
+  allowedFirstStopIds?: string[];
+  firstStopDrivingDistanceKm?: number;
+  initialRouteDistanceKm?: number;
 }
 
 export interface ChargingRequirement {
@@ -41,8 +46,21 @@ export function calculateChargingRequirement(
     targetArrivalSoc,
   } = input;
 
+  const remainingEnergyKwh =
+    input.initialRouteDistanceKm === undefined
+      ? energyKwh
+      : energyKwh * drivingDistanceBetween(
+          input.initialRouteDistanceKm,
+          input.routeDistanceKm,
+          input.nonDrivingSegmentsKm ?? [],
+        ) / drivingDistanceBetween(
+          0,
+          input.routeDistanceKm,
+          input.nonDrivingSegmentsKm ?? [],
+        );
+
   const arrivalSocWithoutCharging =
-    startSoc - (energyKwh / capacityKwh) * 100;
+    startSoc - (remainingEnergyKwh / capacityKwh) * 100;
 
   const requiredArrivalEnergyKwh =
     (targetArrivalSoc / 100) * capacityKwh;
@@ -52,7 +70,7 @@ export function calculateChargingRequirement(
 
   const requiredEnergyKwh = Math.max(
     0,
-    energyKwh + requiredArrivalEnergyKwh - availableStartEnergyKwh,
+    remainingEnergyKwh + requiredArrivalEnergyKwh - availableStartEnergyKwh,
   );
 
   return {
@@ -352,10 +370,13 @@ export function selectChargingStop(
     )
     .filter(
       ({ routeDistanceKm }) =>
-        routeDistanceKm > 5 &&
-        routeDistanceKm < input.routeDistanceKm - 5,
+        routeDistanceKm > 0.1 &&
+        routeDistanceKm < input.routeDistanceKm - 0.1,
     )
     .sort((a, b) => a.routeDistanceKm - b.routeDistanceKm);
+
+  if (input.startSoc < 10) {
+  }
 
   if (positionedSites.length === 0) {
     return {
@@ -370,7 +391,7 @@ export function selectChargingStop(
 
   const stops: PlannedChargingStop[] = [];
 
-  let currentDistanceKm = 0;
+  let currentDistanceKm = input.initialRouteDistanceKm ?? 0;
   let currentSoc = input.startSoc;
 
   // Für Zwischenstopps vermeiden wir bewusst das langsame Laden nahe 100 %.
@@ -425,9 +446,14 @@ export function selectChargingStop(
     }
 
     const reachableCandidates = positionedSites
+      .filter(({ site }) =>
+        stops.length > 0 ||
+        input.allowedFirstStopIds === undefined ||
+        input.allowedFirstStopIds.includes(`${site.network}:${site.id}`)
+      )
       .filter(
         ({ routeDistanceKm }) =>
-          routeDistanceKm > currentDistanceKm + 2,
+          routeDistanceKm > currentDistanceKm + 0.1,
       )
       .map(({ site, routeDistanceKm, offRouteDistanceKm }) => {
         const segmentDrivingDistanceKm = drivingDistanceBetween(
@@ -452,12 +478,29 @@ export function selectChargingStop(
       })
       .filter(
         ({ arrivalSoc }) =>
-          arrivalSoc >= input.minimumStopArrivalSoc,
+          arrivalSoc >
+          (currentSoc < input.minimumStopArrivalSoc &&
+          currentDistanceKm === 0
+            ? 0
+            : input.minimumStopArrivalSoc),
       )
       // Möglichst spät laden, aber größere Abweichungen von der Route
       // deutlich bestrafen. Tesla wird bei ähnlich guten Ladeorten leicht
       // bevorzugt, ohne deutlich besser gelegene HPCs zu verdrängen.
       .sort((a, b) => {
+        // Bei sehr niedrigem Start-SoC zuerst den fruehesten
+        // erreichbaren Ladepunkt entlang der Route bevorzugen.
+        if (
+          currentDistanceKm === 0 &&
+          currentSoc < input.minimumStopArrivalSoc
+        ) {
+          const distanceDifference =
+            a.routeDistanceKm - b.routeDistanceKm;
+          if (distanceDifference !== 0) {
+            return distanceDifference;
+          }
+        }
+
         const detourPenaltyFactor = 6;
         const teslaPreferenceBonusKm = 15;
 

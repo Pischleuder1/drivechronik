@@ -24,16 +24,21 @@ export async function DashboardHero({
 
   return (
     <section className="relative bg-transparent dark:bg-transparent">
-      <div className="relative z-10 flex max-w-2xl flex-col justify-center px-1 py-3 lg:py-2">
-        <h1 className="text-2xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50 lg:text-3xl">
+      <div className="relative z-10 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-8 px-1 py-3 lg:py-2">
+        <div className="min-w-0">
+        <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-neutral-500">
           {locale === "en" ? "Overview" : "Übersicht"}
+        </p>
+        <h1 className="text-2xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50 lg:text-3xl">
+          {locale === "en" ? "Good day!" : "Guten Tag!"}
         </h1>
 
         <p className="mt-1.5 text-sm text-neutral-500 dark:text-neutral-400">
           {t("subtitle")}
         </p>
 
-        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+        </div>
+        <div className="flex shrink-0 flex-wrap items-center lg:justify-end gap-x-4 gap-y-2 text-sm">
           <span className="inline-flex items-center gap-1.5">
             <WeatherIcon
               aria-hidden

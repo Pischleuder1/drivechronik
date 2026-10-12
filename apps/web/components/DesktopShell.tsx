@@ -28,7 +28,7 @@ export function DesktopShell({
   theme,
   locale,
 }: DesktopShellProps) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
 
   return (
     <aside

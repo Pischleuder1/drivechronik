@@ -13,7 +13,7 @@ const DashboardMap = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-[300px] w-full animate-pulse rounded-lg border border-neutral-300 bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800 sm:h-[340px]" />
+      <div className="h-[300px] w-full animate-pulse rounded-lg border border-neutral-300 bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800 sm:h-[340px] lg:h-[280px]" />
     ),
   },
 );
@@ -26,7 +26,7 @@ const DashboardRangeMap = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-[300px] w-full animate-pulse rounded-lg border border-neutral-300 bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800 sm:h-[340px]" />
+      <div className="h-[300px] w-full animate-pulse rounded-lg border border-neutral-300 bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800 sm:h-[340px] lg:h-[280px]" />
     ),
   },
 );
@@ -181,16 +181,16 @@ export function DashboardMapLoader({
             onSelectDrive={(driveId) => router.push(`/drives/${driveId}`)}
           />
         ) : (
-          <div className="flex h-[300px] items-center justify-center rounded-lg border border-dashed border-neutral-300 px-4 text-center text-sm text-neutral-400 dark:border-neutral-700 dark:text-neutral-500 sm:h-[340px]">
+          <div className="flex h-[300px] items-center justify-center rounded-lg border border-dashed border-neutral-300 px-4 text-center text-sm text-neutral-400 dark:border-neutral-700 dark:text-neutral-500 sm:h-[340px] lg:h-[280px]">
             {t("mapEmpty")}
           </div>
         )
       ) : rangeLoading ? (
-        <div className="flex h-[300px] items-center justify-center rounded-lg border border-neutral-300 bg-neutral-50 px-4 text-center text-sm text-neutral-500 dark:border-neutral-700 dark:bg-neutral-800/40 dark:text-neutral-400 sm:h-[340px]">
+        <div className="flex h-[300px] items-center justify-center rounded-lg border border-neutral-300 bg-neutral-50 px-4 text-center text-sm text-neutral-500 dark:border-neutral-700 dark:bg-neutral-800/40 dark:text-neutral-400 sm:h-[340px] lg:h-[280px]">
           {t("rangeLoading")}
         </div>
       ) : rangeError ? (
-        <div className="flex h-[300px] flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-neutral-300 px-4 text-center dark:border-neutral-700 sm:h-[340px]">
+        <div className="flex h-[300px] flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-neutral-300 px-4 text-center dark:border-neutral-700 sm:h-[340px] lg:h-[280px]">
           <p className="text-sm text-neutral-500 dark:text-neutral-400">
             {t("rangeError")}
           </p>

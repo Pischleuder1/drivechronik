@@ -290,7 +290,7 @@ export function DashboardMap({
   return (
     <div
       ref={containerRef}
-      className="h-[300px] w-full rounded-lg border border-neutral-300 dark:border-neutral-700 sm:h-[340px]"
+      className="h-[300px] w-full rounded-lg border border-neutral-300 dark:border-neutral-700 sm:h-[340px] lg:h-[280px]"
     />
   );
 }

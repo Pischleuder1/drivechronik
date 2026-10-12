@@ -90,9 +90,23 @@ export async function VehicleCard({
   const soc = status.soc;
 
   return (
-    <section className="relative h-full overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900 lg:rounded-3xl lg:border-neutral-200/80 lg:bg-gradient-to-br lg:from-white lg:via-white lg:to-slate-50 lg:shadow-[0_4px_24px_-12px_rgba(15,23,42,0.16)] dark:lg:from-neutral-900 dark:lg:via-neutral-900 dark:lg:to-neutral-900">
+    <section className="relative h-full overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900 lg:min-h-[340px] lg:rounded-2xl lg:border-slate-200/70 lg:shadow-none">
+        {/* Desktop V9: landscape is a separate decorative layer. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 hidden bg-cover bg-center lg:block"
+          style={{ backgroundImage: "url('/visuals/vehicle-landscape.webp')" }}
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 hidden bg-gradient-to-r from-white/95 via-white/75 to-white/10 lg:block"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 hidden h-28 bg-gradient-to-t from-white/90 to-transparent lg:block"
+        />
 
-      <div className="relative grid h-full min-h-[255px] gap-6 p-5 sm:p-6 lg:gap-8 lg:p-7 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
+      <div className="relative z-10 grid h-full min-h-[255px] gap-6 p-5 sm:p-6 lg:min-h-[340px] lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-4 lg:px-7 lg:py-6">
         <div className="flex min-w-0 flex-col">
           <div className="flex items-center gap-2">
             <IconBadge tone="blue" size="sm">
@@ -203,14 +217,14 @@ export async function VehicleCard({
           </div>
         </div>
 
-        <div className="relative flex flex-col items-center justify-center">
+        <div className="relative flex flex-col items-center justify-end lg:translate-y-2">
           <Image
             src="/vehicles/modely-side.webp"
             alt="Tesla Model Y"
             width={2172}
             height={724}
             sizes="(min-width: 1024px) 50vw, 100vw"
-            className="hidden h-auto w-full max-w-none object-contain lg:block"
+            className="hidden h-auto w-full max-w-none object-contain drop-shadow-[0_20px_8px_rgba(15,23,42,0.20)] lg:mb-2 lg:block"
           />
           <TeslaTpmsStrip
             fl={status.tpmsFlBar}

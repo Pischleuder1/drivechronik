@@ -23,7 +23,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-interface NavItem {
+export interface NavItem {
   href: string;
   labelKey: string;
   icon: LucideIcon;
@@ -32,7 +32,7 @@ interface NavItem {
   mobilePrimary?: boolean;
 }
 
-const items: NavItem[] = [
+export const items: NavItem[] = [
   {
     href: "/",
     labelKey: "start",

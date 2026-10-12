@@ -4,7 +4,8 @@ import {
   Gauge,
   MapPin,
 } from "lucide-react";
-import { TeslaTopViewTpmsGraphic } from "./TeslaTopViewTpmsGraphic";
+import Image from "next/image";
+import { TeslaTpmsStrip } from "./TeslaTpmsStrip";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatKwh, formatOdometer, formatTime } from "@drivechronik/core";
 import { APP_TIMEZONE } from "../../lib/config";
@@ -89,9 +90,9 @@ export async function VehicleCard({
   const soc = status.soc;
 
   return (
-    <section className="relative h-full overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+    <section className="relative h-full overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900 lg:rounded-3xl lg:border-neutral-200/80 lg:bg-gradient-to-br lg:from-white lg:via-white lg:to-slate-50 lg:shadow-[0_4px_24px_-12px_rgba(15,23,42,0.16)] dark:lg:from-neutral-900 dark:lg:via-neutral-900 dark:lg:to-neutral-900">
 
-      <div className="relative grid h-full min-h-[255px] gap-6 p-5 sm:p-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+      <div className="relative grid h-full min-h-[255px] gap-6 p-5 sm:p-6 lg:gap-8 lg:p-7 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
         <div className="flex min-w-0 flex-col">
           <div className="flex items-center gap-2">
             <IconBadge tone="blue" size="sm">
@@ -113,7 +114,7 @@ export async function VehicleCard({
               <div className="flex flex-wrap items-end gap-x-4 gap-y-2">
                 <div className="flex items-baseline">
                   <span
-                    className={`text-4xl font-semibold tracking-tight tabular-nums ${socTextColor(
+                    className={`text-4xl font-semibold tracking-tight tabular-nums lg:text-5xl ${socTextColor(
                       soc,
                     )}`}
                   >
@@ -134,7 +135,7 @@ export async function VehicleCard({
                 )}
               </div>
 
-              <div className="mt-4 h-2 w-full max-w-xl overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-800">
+              <div className="mt-4 h-2 w-full max-w-xl overflow-hidden rounded-full lg:h-2.5 bg-neutral-100 dark:bg-neutral-800">
                 <div
                   className={`h-full rounded-full transition-all ${socColor(soc)}`}
                   style={{ width: `${Math.max(0, Math.min(100, soc))}%` }}
@@ -202,9 +203,16 @@ export async function VehicleCard({
           </div>
         </div>
 
-        <div className="relative flex items-center justify-center">
-          <TeslaTopViewTpmsGraphic
-            model={status.model}
+        <div className="relative flex flex-col items-center justify-center">
+          <Image
+            src="/vehicles/modely-side.webp"
+            alt="Tesla Model Y"
+            width={2172}
+            height={724}
+            sizes="(min-width: 1024px) 50vw, 100vw"
+            className="hidden h-auto w-full max-w-none object-contain lg:block"
+          />
+          <TeslaTpmsStrip
             fl={status.tpmsFlBar}
             fr={status.tpmsFrBar}
             rl={status.tpmsRlBar}

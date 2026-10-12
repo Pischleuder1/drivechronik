@@ -1,10 +1,6 @@
 import Link from "next/link";
 import {
   ArrowRight,
-  CalendarDays,
-  CalendarRange,
-  HelpCircle,
-  Zap,
 } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatKm, formatKwh, formatPlaceLabel } from "@drivechronik/core";
@@ -34,23 +30,18 @@ export async function StatsRow({
   ]);
 
   const base =
-    "rounded-2xl border border-neutral-200 bg-white p-3.5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900";
-
-  const icon =
-    "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/35 dark:text-blue-300";
+    "rounded-2xl border border-neutral-200 bg-white p-3.5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900 lg:rounded-none lg:border-0 lg:bg-transparent lg:p-5 lg:shadow-none lg:[&:not(:first-child)]:border-l lg:[&:not(:first-child)]:border-neutral-200 dark:lg:bg-transparent dark:lg:[&:not(:first-child)]:border-neutral-800";
 
   return (
-    <div className="grid h-full gap-3 sm:grid-cols-2 lg:grid-cols-1 lg:grid-rows-4">
+    <div className="grid h-full gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:grid-rows-1">
       <section className={base}>
         <div className="flex items-start gap-3">
-          <div className={icon}>
-            <CalendarDays aria-hidden size={18} />
-          </div>
+          
           <div className="min-w-0">
             <p className="text-xs text-neutral-500 dark:text-neutral-400">
               {t("stats.today")}
             </p>
-            <p className="mt-0.5 text-lg font-semibold tabular-nums">
+            <p className="mt-0.5 text-lg font-semibold tabular-nums lg:text-xl lg:font-bold lg:tracking-tight">
               {formatKm(today.distanceKm)}
             </p>
             <p className="mt-0.5 text-xs text-neutral-400">
@@ -62,14 +53,12 @@ export async function StatsRow({
 
       <section className={base}>
         <div className="flex items-start gap-3">
-          <div className={icon}>
-            <CalendarRange aria-hidden size={18} />
-          </div>
+          
           <div className="min-w-0">
             <p className="text-xs text-neutral-500 dark:text-neutral-400">
               {t("stats.thisWeek")}
             </p>
-            <p className="mt-0.5 text-lg font-semibold tabular-nums">
+            <p className="mt-0.5 text-lg font-semibold tabular-nums lg:text-xl lg:font-bold lg:tracking-tight">
               {formatKm(week.distanceKm)}
             </p>
             <p className="mt-0.5 text-xs text-neutral-400">
@@ -81,14 +70,12 @@ export async function StatsRow({
 
       <section className={base}>
         <div className="flex items-start gap-3">
-          <div className={icon}>
-            <Zap aria-hidden size={18} />
-          </div>
+          
           <div className="min-w-0">
             <p className="text-xs text-neutral-500 dark:text-neutral-400">
               {t("stats.lastCharge")}
             </p>
-            <p className="mt-0.5 text-lg font-semibold tabular-nums">
+            <p className="mt-0.5 text-lg font-semibold tabular-nums lg:text-xl lg:font-bold lg:tracking-tight">
               {lastCharge?.energyAddedKwh != null
                 ? formatKwh(lastCharge.energyAddedKwh, { sign: true })
                 : tCommon("state.none")}
@@ -118,21 +105,13 @@ export async function StatsRow({
         }`}
       >
         <div className="flex items-start gap-3">
-          <div
-            className={
-              unclassifiedCount.live > 0
-                ? "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-300"
-                : icon
-            }
-          >
-            <HelpCircle aria-hidden size={18} />
-          </div>
+          
 
           <div className="min-w-0">
             <p className="text-xs text-neutral-500 dark:text-neutral-400">
               {t("stats.unclassified")}
             </p>
-            <p className="mt-0.5 text-lg font-semibold tabular-nums">
+            <p className="mt-0.5 text-lg font-semibold tabular-nums lg:text-xl lg:font-bold lg:tracking-tight">
               {unclassifiedCount.live}
             </p>
 

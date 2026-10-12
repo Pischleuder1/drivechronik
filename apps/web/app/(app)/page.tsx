@@ -161,8 +161,8 @@ export default async function DashboardPage() {
       <div className="hidden space-y-4 md:block">
         <DashboardHero weather={weather} />
 
-        <div className="grid gap-4 lg:grid-cols-12 lg:items-stretch">
-          <div className="lg:col-span-8">
+        <div className="grid gap-4 lg:grid-cols-1">
+          <div >
             {status ? (
               <VehicleCard
                 status={status}
@@ -176,7 +176,7 @@ export default async function DashboardPage() {
             )}
           </div>
 
-          <div className="lg:col-span-4">
+          <div >
             <StatsRow
               today={today}
               week={week}

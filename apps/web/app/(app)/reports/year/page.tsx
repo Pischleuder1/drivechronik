@@ -220,7 +220,7 @@ export default async function BusinessYearReportPage({
         </a>
       </div>
 
-      <div className="mobile-year-report-kpis mt-4 grid grid-cols-2 gap-2 md:gap-3 sm:grid-cols-3">
+      <div className="mobile-year-report-kpis md:[&>*]:!border-t-neutral-200 dark:md:[&>*]:!border-t-neutral-800 mt-4 grid grid-cols-2 gap-2 md:gap-3 sm:grid-cols-3">
         <StatCard
           className="p-3"
           valueClassName="mt-0.5 text-base font-semibold tracking-tight tabular-nums"

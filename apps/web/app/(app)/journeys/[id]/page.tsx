@@ -229,7 +229,7 @@ export default async function JourneyDetailPage({
       )}
 
       {/* KPI grid */}
-      <div className="mt-3 grid grid-cols-2 gap-2.5 [&>*:last-child]:col-span-2 md:mt-6 md:gap-3 lg:grid-cols-3 lg:[&>*:last-child]:col-span-1">
+      <div className="mt-3 grid grid-cols-2 gap-2.5 [&>*:last-child]:col-span-2 md:mt-6 md:gap-3 lg:grid-cols-3 lg:[&>*:last-child]:col-span-1 lg:[&>*]:!border-t-neutral-200 dark:lg:[&>*]:!border-t-neutral-800">
         <StatCard
           valueClassName="mt-1 text-[15px] font-semibold tabular-nums md:text-base"
           label={t("detail.kpi.totalDistance")}

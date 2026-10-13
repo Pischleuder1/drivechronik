@@ -301,7 +301,7 @@ export default async function TeslaInvoicesPage({
         </div>
       </form>
 
-      <div className="mt-6 grid grid-cols-6 gap-3 sm:grid-cols-5">
+      <div className="mt-6 grid grid-cols-6 gap-3 sm:grid-cols-5 md:[&>div>div]:!border-t-neutral-200 dark:md:[&>div>div]:!border-t-neutral-800">
         <div className="col-span-2 [&>*]:h-full sm:col-span-1">
           <StatCard
             valueClassName="mt-1 text-base font-semibold tabular-nums"

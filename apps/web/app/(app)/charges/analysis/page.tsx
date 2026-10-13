@@ -154,7 +154,7 @@ export default async function ChargeAnalysisPage({
         />
       </div>
 
-      <div className="mobile-charge-analysis-kpis mt-4 grid grid-cols-2 gap-2 md:mt-6 md:gap-3 lg:grid-cols-4">
+      <div className="mobile-charge-analysis-kpis mt-4 grid grid-cols-2 gap-2 md:mt-6 md:gap-3 lg:grid-cols-4 md:[&>*]:!border-t-neutral-200 dark:md:[&>*]:!border-t-neutral-800">
         <StatCard
           valueClassName="mt-1 text-base font-semibold tabular-nums"
           label={t("analysis.sessions")}

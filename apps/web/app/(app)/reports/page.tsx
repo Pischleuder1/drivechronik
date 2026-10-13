@@ -240,7 +240,7 @@ export default async function ReportsPage({
       </Panel>
 
 
-      <div className="mobile-report-kpis mt-4 grid grid-cols-2 gap-2 md:gap-3 lg:grid-cols-3 [&>*:last-child]:col-span-2 lg:[&>*:last-child]:col-span-1">
+      <div className="mobile-report-kpis md:[&>*]:!border-t-neutral-200 dark:md:[&>*]:!border-t-neutral-800 mt-4 grid grid-cols-2 gap-2 md:gap-3 lg:grid-cols-3 [&>*:last-child]:col-span-2 lg:[&>*:last-child]:col-span-1">
         {ALL_CLASSIFICATIONS.filter((c) => selected.includes(c)).map((c) => {
           const bucket = report.byClassification[c];
 

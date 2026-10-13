@@ -33,7 +33,7 @@ export async function StatsRow({
     "rounded-2xl border border-neutral-200 bg-white p-3.5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900 lg:rounded-none lg:border-0 lg:bg-transparent lg:p-5 lg:shadow-none lg:[&:not(:first-child)]:border-l lg:[&:not(:first-child)]:border-neutral-200 dark:lg:bg-transparent dark:lg:[&:not(:first-child)]:border-neutral-800";
 
   return (
-    <div className="grid h-full gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:grid-rows-1">
+    <div className="grid h-full gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:grid-rows-1 lg:gap-0 lg:overflow-hidden lg:rounded-2xl lg:border lg:border-slate-200/70 lg:bg-white dark:lg:border-neutral-800 dark:lg:bg-neutral-900">
       <section className={base}>
         <div className="flex items-start gap-3">
           

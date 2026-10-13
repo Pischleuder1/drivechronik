@@ -266,7 +266,7 @@ export default async function ChargesPage({
       </section>
 
       {/* Kennzahlen */}
-      <section className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <section className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3 md:[&>*]:!border-t-neutral-200 dark:md:[&>*]:!border-t-neutral-800">
         <StatCard
           label={t("page.stats.sessions")}
             valueClassName="mt-1 text-base font-semibold tabular-nums"

@@ -233,7 +233,7 @@ export default async function VehiclePage({
         </div>
       </Panel>
 
-      <Panel className="mt-3 border-t-4 border-t-violet-500 dark:border-t-violet-400">
+      <Panel className="mt-3 border-neutral-300 bg-neutral-50/70 dark:border-neutral-700 dark:bg-neutral-900/70">
         <h2 className="text-[17px] font-semibold text-neutral-900 md:text-lg dark:text-neutral-100">
           {t("usage.title")}
         </h2>
@@ -255,7 +255,7 @@ export default async function VehiclePage({
         />
 
         <div className="mt-3 grid gap-3 md:mt-5 lg:grid-cols-2">
-          <div className="rounded-[16px] border border-neutral-200 border-t-[3px] border-t-sky-500 p-3 md:rounded-2xl md:border-t-4 md:p-4 dark:border-neutral-800 dark:border-t-sky-400">
+          <div className="rounded-[16px] border border-neutral-200 bg-white p-3 md:rounded-2xl md:p-4 dark:border-neutral-700 dark:bg-neutral-900">
             <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
               {t("usage.driving.title")}
             </h3>
@@ -321,7 +321,7 @@ export default async function VehiclePage({
             )}
           </div>
 
-          <div className="rounded-[16px] border border-neutral-200 border-t-[3px] border-t-emerald-500 p-3 md:rounded-2xl md:border-t-4 md:p-4 dark:border-neutral-800 dark:border-t-emerald-400">
+          <div className="rounded-[16px] border border-neutral-200 bg-white p-3 md:rounded-2xl md:p-4 dark:border-neutral-700 dark:bg-neutral-900">
             <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
               {t("usage.charging.title")}
             </h3>

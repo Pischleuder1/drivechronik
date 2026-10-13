@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.3] - 2026-10-13
+
+### Added
+- Added a redesigned desktop dashboard with a Tesla-inspired vehicle presentation.
+- Added dedicated desktop navigation and a responsive desktop application shell.
+- Added VIN-aware vehicle artwork for Model 3 Classic, Model 3 Highland, Model Y Classic and Model Y Juniper.
+- Added separate Model Y Juniper Standard and Premium vehicle artwork.
+- Added seven selectable vehicle exterior colors with 35 vehicle images.
+- Added vehicle appearance settings with persistent variant and exterior-color selection.
+- Added database fields for vehicle variant overrides and exterior colors.
+
+### Changed
+- Refined desktop dashboard cards, vehicle status information and tire-pressure presentation.
+- Standardized desktop card styling and navigation controls.
+- Preserved existing mobile layouts and workflows.
+
+### Fixed
+- Prevented ambiguous Model Y Juniper trims from being displayed as an incorrect vehicle variant.
+
+
+
 ## [0.9.2] - 2026-10-11
 
 ### Added

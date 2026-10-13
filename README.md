@@ -99,6 +99,26 @@ Weitere Möglichkeiten:
 
 Tessie & Co. sind gut, aber: Abo-Kosten, Feature-Überschneidung mit der Tesla-App und Bewegungsdaten bei einem Drittanbieter. TeslaMate loggt hervorragend, hat aber keinen Workflow zum **Wiederfinden und Nachweisen** einzelner Fahrten. DriveChronik ist die Produkt-Schicht darüber.
 
+### Desktop dashboard and vehicle appearance
+
+DriveChronik v0.9.3 introduces a redesigned desktop interface while
+preserving the existing mobile layouts and workflows.
+
+- Tesla-inspired desktop dashboard with dedicated navigation, vehicle status,
+  trip statistics and tire-pressure information.
+- VIN-aware artwork for Tesla Model 3 Classic, Model 3 Highland,
+  Model Y Classic and Model Y Juniper.
+- Separate Model Y Juniper Standard and Premium vehicle illustrations.
+- Seven selectable exterior colors: white, black, grey, Stealth Grey,
+  blue, red and silver.
+- Vehicle appearance settings for selecting the exterior color and,
+  where necessary, the Juniper variant.
+- Neutral vehicle illustration when the vehicle generation or variant
+  cannot be identified reliably.
+
+The appearance settings are stored per vehicle. They change the
+DriveChronik illustration, not the configuration of the actual Tesla.
+
 ## Features
 
 **Fahrtenarchiv (der Kern)**

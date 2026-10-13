@@ -5,6 +5,7 @@ import {
   MapPin,
 } from "lucide-react";
 import Image from "next/image";
+import { resolveVehicleImage } from "./VehicleArtwork";
 import { TeslaTpmsStrip } from "./TeslaTpmsStrip";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatKwh, formatOdometer, formatTime } from "@drivechronik/core";
@@ -219,12 +220,17 @@ export async function VehicleCard({
 
         <div className="relative flex flex-col items-center justify-end lg:translate-y-2">
           <Image
-            src="/vehicles/modely-side.webp"
-            alt="Tesla Model Y"
-            width={2172}
-            height={724}
+            src={resolveVehicleImage({
+              vin: status.vin,
+              model: status.model,
+              trimBadging: status.trimBadging,
+              variantOverride: status.variantOverride,
+            }) ?? "/vehicles/vehicle-neutral.svg"}
+            alt={status.displayName}
+            width={1448}
+            height={1086}
             sizes="(min-width: 1024px) 50vw, 100vw"
-            className="hidden h-auto w-full max-w-none object-contain drop-shadow-[0_20px_8px_rgba(15,23,42,0.20)] lg:mb-2 lg:block"
+            className="hidden h-auto max-h-[265px] w-full object-contain drop-shadow-[0_20px_8px_rgba(15,23,42,0.20)] lg:mb-2 lg:block"
           />
           <TeslaTpmsStrip
             fl={status.tpmsFlBar}

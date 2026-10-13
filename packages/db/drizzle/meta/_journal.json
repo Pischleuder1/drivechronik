@@ -141,6 +141,13 @@
       "when": 1790341769687,
       "tag": "0019_normal_black_tarantula",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1791911179136,
+      "tag": "0020_mute_fantastic_four",
+      "breakpoints": true
     }
   ]
 }

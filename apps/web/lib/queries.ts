@@ -47,6 +47,8 @@ export interface VehicleDetail {
   licensePlate: string | null;
   efficiencyKwhPerKm: number | null;
   efficiencyOverrideKwhPerKm: number | null;
+  variantOverride: string | null;
+  exteriorColor: string | null;
 }
 
 /** All vehicles with the full detail set shown on the settings page. */
@@ -60,6 +62,8 @@ export async function getVehiclesDetailed(): Promise<VehicleDetail[]> {
       licensePlate: vehicles.licensePlate,
       efficiencyKwhPerKm: vehicles.efficiencyKwhPerKm,
       efficiencyOverrideKwhPerKm: vehicles.efficiencyOverrideKwhPerKm,
+      variantOverride: vehicles.variantOverride,
+      exteriorColor: vehicles.exteriorColor,
     })
     .from(vehicles)
     .orderBy(asc(vehicles.id));

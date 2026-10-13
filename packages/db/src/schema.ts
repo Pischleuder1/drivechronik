@@ -63,6 +63,11 @@ export const vehicles = pgTable(
     vin: text("vin"),
     model: text("model"),
     trimBadging: text("trim_badging"),
+    // Benutzerdefinierte Fahrzeugvariante.
+    // Wird nicht durch den TeslaMate-Sync überschrieben.
+    variantOverride: text("variant_override"),
+    // Tatsächliche Außenfarbe, soweit bekannt.
+    exteriorColor: text("exterior_color"),
     licensePlate: text("license_plate"),
     efficiencyKwhPerKm: doublePrecision("efficiency_kwh_per_km"),
     // User-owned Fallback (Vision §15.3): greift nur solange TeslaMate die

@@ -360,3 +360,143 @@ export async function updateReportIdentity(
   return { ok: true };
 }
 
+
+// Manuelle Fahrzeugdarstellung, unabhängig vom TeslaMate-Sync.
+const vehicleAppearanceSchema = z.object({
+  vehicleId: z.coerce.number().int().positive(),
+  variantOverride: z.enum([
+    "",
+    "model-y-juniper-standard",
+    "model-y-juniper-premium",
+  ]),
+  exteriorColor: z.enum([
+    "",
+    "white",
+    "black",
+    "grey",
+    "stealth_grey",
+    "blue",
+    "red",
+    "silver",
+    "other",
+  ]),
+});
+
+export interface VehicleAppearanceResult {
+  ok: boolean;
+  error?: string;
+}
+
+export async function updateVehicleAppearance(
+  _prev: VehicleAppearanceResult,
+  formData: FormData,
+): Promise<VehicleAppearanceResult> {
+  const user = await validateSession();
+
+  if (!user) {
+    return { ok: false, error: "Nicht angemeldet." };
+  }
+
+  const parsed = vehicleAppearanceSchema.safeParse({
+    vehicleId: formData.get("vehicleId"),
+    variantOverride: formData.get("variantOverride") ?? "",
+    exteriorColor: formData.get("exteriorColor") ?? "",
+  });
+
+  if (!parsed.success) {
+    return { ok: false, error: "Ungültige Fahrzeugkonfiguration." };
+  }
+
+  const { vehicleId, variantOverride, exteriorColor } = parsed.data;
+
+  const result = await db.transaction(async (tx) => {
+    const rows = await tx
+      .select({
+        vin: vehicles.vin,
+        model: vehicles.model,
+        variantOverride: vehicles.variantOverride,
+        exteriorColor: vehicles.exteriorColor,
+      })
+      .from(vehicles)
+      .where(eq(vehicles.id, vehicleId))
+      .limit(1);
+
+    const before = rows[0];
+    if (!before) return false;
+
+    if (variantOverride) {
+      const vin = before.vin?.trim().toUpperCase() ?? "";
+      const vinModel =
+        /^[A-HJ-NPR-Z0-9]{17}$/.test(vin) ? vin[3] : null;
+      const model = (before.model ?? "")
+        .trim()
+        .toUpperCase()
+        .replace(/[\s_-]+/g, "");
+
+      const yearCodes: Record<string, number> = {
+        L: 2020, M: 2021, N: 2022, P: 2023,
+        R: 2024, S: 2025, T: 2026, V: 2027,
+        W: 2028, X: 2029, Y: 2030,
+      };
+
+      const modelYear = vinModel
+        ? yearCodes[vin[9]]
+        : undefined;
+
+      const isModelY =
+        vinModel === "Y" ||
+        (vinModel == null && ["Y", "MODELY"].includes(model));
+
+      if (!isModelY || modelYear == null || modelYear < 2026) {
+        return false;
+      }
+    }
+
+    const nextVariant = variantOverride || null;
+    const nextColor = exteriorColor || null;
+
+    await tx
+      .update(vehicles)
+      .set({
+        variantOverride: nextVariant,
+        exteriorColor: nextColor,
+      })
+      .where(eq(vehicles.id, vehicleId));
+
+    const changes = [
+      {
+        field: "variant_override",
+        oldValue: before.variantOverride,
+        newValue: nextVariant,
+      },
+      {
+        field: "exterior_color",
+        oldValue: before.exteriorColor,
+        newValue: nextColor,
+      },
+    ].filter((change) => change.oldValue !== change.newValue);
+
+    for (const change of changes) {
+      await appendAuditEntry(tx, {
+        entityType: "vehicle",
+        entityId: vehicleId,
+        field: change.field,
+        oldValue: change.oldValue,
+        newValue: change.newValue,
+        changedBy: user.username,
+      });
+    }
+
+    return true;
+  });
+
+  if (!result) {
+    return { ok: false, error: "Fahrzeug oder Variante ungültig." };
+  }
+
+  revalidatePath("/settings");
+  revalidatePath("/");
+  revalidatePath("/vehicle");
+
+  return { ok: true };
+}

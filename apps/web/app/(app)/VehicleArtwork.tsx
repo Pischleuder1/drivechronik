@@ -1,8 +1,11 @@
 import { CarFront } from "lucide-react";
 
 export type VehicleArtworkVariant =
+  | "model-3-classic"
+  | "model-3-highland"
+  | "model-y-classic"
   | "model-y-juniper"
-  | "model-y"
+  | "model-y-unknown-generation"
   | "tesla"
   | "unknown";
 
@@ -21,11 +24,16 @@ function normalizeModel(model: string | null): string {
  * erweitert werden.
  */
 export function vehicleModelYearFromVin(vin: string | null): number | null {
-  if (!vin || vin.length < 10) return null;
+  const normalizedVin = vin?.trim().toUpperCase() ?? "";
+  if (!/^[A-HJ-NPR-Z0-9]{17}$/.test(normalizedVin)) return null;
 
-  const code = vin.trim().toUpperCase()[9];
+  const code = normalizedVin[9];
 
   const years: Record<string, number> = {
+    L: 2020,
+    M: 2021,
+    N: 2022,
+    P: 2023,
     R: 2024,
     S: 2025,
     T: 2026,
@@ -45,34 +53,83 @@ export function resolveVehicleArtworkVariant({
   vin: string | null;
   model: string | null;
 }): VehicleArtworkVariant {
+  const normalizedVin = vin?.trim().toUpperCase() ?? "";
+  const validVin = /^[A-HJ-NPR-Z0-9]{17}$/.test(normalizedVin);
+
+  const vinModel = validVin ? normalizedVin[3] : null;
   const normalizedModel = normalizeModel(model);
-  const modelYear = vehicleModelYearFromVin(vin);
 
-  const isModelY =
-    normalizedModel === "Y" ||
-    normalizedModel === "MODELY";
+  const resolvedModel =
+    vinModel === "3" || vinModel === "Y"
+      ? vinModel
+      : normalizedModel === "3" || normalizedModel === "MODEL3"
+        ? "3"
+        : normalizedModel === "Y" || normalizedModel === "MODELY"
+          ? "Y"
+          : null;
 
-  /*
-   * Ab Modelljahr 2026 kann ein Model Y in unserem aktuellen
-   * Einsatzbereich sicher als neue Juniper-Generation behandelt
-   * werden.
-   *
-   * Modelljahr 2025 behandeln wir zunächst bewusst nicht automatisch
-   * als Juniper, da hier Alt- und Neugeneration vorkommen können.
-   */
-  if (isModelY && modelYear != null && modelYear >= 2026) {
-    return "model-y-juniper";
+  const year = vehicleModelYearFromVin(vin);
+
+  if (resolvedModel === "3") {
+    if (year == null) return "tesla";
+    return year >= 2024 ? "model-3-highland" : "model-3-classic";
   }
 
-  if (isModelY) {
-    return "model-y";
+  if (resolvedModel === "Y") {
+    if (year == null) return "model-y-unknown-generation";
+    if (year <= 2024) return "model-y-classic";
+    if (year >= 2026) return "model-y-juniper";
+    return "model-y-unknown-generation";
   }
 
-  if (normalizedModel.length > 0) {
-    return "tesla";
-  }
+  return normalizedModel || validVin ? "tesla" : "unknown";
+}
 
-  return "unknown";
+
+export function resolveVehicleImage({
+  vin,
+  model,
+  trimBadging,
+  variantOverride,
+}: {
+  vin: string | null;
+  model: string | null;
+  trimBadging: string | null;
+  variantOverride: string | null;
+}): string | null {
+  const variant = resolveVehicleArtworkVariant({ vin, model });
+  const trim = (trimBadging ?? "").trim().toUpperCase();
+
+  switch (variant) {
+    case "model-3-classic":
+      return "/vehicles/variants/model3-classic.webp";
+
+    case "model-3-highland":
+      return "/vehicles/variants/model3-highland.webp";
+
+    case "model-y-classic":
+      return "/vehicles/variants/modely-classic.webp";
+
+    case "model-y-juniper":
+      if (variantOverride === "model-y-juniper-standard") {
+        return "/vehicles/variants/modely-juniper-standard.webp";
+      }
+      if (variantOverride === "model-y-juniper-premium") {
+        return "/vehicles/variants/modely-juniper-premium.webp";
+      }
+      if (/STANDARD/.test(trim)) {
+        return "/vehicles/variants/modely-juniper-standard.webp";
+      }
+      if (/PREMIUM/.test(trim)) {
+        return "/vehicles/variants/modely-juniper-premium.webp";
+      }
+      // RWD allein unterscheidet Standard und Premium nicht.
+      // Bei unklarer Ausstattung keine falsche Variante darstellen.
+      return null;
+
+    default:
+      return null;
+  }
 }
 
 export function VehicleArtwork({

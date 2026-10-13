@@ -1,0 +1,1 @@
+Entwürfe für DriveChronik. Weiß, transparent und Dreiviertelperspektive. Generierte Grafiken sind noch nicht als baureihengetreu geprüft. Erst visuell prüfen, vor VIN-gestützter Zuordnung einsetzen.

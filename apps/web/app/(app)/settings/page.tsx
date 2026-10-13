@@ -24,6 +24,7 @@ import { getSoftwareUpdates } from "../../../lib/softwareUpdates";
 import { LogoutButton } from "./LogoutButton";
 import { ResyncButton } from "./ResyncButton";
 import { EfficiencyOverrideForm } from "./EfficiencyOverrideForm";
+import { VehicleAppearanceForm } from "./VehicleAppearanceForm";
 import { PasswordChangeForm } from "./PasswordChangeForm";
 import { ReimbursementRateForm } from "./ReimbursementRateForm";
 import { ReportIdentityForm } from "./ReportIdentityForm";
@@ -229,6 +230,14 @@ export default async function SettingsPage() {
                     : null
                 }
                 teslaMateHasLearned={v.efficiencyKwhPerKm != null}
+              />
+              <VehicleAppearanceForm
+                vehicleId={v.id}
+                variantOverride={v.variantOverride}
+                exteriorColor={v.exteriorColor}
+                isModelY={["Y", "MODELY"].includes(
+                  (v.model ?? "").trim().toUpperCase().replace(/\s+/g, "")
+                )}
               />
             </div>
           ))}

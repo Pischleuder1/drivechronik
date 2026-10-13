@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CarFront, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { CarFront, PanelLeftClose } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { DesktopNav } from "./DesktopNav";
@@ -51,16 +51,16 @@ export function DesktopShell({
         {expanded && (
           <BrandWordmark size="xs" />
         )}
-        <button
+        {expanded && <button
           type="button"
-          onClick={() => setExpanded(!expanded)}
+          onClick={() => setExpanded(false)}
           aria-label={expanded ? "Navigation einklappen" : "Navigation ausklappen"}
           aria-expanded={expanded}
           title={expanded ? "Navigation einklappen" : "Navigation ausklappen"}
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-neutral-500 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
         >
-          {expanded ? <PanelLeftClose size={19} /> : <PanelLeftOpen size={19} />}
-        </button>
+          <PanelLeftClose size={19} />
+        </button>}
       </div>
 
       {expanded && activeVehicleId !== undefined && (

@@ -738,7 +738,7 @@ export function Planner({
 
           {/* Fahrparameter */}
           <div className="grid grid-cols-2 gap-2 sm:col-span-2 md:gap-3 lg:grid-cols-4">
-            <div className="rounded-[16px] border border-t-[3px] border-neutral-200 border-t-blue-500 bg-white p-3 shadow-sm md:rounded-2xl md:border-t-4 md:p-4 dark:border-neutral-800 dark:border-t-blue-500 dark:bg-neutral-900">
+            <div className="rounded-[16px] border border-neutral-200 bg-white p-3 shadow-sm md:rounded-2xl md:p-4 dark:border-neutral-800 dark:bg-neutral-900">
               <label
                 htmlFor="planner-soc"
                 className="block text-xs font-medium text-neutral-500 dark:text-neutral-400"
@@ -758,7 +758,7 @@ export function Planner({
               />
             </div>
 
-            <div className="rounded-[16px] border border-t-[3px] border-neutral-200 border-t-sky-500 bg-white p-3 shadow-sm md:rounded-2xl md:border-t-4 md:p-4 dark:border-neutral-800 dark:border-t-sky-500 dark:bg-neutral-900">
+            <div className="rounded-[16px] border border-neutral-200 bg-white p-3 shadow-sm md:rounded-2xl md:p-4 dark:border-neutral-800 dark:bg-neutral-900">
               <label
                 htmlFor="planner-target-soc"
                 className="block text-xs font-medium text-neutral-500 dark:text-neutral-400"
@@ -781,7 +781,7 @@ export function Planner({
               </p>
             </div>
 
-            <div className="rounded-[16px] border border-t-[3px] border-neutral-200 border-t-cyan-500 bg-white p-3 shadow-sm md:rounded-2xl md:border-t-4 md:p-4 dark:border-neutral-800 dark:border-t-cyan-500 dark:bg-neutral-900">
+            <div className="rounded-[16px] border border-neutral-200 bg-white p-3 shadow-sm md:rounded-2xl md:p-4 dark:border-neutral-800 dark:bg-neutral-900">
               <label
                 htmlFor="planner-temp"
                 className="block text-xs font-medium text-neutral-500 dark:text-neutral-400"
@@ -799,7 +799,7 @@ export function Planner({
               />
             </div>
 
-            <div className="rounded-[16px] border border-t-[3px] border-neutral-200 border-t-blue-400 bg-white p-3 shadow-sm md:rounded-2xl md:border-t-4 md:p-4 dark:border-neutral-800 dark:border-t-blue-400 dark:bg-neutral-900">
+            <div className="rounded-[16px] border border-neutral-200 bg-white p-3 shadow-sm md:rounded-2xl md:p-4 dark:border-neutral-800 dark:bg-neutral-900">
               <label
                 htmlFor="planner-capacity"
                 className="block text-xs font-medium text-neutral-500 dark:text-neutral-400"

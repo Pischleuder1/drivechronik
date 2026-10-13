@@ -36,15 +36,15 @@ describe("VIN-Fahrzeugerkennung", () => {
       model: "Model 3",
     })).toBe("model-3-classic");
 
-    expect(image("3", "P")).toContain("model3-classic.webp");
+    expect(image("3", "P")).toContain("model3-classic-white.webp");
   });
 
   it("ordnet Model 3 von 2026 Highland zu", () => {
-    expect(image("3", "T")).toContain("model3-highland.webp");
+    expect(image("3", "T")).toContain("model3-highland-white.webp");
   });
 
   it("ordnet Model Y von 2023 Classic zu", () => {
-    expect(image("Y", "P")).toContain("modely-classic.webp");
+    expect(image("Y", "P")).toContain("modely-classic-white.webp");
   });
 
   it("erkennt die Juniper-Generation 2026", () => {
@@ -57,13 +57,13 @@ describe("VIN-Fahrzeugerkennung", () => {
   it("verwendet die manuelle Standard-Auswahl", () => {
     expect(
       image("Y", "T", "RWD", "model-y-juniper-standard"),
-    ).toContain("modely-juniper-standard.webp");
+    ).toContain("modely-juniper-standard-white.webp");
   });
 
   it("verwendet die manuelle Premium-Auswahl", () => {
     expect(
       image("Y", "T", "RWD", "model-y-juniper-premium"),
-    ).toContain("modely-juniper-premium.webp");
+    ).toContain("modely-juniper-premium-white.webp");
   });
 
   it("interpretiert RWD nicht automatisch als Premium", () => {
@@ -72,18 +72,18 @@ describe("VIN-Fahrzeugerkennung", () => {
 
   it("übernimmt eindeutige TeslaMate-Ausstattungsangaben", () => {
     expect(image("Y", "T", "Standard")).toContain(
-      "modely-juniper-standard.webp",
+      "modely-juniper-standard-white.webp",
     );
 
     expect(image("Y", "T", "Premium")).toContain(
-      "modely-juniper-premium.webp",
+      "modely-juniper-premium-white.webp",
     );
   });
 
   it("ignoriert Juniper-Overrides bei älteren Fahrzeugen", () => {
     expect(
       image("Y", "P", "RWD", "model-y-juniper-standard"),
-    ).toContain("modely-classic.webp");
+    ).toContain("modely-classic-white.webp");
   });
 
   it("vermeidet Zuordnungen bei unbekanntem Modelljahr", () => {
@@ -95,102 +95,68 @@ describe("VIN-Fahrzeugerkennung", () => {
   });
 });
 
-describe("Farbabhängige Fahrzeugbilder", () => {
-  const modelY2026 = "5YJYAAAAATAAAAAAA";
-
-  it("zeigt Juniper Standard in Stealth Grey", () => {
-    expect(resolveVehicleImage({
-      vin: modelY2026,
+describe("Fahrzeug-Farbmatrix", () => {
+  const variants = [
+    { name: "model3-classic", vin: vin("3", "P"), model: "3", override: null },
+    { name: "model3-highland", vin: vin("3", "T"), model: "3", override: null },
+    { name: "modely-classic", vin: vin("Y", "P"), model: "Y", override: null },
+    {
+      name: "modely-juniper-standard",
+      vin: vin("Y", "T"),
       model: "Y",
+      override: "model-y-juniper-standard",
+    },
+    {
+      name: "modely-juniper-premium",
+      vin: vin("Y", "T"),
+      model: "Y",
+      override: "model-y-juniper-premium",
+    },
+  ] as const;
+
+  const colors = [
+    ["white", "white"],
+    ["black", "black"],
+    ["grey", "grey"],
+    ["stealth_grey", "stealth-grey"],
+    ["blue", "blue"],
+    ["red", "red"],
+    ["silver", "silver"],
+  ] as const;
+
+  for (const variant of variants) {
+    for (const [color, filenameColor] of colors) {
+      it(`${variant.name} in ${color}`, () => {
+        expect(resolveVehicleImage({
+          vin: variant.vin,
+          model: variant.model,
+          trimBadging: "RWD",
+          variantOverride: variant.override,
+          exteriorColor: color,
+        })).toBe(
+          `/vehicles/variants/${variant.name}-${filenameColor}.webp`
+        );
+      });
+    }
+  }
+
+  it("verwendet Weiß bei unbekannter Farbe", () => {
+    expect(resolveVehicleImage({
+      vin: vin("3", "T"),
+      model: "3",
       trimBadging: "RWD",
-      variantOverride: "model-y-juniper-standard",
-      exteriorColor: "stealth_grey",
-    })).toBe(
-      "/vehicles/variants/modely-juniper-standard-stealth-grey.webp"
-    );
+      variantOverride: null,
+      exteriorColor: "other",
+    })).toBe("/vehicles/variants/model3-highland-white.webp");
   });
 
-  it("zeigt Juniper Premium in Stealth Grey", () => {
+  it("zeigt kein falsches Juniper-Bild bei RWD ohne Variantenangabe", () => {
     expect(resolveVehicleImage({
-      vin: modelY2026,
-      model: "Y",
-      trimBadging: "RWD",
-      variantOverride: "model-y-juniper-premium",
-      exteriorColor: "stealth_grey",
-    })).toBe(
-      "/vehicles/variants/modely-juniper-premium-stealth-grey.webp"
-    );
-  });
-
-  it("verwendet bei Blau weiterhin das weiße Bild", () => {
-    expect(resolveVehicleImage({
-      vin: modelY2026,
-      model: "Y",
-      trimBadging: "RWD",
-      variantOverride: "model-y-juniper-standard",
-      exteriorColor: "blue",
-    })).toBe(
-      "/vehicles/variants/modely-juniper-standard.webp"
-    );
-  });
-
-  it("behält bei unbekanntem Trim den neutralen Fallback", () => {
-    expect(resolveVehicleImage({
-      vin: modelY2026,
+      vin: vin("Y", "T"),
       model: "Y",
       trimBadging: "RWD",
       variantOverride: null,
-      exteriorColor: "stealth_grey",
-    })).toBeNull();
-  });
-});
-
-describe("Farbabhängige Fahrzeugbilder", () => {
-  const modelY2026 = "5YJYAAAAATAAAAAAA";
-
-  it("zeigt Juniper Standard in Stealth Grey", () => {
-    expect(resolveVehicleImage({
-      vin: modelY2026,
-      model: "Y",
-      trimBadging: "RWD",
-      variantOverride: "model-y-juniper-standard",
-      exteriorColor: "stealth_grey",
-    })).toBe(
-      "/vehicles/variants/modely-juniper-standard-stealth-grey.webp"
-    );
-  });
-
-  it("zeigt Juniper Premium in Stealth Grey", () => {
-    expect(resolveVehicleImage({
-      vin: modelY2026,
-      model: "Y",
-      trimBadging: "RWD",
-      variantOverride: "model-y-juniper-premium",
-      exteriorColor: "stealth_grey",
-    })).toBe(
-      "/vehicles/variants/modely-juniper-premium-stealth-grey.webp"
-    );
-  });
-
-  it("verwendet bei Blau weiterhin das weiße Bild", () => {
-    expect(resolveVehicleImage({
-      vin: modelY2026,
-      model: "Y",
-      trimBadging: "RWD",
-      variantOverride: "model-y-juniper-standard",
-      exteriorColor: "blue",
-    })).toBe(
-      "/vehicles/variants/modely-juniper-standard.webp"
-    );
-  });
-
-  it("behält bei unbekanntem Trim den neutralen Fallback", () => {
-    expect(resolveVehicleImage({
-      vin: modelY2026,
-      model: "Y",
-      trimBadging: "RWD",
-      variantOverride: null,
-      exteriorColor: "stealth_grey",
+      exteriorColor: "red",
     })).toBeNull();
   });
 });

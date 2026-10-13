@@ -91,14 +91,28 @@ export function resolveVehicleImage({
   model,
   trimBadging,
   variantOverride,
+  exteriorColor,
 }: {
   vin: string | null;
   model: string | null;
   trimBadging: string | null;
   variantOverride: string | null;
+  exteriorColor?: string | null;
 }): string | null {
   const variant = resolveVehicleArtworkVariant({ vin, model });
   const trim = (trimBadging ?? "").trim().toUpperCase();
+
+  // Nur ausdrücklich vorhandene Farbvarianten verwenden.
+  const color = exteriorColor === "stealth_grey"
+    ? "stealth-grey"
+    : "white";
+
+  const juniperImage = (version: "standard" | "premium"): string => {
+    if (color === "stealth-grey") {
+      return `/vehicles/variants/modely-juniper-${version}-stealth-grey.webp`;
+    }
+    return `/vehicles/variants/modely-juniper-${version}.webp`;
+  };
 
   switch (variant) {
     case "model-3-classic":
@@ -112,16 +126,16 @@ export function resolveVehicleImage({
 
     case "model-y-juniper":
       if (variantOverride === "model-y-juniper-standard") {
-        return "/vehicles/variants/modely-juniper-standard.webp";
+        return juniperImage("standard");
       }
       if (variantOverride === "model-y-juniper-premium") {
-        return "/vehicles/variants/modely-juniper-premium.webp";
+        return juniperImage("premium");
       }
       if (/STANDARD/.test(trim)) {
-        return "/vehicles/variants/modely-juniper-standard.webp";
+        return juniperImage("standard");
       }
       if (/PREMIUM/.test(trim)) {
-        return "/vehicles/variants/modely-juniper-premium.webp";
+        return juniperImage("premium");
       }
       // RWD allein unterscheidet Standard und Premium nicht.
       // Bei unklarer Ausstattung keine falsche Variante darstellen.

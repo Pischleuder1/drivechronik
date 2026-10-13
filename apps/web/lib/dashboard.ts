@@ -21,6 +21,7 @@ export interface VehicleStatusRow {
   model: string | null;
   trimBadging: string | null;
   variantOverride: string | null;
+  exteriorColor: string | null;
   ts: Date | null;
   lat: number | null;
   lon: number | null;
@@ -53,6 +54,7 @@ export async function getVehicleStatus(
       model: vehicles.model,
       trimBadging: vehicles.trimBadging,
       variantOverride: vehicles.variantOverride,
+      exteriorColor: vehicles.exteriorColor,
       ts: vehicleStatus.ts,
       lat: vehicleStatus.lat,
       lon: vehicleStatus.lon,

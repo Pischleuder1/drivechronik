@@ -225,6 +225,7 @@ export async function VehicleCard({
               model: status.model,
               trimBadging: status.trimBadging,
               variantOverride: status.variantOverride,
+              exteriorColor: status.exteriorColor,
             }) ?? "/vehicles/vehicle-neutral.svg"}
             alt={status.displayName}
             width={1448}

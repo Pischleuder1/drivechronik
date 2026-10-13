@@ -5,7 +5,6 @@ import {
   updateVehicleAppearance,
   type VehicleAppearanceResult,
 } from "../../../lib/actions/settings";
-import { buttonClasses } from "../../../components/ui/Button";
 
 const initialState: VehicleAppearanceResult = { ok: false };
 
@@ -79,7 +78,7 @@ export function VehicleAppearanceForm({
         <button
           type="submit"
           disabled={pending}
-          className={buttonClasses("secondary", "sm")}
+          className="inline-flex min-h-9 items-center justify-center rounded-lg bg-rose-800/50 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-rose-800/65 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-rose-800/50 dark:hover:bg-rose-700/65"
         >
           {pending ? "Speichert ..." : "Fahrzeugkonfiguration speichern"}
         </button>
@@ -96,11 +95,6 @@ export function VehicleAppearanceForm({
           </span>
         )}
       </div>
-
-      <p className="mt-2 text-xs text-neutral-500">
-        Die Startseite zeigt das Fahrzeug weiterhin in Weiß.
-        Die gewählte Variante bestimmt die Fahrzeugfront.
-      </p>
     </form>
   );
 }

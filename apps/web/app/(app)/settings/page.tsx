@@ -232,6 +232,7 @@ export default async function SettingsPage() {
                 teslaMateHasLearned={v.efficiencyKwhPerKm != null}
               />
               <VehicleAppearanceForm
+                key={`${v.id}-${v.variantOverride ?? "auto"}-${v.exteriorColor ?? "auto"}`}
                 vehicleId={v.id}
                 variantOverride={v.variantOverride}
                 exteriorColor={v.exteriorColor}

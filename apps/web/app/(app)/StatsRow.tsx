@@ -36,7 +36,7 @@ export async function StatsRow({
     <div className="grid h-full gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:grid-rows-1 lg:gap-0 lg:overflow-hidden lg:rounded-2xl lg:border lg:border-slate-200/70 lg:bg-white dark:lg:border-neutral-800 dark:lg:bg-neutral-900">
       <section className={base}>
         <div className="flex items-start gap-3">
-          
+
           <div className="min-w-0">
             <p className="text-xs text-neutral-500 dark:text-neutral-400">
               {t("stats.today")}
@@ -53,7 +53,7 @@ export async function StatsRow({
 
       <section className={base}>
         <div className="flex items-start gap-3">
-          
+
           <div className="min-w-0">
             <p className="text-xs text-neutral-500 dark:text-neutral-400">
               {t("stats.thisWeek")}
@@ -70,7 +70,7 @@ export async function StatsRow({
 
       <section className={base}>
         <div className="flex items-start gap-3">
-          
+
           <div className="min-w-0">
             <p className="text-xs text-neutral-500 dark:text-neutral-400">
               {t("stats.lastCharge")}
@@ -105,7 +105,7 @@ export async function StatsRow({
         }`}
       >
         <div className="flex items-start gap-3">
-          
+
 
           <div className="min-w-0">
             <p className="text-xs text-neutral-500 dark:text-neutral-400">

@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.4] - 2026-11-17
+
+### Fixed
+
+- Filtered stationary TeslaMate drive artifacts that can be created when a vehicle wakes without actually moving.
+- Added conservative artifact detection using duration, distance, maximum speed and GPS movement so genuine short manoeuvres remain intact.
+- Added cleanup of previously imported stationary artifact drives, including route points, drive tags and journey memberships.
+- Added worker logging and regression tests for stationary TeslaMate drive artifacts.
+
+
 ## [0.9.3] - 2026-10-13
 
 ### Added

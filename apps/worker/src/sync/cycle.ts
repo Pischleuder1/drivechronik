@@ -62,6 +62,9 @@ export async function runSyncCycle(
       (driveResult.deletedZombies > 0
         ? `, ${driveResult.deletedZombies} zombie(s) entfernt`
         : "") +
+      (driveResult.deletedArtifacts > 0
+        ? `, ${driveResult.deletedArtifacts} stationäre Artefaktfahrt(en) entfernt`
+        : "") +
       `, ${routePointsResult.pointsInserted} route point(s) (${routePointsResult.drivesProcessed} drive(s))` +
       `, ${chargeResult.upserted} charge session(s)` +
       (chargePointsResult.pointsInserted > 0

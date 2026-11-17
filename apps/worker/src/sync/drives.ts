@@ -1,5 +1,19 @@
-import { and, eq, inArray, isNull, sql } from "drizzle-orm";
-import { appendAuditEntries, drives, type Db } from "@drivechronik/db";
+import {
+  and,
+  eq,
+  inArray,
+  isNotNull,
+  isNull,
+  lt,
+  lte,
+  sql,
+} from "drizzle-orm";
+import {
+  appendAuditEntries,
+  drives,
+  journeyItems,
+  type Db,
+} from "@drivechronik/db";
 import { deriveDriveEnergy, matchPlace, type MatchablePlace } from "@drivechronik/core";
 import type {
   SourceDrive,
@@ -7,6 +21,10 @@ import type {
 } from "../dataSource/vehicleDataSource.js";
 import { getWatermark, recordSyncRun } from "./state.js";
 import type { VehicleRef } from "./vehicles.js";
+import {
+  isStationaryDriveArtifact,
+  isStationaryDriveArtifactCandidate,
+} from "./driveArtifacts.js";
 
 const ENTITY = "drives";
 // Overlap-Rescan: TeslaMate repariert/merged Fahrten gelegentlich nachträglich.
@@ -17,6 +35,7 @@ const CHUNK_SIZE = 200;
 export interface DriveSyncResult {
   upserted: number;
   deletedZombies: number;
+  deletedArtifacts: number;
   upsertedRefs: UpsertedDriveRef[];
 }
 
@@ -43,7 +62,36 @@ export async function syncDrives(
 
     const completed = await dataSource.fetchCompletedDrivesSince(since);
     const inProgress = await dataSource.fetchInProgressDrives();
-    const rows = [...completed, ...inProgress];
+
+    // TeslaMate kann beim Aufwachen extrem kurze "Fahrten" erzeugen, obwohl
+    // sich das Fahrzeug tatsächlich nicht bewegt hat. Nur eindeutig
+    // stationäre Artefakte werden aus dem Completed-Sync ausgeschlossen.
+    const completedArtifacts =
+      source === "teslamate"
+        ? completed.filter(isStationaryDriveArtifact)
+        : [];
+
+    const artifactSourceIds = new Set(
+      completedArtifacts.map((drive) => String(drive.id)),
+    );
+
+    const completedForSync = completed.filter(
+      (drive) => !artifactSourceIds.has(String(drive.id)),
+    );
+
+    if (completedArtifacts.length > 0) {
+      console.warn(
+        `[sync:drives] ${completedArtifacts.length} stationäre TeslaMate-Artefaktfahrt(en) übersprungen`,
+      );
+    }
+
+    // Räumt auch bereits früher importierte eindeutige Artefakte auf.
+    const deletedArtifacts = await deleteLocalStationaryDriveArtifacts(
+      db,
+      source,
+    );
+
+    const rows = [...completedForSync, ...inProgress];
 
     let upserted = 0;
     const upsertedRefs: UpsertedDriveRef[] = [];
@@ -133,7 +181,12 @@ export async function syncDrives(
       watermarkTs,
       rowsUpserted: upserted,
     });
-    return { upserted, deletedZombies, upsertedRefs };
+    return {
+      upserted,
+      deletedZombies,
+      deletedArtifacts,
+      upsertedRefs,
+    };
   } catch (err) {
     await recordSyncRun(db, source, ENTITY, {
       status: "error",
@@ -215,6 +268,91 @@ function toDriveValues(
     syncedAt: new Date(),
   };
 }
+
+/**
+ * Entfernt bereits gespeicherte stationäre TeslaMate-Scheinfahrten.
+ *
+ * Die Vorauswahl in SQL ist bewusst eng; die endgültige Entscheidung trifft
+ * dieselbe GPS-basierte Prüffunktion wie beim Import.
+ */
+async function deleteLocalStationaryDriveArtifacts(
+  db: Db,
+  source: string,
+): Promise<number> {
+  if (source !== "teslamate") return 0;
+
+  const candidates = await db
+    .select({
+      id: drives.id,
+      sourceId: drives.sourceId,
+      startTime: drives.startTime,
+      endTime: drives.endTime,
+      distanceKm: drives.distanceKm,
+      speedMaxKmh: drives.speedMaxKmh,
+      startLat: drives.startLat,
+      startLon: drives.startLon,
+      endLat: drives.endLat,
+      endLon: drives.endLon,
+    })
+    .from(drives)
+    .where(
+      and(
+        eq(drives.source, source),
+        isNotNull(drives.endTime),
+        lt(drives.distanceKm, 0.1),
+        lt(drives.durationSeconds, 30),
+        lte(drives.speedMaxKmh, 0),
+      ),
+    );
+
+  const toDelete = candidates.filter(isStationaryDriveArtifactCandidate);
+
+  if (toDelete.length === 0) return 0;
+
+  await db.transaction(async (tx) => {
+    const driveIds = toDelete.map((drive) => drive.id);
+
+    // journey_items.item_id ist absichtlich polymorph und besitzt deshalb
+    // keinen FK auf drives. Zugehörige Drive-Mitgliedschaften müssen vor dem
+    // Löschen explizit entfernt werden, damit keine verwaisten Reise-Items
+    // zurückbleiben.
+    await tx.delete(journeyItems).where(
+      and(
+        eq(journeyItems.itemType, "drive"),
+        inArray(journeyItems.itemId, driveIds),
+      ),
+    );
+
+    await tx.delete(drives).where(
+      inArray(drives.id, driveIds),
+    );
+
+    await appendAuditEntries(
+      tx,
+      toDelete.map((drive) => ({
+        entityType: "drive",
+        entityId: drive.id,
+        field: "deleted",
+        oldValue: drive.sourceId,
+        newValue: null,
+        changedBy: `system:${source}-sync`,
+        eventType: "delete",
+        metadata: {
+          reason: `${source}_stationary_artifact`,
+          source,
+          sourceId: drive.sourceId,
+        },
+      })),
+    );
+  });
+
+  console.warn(
+    `[sync:drives] ${toDelete.length} stationäre ${source}-Artefaktfahrt(en) entfernt`,
+  );
+
+  return toDelete.length;
+}
+
 
 /**
  * TeslaMate verwirft gelegentlich Fahrten nachträglich (z.B. Rangier-Artefakte).

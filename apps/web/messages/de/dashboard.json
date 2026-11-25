@@ -16,7 +16,7 @@
     "chargingNow": "Lädt gerade",
     "chargingNowWithEnergy": "Lädt gerade · {energy}",
     "parked": "Parkt",
-    "parkedSince": "Parkt seit {time}",
+    "parkedSince": "Parkt seit {time} Uhr",
     "statusUnknown": "Status unbekannt",
     "ratedRangeTitle": "Typreichweite laut Fahrzeug (rated range)",
     "socUnknown": "Ladestand unbekannt",

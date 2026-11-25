@@ -8,8 +8,9 @@ import Image from "next/image";
 import { resolveVehicleImage } from "./VehicleArtwork";
 import { TeslaTpmsStrip } from "./TeslaTpmsStrip";
 import { getLocale, getTranslations } from "next-intl/server";
-import { formatKwh, formatOdometer, formatTime } from "@drivechronik/core";
+import { formatKwh, formatOdometer } from "@drivechronik/core";
 import { APP_TIMEZONE } from "../../lib/config";
+import { toIntlLocale } from "../../lib/i18nLocale";
 import { formatRelativeTime } from "../../lib/day";
 import type { OpenSessionStatus, VehicleStatusRow } from "../../lib/dashboard";
 import { IconBadge } from "../../components/ui/IconBadge";
@@ -28,10 +29,26 @@ function socTextColor(soc: number): string {
   return "text-neutral-950 dark:text-neutral-50";
 }
 
+function formatParkingDateTime(
+  value: Date,
+  locale: string,
+): string {
+  return new Intl.DateTimeFormat(toIntlLocale(locale), {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+    timeZone: APP_TIMEZONE,
+  }).format(value);
+}
+
 function statusLine(
   t: VehicleCardTranslator,
   openSession: OpenSessionStatus | null,
   status: VehicleStatusRow,
+  locale: string,
 ): string {
   if (openSession) {
     if (openSession.kind === "driving") return t("vehicleCard.drivingNow");
@@ -48,7 +65,7 @@ function statusLine(
     const parked =
       openSession.since != null
         ? t("vehicleCard.parkedSince", {
-            time: formatTime(openSession.since, APP_TIMEZONE),
+            time: formatParkingDateTime(openSession.since, locale),
           })
         : t("vehicleCard.parked");
 
@@ -66,7 +83,7 @@ function statusLine(
     const parked =
       status.stateSince != null
         ? t("vehicleCard.parkedSince", {
-            time: formatTime(status.stateSince, APP_TIMEZONE),
+            time: formatParkingDateTime(status.stateSince, locale),
           })
         : t("vehicleCard.parked");
 
@@ -182,7 +199,7 @@ export async function VehicleCard({
                 className="shrink-0 text-neutral-400"
               />
               <span className="truncate">
-                {statusLine(t, openSession, status)}
+                {statusLine(t, openSession, status, locale)}
               </span>
             </div>
           </div>
